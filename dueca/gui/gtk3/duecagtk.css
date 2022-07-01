@@ -1,0 +1,18 @@
+.button-altstyle:active {
+    background-color: #FFE007
+}
+.button-altstyle:prelight {
+    background-color: #FFF009
+}
+.button-quitaltstyle:normal {
+    background-color: #FFE007
+}
+.button-quitaltstyle:prelight {
+    background-color: #FFF009
+}
+.button-cfaltstyle:prelight {
+    background-color: #FFE007
+}
+.button-cfaltstyle:normal {
+    background-color: #FFF009
+}

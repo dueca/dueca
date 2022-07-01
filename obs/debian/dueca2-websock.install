@@ -1,0 +1,3 @@
+usr/lib/*/libdueca-websock.*
+usr/lib/*/libdueca-websock-??.*
+usr/lib/*/pkgconfig/dueca-websock*.pc

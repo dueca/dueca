@@ -1,0 +1,112 @@
+# =========================================================================
+#       item            : template Makefile dueca module
+#       made by         : René van Paassen
+#       date            : 010320
+# =========================================================================
+# please use gmake or gnumake
+
+# home of dueca objects, library, include
+CODEGEN =        /usr/local/bin/dueca-codegen
+DUECALIB =         -L/usr/local/lib
+DUECAINC =         -I/usr/local/include/dueca
+
+# compiler definitions
+CPP =                g++
+CPPFLAGS =        -g -c -Wall -D_REENTRANT
+
+CC =                 gcc
+CFLAGS =        -g -c -Wall -D_REENTRANT
+
+# loader definitions
+LD=                ld
+LDFLAGS =        -Ur
+
+
+# include files
+CPPINCL        =        $(DUECAINC) -I../comm-objects
+
+CINCL =         $(CPPINCL)
+
+# for make depend
+CPPINCLMD =         -I/usr/include/g++-3
+
+# =========================================================================
+#
+# EDIT THIS SECTION TO INSERT YOUR SOURCE FILES
+#
+# =========================================================================
+
+# add all c++-files here (.cxx files), except the automatically generated
+# ones
+CPPSRC =
+
+# and all c-files here (.c files)
+CSRC =
+
+# add all the files with the definitions of the generated-types
+DUECATYPES =
+
+# =========================================================================
+#
+# END OF THE USER-ADJUSTABLE SECTION
+#
+# =========================================================================
+
+GENERATED :=         $(shell cat /dev/null $(DUECATYPES) | $(CODEGEN) -f)
+GENERATEDH =         $(GENERATED:.cxx=.hxx)
+GOBJECTS =        $(GENERATED:.cxx=.o)
+CPPOBJ =         $(CPPSRC:.cxx=.o)
+COBJ =                $(CSRC:.c=.o)
+OBJS =                 $(CPPOBJ) $(COBJ) $(GOBJECTS)
+
+# =========================================================================
+#
+#        targets and rules
+#
+# =========================================================================
+
+all : module.o
+
+.depend:
+        touch .depend
+
+%.o : %.cxx
+        $(CPP) $(CPPFLAGS) $(CPPINCL) $(@:.o=.cxx) -o $@
+
+$(GENERATED) $(GENERATEDH): $(DUECATYPES)
+        cat /dev/null $(DUECATYPES) | $(CODEGEN)
+
+%.o : %.c
+        $(CC) $(CFLAGS) $(CINCL) $< -o $@
+
+module.o: $(OBJS)
+        $(LD) $(LDFLAGS) $(OBJS) -o $@
+
+module_fresh: module.o
+
+# =========================================================================
+#
+#        clean up again
+#
+# =========================================================================
+
+clean:
+        rm -f *.o *.x *~ core *.res
+
+mrproper: nodepend
+        rm -f *.o *.x *~ core *.a *.res $(GENERATED) $(GENERATEDH)
+
+depend:
+        g++ -M $(CPPINCL) $(CSRC) $(CPPSRC) $(GENERATED) >.depend
+
+nodepend:
+        cat /dev/null >.depend
+
+# ======================================================================
+#
+#        dependencies
+#
+# ======================================================================
+
+include .depend
+

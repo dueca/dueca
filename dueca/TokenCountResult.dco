@@ -1,0 +1,21 @@
+;; -*-scheme-*-
+(Header "
+        item            : TokenCountResult.dco
+        made by         : Rene' van Paassen
+        date            : 180509
+        description     : Return a count of entry writes/reads
+        copyright       : (c) 2018-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type uint32_t "#include <inttypes.h>")
+
+(Event TokenCountResult
+
+       ;; ID, based on the creation ID issued to a read token, or
+       ;; zero if the count refers to the write token/entry
+       (uint32_t clientid)
+
+       ;; list of counts, for reading or writing
+       (uint32_t count)
+       )

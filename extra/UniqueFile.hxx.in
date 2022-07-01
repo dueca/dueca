@@ -1,0 +1,117 @@
+/* ------------------------------------------------------------------   */
+/*      item            : UniqueFile.hxx
+        made by         : Rene van Paassen
+        date            : 070503
+        category        : header file
+        description     : This is a helper class to create files which are
+                          numbered and unique. Instead of a file name,
+                          a format is given, and the first free
+                          numbered file according to this format is taken.
+        changes         : 070503 first version
+        api             : DUECA_API
+        language        : C++
+*/
+
+#ifndef UniqueFile_hxx
+#define UniqueFile_hxx
+
+#include <fstream>
+#include <exception>
+#include <dueca_ns.h>
+
+#ifndef NAMESPACE_IOS_BASE
+/* Define if ios_base namespace is there */
+#cmakedefine01 NAMESPACE_IOS_BASE
+#endif
+
+#ifndef NAMESPACE_IOS
+/* Define if std::ios namespace is there */
+#cmakedefine01 NAMESPACE_IOS
+#endif
+
+#if NAMESPACE_IOS_BASE
+// no default
+#elif NAMESPACE_IOS
+#define ios_base ios
+#else
+#define ios_base
+#endif
+
+
+DUECA_NS_START
+
+/** Create a numbered, unique, empty, writeable file, according to a format.
+
+    This class is derived from the std::ofstream class. Instead of a
+    file name it accepts a c-style format that should work with a long
+    integer. Opening a new file with that format is attempted, with
+    the integer running from 0 to 999 (1000 unique files). The open
+    method is overridden, for the rest of the methods this class
+    follows the ofstream interface.
+
+    A suggestion for the format might be "myfile%03d.ext". This would
+    produce files with names such as myfile000.ext, myfile001.ext,
+    myfile002.ext etcetera.
+*/
+class UniqueFile: public std::ofstream
+{
+  /** The file name, if opened. */
+  char name[128];
+
+  /** The number that was chosen. */
+  unsigned ordinal;
+
+  /** Overriding but not implementing constructor with file name. */
+  explicit
+  UniqueFile(const char* s,
+             ios_base::openmode __mode = ios_base::out|ios_base::trunc);
+
+  /** A helper function, proposes a file name.
+      \param  fmt        c-style format */
+  const char* fileName(const char* fmt);
+
+public:
+  /** Default constructor, no arguments */
+  UniqueFile();
+
+  /** Open call for a file.
+      \param  fmt        c-style format
+      \param  start_at   counter start for the file name search
+      \param  __mode     file open mode. */
+
+  void open(const char* fmt, unsigned start_at = 0,
+            ios_base::openmode __mode = ios_base::out | ios_base::trunc);
+
+  /** Get the sequence number. */
+  unsigned getOrdinal() {return ordinal;}
+
+  /** Get the file name. */
+  inline const char* getName() {return name;}
+};
+
+
+/** Exception to be thrown by UniqueFile when an error occurs. */
+class UniqueFileError: public std::exception
+{
+  /** String explaining the problem. */
+  const char* reason;
+
+public:
+  /** Copy constructor.
+      \param   e         Original exception. */
+  UniqueFileError(const UniqueFileError& e);
+
+  /** Normal constructor.
+      \param   reason    String explaining the why. */
+  UniqueFileError(const char* reason = "UniqueFile error");
+
+  /** Destructor. */
+  virtual ~UniqueFileError() throw();
+
+  /** Override the "what" of the standard class */
+  const char* what() const throw() {return reason;}
+};
+
+DUECA_NS_END
+
+#endif

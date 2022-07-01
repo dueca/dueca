@@ -1,0 +1,2 @@
+# modify permissions on the control file for cpu latency
+KERNEL=="cpu_dma_latency", OWNER="root", GROUP="rtdueca", MODE="0660"

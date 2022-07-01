@@ -1,0 +1,22 @@
+;; -*-scheme-*-
+(Header "
+        item            : LogLevelCommand.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type LogLevel "#include <LogLevel.hxx>")
+(Type int32_t)
+(Type LogCategory "#include <LogCategory.hxx>")
+
+(Event LogLevelCommand
+       ;; Node in which the command is to be changed
+       (int32_t node)
+       ;; New level
+       (LogLevel level)
+       ;; Which logging category is to follow that level
+       (LogCategory category)
+ )

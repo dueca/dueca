@@ -1,0 +1,250 @@
+/** \page example Simulation example
+
+This section describes a large part of the SpacePlane model simulation
+that has been used as an example in this manual.
+
+This simulation derived from an experiment implemented on the
+Human-Machine Systems lab of the
+\htmlonly <A href="http://www.cs.lr.tudelft.nl/"> Control and Simulation </A> \endhtmlonly
+\latexonly Control and Simulation \endlatexonly
+Division, Faculty of Aerospace Engineering
+The simulation model of the equations of motion of the spaceplane,
+including the control augmentation system, was programmed in one
+Simulink model. Using the Real-Time Workshop (RTW) toolbox, C code was
+generated for this Simulink model. Input of the RTW code are the pitch
+and roll stick inputs, and the output of the code is an output vector
+with all spaceplane motions.
+
+The simulation was controlled with a control loaded side stick. This
+stick uses a hydraulic servo motor to simulate mechanical properties,
+in this case the mechanical properties of a passive (mass, spring and
+damper) stick.
+
+Instrument display was done on a PC with a fast graphics card. The
+display is drawn using the output of the RTW model.
+
+In addition to the display output, output to file was needed. The
+stick force and position data, and the spaceplane model output data,
+were recorded at a 50 Hz rate. Output to the control position of the
+experiment leader was also needed, during the run some key variables
+were shown in a window at the experiment leader's position, and key
+variables at certain points in the experiment (points along the
+pre-defined trajectory) were also shown and recorded. In this way it
+was for example possible to see the sink rate at touch down directly
+after a run.
+
+\section example_flow
+
+Data Flow diagram
+
+\section example_bloks Modules (or Blocks)
+
+The first step in designing the simulation is setting up a (DUECA)
+data flow diagram. This diagram defines the modules used in the
+simulation, and the data (types) they send to each other.
+
+\image html spaceplane.png "DUECA data flow diagram for the spaceplane"
+
+The data flow diagram contains the following blocks:
+<ul>
+
+<li> A module MMSLabStick, which reads the input force on the stick
+(i.e. directly from hardware), calculates the dynamics of the stick
+simulation, outputs the result of this calculation to the stick (to
+hardware), and also sends out stick position and force over a channel.
+
+<li> A module SpacePlane, which reads the stick input (position),
+feeds that to the RTW model, makes an update of the model, and sends
+out the output vector of the model over a channel.
+
+<li> A module DisplaySpace, which reads the spaceplane output vector,
+and draws the instrument display.
+
+<li> A module NumericOutput, which reads the spaceplane output vector
+\em the stick position and force data, and prints these to a file.
+
+<li> A module Evaluator, which reads the spaceplane output vector,
+calculates the deviation from the nominal path and presents this and a
+few other key variables in a window.
+</ul>
+
+These are all the modules that are needed from a model
+point-of-view. One other module is added for practical reasons. As
+will be explained in the following, the stick control loading and the
+spaceplane model run on different computers. The control loading has
+to run at a high update rate (2000 Hz), and it also produces data at
+2000 Hz. The spaceplane model runs slower (50 Hz), and thus it needs
+every 40th output of the control loading model. Now, without
+modifications, DUECA would send the stick data at 2000 Hz to the other
+computers, where only 1/40 th of this data would be used. An
+additional routine, called RateReduction, which runs in the computer
+with the stick module, reads the stick data and writes with only 50
+Hz.
+
+\section example_communicate Data types communicated over channels
+
+The following model-related data types were communicated over the channels:
+<ul>
+<li> PrimaryControls, a class that contains all data from the side
+stick.
+<li> SpacePlaneY, the output vector of the space plane.
+<li> DisplaySelect, the selected display.
+</ul>
+
+Here is the file input for the code generator:
+\verbatim
+(Type double)
+
+(EventAndStream PrimaryControls
+        (double stick_roll )
+        (double stick_pitch )
+        (double roll_moment)
+        (double pitch_moment)
+        (double roll_rate)
+        (double pitch_rate))
+
+(EventAndStream SpacePlaneY
+        (double Y 29 ))
+
+(Type int )
+(Event DisplaySelect
+        (int type ))
+\endverbatim
+
+\section example_code Header and implementation files
+
+Here are all header and implementation files for the modules.
+
+<ul>
+<li> First the stick input:
+
+     \include MMSLabStick.hxx
+
+     \include MMSLabStick.cxx
+
+     These files use an auxiliary class PassiveStick, which is not
+     included in this manual. Since the HardwareModule class is not
+     complete yet, this uses the SimulationModule class.
+
+<li> The rate reduction class, which simply reads in the stick input
+     and writes it back again. By specifying an update rate for its
+     activity, it assures itself of reading only at the proper times,
+     and writing with the proper TimeSpec.
+
+     \include RateReduction.hxx
+
+     \include RateReduction.cxx
+
+<li> The space plane module.
+
+     \include SpacePlane.hxx
+
+     \include SpacePlane.cxx
+
+     This module's calculations are based on a model that was
+     implemented in SimuLink and converted with Real-Time
+     Workshop. For the conversion you should specify the "real time
+     malloc" option, this will enable the code to start up several
+     instances of the same model in one program. A script called
+     "correctSimulink", which is installed with the DUECA program,
+     makes some small corrections to the generated Simulink code. Run
+     this once on the RTW files.
+
+<li> The numeric output module.
+
+     \include NumericPlaneOutput.hxx
+
+     \include NumericPlaneOutput.cxx
+
+<li> The evaluator shows a window on the screen of the experimenter's
+     PC, with current values and overview values. The windowing
+     toolkit that is used is gtk+. With a GUI designer glade, it is
+     easy to draw such a window. A few callback functions (which must
+     have a "C" linkage specification) are written to handle the
+     events from the interface.
+
+     \include Evaluator.hxx
+
+     \include Evaluator.cxx
+
+</ul>
+
+You see that there is certainly some code writing in making a
+module. Fortunately, most of the code can be generated by the script
+"newModule". This script is installed with the dueca program. Run it
+with the name of your new module (e.g. MyModule), and it will produce
+a MyModule.cxx and a MyModule.hxx file. The comments in these files
+should guide you with the job of tailoring the module to your
+application.
+
+\section example_model Model configuration file.
+
+The example simulation runs on 3 PC's, connected with fast
+ethernet. The division of modules over the PCs is as follows:
+
+<ul>
+<li> Node number 0 is the experimenter's PC. DUECA runs all
+administrative duties, and also reads the model data from the
+dueca.mod file, on node number 0. The following modules are
+implemented here:
+<ul>
+<li> The space plane module
+<li> The numeric output module
+<li> The evaluator module.
+</ul>
+
+<li> Node number 1 is the control loading PC, running QNX. This PC
+does the control loading simulation, and it runs the rate reduction
+module. Since this is the fastest-running PC (cycle-time wise), it is
+the clock master.
+
+<li> Node number 2 is the display PC. It only runs the display
+module.
+</ul>
+
+Scheme is a full-fledged programming language, and therefore the model
+configuration file in fact contains a simple program. To make life a
+bit easier, we can define often-used variables in the model
+configuration file as Scheme variables. That is what this first part
+of the configuration file does:
+\dontinclude dueca.mod
+\skip document
+\until feedback-timing
+
+Dueca itself also needs some modules. Here they are:
+\skip itself
+\until )))
+
+And then the modules for the spaceplane are created.
+\skip spaceplane
+\until complete
+
+Notice the use of the "if (equal? this-node-id cl-node)" construction. All
+modules defined within the if statement are designated for that
+node. If this is not used, the modules will be created in all nodes in
+parallel, and this would certainly give channel conflicts.
+
+*/
+
+<code>
+tud0034882:dapps repa$ dueca-project new SpacePlane
+</code>
+
+<code>
+tud0034882:SpacePlane repa$ dueca-project borrow-module Generic/multi-stick
+</code>
+
+<code>
+tud0034882:SpacePlane repa$ dueca-project new-module space-plane
+</code>
+
+<code>
+tud0034882:space-plane repa$ new-module rtw88 SpacePlane
+Give the name of the RTW model (must be different!):  : spaceplane
+A description for the activity:  : update dynamics
+Generate xml parsers (and integrate into module)? [Y/n]:  : n
+</code>
+
+<code>
+tud0034882:space-plane repa$ dueca-project add-source SpacePlane.?xx
+</code>

@@ -1,0 +1,2886 @@
+===========================================================================
+        DO NOT ADD TO THIS FILE (ChangeLog.old) ANY MORE
+
+        The rest (newer portions) of the ChangeLog file are generated
+        from the svn log. The portions below were hand-generated, and
+        are retained to keep a more-or-less consistent history.
+===========================================================================
+
+2009-02-13  Rene van Paassen  <M.M.vanPaassen@tudelft.nl>
+
+        * scripts/data/default/dueca.cnf: Added some handy tests for
+        kernel version/ OS version, to adjust syncing and output packet
+        size
+
+2009-02-06  Rene van Paassen  <M.M.vanPaassen@tudelft.nl>
+
+        * configure.in: new version 0.14.5
+
+        * Makefile.am (svn-tag): created a separate script for svn
+        tagging, makes the makefiles more portable
+
+        * dueca/Ticker.cxx (Ticker::getParameterTable): moved
+        granularity_correction to the class members, and added an option
+        to modify it ("aim-ahead"). It needed to be set to 0 to get good
+        performance on PREEMPT_RT. Timing is excellent now!!!
+
+2009-02-03  Rene van Paassen  <M.M.vanPaassen@tudelft.nl>
+
+        * dueca/dueca-guile.h: removed stuff I tried for RTAI (running
+        threadless guile), since it blew up under -O2 compilation
+
+2009-01-30  Rene van Paassen  <M.M.vanPaassen@tudelft.nl>
+
+        * configure.in: version 0.14.2
+
+        * scripts/dueca-config.in: re-modeled, to use
+        pkg-config for the real-time workshop libraries
+
+        * rtwv70/dueca-rtw-7.0.pc.in: adding pkg-config support for the
+        different real-time workshop libraries
+
+2009-01-23  Rene van Paassen  <M.M.vanPaassen@tudelft.nl>
+
+        * configure.in: version 0.14.1
+
+        * dueca.spec.in (Requires): removed rtw packages
+
+        * dueca-rtw.spec.in: new file for compilation of all rtw library
+        packets.
+
+        * configure.in: splitting out rtw compilation. rtw is no longer
+        default, and it is now possible to compile only the rtw versions.
+        Reduced compilation time and no longer repeated installation of rtw
+
+2009-01-16  Rene van Paassen  <M.M.vanPaassen@tudelft.nl>
+
+        * dueca/ActivityManager.cxx: added xenomai through posix. Still
+        need to verify run modes (domain, mainly) of the threads, and add
+        switch to primary domain for Xenomai scheduled threads.
+
+        * dueca/Environment.cxx: added Xenomai through posix skin. Very
+        important to specify a stack size that allows normal dueca
+        running, default Xenomai stack way too small for this.
+
+        * configure.in: added option for xenomai
+
+        * dueca/StateGuard.cxx: added xenomai options, and a delayed
+        start-up, will use actual locks when told to run
+        multi-thread. Same for Condition and ThreadSpecific
+
+        * dueca/gui/gtk/Makefile.am (INCLUDES): corrected a bunch of
+        Makefiles, so that out-of-tree builds work. Basically, indicate
+        the include paths with $(top_srcdir)
+
+2008-12-08  Rene van Paassen  <Rene.vanPaassen@gmail.com>
+
+        * dueca/StateGuard.cxx: added the lxrt header everywhere I could
+        find pthread headers.
+
+        * scripts/data/GenericStart: removed the /usr/local/bin paths
+        experimental stuff, making this more powerful added optional
+        command, added pre-run script calling
+
+        * configure.in: version 0.13.45
+
+        * dueca/CoreCreator.ixx: Was generating gcc 4.3 option also on gcc
+        4.2.1, which failed! Corrected.
+
+2008-12-05  Rene van Paassen  <Rene.vanPaassen@gmail.com>
+
+        * configure.in: version 0.13.44
+
+        * dueca.spec.in (Requires): split off glui-devel, modified req
+
+2008-11-29  Rene van Paassen  <Rene.vanPaassen@gmail.com>
+
+        * configure.in: version 0.13.42, fixes for doc building
+
+2008-11-28  René van Paassen  <repa@pascua.localdomain>
+
+        * dueca/CoreCreator.ixx: make provisions for gcc 4.3
+        * configure.in: version 0.13.42
+
+2008-11-27  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.37, fixes for gcc 4.3 and ubuntu
+
+2008-10-22  Rene van Paassen  <M.M.vanPaassen@TUDelft.nl>
+
+        * configure.in: version 0.13.26
+
+        * dueca.spec.in: Added tests + flags, to build with RTAI (LXRT)
+        support on opensuse 10.3, Fedora 6 x86_64 and Fedora 8
+
+2008-08-28  Paassen  <rvanpaassen@TUD102004.tudelft.net>
+
+        * dueca-alt2.spec.in (CFLAGS): fix to get good libdir paths
+
+2008-08-25  Paassen  <rvanpaassen@TUD102004.tudelft.net>
+
+        * configure.in: version 0.13.32
+
+        * dueca-alt2.spec.in: fixes, making the version part of prefix
+
+2008-08-08  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: fixed dueca-alt2.spec.in, version 0.13.31
+
+2008-08-07  Paassen  <rvanpaassen@TUD102004.tudelft.net>
+
+        * configure.in: version 0.13.30
+
+        * dueca/Dstring.cxx: Added an 8-byte string
+
+2008-08-03  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca.spec.in (Requires): removing requirement on exact DUECA
+        version.
+
+2008-05-08  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * scripts/data/default/SimulationModuleTemplate.hxx: removed the
+        cvs id string from the templates.
+
+2008-07-14  Paassen  <rvanpaassen@TUD102004.tudelft.net>
+
+        * dueca-alt.spec.in (CFLAGS): updated spec file to be in line with
+        main spec file
+
+2008-07-11  Paassen  <rvanpaassen@TUD102004.tudelft.net>
+
+        * configure.in: version 0.13.28
+
+        * codegen/CodeGen.cxx (PrintPart1): moved the check of array size
+        against compiled-in size to the .cxx files; this prevents clashes
+        when using e.g. multiple rtw model header files
+
+        * codegen/ArraySize.hxx (class ArraySize): changed name of
+        function printDeclaration to printCheck
+
+2008-06-27  Paassen  <rvanpaassen@TUD102004.tudelft.net>
+
+        * configure.in: version 0.13.27
+
+        * rtwv70/src/Makefile.am (lib_LTLIBRARIES): rt_logging included
+        twice, produced build errors
+
+        * configure.in: version 0.13.26. Added rtwv70 directory with
+        real-time workshop 7.0 libraries and headers
+
+2008-04-07  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca/GuiHandler.cxx (addInitHook): Add asserts to check that
+        gui hooks are entered on time, and processed before cyclic running
+        starts.
+
+        * dueca/Environment.cxx: removed unneeded glut headers
+
+2008-04-02  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.25
+
+        * dueca-alt.spec.in: Brought in line with dueca.spec.in
+
+2008-04-01  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * scripts/data/default/dueca.cnf: Changed commbuff-size to
+        combuff-size
+        * configure.in: version 0.13.24
+
+2008-03-19  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.22
+        had to fix the variables for dueca-config to point to the new lib
+        and include directories
+
+        * dueca.spec.in: moved prefix to builtin prefix and install 64 bit
+        libraries in _libdir. Needed because openSUSE does not accept 64
+        bit code in /usr/lib
+
+2008-03-14  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * extra/Makefile.am: Added StringUtils.[ch]xx
+        * extra/StringUtils.hxx: Handy string utility functions
+        * extra/StringUtils.cxx: Handy string utility functions
+
+2008-03-07  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * dueca/CoreCreator.ixx: Removed template specialization for const char*
+        * dueca/ScriptCreatable: Added to DUECA_API docs. Added link to
+        MemberCall2Way, where the implementation of ScriptCreatable is explained
+
+2008-03-07  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * configure.in: version 0.13.21
+
+        * dueca/CoreCreator.hxx: Added functionality for objects created by
+        CoreCreator to have constructor arguments
+        * dueca/CoreCreator.ixx: New file: moved implementation from
+        CoreCreator.hxx to CoreCreator.ixx
+
+2008-03-07  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca/MultiStreamChannel.cxx (setChannelDepth): made channel
+        depth adaptable, so that the maximum depth specified in any of the
+        tokens (locally) is adopted.
+
+        * dueca/StreamReaderLatest.hxx (class StreamReaderLatest): add a
+        second constructor, more compatible with the StreamReader constructor
+
+2008-03-05  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * scripts/data/default/DuecaHelperTemplate.hxx: Fixed unbalanced comment
+
+2008-02-29  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * doc/simulink.doc: Updated XmlSnapshot section, added section header
+        * scripts/data/default/HardwareModuleTemplate.hxx: Fixed unbalanced
+        C-style comment for function isInitialPrepared()
+        Changed isPrepared() body to new check macros
+
+2008-02-22  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * rtwparser/rtwsyntax.yxx (keywords): added null actions, since
+        the rh9 bison parser choked here.
+
+2008-02-20  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.19
+
+2008-02-20  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * codegen/Inherits.cxx: Made name parser more robust: now also
+        correctly parses ranges of uppercase letters and digits
+
+2008-02-15  Rene van Paassen  <repa@>
+
+        * configure.in: version 0.13.18
+        * dueca.spec.in: openSUSE build dependencies
+
+2008-02-14  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * configure.in: version 0.13.17
+        * dueca.spec:Added new files to DUECA specfile
+        * Makefile.am: Added new files to Makefile
+        * doc/simulink.doc: Added documentation for XmlSnapshot functionality
+        * dusime/Makefile.am: Added RTWModule
+        * dusime/RTWModule.cxx: Added: RTWModule implements XmlSnapshot functionality
+        * dusime/RTWModule.hxx: Added: RTWModule implements XmlSnapshot functionality
+        * dusime/Snapshot.cxx: Added XmlSnapshot
+        * dusime/Snapshot.hxx: Added XmlSnapshot
+        * dusime/dusime.h: Added include RTWModule.hxx
+        * rtwparser/BaseObject.cxx: RTW header parser element
+        * rtwparser/BaseObject.hxx: RTW header parser element
+        * rtwparser/Makefile.am: RTW header parser Makefile
+        * rtwparser/NamedStruct.cxx: RTW header parser element
+        * rtwparser/NamedStruct.hxx: RTW header parser element
+        * rtwparser/TypeNameDef.cxx: RTW header parser element
+        * rtwparser/TypeNameDef.hxx: RTW header parser element
+        * rtwparser/rtwgrammar.l: RTW header parser lex grammar
+        * rtwparser/rtwparser.cxx: RTW header parser
+        * rtwparser/rtwparser.hxx: RTW header parser
+        * rtwparser/rtwsyntax.yxx: RTW header parser BISON syntax
+        * rtwparser/templates/xmlload.m: MATLAB xml load template
+        * rtwparser/templates/xmlloader.cxx: xml loader template
+        * rtwparser/templates/xmlloader.hxx: xml loader template
+        * rtwparser/templates/xmlsave.m: MATLAB xml save template
+        * scripts/dueca-config.in: Added --xml flag for libtinyxml
+        * scripts/new-module: Added option for RTW module with XML snapshot functionality
+        * scripts/data/MakefileTail.mod.in: Makefile now keeps track of changes in RTW module to update generated XML reader
+        * scripts/data/default/Makefile.am: Modified to include new files
+        * scripts/data/default/Simulink6Makefile: Replaces Simulink6{x}Makefile
+        * scripts/data/default/Simulink61Makefile: Removed
+        * scripts/data/default/Simulink64Makefile: Removed
+        * scripts/data/default/Simulink65Makefile: Removed
+        * scripts/data/default/Simulink6Template.cxx: Added
+        * scripts/data/default/Simulink6Template.hxx: Added
+        * scripts/data/default/Simulink61Template.cxx: Moved to Simulink6Template.cxx
+        * scripts/data/default/Simulink61Template.hxx: Moved to Simulink6Template.hxx
+        * scripts/data/default/Simulink6TemplateXml.cxx: Added: Implements xml snapshot functionality, module derives from RTWModule
+        * scripts/data/default/Simulink6TemplateXml.hxx: Added: Implements xml snapshot functionality, module derives from RTWModule
+        * scripts/data/default/Simulink6Test.cc: Added
+        * scripts/data/default/Simulink61Test.cc: Moved to Simulink6Test.cc
+
+2008-01-29  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.16
+
+        * codegen/CodeGen.cxx (ASSIGNMENT_DEC): added the assignment
+        operator to the generated code. Also added equality/inequality to
+        the event types.
+
+2008-01-14  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * doc/codegenerator.doc: Added documentation for codegen Inherits
+        functionality
+        * codegen/Inherits.cxx: Changed name parser to replace underscores
+        with hyphens
+2008-01-11  Joost Ellerbroek  <joost@LRLSCS59.lr.tudelft.nl>
+
+        * configure.in: First release for 2008, 0.13.14
+
+2008-01-11  Joost Ellerbroek <j.ellerbroek@tudelft.nl>
+        * codegen/parser.yxx: Modified to implement Inherits
+        * codegen/tokens.l: Modified to implement Inherits
+        * codegen/CodeGen.cxx: Modified to implement Inherits
+        * codegen/CodeGen.hxx: Modified to implement Inherits
+        * codegen/TypeNameDef.hxx: Added method to retrieve comments
+        * codegen/Makefile.am: Added Inherits.[ch]xx to list of targets
+        * codegen/Inherits.cxx: Initial version, implements inheritance for script created objects
+        * codegen/Inherits.hxx: Initial version, implements inheritance for script created objects
+2007-12-13  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: Thursday the 13, version 0.13.13 !
+
+        * dueca/MStreamEntry.cxx (cleanData): Modified, to leave at least
+        two values in an entry, so that differential pack is
+        possible. Maarten Tielrooij encountered this bug
+
+2007-11-28  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: 0.13.12
+
+        * dueca/gui/gtk/Makefile.am (libdueca_gtk_la_SOURCES): corrected
+        dependency
+
+2007-11-27  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.11
+
+        * dusime/HardwareModule.cxx (processEntityCommands): corrected
+        this and other modules to check token validation
+
+        * dueca/GenericToken.cxx (checkIn): changed order of adding token
+        to channel and role requesting, to enable token validation of
+        locally created channels.
+
+2007-11-23  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.10
+
+        * dueca/GenericToken.hxx (class GenericToken): I had an assert in
+        verifyTokenValid, as a debugging option, to strictly enforce token
+        isValid checking. This erroneously shipped as such. Have removed
+        the assert and provided a more gentle warning.
+
+2007-11-16  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: 0.13.9
+
+        * extra/GLSweeper.hxx: Refactored from GlutSweeper. Accepts a
+        protocol helper that currently is available for glut and for
+        glui.
+
+        * dueca.spec.in (BuildRequires): Added glui for fc5 and up
+
+2007-11-10  Rene van Paassen  <repa@pascua.localdomain>
+
+        * extra/gui/glut-gui/GlutGuiSweeper.cxx: Added stuff for
+        glui. Working glut-gui-sweeper, options in dueca-config, libraries
+        for startup and for DuecaGLWindow support.
+
+2007-11-09  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * extra/OpenGLHelper.hxx (class OpenGLHelper): correction, to
+        enable openGlSweeper detection
+
+        * extra/gui/glut/GlutSweeper.hxx: updated comments on usage
+
+2007-10-24  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca/SimStateRequest.dco: documentation fix
+
+        * dueca/GenericToken.hxx (class GenericToken): Made a strict
+        requirement that tokens MUST BE CHECKED with isValid(), before
+        they can be used. This might break some old code.
+
+2007-09-30  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.6
+
+        * dueca/gui/common/GtkGladeWindow.hxx (class GtkGladeWindow):
+        Added position and size control.
+
+2007-09-25  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.5, merged stream updates with main trunk
+
+2007-09-21  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.13.4
+
+        * dueca/Summary.cxx (Summary): Correction, had erroreously
+        inserted last name component always in multi-name paths
+
+        * dueca/StreamChannel.cxx (getReadAccess): corrected check on data
+        timing. In the previous versions, read access could be granted
+        for data with a validityEnd equal to the validityStart of the time
+        spec. Now validityStart must be < validityEnd.
+        Extra: added throw specifications
+
+2007-09-17  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca/ActivityManager.cxx: corrections, needed for QNX
+
+        * dueca/MultiStreamReadToken.hxx: improved documentation on access
+
+        * configure.in: version 0.13.3
+
+        * dueca.spec.in (BuildRequires): automake no longer standard in
+        build environments?
+
+        * Makefile.am (svn-tag): attempt to copy current dir/variant
+        instead of a copy of the current trunk
+
+        * dueca/ReflectiveAccessor.cxx (handleControlWrite): added code to
+        recover when interrupt location is read erroneously
+
+        * dueca/StreamChannel.cxx (StreamChannelEnd): overhaul, will this
+        resolve SIMONA problems?
+
+2007-09-04  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.47
+
+        * dueca/AmorphStore.hxx (class AmorphStore): packData(const char&)
+        added
+
+2007-07-20  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.40
+
+        * dueca/gui/gtk/ActivityView.cxx (endif): needed weaver
+        initialisation to get activity information out on the gtk version
+
+        * configure.in: version 0.12.39
+
+        * dueca/LogMessage.dco: added formatted print method
+
+        * dueca/gui/gtk2/LogView.cxx (doCalculation): Added print to a
+        file for the message log
+
+        * dueca/Logger.cxx (InformationStash): had created the possibility
+        to de-couple sending and assembling logpoint information, but had
+        not actually enabled it!
+
+2007-07-19  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: Version 0.12.38. The remarks below might seem
+        cryptic to the uninitiated. The symptom was a lock-up of dueca in
+        the HMI laboratory, after initially connecting and then trying to
+        run at full speed. The problem there was in the new logging code,
+        as log macros (D_, I_, E_, W_ etc) are encountered, basic
+        information on these is sent to the #0 node. However, the sending
+        of basic information encountered log macros (bla bla), and because
+        this needed a thread lock, a recursive lock blocked the
+        thread. Therefore sending and assembling the information has now
+        been de-coupled. Translation: I hope I fixed the problem.
+
+        * dueca/InformationStash.ixx: modified, to enable a version that
+        needs to be emptied by external calls.
+
+        * dueca/LogConcentrator.cxx (initialise): added "manual" emptying
+        of the logger stash. Sending events in logger stash needed
+        locking, but the sending code encountered new logging messages
+        that were again added to the logger stash.
+
+2007-07-17  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.36
+
+        * dueca/gui/gtk2qt/GtkQtHandler.hxx: new class, derived from
+        gtkhandler, for qt interfaces added to gtk2 base interfacing
+
+        * dueca-demo.spec.in: added option/files for gtk2&qt combination
+
+2007-06-20  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.33
+
+        * dueca/LogConcentrator.cxx: Modified to print error messages
+        immediately in creating thread, to prevent messages - especially
+        at start up - not being printed before the program exits or crashes
+
+2007-06-18  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * extra/gui/gtk2/GtkOpenGLHelper.cxx (initGtkGLext): modified to
+        listen to depth and stencil buffer arguments from environment
+
+        * dueca/gui/glut/GlutHandler.cxx (init): modified to listen to
+        depth and stencil buffer arguments given in environment
+
+        * configure.in: version 0.12.32
+
+        * dueca/IPMulticastAccessor.cxx: corrections to port_re_use option
+
+        * configure.in: new test scramnet libraries
+
+2007-06-15  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * codegen/parser.yxx: T_Default declared twice
+
+        * dueca/AmorphStore.cxx (packData): corrected sin against strict
+        aliasing rules
+
+        * configure.in: version 0.12.29
+
+        * dueca/IPAccessor.cxx (setForCleaningRound): added clearing of
+        the i_missed_data flag for node 0 cleanup round. Might have been
+        responsible for communication breakdown
+
+        * scripts/data/default/dueca.cnf: defaulting bulk unpack prio
+        level to 1
+
+2007-06-06  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.28
+
+        * dueca/MStreamEntry.cxx (accessData): bugfix, used a null pointer
+        to determine channel id
+
+2007-05-30  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.25
+
+        * dueca/MStreamEntry.hxx (class MStreamEntry): specification of
+        throw() in accessData was wrong
+
+2007-05-21  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.23
+
+        * dueca-demo.spec.in (CFLAGS): brought in line with normal
+        dueca.spec.in
+
+2007-05-14  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.21
+
+        * extra/FindFiles.hxx: Added a new helper class for
+        finding/listing files with glob pattern.
+
+        * dueca/IPMulticastAccessor.cxx (getParameterTable): Added an
+        option for port re-use. Is by default disabled in non-test builds.
+
+        * configure.in: added an evaluation license, not time-limited, but
+        with message
+
+2007-05-03  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.20
+
+        * extra/UniqueFile.hxx (class UniqueFile): A helper class, can
+        create files in a numbered series. This to facilitate logging.
+
+2007-04-20  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca/PeriodicAlarm.hxx (class PeriodicAlarm): Added a
+        constructor without arguments that ticks at the rate of the main
+        clock.
+
+2007-04-13  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.19
+
+        * dueca/debug-direct.h: new header file to collect the old style
+        logging        code. It is called by debug.h when appropriate, and
+        directly in a few DUECA files, to prevent lock-ups.
+
+        * dueca/ActivityManager.cxx: modified to not use the new logging
+        code; that code locks up on creation
+
+        * configure.in: version 0.12.18
+
+        * scripts/dueca-project (listVersions): defaulting to gtk2
+
+2007-04-11  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.17
+
+        * dueca/LogConcentrator.cxx (LogConcentrator): defaulting to 100
+        messages per logpoint/period now
+
+2007-04-08  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca/ActivityDescriptions.cxx (AcceptNewDescription):
+        refinement in writing dueca.activities file
+
+        * configure.in: 0.12.16
+
+        * extra/gui/fltk/InitDuecaExtraFltk.cxx: corrected, to enable
+        gtk+fltk combination again.
+
+2007-04-07  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dueca/newlog.hxx: cleaned up error messages mess. Now all levels
+        follow defines in the files, except error, which is always on
+
+        * dueca/LogString.hxx: increased log string size to 226 chars
+
+        * dueca/LogConcentrator.cxx (print): shortened printing of error
+        messages to a single line again
+
+        * extra/gui/glut/GlutSweeper.cxx (complete): made the
+        initialisation of glut conditional; needed since the glut
+        initialisation is also done for gtk variants, since some projects
+        use glut utility functions, and glut nowadays needs to be
+        initialised for these
+
+2007-03-21  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * dusime/gui/gtk2/DusimeController.cxx (isPrepared): Added a
+        snapshot button and the associated actions. Note that at present
+        no-one is reading the channel with produced snapshots
+
+        * dueca/ActivityManager.cxx (doActivities0): modified, to log the
+        appropriate activity (graphics update) with error messages
+        included in graphics callbacks.
+
+2007-03-09  Rene van Paassen  <repa@lrlscs29.lr.tudelft.nl>
+
+        * configure.in: version 0.12.11
+
+        * dueca-alt.spec.in: typo in file list
+
+2007-02-19  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.12.10
+
+        * rtwv65/dsp_toolbox/include/version.h: some corrections, to
+        enable linking
+
+        * dueca/newlog.hxx (D_MOD): re-enabled compiling source with D_MOD
+        or I_MOD defined before including debug.h
+
+2007-02-09  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.12.9
+
+        * scripts/dueca-config.in (dueca_fltk_cflags): re-arranged the
+        order of libraries for rtw65
+
+2007-02-08  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.12.7
+        And version 0.12.8; had to add more dsp_toolbox files
+
+        * rtwv65/dsp_toolbox/Makefile.am (SUBDIRS): added the
+        implementation code for the dsp_toolbox
+
+        * dueca/EventAccessToken.hxx (class EventChannelReadToken): add a
+        callback function to all token creations. The callback function is
+        called when token is valid.
+
+        ALSO NOTE BEWARE: the EventChannelWriteToken silently ignored
+        written events before the token was valid. Now it throws an Exception!
+
+        * scripts/data/default/Simulink61Template.cxx (doCalculation):
+        protect the UpdateContinuousStates with a test on NCSTATES
+
+2007-02-06  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.12.6
+
+        * dueca.spec.in: selecting new logging code
+
+        * configure.in: version 0.12.5
+
+        * scripts/data/default/Makefile.am (pkgdata_DATA): add default
+        test makefile for rtw 6.5
+
+2007-01-31  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.12.4
+
+        * scripts/data/MakefileTail.app (all): Add an optional EXTRALIBS2,
+        for libraries to be included after all dueca libraries
+
+        * configure.in: version 0.12.3
+
+        * dueca/gui/gtk2/LogViewGui.cxx (open): GtkCellRendererCombo not
+        defined for all gtk2. As a workaround, removed capacity for
+        changing log levels on those Gtk versions. It looks as if this
+        affects Fedora Core 3 and older.
+
+2007-01-30  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.12.2
+
+        * dueca/Logger.hxx: A Logger class now handles the logging with
+        the D_MOD, I_MOD, W_MOD, E_MOD etc. macros. The logging is
+        automatically extended with additional information, such as file
+        name and number, node number, activity manager (if applicable),
+        activity (if applicable) and module corresponding to that activity
+        (again, if applicable). The occurrences of messages is also
+        counted and stored in the information; a maximum count per 0.2
+        seconds limits the number of log messages, to prevent choking
+        machines and communication with logs.
+
+        * dueca/gui/gtk2/LogView.hxx (class LogView): A new LogView
+        default module, that collects all log messages from all dueca
+        nodes, and shows these in a gtk2 (a gtk 1.2 version is also
+        available) windows. A set of controls for real-time modification
+        of the log level is also available
+
+        * dueca/LogConcentrator.hxx (class LogConcentrator): new class,
+        that assembles all log messages and sends these to a central
+        point, if such a point is present.
+
+        * doc/default-modules.doc: A new file, describing the scheme
+        semantics of the "default" modules in dueca.mod
+
+2007-01-25  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.12.1
+
+        * rtwv65: added library files, + code for inclusion of rtw 6.5
+        models
+
+        * configure.in: version 0.12.0. These versions will not
+        collaborate with a 0.11.x version, that is the reason for the step
+        to 12
+
+        * dueca/StreamAccessToken.hxx (StreamChannelReadToken): Modified,
+        to make the channel depth only dependent on the writing
+        end. Previous implementation had a bug, in that the first declared
+        channel depth (might have been from a reading token) was accepted.
+
+        * dueca/SchemeInterpret.cxx (readBasicConfiguration): removed line
+        restriction on dueca.mod, dueca.cnf. Lines that were too long
+        caused un-ending while loop.
+
+        * dueca/ChannelManager.hxx (class ChannelManager): removed class +
+        ref to RequestLocalChannel
+
+2007-01-18  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.109
+
+        * rtwv64/libsrc/rt_tdelayacc.c (utMalloc): small correction
+
+        * configure.in: version 0.11.108, after additional corrections rtw
+        6.4
+
+2007-01-16  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.107
+
+        * dueca.spec.in (CFLAGS): added rtw 6.4
+
+        * scripts/dueca-config.in (OPTION): added rtw version 6.4
+
+2007-01-15  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/StreamChannel.cxx (StreamChannelEnd): removed double
+        "delete"
+
+2007-01-12  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/dueca-config.in (OPTION): corrected typo rtw options
+
+        * configure.in: version 0.11.106
+
+        * extra/OpenGLHelper.hxx (class GLWindowHelper): adjustments, so
+        that the getWidth and the getHeight functions work during GL
+        initialisation. Thanks to Herman for the bug report.
+
+2007-01-11  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/dueca.h (CHECK_TOKEN): added () around macro argument, so
+        de-referenced pointers can also be checked
+
+        * configure.in: version 0.11.105
+
+        * extra/RigidBody.cxx (applyBodyForce): remove debug output (Olaf)
+
+        * configure.in: version 0.11.104
+
+        * dueca/IPAccessor.cxx (setPacker): corrected uninitialised
+        checking bool (André)
+
+2006-12-12  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.102
+
+        * dueca/gui/gtk2/TimingView.cxx: add closing NULLs to callback table
+
+        * dueca/IPBroadcastAccessor.cxx: Fix spelling mistake in
+        arguments, addres -> address
+
+2006-11-27  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.101
+
+        * dueca/ReflectiveAccessor.cxx: converted assert on control write
+        location into warning
+
+        * dueca/ScramNetAccessor.cxx (complete): added clearing of ACR
+        memory, uncleared ACR memory (and the possibility of an interrupt
+        write at an unexpected location) is a suspect in mysterious
+        crashes of new image generator.
+
+2006-11-17  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/AmorphStore.cxx (unPackData): corrected from ntohl to ntohll!
+
+2006-11-16  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/AmorphStore.hxx (packData): restoring the char* pack and
+        unpack method. It was used after all, in Dstring. Without the
+        char* method, implicitly the bool method is used, and strings got
+        packed wrong.
+
+2006-11-14  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.94
+
+        * dueca/AmorphStore.cxx (unPackData): removed methods,
+        pack/unpack for char*
+
+2006-11-13  René van Paassen  <repa@pascua.localdomain>
+
+        * dueca/AmorphStore.cxx (packData): Had a problem with strict
+        aliasing (gcc 4.1.1). Converted the double and float pack and
+        unpack to a neater implementation, with unions.
+        See
+        http://www.cellperformance.com/mike_acton/2006/06/understanding_strict_aliasing.html
+
+2006-11-10  René van Paassen  <repa@pascua.localdomain>
+
+        * dueca/Entity.cxx (make_object): small guile change
+
+        * dueca/CreationCenter.cxx (modify_module): small guile changes
+
+        * dueca/CoreCreator.hxx (CoreCreator): some guile efficiency added
+
+        * dueca/dueca-guile.h: adapted to also handle guile 1.8
+
+2006-11-09  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * codegen/TypeDef.cxx (TypeDef): added a check on "dangerous"
+        types long, unsigned long, etc. and size_t, since these differ on
+        64bit and 32bit platforms
+
+        * dueca/ScramNetAccessor.cxx (complete): corrections to QNX
+        version; mode selection
+
+2006-11-08  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.92 version
+
+        * dueca.spec.in (BuildRequires): add a requirement for tetex-latex
+        on fc5??
+
+2006-11-03  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.90
+
+        * dueca/StatusKeeper.hxx (class StatusKeeper): Added a default
+        parameter in second place, to not break StateChanger module
+
+2006-11-01  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/gui/gtk/TimingView.cxx (readReport): changed to use
+        snprintf. Probably faster and less memory alloc problems
+
+        * scripts/data/MakefileTail.mod (CPPINCL): also put user-supplied
+        includes first
+
+2006-10-31  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.87
+
+        * scripts/data/MakefileTail.app (all): Changed the order of
+        extralibs/duecalibs include, so a user can override with a library
+        of his/her preference.
+
+2006-10-18  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.84
+
+        * scripts/data/GenericStart: corrected error in GenericStart script
+
+2006-10-06  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.82
+
+        * dusime/Snapshot.cxx (allocData): removed unnecessary path
+
+2006-10-05  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dusime/Snapshot.hxx (class Snapshot): correction, to enable
+        compatibility with 64 bit machines
+
+2006-10-02  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.81
+
+        * dueca/gui/gtk2/GtkDuecaView.cxx: Changed the order of Module and
+        DuecaView inheritance. From Module; hard casts are being made to
+        insert the parameters, and thus it needs to go first. Same for the
+        gtk version. Also cleaned up attempts to feed back info when
+        entities or nodes lists are not present.
+
+2006-09-08  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.80
+
+        * dueca/ScramNetAccessor.cxx (complete): added variable csr2 mode
+        for run-time scramnet mode selection
+
+        * dueca/ReflectiveAccessor.cxx (ReflectiveAccessor): Converted to
+        CoreCreator use for descendent classes, corrected inheritance in
+        Scheme.
+
+        * dueca/ShmAccessor.hxx (class ShmAccessor): converted to start
+        with coreCreator/parameter table
+
+        * dueca/ScramNetAccessor.hxx (class ScramNetAccessor:): converted
+        to start with a CoreCreator/parameter table
+
+        * dueca/AmorphStore.cxx (hostToNetworkShort): corrected to not use
+        long int, because long int == 64 bits on an Athlon
+
+2006-07-31  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.77
+
+        * dueca/GenericToken.hxx (class GenericToken): added check for
+        channel end presence
+
+        * configure.in: 0.11.76
+
+        * dueca/ActivityManager.cxx (schedule): large queue before running
+        resulted in segfault, now the to_do is checked.
+
+        * dueca/SchemeData.hxx (scheme_sd): clarified doc
+
+2006-07-21  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/DuecaMain.cxx (main): add version to error log.
+
+        * dueca/gui/gtk/GtkDuecaView.cxx (insertEntityNode): format
+        correction view nodes.
+
+        * configure.in: 0.11.68, corrected timing troubles in lab
+
+        * dueca/Ticker.hxx (class Ticker): getUsecsSinceTick to return int64_t
+
+        * dueca/TimeKeeper.cxx (syncToTick): correction in synchronization
+        for following fixed clock. This prevented IP-based DUECA versions
+        from syncing
+
+2006-07-07  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca.spec.in: correction symbolic link removal/creation
+
+2006-07-06  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.56
+
+        * dusime/gui/common/DusimeController.cxx (applicationStateChange):
+        completed acceptance for state changes
+
+        * extra/RigidBody.cxx (sin): fix for QNX builds
+
+        * dusime/Makefile.am (pkginclude_HEADERS): Install DusimeController.hxx
+
+2006-07-03  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * extra/RigidBody.cxx (sqrt): added defines to handle QNX case
+        with math lib
+
+2006-06-26  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.53
+
+        * dueca/gui/gtk2/GtkDuecaView.cxx (complete): restored warning on
+        closing a running dueca
+
+        * dueca/ModuleCreator.cxx (createModule): added information on
+        scheme call in case of error
+
+        * dueca/CoreCreator.hxx (CoreCreator): added information on scheme
+        call in case of error
+
+        * configure.in: documentation generation, extra, + the rtw
+        subdirectories are now optional
+        version 0.11.52
+
+        * Makefile.am (SUBDIRS): made the sub directories fully
+        configurable from configure script
+
+        * dueca/Summary.cxx: changed to a 3-template version, mainly
+        because the gcc 2.95 on QNX chokes on the 2-template + typedef version
+
+2006-06-22  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * Makefile.am (rpm-package-src): pruned the makefile targets, now
+        basically creates the source package and the source rpm
+
+        * configure.in: 0.11.50
+
+        * dueca-demo.spec.in (BuildRequires): updated
+
+        * dueca.spec.in (CFLAGS): enable-glut-util, instead of with
+
+        * configure.in: some corrections to gtk selection options
+
+2006-06-21  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: 0.11.49
+
+        * dusime/gui/gtk2/GtkTrimView.cxx (removeEntity): added, for
+        completeness
+
+        * dusime/TrimView.hxx (class TrimView): removed a function addVariable
+
+        * extra/gui/glut/GlutOpenGLHelper.cxx (redraw_done): added
+        function, was missing
+
+        * extra/gui/fltk/FltkOpenGLHelper.cxx (FltkOpenGLHelper): added
+        destructor, was missing
+
+        * dueca_dbg.spec.in: renamed from dueca-g.spec.in, to accomodate
+        build system
+
+        * configure.in: version 0.11.46
+
+        * extra/DuecaGLWindow.cxx (DuecaGLWindow): added constructor to
+        maintain compatibility with old code
+
+2006-06-19  Rene van Paassen  <repa@pascua.localdomain>
+
+        * configure.in: version 0.11.32
+
+        * extra/gui/gtk2/GtkOpenGLHelper.hxx (class GtkGLWindowHelper):
+        new class, uses gtkglext to implement direct opengl draws.
+
+        * dueca/ObjectManager.cxx (releaseId): new method to unregister
+        objects. failed creations (complete returns false) are deleted
+        right after.
+
+        * scripts/profile: new file, to be installed under etc, startup of
+        machine specific stuff.
+
+        * scripts/dueca-config.in (OPTION): re-modeled, to individually
+        seect gui components. Now gtk2 is functioning
+
+2006-05-13  Rene van Paassen  <repa@pascua.localdomain>
+
+        * configure.in: new version, 0.11.27
+
+        * dueca/ActivityView.cxx (cbExpose): neatened the drawing of the
+        lines. No longer drawing start line of blocking
+
+        * dueca/ActivityLister.cxx (getNextActivityDesc): Changed log
+        format, to log in integer+fraction for the tick, and then the rest
+        in ms.
+
+        * dueca/ActivityManager.cxx (getRealTime): modified calculation,
+        to prevent one-tick-off errors that caused illogical logs
+
+        * dueca/TimeKeeper.cxx (syncToTick): re-defined early and
+        late. Late is now positive (after ideal tick), early is negative
+
+        * dueca/Ticker.cxx (reportSync): corrected early/late mix up
+
+2006-05-02  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca.spec.in (CFLAGS): added option to initialise glut also in
+        gtk
+
+        * configure.in: version 0.11.25
+
+        * dueca/GtkHandler.cxx (GtkHandler): added an option to also
+        initialise Glut. glutStrokeString is often used in GL code as a
+        utility, and the newest freeglut takes offense if not initialised.
+
+        * doc/example/PulsedBody.hxx (class PulsedBody): added an example
+        for RigidBody use.
+
+        * dusime/SimulationModule.hxx (class SimulationModule): changed
+        return type of getCurrentState
+
+2006-04-29  Rene van Paassen  <repa@pascua.localdomain>
+
+        * configure.in: version 0.11.24, before someone uses old RK
+        integration routine
+
+        * extra/integrate_rungekutta.hxx (class RungeKuttaWorkspace):
+        slightly modified the rk and euler integration, added a workspace
+        to remove the need for repeated allocation and de-allocation of
+        work vectors.
+
+2006-04-28  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.22 and 0.11.23, after some additional
+        improvements to documentation.
+
+        * doc/api.oxy.in (GENERATE_LATEX): removed latex/pdf generation,
+        brushed up on documentation generation (although some old junk is
+        still in there.
+
+        * extra/RigidBody.hxx: Added rigid body base class for
+        simulation, and euler and heun integration methods.
+
+2006-04-24  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.21
+
+        * dueca/GtkGladeWindow.hxx (gtk_callback): added a set of
+        templated function calls that facilitate creation of callback
+        objects for gtk interfaces.
+
+        * dueca/GtkCaller.hxx (class GtkCaller): added a set of templated
+        classes to facilitate creation of gtk/glade interfaces.
+
+        * scripts/data/default/Simulink50Template.cxx (loadSnapshot): same
+        as below
+
+        * scripts/data/default/Simulink61Template.cxx (loadSnapshot):
+        corrected an error in snapshot loading. Resulted in blank
+        initialization
+
+
+2006-04-21  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * rtw70/libsrc/Makefile.am (libdueca_rtw61_la_SOURCES): adding
+        rt_nonfinite to the fixed dueca-rtw70 sources, so that individual
+        modules don't need this (autogenerated) file. This prevents
+        conflicts produced when multiple rtw modules are used in a single
+        project.
+
+2006-04-20  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.18, after adding fixedpoint.[ch] to
+        the include files for rtw 61
+
+2006-04-19  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.15
+        new version 0.11.16 too
+
+        * scripts/data/default/Simulink61Template.cxx: added templates for
+        Matlab 7 / simulink 6.1 generated code
+
+2006-02-15  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.12
+
+        * dueca/AsyncList.hxx (class AsyncList): corrected location of
+        "volatile" keywords. The pointer is volatile, not the pointed-to
+        contents.
+
+        * dueca/ActivityManager.cxx (triggerNewLog): corrected logging
+        logic. Previous version was too complicated and did not correctly
+        send the logs.
+
+        * dueca/ActivityView.cxx: modified handling of log requests, added
+        a timed activity to request sending of completed logs
+
+        * dueca/ScramNetAccessor.cxx (blockForData): added log statements
+
+2006-02-13  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.11
+
+        * dueca/ActivityManager.cxx: corrected segfault by memory error in
+        log code (logging default dummy activityitem resulted in
+        dereference of NULL pointer)
+
+2006-02-08  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.10
+
+        * dueca/TimingView.cxx: dump logged data to a file
+
+        * dueca/ReflectiveFillPacker.cxx: improvements, and accept partial
+        pack of some very large objects
+
+        * dueca/IPAccessor.cxx (despatch1toN): corrected erroneous data
+        skip when dummy buffer was used.
+
+        * dueca/FillUnpacker.cxx (getParameterTable): converted to use
+        scriptcreatable.
+
+        * dueca/FillPacker.cxx: improved packing and created option to
+        accept partial pack of some non-critical objects. Modified to
+        catch up packing of objects that were notified but could not be
+        packed due to buffer full.
+
+        * dueca/ActivityView.cxx: added dump to file dueca.activitylog
+
+        * dueca/ActivityLog.cxx (packData): added option to pack a partial
+        log, if log space no longer available
+
+2006-02-02  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.9
+
+        * dueca/ActivityView.cxx (cbDrawAreaButtonRelease): remove
+        highlighted lines in other areas. Auto-resize to the number of
+        activity managers, improvement of re-drawing strategy
+
+        * dueca/StateGuard.cxx: removed debug mutex option from production
+        build
+
+2006-01-31  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.8
+
+        * dueca/activity_view.glade: update, to better align drawing widgets
+
+        * dueca/ActivityManager.cxx: modifications, to handle completely
+        blocking activities
+
+2006-01-23  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.7
+
+        * dueca/ActivityView.cxx (struct ActivityViewGui): Achieved
+        workable ActivityView display. Still needs checking multi-node,
+        otherwise OK
+
+2006-01-13  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.6
+
+        * dueca/ActivityView.hxx (class ActivityView): In transition to
+        use of glade file via glade lib. Still work in progress.
+
+        * dueca/registry.hxx (class registry): corrected locking flag
+        setting order. Might have been cause of problems on dutmms3
+
+        * extra/DuecaGLWindow.hxx (class DuecaGLWindow): Added hide and
+        show methods.
+
+2005-12-20  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.5
+
+        * dueca/MStreamEntry.cxx (operator =): corrected memory leak with
+        re-use of entries.
+
+        * dueca/AsyncList.hxx (class AsyncList): better debug output, with
+        name of allocator
+
+        * dueca/AsyncList.cxx (ChunkAllocator): better debug output, with
+        name of allocator
+
+        * dueca/ActivityManager.hxx (class ActivityManager): volatile keywords
+
+        * dueca/registry.hxx (class registry): Added proper volatile keywords
+
+        * tests/doublewrite.cxx: A test program to test the compatibility
+        of "double" floating point values in an AmorphStore with reading
+        big-endian 64-bit values in Matlab. Works for FC3, checked with
+        Matlab 7.0 under FC3.
+
+2005-12-15  SIMONA Research Simulator  <simona@srsecs.lr.tudelft.nl>
+
+        * configure.in: to version 0.11.4
+
+        * dueca/ReflectivePacker.cxx (notification): found elusive
+        scramnet bug, had to do with locking
+
+2005-12-12  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.3
+
+        * dueca/ScramNetAccessor.cxx: new mode, burst+, no error
+        correction, mainly test
+
+        * dueca/ReflectivePacker.cxx: added check of copied mem
+
+        * dueca/MultiStreamChannel.cxx: corrections to cleaning code
+
+2005-12-09  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.2
+
+        * dueca/ReflectiveUnpacker.cxx: correction sender-id, sender-no
+        confusion
+
+2005-12-06  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.11.1
+
+        * dueca/ReflectiveUnpacker.cxx: added checksum check. Reduced
+        activation of unpacking thread, converted to CoreCreator.
+
+        * dueca/ReflectivePacker.cxx: added+corrected checksum calculation
+
+        * dueca/ReflectiveFillUnpacker.cxx (receiveAPiece): now use the
+        needDataFrom call
+
+        * dueca/MultiStreamChannel.cxx (codeHead): simpler coding head
+
+        * dueca/MStreamEntry.hxx (class MStreamEntry): corrected
+        resetValid call, do not decrement use
+
+        * dueca/StreamChannel.cxx (codeToMemory): changed to simpler code, bit
+        15 is data follows
+
+        * dueca/EventChannel.cxx (codeHead): changed to simpler code, bit
+        15 is data follows
+
+        * dueca/ActivityManager.cxx: small correction in combination with
+        debug code
+
+2005-12-03  SIMONA Research Simulator  <simona@srsecs.lr.tudelft.nl>
+
+        * dueca/GenericPacker.hxx: added name string to the constructor,
+        to give all derived packers a unique name.
+
+2005-12-02  SIMONA Research Simulator  <simona@srsecs.lr.tudelft.nl>
+
+        * dueca/ActivityManager.cxx (loopDoActivities): Added a provision
+        for RH9 installation, where NPTL threads do not listen to specs
+        at creation.
+
+2005-12-01  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.53
+
+        * dueca/ScramNetAccessor.cxx (ScramNetAccessor): scramnet timeout
+        to 16
+
+        * dueca/TransportNotification.hxx (class TransportNotification):
+        Added TransportClass parameter, to affect (in future)
+        packing/triggering
+
+        * dueca/ScramNetAccessor.cxx (ScramNetAccessor): now open with
+        write_me_last options, so status of transmission may be checked
+        from buffer values.
+
+        * dueca/PeriodicAlarm.cxx (trigger): added logic to keep larger
+        periods an integral time in the time spec (to not get (2, 12)-like
+        periods, but instead (10, 20)-like.
+
+        * dueca/MultiStreamChannel.cxx: Corrected initialization sequence
+        to perform on reflective/shared memory architectures
+
+        * dueca/GlutHandler.cxx (passControl): added option to used
+        glutMainLoopEvent.
+
+        * dueca/ActivityManager.cxx: Added the call to
+        pthread_attr_setinheritsched for all platforms that support it,
+        not only QNX. FC3 was not running real-time, because scheduling
+        attributes were inherited, not specified. Extended to accept
+        specification for scheduling mode and priority. Removed KURT crud
+
+        * configure.in: added check for glutMainLoopEvent and for
+        pthread_attr_setinheritsched
+
+        * extra/DuecaGLWindow.cxx: Added support for GlutSweeper windows
+
+        * extra/GlutSweeper.cxx: new module, handles Glut event
+        loop. Inserted only if freeglut available.
+
+        * dueca/ReflectivePacker.cxx (copyBuffer): Added an initial fix
+        for catching the errors in scramnet copying
+
+        * dueca/Environment.cxx (complete): added the option to specify
+        higher priority levels with scheduling mode and nice (for
+        SCHED_OTHER) or scheduling (for SCHED_RR and SCHED_FIFO) priorities
+
+        * dueca/Ticker.cxx (complete): now use out-of-bounds priority
+        levels as default for highest level.
+
+2005-11-26  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/ReflectiveUnpacker.cxx (despatch): changed method for
+        determining whether data is intended for local end. No longer
+        needs "inflowing" bit, determination on the basis of sender id and
+        local channel properties. Needed for multistreamchannel on
+        reflective memory.
+        TODO: make unpacking more efficient
+
+2005-11-24  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.50
+
+        * scripts/dueca-config.in (OPTION): added --static option, and
+        corrected double libline output
+
+2005-11-23  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.49, correction mem error in NodeManager
+
+2005-11-11  repa  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.48
+
+        * dueca/DuecaView.cxx (DuecaView): more colourful interface for
+        quit button, corrected interaction with entity manager, check for
+        sync before enabling run
+
+        * dueca/Trigger.cxx (removePuller): tracked down cause of double frees
+
+2005-11-02  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * version 0.10.47
+
+        * dueca/DuecaView.cxx (complete): Bugfix, failed to start
+        EntityManager with glade xml window specified. (FTIS)
+
+2005-11-01  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/EntityManager.cxx (interfacePresent): bug correction,
+        modules did not show up in view
+
+2005-10-19  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * extra/DuecaGLWindow.cxx: Added offset placement to DuecaGLWindow
+
+        * configure.in: new version 0.10.45
+
+        * dueca/GtkGladeWindow.hxx: New class that handles gladexml
+
+        * dueca/DuecaView.hxx: Added option to read glade file for interface
+
+2005-10-15  Rene van Paassen  <repa@pascua.localdomain>
+
+        * dueca/DuecaPath.hxx (class DuecaPath): Added a call with vstring arg
+
+2005-10-04  Rene van Paassen  <repa@pascua.localdomain>
+
+        * configure.in: version 0.10.44
+
+        * dueca.spec.in: adjustments for FC4
+
+        * dueca/DuecaView.cxx (hide_and_show): 64 bit correction
+
+        * dueca/IPTwoWay.cxx (make_object): correction for FC4
+
+        * dueca/TransportDelayEstimator.hxx (class TransportDelayEstimator
+        :): just for fun, converted to parametertable
+
+        * dueca/dueca-guile.h: fix for compilation on FC4
+
+        * dusime/TrimView.cxx (on_trim_mode_clicked): 64 bit correction
+
+2005-06-28  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/ReflectiveFillUnpacker.cxx (receiveAPiece): corrected a
+        size calculation, had forgotten about the 4 bytes for the mark
+
+2005-06-02  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.42
+
+        * dueca/MStreamEntry.hxx (class MStreamEntry): corrected throw
+        declaration
+
+2005-05-18  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * extra/DuecaGLWindow.hxx (class DuecaGLWindow): added a
+        makeCurrent method. Makes window current.
+
+        * dueca/Exception.hxx (exception): added extra output
+
+2005-05-12  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.40
+
+        * scripts/dueca-project: using less commits in-between.
+
+2005-05-11  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * codegen/TypeNameDef.cxx: added this-> prefixes to all instances
+        of local variables, to remove a problem with "forbidden" variable
+        names such as s and o
+
+2005-05-02  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.39, code generation generation number 103
+
+        * dueca.spec.in: improved detection of different redhat/fedora
+        platforms
+
+        * codegen/CodeGen.cxx: corrected a nasty bug in the code
+        generation for multistream channels, removed excessive debug output
+
+2005-03-03  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.38
+
+        * dueca/SchemeInterpret.cxx (initiate): Check on writeability of
+        the dueca.scratch file
+
+        * scripts/data/MakefileTail.app: now also create doc for borrowed
+        modules
+
+        * scripts/dueca-tagfiles: new script, finds tag files
+
+        * scripts/data/module.oxy (TAGFILES): added flexibility in doc
+        generation
+
+2005-02-25  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: code generation number to 102, versin to 0.10.37
+
+        * scripts/data/default/dueca.cnf: corrected the size of the
+        scramnet memory, configuration should have been in words, not bytes
+
+        * dueca/ScramNetAccessor.cxx: added a check on the scramnet memory
+        size configured and installed
+
+2005-02-25  Rene van Paassen  <repa@pascua.home>
+
+        * configure.in: bump to version 0.10.36
+
+        * dueca.spec.in: added strict version interdependency
+
+        * dueca/StateGuard.hxx (class StateGuard): new method getName
+
+        * dueca/registry.hxx (class registry): checks on locking by users,
+        more informative debug messages
+
+        * dueca/ChannelOrganiser.cxx (handleEvent): better comment about
+        how stream channel memory is handled
+
+2005-02-24  Rene van Paassen  <repa@pascua.home>
+
+        * codegen/TypeDef.cxx (definedElsewhere): By default use "manual"
+        copy instead of memcpy.
+
+        * scripts/data/default/Simulink50Template.cxx (loadSnapshot):
+        changed, to remove a race and crash condition on SMP machines
+        (or fake smp machines such as P4 in smp mode)
+
+2005-02-11  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in (GENCODEGEN): bump to 0.10.35, generation step
+        generated code
+
+        * codegen/parser.yxx: added the options to include user code in
+        the header + body file (adds an #include statement)
+        added the option for a default value to be used in the default
+        constructor.
+        added the option for a c++ code section to be included in the
+        default constructor body
+
+2005-02-09  Rene van Paassen  <repa@pascua.home>
+
+        * configure.in: bump to 0.10.34
+
+        * dueca/ChannelOrganiser.cxx (handleEvent): made end role for
+        multistreamchannel by default sending and receiving, corrected bug
+        triggered when last write token deleted and then made again.
+
+        * dueca/MultiStreamChannel.cxx (releaseReadAccess): Added cleaning
+        of no-longer-in-use entries, recycling entries
+
+        * dueca/MStreamEntry.cxx (newData): Correction memory leak
+
+2005-02-08  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.33
+
+        * dueca/InitScram.cxx: edit for FC3 compilation
+
+        * dueca/Arena.cxx: debug code, when compiled with debug options,
+        memory block allocation is printed
+
+        * dueca/AsyncList.hxx: correction to the ChunkAllocator code, now
+        allocates a normal block instead of small one
+
+2005-01-18  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.32
+
+        * scripts/new-module (schemify): improved detection of capital
+        letters
+
+        * codegen/TypeNameDef.cxx (printEqualTest): corrected pretty bad
+        bug, error in calculation array size
+
+        * codegen/ArraySize.cxx (ArraySize): added compilation via Makefile
+
+2005-01-15  Rene van Paassen  <repa@pascua.home>
+
+        * configure.in: version bump 0.10.31
+
+        * codegen/CodeGen.cxx: Changed code generation for diff unpack,
+        more straightforward now
+
+        * dueca/MultiStreamChannel.hxx (class MultiStreamChannel):
+        completed, tested some
+
+2005-01-12  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * codegen/ArraySize.hxx (class ArraySize): new class for handling
+        external array size in code generation
+
+        * configure.in: with define of array size in code generator, as
+        per request by Olaf
+
+2005-01-11  Rene van Paassen  <repa@localhost.localdomain>
+
+        * configure.in: version 0.10.29, compiles on FC3
+
+2005-01-10  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/Summary.cxx (findSummary): make type names explicit
+
+2004-12-27  Rene van Paassen  <repa@localhost.localdomain>
+
+        * dueca/registry.hxx (operator <<): corrected un-used print routine
+
+        * dueca/AmorphStore.hxx (packData): added prototypes for gcc 3.4
+
+2004-12-14  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.28, corrected some timing issues
+        periodictimespec
+
+2004-12-08  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.27
+
+        * dueca/EventChannel.cxx (removeAccessToken): corrected erroneous
+        double locking. Now TDDA sim and others should exit normally.
+
+        * configure.in: version 0.10.26
+
+        * codegen/CodeGen.cxx (ISEQUAL_DEC): addition != operator
+
+2004-12-06  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version to 0.10.25
+
+        * codegen/CodeGen.cxx (ISEQUAL_IMP): added == operator to generation
+
+2004-11-18  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version bump to 0.10.24
+
+        * dueca/MultiStreamWriteToken.hxx: DUECA_API
+
+        * dueca/MultiStreamChannel.hxx: Functions for single-node
+
+        * dueca/ReflectivePacker.cxx: removed a superfluous leaveState
+
+2004-11-12  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.23, bugfix
+
+        * codegen/CodeGen.cxx: now generates code for differential packing
+        and unpacking for stream-capable types.
+
+        * dueca/MultiStreamChannel.cxx: much work done, still in progress
+
+        * dueca/StreamReaderLatest.hxx (class StreamReaderLatest):
+        correction for lazy access mode
+
+2004-11-04  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.22
+
+        * dueca.spec.in: enabled namespace. Required extensive editing
+        many files
+
+2004-10-28  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version bump 0.10.21
+
+        * dueca/Environment.cxx: added fast-time mode
+
+2004-10-26  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/IPAccessor.cxx (spinToLast): Check on packet size incoming
+        data, to prevent configuration file errors.
+
+        * scripts/data/MakefileTail.mod (CPPOBJ): now accepts both .cxx
+        and .cpp endings for C++ files
+
+2004-09-02  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.20
+
+        * dueca/IPAccessor.cxx (getControlData): extensive debugging,
+        2 main themes: the check of current_packet_no in data against a
+        specific current_packet_no issued by no 0 is not valid; if a node
+        detects multiple messages from no 0, it will take the latest
+        packet no, confusing other nodes on this issue
+
+        erroneously put in a check of the regular bytes against the total
+        no of bytes, this makes communication fail when the fill packer
+        adds data. (only for the testing 10.18 and 10.19 versions)
+
+2004-08-31  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.18
+
+        * dueca/IPAccessor.cxx (sendMyData): updates, checks, and added
+        extensive testing mode, with forgotten+ delayed reading + writing
+
+2004-07-30  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: new version 0.10.17
+
+        * extra/DuecaGLWindow.cxx: corrected mouse button fltk
+
+        * scripts/modules.py: corrections, hope I got them all
+
+2004-07-19  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.16
+
+        * extra/DuecaGLWindow.cxx (handle): added button translation,
+        corrected crash when selecting other cursor
+
+2004-07-15  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.15
+
+        * dueca/FltkHandler.hxx (class FltkHandler): new classes for
+        different gui inputs. Also GtkFltkGLHandler, does gtk for
+        interface and fltk as well!
+
+        * dueca.spec.in (BuildRequires): also added dependency fltk
+
+        * scripts/commobjects.py (CommObjectsList.__init__): error correction
+
+        * extra/DuecaGLWindow.cxx (swapBuffers): added fltk options
+
+        * dueca.spec.in (Requires): guile-devel is a requirement for
+        use/installation
+
+        * configure.in: also check fltk stuff
+
+2004-07-12  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version bump to 0.10.14
+
+        * dueca/Environment.cxx (getParameterTable): stencil buffer options
+
+        * extra/DuecaGLWindow.cxx: added stencil buffer optional
+
+2004-06-23  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.13
+
+        * scripts/dueca-project: bugfix in creation new project
+
+2004-06-17  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/data/default/Makefile.mod (MAKEFILEVERSION): added
+        version info to makefiles
+
+        * configure.in: version to 0.10.11
+
+        * codegen/parser.yxx: updated, to be compatible with qnx machines,
+        and more cleanly (no more warnings/conflicts) handle comments in
+        files
+
+        * scripts/dueca-listdco: added, to find out which .dco files have
+        to be code generated and compiled.
+
+        * scripts/dueca-project: Modified, to check out the full
+        comm-objects directory, instead of just the required dco
+        files. Considerably speeds up cvs interaction.
+
+2004-06-03  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.10.10
+
+        * dueca/Environment.cxx (waitAdditional): enabled creation of
+        modules from additional script file
+
+2004-05-28  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version bump
+
+        * scripts/data/MakefileTail.mod: added local clean and depend
+
+        * scripts/data/MakefileTail.app: cleand up
+
+        * scripts/dueca-project: corrected update bug
+
+        * codegen/parser.yxx: now copies comments
+
+2004-05-26  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bump to 0.10.8
+
+        * scripts/data/MakefileTail.mod: also compiles .cpp extension
+
+        * codegen/parser.yxx: added the inclusion of comments in generated code
+
+2004-04-08  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version bump to 0.10.3
+
+        * scripts/data/MakefileTail.app: doc target added
+
+        * scripts/dueca-scriptcommands: new script for printing script
+        commands to create modules/objects
+
+        * dueca/StreamChannel.cxx: checks mutex use, corrections
+
+2004-04-05  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/CVS.py: correction for committing copied source
+
+        * dueca/Activity.hxx: Added a logBlockingWait interface, so users
+        do not have to deal with pinpointing their activity manager.
+
+        * dueca/IPMulticastAccessor.cxx: rewrite of opening sockets, to
+        follow the re-write of IPAccessor
+
+        * dueca/IPAccessor.cxx: Major re-write of send/receive logic.
+
+2004-02-24  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/data/GenericStart: small correction
+
+2004-02-20  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version to 0.9.6
+
+        * extra/StepsN.cxx (StepsN_sort_and_copy): correction silly error,
+        also done for Steps.cxx
+
+        * dueca/GuileStart.hxx (GuileStart): also observe the DuecaEnv
+        variables
+
+        * dueca/DuecaEnv.hxx (class DuecaEnv): additional functionality to
+        print script info only for one module/class
+
+        * dueca/ArgListProcessor.cxx: refreshed script information printing
+
+2004-02-06  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/Environment.cxx (proceed): am not doing the Su::revert
+        call on QNXNTO now.
+
+        * dueca/AperiodicAlarm.hxx: additional comments
+
+        * dueca/Activity.hxx: TimeTickType argument in switchOn
+
+2003-10-03  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/dueca-project: changed diff command on QNX
+
+        * dueca/TimeKeeper.hxx (class TimeKeeper): added option to get the
+        length of the period, instead of waiting point.
+
+        * dueca/IPMulticastAccessor.cxx (IPMulticastAccessor): made immune
+        (hopefully) to wrongly configured hosts
+
+        * dueca/Environment.cxx (proceed): moved the mlockall call
+        forward, to prevent NVIDIA from spoiling this
+
+        * dueca/DirectUnpacker.hxx (class DirectUnpacker): partial
+        template specialization for stream channels, option for channel
+        depth.
+
+        * configure.in: added option for selecting rtai
+
+        * dueca/Ticker.cxx (waitAndDoNextTick): added facility to wait
+        with rtai, and to also send synchronization points to softgenlock
+        (not tested, however).
+
+2003-07-01  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca.spec.in (Requires): some more dependencies
+
+        * configure.in: major version bump, no compatibility old
+        installations
+
+        * dueca/StreamChannel.cxx (adjustChannelEnd): memory initialisation
+        of stream channels
+
+        * dueca/Ticker.cxx (waitAndDoNextTick): correction to waiting
+
+        * dueca/ChannelOrganiser.cxx (handleEvent): memory initialisation
+        of stream channels
+
+        * dueca/TimeKeeper.cxx (syncToTick): synchronization
+        differentiates for diff kinds of clocks
+
+2003-06-27  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/dueca-project (ModulesList.updateModules):
+        added a check for locally modified borrowed modules. Offers
+        possibility to keep modified stuff. Also creates patch and tgz files
+
+2003-06-26  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/Entity.cxx (make_object): modified, to accept
+        SCM_UNSPECIFIED values that result from an if statement that
+        returns nothing (or actually SCM_UNSPECIFIED)
+
+        * dueca/ReflectiveFillPacker.cxx (notification): modified, to wait
+        longer before starting to send, and slightly corrected error
+        messages on choked channel. There are cases when is seems to
+        wrongly block, cause not yet determined, but it appears related to
+        small shared comm areas
+
+2003-05-07  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/ModuleCreator.cxx (createModule): added a check on
+        successful return from the complete method
+
+2003-05-02  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/dueca-project (copyModule): corrected copyModule code
+
+2003-05-01  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.88
+
+        * scripts/Makefile.am (pkgdata_DATA): make compatible with rh9
+
+2003-04-28  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.87
+
+        * scripts/new-module: differentiation between different rtw levels
+
+        * dueca/dueca-guile.h: generic gateway to different levels of
+        guile code. Can now also build on RH9
+
+2003-04-04  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.85
+
+        * scripts/dueca-project (removeModule): corrected
+
+2003-04-01  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.84
+
+        * dueca/Dstring.cxx (unPackData): corrected bug
+        unpacking. Representation of string now within class
+
+2003-03-26  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to version 0.8.83
+
+        * dueca/TimeWarp.hxx (class TimeWarp): New trigger modification,
+        supports triggering with a warp in time
+
+        * dueca/EventChannel.cxx (removeAccessToken): corrected double
+        lock situation
+
+        * dueca/ObjectManager.cxx (destructAllButCrew): stopped
+        destruction of dueca's own, sometimes ended with crash
+
+        * scripts/data/default/Simulink40Template.cxx (loadSnapshot):
+        completely re-vamped, now no longer trusts model re-initialisation
+
+        * scripts/new-module (newRtw3Module): added automatic creation of
+        check programs for RTW generated code
+
+2003-02-26  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: and to 0.8.80
+
+        * scripts/data/MakefileTail.mod: made it so you can call a make
+        from a module directory. Switches up to app directory and calls
+        the makefile again.
+
+        * scripts/data/MakefileTail.app: make compatible with
+        Makefile.machine makefiles in the module directories
+
+        * scripts/dueca-config.in (dueca_cflags): added the guile compile flags
+
+        * scripts/dueca-project (ModulesList.updateModules): modified, to
+        better update with the repository. Now also checks out files added
+        by others in an update.
+
+        * configure.in: bumped to 0.8.79
+
+        * scripts/data/default/Simulink30Template.cxx (doCalculation):
+        Changed order of output calculation. Output calculation now comes
+        last, giving some lead in the system. done same for 40 template,
+        also corrected "S" initialisation to "i_S" initialisation.
+
+        * dueca.spec.in: in all spec files: fixed prefix configuration,
+        removed inspec packages, removed doc subpackage from other two
+        spec files
+
+2003-02-20  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.77
+
+        * scripts/dueca-project (CommPair.__in): corrected communication
+        objects gathering/cvs work. Should now pull and update all comm
+        objects, whether borrowed or own, correctly. Also handles version
+        tags on comm objects
+
+        * qnxnogui.script: corrected issues on QNX building
+
+        * Makefile.am (/usr/src/redhat/SOURCES/@PACKAGE@-@VERSION@.tgz):
+        modernized the package building system, now uses CVS
+
+        * scripts/data/MakefileTail.mod (CC): correction to flags with
+        debug conditional
+
+2003-02-11  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.75
+
+        * dueca/EntityManager.cxx (yourWidgets): correction to get non-gui
+        mode working
+
+        * scripts/data/MakefileTail.app (mrproper): corrected cleaning of
+        comm-objects dirs
+
+        * scripts/dueca-project (CommObjectsList.reconstruct): made it so
+        that borrowed comm-objects get updated correctly
+
+2003-01-31  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.74
+
+        * scripts/CVS.py (CVS.os_system): report cvs line on error
+
+        * scripts/data/default/dueca.cnf: small correction for scramnet modes
+
+2003-01-13  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: version 0.72
+
+        * codegen/TypeNameDef.cxx (printCopyConstructorList): corrected a
+        bug that screwed up copy construction with variable event size
+
+2003-01-08  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/new-module (overWriteOK): new script for module
+        creation, together with template files to create modules from
+
+2003-01-06  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * scripts/qdeploy: updated/corrected script
+
+2002-12-17  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.69
+
+        * copied corrected rt_nonfinite.c to 61 and 65 versions
+
+2002-12-11  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: corrected header files for rtw53, bumped version
+        to 0.8.66
+
+        * dueca/Activity.cxx (setTimeSpec): corrected a snag, that used
+        normal time specs instead of periodic time specs, and messed up
+        getting periodic activation.
+
+2002-12-09  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * doc/simulink.doc: added a complete new section for Matlab 6.5
+
+        * configure.in (VERSION_DATE): bumped to 0.8.65
+
+2002-12-03  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: already bumped the version to 0.6.64. Compilation and
+        functioning not yet guaranteed.
+
+        * dueca.spec.in (Requires): added rtw packages 61 and 65
+
+        * scripts/dueca-config.in (OPTCOMPONENTS): extended for new RTW
+        options.
+
+        * rtw61/src/Makefile.am (AM_CFLAGS): added sources and makefiles
+        for Matlab 6.1/RTW and Matlab 6.5 RTW
+
+2002-11-06  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * dueca/Makefile.am (pkginclude_HEADERS): had to add dueca_assert.h
+
+2002-11-05  Rene van Paassen  <repa@lrcs024a.lr.tudelft.nl>
+
+        * configure.in: corrected library lines for dueca-config, bumped
+        to 0.8.60
+
+2002-10-22  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * scripts/dueca-config.in (OPTCOMPONENTS): added D_REENTRANT to
+        the cflags
+
+2002-10-18  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.56
+
+        * scripts/dueca-project (removeObjects): some corrections in cvs
+        interaction
+
+        * scripts/dueca-config.in (OPTCOMPONENTS): corrected include path
+        for rtw53
+
+        * scripts/data/MakefileTail.mod (CINCL): correction, added
+        EXTRA_INCLUDES
+
+2002-09-24  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/IPAccessor.cxx (getControlData): corrected type of the
+        unpacked offset data.
+
+        * dueca/DirectUnpacker.hxx (class DirectUnpacker): added more
+        explanation on the use
+
+2002-09-20  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * doc/simulink.doc: added hint to use correctSimulink
+
+        * codegen/correctSimulink: updated to also accept RTW version 4.0
+        (corresponding to matlab 6.0)
+
+2002-09-18  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/ActivityManager.cxx: adjusted PRIORITY_BASE to correctly
+        run on QNX
+
+2002-08-27  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.51
+
+        * dusime/DusimeController.cxx (sendQuery): Now checks status
+        update time, to verify that state changes really take place.
+
+        * dueca/StatusT1.hxx: Modified, to include update times for all
+        pieces of status
+
+        * dueca/Environment.cxx (waitAdditional): Added logic to wait for
+        data copying when loading additional model pieces.
+        (proceed): Made it possible to use both atexit and
+        on_exit. On_exit is preferred, but not available on QNX
+
+2002-08-12  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/ActivityManager.cxx (reportCurrent): added a check, to
+        prevent segfaults at early stops
+
+        * configure.in: bumped to 0.8.49
+
+
+2002-08-09  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.48
+
+        * dueca/EventWriter.hxx (class EventWriter): Made a change, added
+        constructors with extra arguments for initialisation of events
+        with variable-length arrays. Up to three arguments.
+
+        * codegen/CodeGen.cxx (EMPTY_CONSTRUCTOR_DEC): Changes to the code
+        generator. Now generates an empty constructor for events, to be
+        compatible with the EventWriter. For events with variable-length
+        arrays, the "empty constructor" still carries the arguments for
+        initialising the length.
+
+2002-08-07  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/TimeKeeper.cxx (getUsecsSinceTick): have disabled sync to
+        master in the slow ticking phase. Might help?
+
+2002-08-06  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * extra/Makefile.am (pkginclude_HEADERS): Added LinearSystem as a
+        DUECA extra
+
+        * extra/DuecaGLWindow.hxx (class DuecaGLWindow): added calls for
+        setFullScreen and setWindow that are compatible with
+        parametertable use
+
+        * dueca/Ticker.cxx (Ticker): Had to switch on this activity too,
+        related to the change in Activity::despatch
+
+        * dueca/Activity.cxx (despatch): modified, to not call the
+        activity when it has been scheduled but in the meantime switched
+        off (e.g. by throwing an activity)
+
+        * dueca/IPAccessor.cxx (IPAccessor): Added a dummy buffer for when
+        all input stores are in use. Upon reception of data in the dummy
+        buffer, the accessor will send missed data messages. It previously
+        used buffers that were still being unpacked, crashing the "station
+        keeping" experiment on start-up
+
+2002-08-01  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.47
+
+        * dueca/ScramNetAccessor.cxx (blockForData): Modified to use the
+        new ioctl call for waiting for data.
+
+2002-07-22  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.46 Lots of changes to get the
+        documentation better
+
+        * dusime/DusimeController.cxx (processConfirm): ignoring the odd
+        state reports after a button press
+
+        * dueca/Module.cxx (setState): small change to correspond to
+        CriticalActivity logic correction
+
+        * dueca/CriticalActivity.cxx (switchWork): corrected logic for
+        switching to work/safe after occurrence of a fault
+
+2002-06-13  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.45
+
+        * dueca/Activity.cxx (trigger): Modified, to include partial
+        overlapping of activity time and incoming timespec. Bug report
+        thanks to Gerwin.
+
+2002-06-06  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.44
+
+2002-06-05  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/EntityManager.cxx (checkEntityProgress): removed
+        superfluous "duplicate module" message
+
+2002-05-31  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: to 0.8.43
+
+        * codegen/CodeGen.cxx (COPY_CONSTRUCTOR_DEC): added placement
+        operator new to the code generation, useful for stl coop.
+
+2002-05-30  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/ActivityManager.cxx (schedule): added a more informative
+        message to the excessive queue size report, with current activity
+        and time listed.
+
+2002-05-29  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped version to 0.8.42
+
+        * extra/DuecaGLWindow.cxx: added an event box to capture mouse
+        pointer events. Only problem is still motion callback, which is
+        only called in gtk when mouse button pressed.
+
+        * configure.in (VERSION_DATE): kept version number 0.8.41
+
+        * dueca/CriticalActivity.cxx (switchSafe): corrected switchSafe,
+        this now switches to safe at the specified time. criticalError
+        does an immediate switch, as of the next call
+
+        * dueca/ModuleCreator.cxx (createModule): added a try/catch block,
+        to try and find failing module creations and ignore these.
+
+        * dueca/Entity.cxx (createModules): added a check for failure of
+        module creation.
+
+2002-05-28  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/ArenaPool.cxx (single): added arena support for objects of
+        too large size
+
+2002-05-15  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * doc/example/Makefile.module (module_fresh): removed transport
+        capability
+
+        * devMake (DUECAINC): new makefile fraction, for easy switching to
+        development and testing
+
+        * qnxfull.script: made some corrections, path etc.
+
+        * dueca/AsyncList.hxx (AsyncList): added an optional name to async
+        lists.
+
+        * dueca/StreamChannel.cxx (getReadAccess): corrected a loophole,
+        which gave back older data when a more recent version was not yet
+        available.
+
+2002-05-03  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.39
+
+        * dueca/EntityManager.cxx: corrected activity switch button logic
+
+        * dueca/TimeKeeper.cxx: added estimation of the wait time, for
+        dealing with imprecise clocks
+
+2002-04-29  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.38
+
+        * dueca/DirectUnpacker.ixx: added include of libuile.h
+
+2002-04-26  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/Ticker.cxx (waitAndDoNextTick): small correction to rtc
+        waiting, a starting wait to clear any build up of wait ticks, and
+        after that calculation of the ticks still to wait
+
+        * codegen/newModule: added default case to trimCalculation,
+        also for newHardwareModule
+
+        * configure.in: bumped to 0.8.37
+
+        * dusime/SimulationState.cxx (operator &): modified combination
+        logic.
+
+        * dusime/DusimeController.cxx (sendQuery): Overhaul to hopefully
+        further robustify the logic
+
+        * dueca/AsyncList.hxx (AsyncList): added an option to name the
+        AsyncList, to aid in debugging
+
+2002-04-23  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.36
+
+        * dueca/TypeCreator.hxx: removed libguile dependency, also from
+        ModuleCreator, SchemeObject and GenericVarIO
+
+2002-04-19  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped version to 0.8.35
+
+        * dueca/ActivityManager.cxx (loopDoActivities): stopped reverting
+        to original user id
+
+        * dueca/Environment.cxx: Stopped reverting to original user id
+
+        * dueca/TimeKeeper.cxx: Again, new timing calculation code. Now
+        uses an ideal_tick_time, that is edged to the master time, and
+        also reports syncing offset from this ideal time.
+
+2002-04-17  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/ScramNetAccessor.cxx: changed the scramnet signal to
+        SIGIO, driver must be changed accordingly
+
+        * configure.in: added configuration for /dev/rtc, bumped version
+        number to 0.8.34
+
+        * dueca/Ticker.cxx (waitAndDoNextTick): added the possibility to
+        use Linux /dev/rtc clock for waiting
+
+2002-04-12  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped version to 0.8.33!
+
+        * dueca/Ticker.cxx (waitAndDoNextTick): updated the granularity
+        correction for QNX
+
+        * dueca/ReflectivePacker.cxx (stopPacking): tells, exactly once,
+        to the accessor that a stop is called for.
+
+        * dueca/NodeManager.cxx (stopDueca): Added a safeguard to avoid
+        calling quit twice.
+
+        * dueca/Environment.cxx (quit): Modified stop code, to give the
+        scramnet driver on QNX an opportunity to cleanly close off
+
+        * dueca/ReflectiveAccessor.cxx (handleControlWrite): added a
+        timing_ok flag, that can be unset by childred to indicate that
+        response was not immediate. If timing not ok, master sync is not
+        given.
+
+        * dueca/TimeKeeper.cxx (processMasterSyncs): modified the time
+        keeper master sync processing to be thread-safe
+
+        * dueca/ScramNetAccessor.cxx (SCRAMSIG): changed the scramnet
+        signal to be used to SIGUNUSED, to avoid conflict with
+        linuxthreads. Also put in a safeguard on maximum number of blocked
+        waiters. Refined stopping code.
+
+2002-04-04  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped version to 0.8.31
+
+        * dueca/ScramNetAccessor.cxx (ScramNetAccessor): removed
+        sensitivity on clock writing of senders 1 and onwards, triggering
+        not used at startup, and not useful later
+
+        * dueca/ShmAccessor.cxx: updated, to better be compatible with
+        scramnet accessor
+
+        * dueca/CriticalActivity.cxx (criticalErrorNodeWide): now returns
+        bool, to prevent all kinds of enthousiastic double logging
+
+        * dueca/ReflectiveUnpacker.cxx (despatch): corrected write_idx
+        calculation.
+
+        * dueca/ReflectiveAccessor.cxx (watchTheLine): Added code to
+        detect time disparity/stopped nodes
+
+        * dusime/HardwareModule.cxx (setSafetyStop): set state to inactive
+        after being stopped.
+
+        * dueca/Module.hxx (class Module): made setSafetyStop to virtual,
+        so that derived classes (HardwareModule!) can get the proper
+        information
+
+2002-03-27  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to version 0.8.30
+
+        * dueca/CriticalActivity.hxx (class CriticalActivity): added a
+        function Working, returns true if work on for a certain time spec,
+        Olaf requested this
+
+        * dueca/Environment.cxx (destruct_most): atexit function, does
+        destruction, since guile is lazy destructor
+
+        * dueca/ObjectManager.cxx (destructAllButCrew): new, and added logging
+
+        * dueca/PackerManager.hxx (class PackerManager): added a method to
+        stop packers
+
+        * dueca/TimeKeeper.cxx (getUsecsToNextTick): checked and updated,
+        for syncing with nanosleep
+
+        * dueca/PackerManager.hxx (class PackerManager): added a method
+        stopPackers.
+
+2002-03-26  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/Ticker.cxx (waitAndDoNextTick): modified, to make syncing
+        method selectible at run-time
+
+        * dueca/ReflectivePacker.hxx (class ReflectivePacker): added a
+        start method, that does the actual start. Has to be called after
+        initialiseStores.
+
+        * dueca/ReflectiveAccessor.cxx (handleControlWrite): changed
+        initialisation, to first prepare the sending area (on Contact2),
+        and then start sending and receiving (on Contact3)
+
+        * dueca/Ticker.hxx (class Ticker): added possibility to use
+        nanosleep for timing.
+
+2002-03-22  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * doc/quickstart.doc: updated to current interface standards
+
+        * doc/minitut.doc (public): added tutorial about constructor,
+        destructor
+
+        * dueca/CriticalActivity.hxx (class CriticalActivity): added to
+        DUECA_API
+
+        * configure.in: added an option to exclude sstream, for QNX
+
+2002-03-19  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * codegen/newModule: corrected, had one "SpacePlane" in here
+
+        * doc/example/Makefile.module: corrected "generated-types" dep
+
+2002-03-18  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/TypeCreator.hxx (TypeCreator): simplified, moved
+        creationcenter call to the GenericTypeCreator
+
+2002-03-13  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to 0.8.28
+
+        * dueca/TimeKeeper.cxx (getTicksToWait): added a hold-back
+        counter, to prevent consecutive double waits and skipped waits
+        when running almost synced.
+
+        * dueca.spec.in (CFLAGS): --enable-max-nodes=16, for SIMONA
+
+2002-03-12  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped to version 0.8.27
+
+        * doc/example/Makefile.module: changes to get automatic generation
+        of the list of generated files
+
+        * codegen/CodeGen.cxx: Added -f option to get a file list
+
+2002-02-27  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: and again, build for 0.8.26
+
+        * dueca/TimeKeeper.cxx (getTicksToWait): adjustment to the syncing
+        code, now try to get within 60 % of master with waits/doubles
+
+        * dueca/ReflectiveAccessor.cxx (initialiseArea): nasty bug in
+        calculation of area sizes
+
+        * dueca.spec.in: rpm builds for version 0.8.26
+
+        * dueca/TimeKeeper.hxx (class TimeKeeper): Some additional logging
+        for the sync logs
+
+        * dueca/Ticker.cxx (completeCreation): Added activity for sending
+        sync logs
+
+        * dueca/TimingView.cxx (TimingView): Added a window for sync
+        information between nodes, including buttons for requesting, and
+        channels.
+
+        * dueca/TimingCheck.cxx (after): adjustment, so that the correct
+        number of loops is calculated
+
+2002-02-26  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/debug.h (E_SYS): rationalised the contents of debug.h
+
+        * configure.in: bumped version to 0.8.26
+
+        * dueca/ActivityView.cxx (ActivityView): Added some checks, and
+        let the ActivityView dynamically add the entry to the view menu,
+        like the TimingView does.
+
+        * codegen/newModule (public): Added TimingCheck code to the
+        automatically generated stuff
+
+        * dueca/TimingCheck.hxx (class TimingCheck): A new class, for
+        putting a quick check on activities
+
+        * dueca/TimingView.hxx (class TimingView): A new module, for
+        viewing timing performance
+
+2002-02-19  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/TimingCheck.hxx: Created a new class, TimingCheck, to
+        facilitate checks on activity timing.
+
+2002-02-15  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/GlutHandler.cxx: removed the setjmp/longjmp
+        mechanism. Code simply will not exit, so reverted to calling exit
+        in the Glut handler code, hope this helps
+
+        * configure.in: bumped to 0.8.24
+                        and to 0.8.25
+
+        * dueca/IPAccessor.cxx (despatch): made a separate timeout for
+        initialisation phase
+
+2002-02-14  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped version to 0.8.23
+
+        * dueca/EntityManager.cxx (checkIn): added a check on channel
+        validity at check-in of entities
+
+        * dueca/Environment.cxx (proceed): Inserted a hack to call exit()
+        when using glut as graphics, since glut never really returns
+
+        * dueca/IPAccessor.cxx (despatch): had a few static variables
+        that did not have to be static, caused erratic behaviour on
+        select.
+
+2002-02-12  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in (rpm_release): bumped to version 0.8.22
+
+        * rtw/src/rt_nonfinite.c (rt_InitInfAndNaN): apparently, -inf is
+        not initialised properly by the MATLAB code. Modified this to use
+        Linux headers.
+
+2002-02-06  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: bumped version number to 0.8.21, only changes for
+        QNX scramnet configuration
+
+        * qnxfull.script, qnxmini.script: scripts for building on QNX
+
+        * dueca/ScramNetAccessor.cxx: corrections for use on QNX
+
+        * dueca/DuecaMainScram.cxx: corrected for use on QNX, with
+        scramnet.h header
+
+2002-01-31  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * extra/DuecaGLWindow.cxx (selectCursor): Added a function to
+        enable selection of the cursor
+
+        * dueca/Activity.hxx (class Activity::noScheduledBehind): method
+        to query the number of additionally scheduled instances of an
+        Activity.
+
+        * dueca/Environment.cxx (proceed): Updated logic to handle a
+        return to guile for additional configuration reading.
+
+        * dueca/DuecaView.cxx (DuecaView): Added an option to read
+        additional module configuration files.
+
+        * dueca/GtkHandler.cxx (passControl): use idle_add instead of
+        timeout_add.
+
+        * configure.in : select C compiler for rand / random checking, C++
+        compiler fails on prototype mismatch. Bumped version number to 0.8.20
+
+2002-01-29  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/Activity.hxx (class Activity): added a counter for no of
+        schedule and no of despatches, to be able to give information
+        about already scheduled activities.
+
+2002-01-23  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/Unpacker.cxx (changeCurrentStore): unpacker ignores empty
+        stores.
+
+        * rtw60/Makefile.am: Added the necessary base code for Real-Time
+        Workshop version with Matlab 6.0, generates librtw60.a, etc.
+
+        * dueca/DuecaView.cxx (on_obnoxious_released): Added a check for
+        the state of dueca, and an extra warning window when exiting a
+        running simulation.
+
+2002-01-18  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/IPMulticastAccessor.cxx (make_object): added the
+        possibility to only send, not receive (no_of_senders = 1). Did the
+        same for BroadcastAccessor.
+
+        * doc/faq.doc: added a new file, with "frequently asked questions"
+
+        * dueca/SchemeObject.hxx: made the scheme code compatible with
+        guile 1.3.4 again, so standard installed guile libs can be used.
+
+        * dueca/ActivityBit.cxx: (and others) Using sstream instead of
+        strstream now, for composing strings.
+
+        * dueca/Dstring.cxx (freeData): A nasty one, returned memory to
+        the pool that was not allocated. A test on the data pointer
+        prevents this now.
+
+        * all: The priority 0 activitymanager now does a
+        pthread_condition_wait when no jobs are present. This ensures no
+        wasted time in additional graphics updates, and no missed
+        opportunities because the thread is in a (dumb) waiting call. The
+        ticker wakes this thread with the "compatible" time spec to ensure
+        that graphics code gets called.
+
+        * all: The exit code has been re-organised. Now all threads are
+        reaped, (first the activity managers, then the graphics thread is
+        joined with the guile thread) and the program exits via
+        guile. Destructors are not called by guile -- bummer.
+
+2002-01-17  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/SchemeObject.hxx: Tried again with guile-1.3.4, the only
+        thing missing was SCM_BOOLP, added a define for that. Now standard
+        installed guile for linux is enough.
+
+2001-12-13  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/dueca_ns.h.in: Completed the addition of namespace to
+        dueca. Things work. Things on the wish-list: have all the ostream&
+        operator << printing in global namespace.
+
+2001-12-12  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dusime/SimulationState.cxx (packData): And others. Learned
+        yesterday and today that it is not wise to make friends outside
+        your own namespace. Have to re-write the packdata/print stuff to
+        use member functions and public namespace function combinations,
+        in order to be able to start dueca namespace
+
+2001-10-26  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/IPAccessor.cxx (despatch): Added intentional delay and
+        non-sending when test options present
+
+2001-10-17  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/IPAccessor.cxx (readData): Updated the logic for clearing
+        out double messages
+
+2001-08-16  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/ReflectiveFillUnpacker.cxx (ReflectiveFillUnpacker): same
+        error as with the FillUnpacker. Actually, discovered it here.
+
+        * dueca/ReflectiveFillPacker.cxx: completed and checked now
+
+        * dueca/ReflectiveAccessor.cxx (initialiseHelpers): added fill
+        packer and unpacker to the reflective accessors, mainly for
+        initialisation of the latter.
+
+        * dueca/Environment.cxx (proceed): moved the
+        ObjectManager::sendToAllNodes call to here, instead of in the
+        ActivityManager
+
+        * dueca/CallbackWithId.hxx (print): removed printing of the Id, to
+        prevent errors with unprintable ID's
+
+        * dueca/AmorphStore.cxx (acceptBuffer): small stupidity, did not
+        correctly set the capacity
+
+        * dueca/FillUnpacker.cxx (initialiseStores): Had not realised that
+        I need different buffers, on for each sender. Corrected.
+
+        * dueca/EntityManager.cxx (getStatusStrict): small error in
+        evaluation of status (problem with NotHere) corrected.
+
+2001-07-27  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca.spec (Requires): Added requirements, to prevent surprises
+
+2001-07-19  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/IPAccessor.cxx (despatch): re-modeled the net logic yet
+        again. Tried to simplify things.
+
+2001-07-17  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/IPAccessor.cxx (readData): did not re-initialise
+        possible_stack_trouble on double messages, and this resulted in
+        stuck messages being read, and slower comm
+        forgot to remove the missed_data flag when number 0 transmits as
+        expected.
+
+2001-07-05  Rene van Paassen  <repa@pascua.localdomain>
+
+        * dueca/StreamReader.hxx: added comments, flagged as ready for
+        documentation, and added exception handling.
+
+2001-07-04  Rene van Paassen  <repa@pascua.localdomain>
+
+        * dueca/Trigger.cxx (operator &&): corrected a bug, had addPuller
+        instead of addTarget in the 2nd and 3rd ConditionAnd operator &&
+
+        * doc/example/Makefile.exe (depend): corrections rules,
+        dependency, now always checks modules before rebuilding
+
+2001-06-13  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/DuecaView.cxx: removed the handling of the quit button to
+        NodeManager.cxx
+
+        * dueca/generated-types: added a state to the node states
+
+        * dueca/Environment.cxx: modifications to enable stop code
+
+        * dueca/SimTime.hxx: added to the DUECA_API set, added comments
+
+        * dueca/GtkHandler.cxx (returnControl): added gtk_main_quit, so
+        that the gtk handler is stopped
+
+        * extra/DuecaGLWindow.cxx: Added the capacity to get keyboard
+        events in gtk gl windows
+
+        * dueca/NodeManager.cxx: Corrected start/stop logic. Corrected bug
+        that prevented NodeManager from updating information view
+
+2001-06-11  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/StreamChannel.cxx (amILagging): fix for the problem with
+        amILagging
+
+2001-06-07  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/IPAccessor.cxx: corrected a bug with sender detection
+        code, which used unitialised file descriptor to test for the
+        currently sending node.
+
+2001-05-30  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * configure.in: version to 0.6.5
+
+        * dueca/registry.hxx (insert): added a re-size of the "indexes"
+        vector when an index is inserted that exceeds the vector
+        size. This caused unclear segfaults in other parts of the code
+
+        * dueca/Channel.hxx (packData ): packData now returns a bool,
+        gives false when data was lost, also EventChannel and
+        StreamChannel updated
+
+        * dueca/Packer.cxx (packOneSet): added dueca-conf.h so the
+        USE_EXCEPTIONS define can be used, corrected the case where
+        channel data is lost but full store may be assumed
+
+        * dueca/FillPacker.cxx (packOneSet): added dueca-conf.h so the
+        USE_EXCEPTIONS define can be used, corrected the case where
+        channel data is lost but full store may be assumed
+
+        * dueca/EventLink.hxx (class EventLink): Added new and delete
+        functions that use the ArenaPool to allocate data
+
+        * dueca/Environment.cxx: added HAVE_SETUID and HAVE_MLOCKALL to
+        configure.in and dueca-conf.h so these capabilities can be
+        compiled in
+
+        * dueca/AmorphStore.hxx (class AmorphStore): corrected problem
+        with checkForRoom routine, which did not throw exceptions. Routine
+        moved to .cxx file
+
+2001-04-13  Rene van Paassen  <repa@pascua.localdomain>
+
+        * dueca/CyclicInt.hxx (class CyclicInt): added setLimit function
+
+2001-04-12  Rene van Paassen  <repa@pascua.localdomain>
+
+        * dueca/NodeManager.hxx (class NodeManager): added doxygen
+        comments, removed erroneous USE_GTK, and class dependence on
+        configuration.
+
+2001-04-11  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dueca/StreamReader.hxx: addition
+
+        * dueca/EventReader.hxx: addition
+
+2001-04-03  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * dusime/Interval.cxx: re-working to a sort of parallel secant
+        method
+
+        * acconfig.h: added USE_EXCEPTIONS
+
+2001-03-29  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * doc/simulink.doc Added a section about interpreting the output
+        vector.
+
+        * doc/codegen/newModule some corrections
+
+        * dueca.spec.in added ---with-glut as default for building
+
+        * dueca/GlutHandler.hxx mis-interpreted timer func, now corrected
+
+2001-03-28  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * codegen Added comment parsing (lisp-style, starting with ;) to
+        the code generator
+
+2001-03-23  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * 0.6.3 Drastic trimming of installed header files
+        dueca-conf independence
+
+2001-03-22  Rene van Paassen  <repa@lrcsdp01.lr.tudelft.nl>
+
+        * Worked out how the emacs mode for ChangeLog works
+
+2001-03-22        RenÃ© van Paassen <M.M.vanPaassen@lr.tudelft.nl>
+
+        Re-worked the StreamAccessToken and EventAccessToken (read/write)
+        classes to eliminate dependency on too much header files
+
+        Changed StateGuard and Condition to have all platform-dependent
+        issues in the body files, used a trick with buffer allocation and
+        placement new to be able to do this (in fact flexible members in
+        the class definition, without changes in the class definition
+        itself, only a sub-class defined in the body file changes)
+
+2001-03-20        RenÃ© van Paassen <M.M.vanPaassen@lr.tudelft.nl>
+
+        Added a lot of documentation
+        added the dusime.h and dueca.h files
+        installing a lot more header files than necessary
+        removed the dependency on the config.h file
+
+2001-03-02        RenÃ© van Paassen <M.M.vanPaassen@lr.tudelft.nl>
+
+        Made a first "autoconf" version from the previously hand-crafted
+        dusime sources.
+
+        Renamed the package to "dueca".
+
+        Changed all file extensions to .cxx and .hxx for compatibility
+        with more platforms
+
+        Created a dueca.spec file for RPM package building
+
+        Trimmed the installed headers to (hopefully) all that is needed
+        for compilation of modules
+

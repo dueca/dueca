@@ -1,0 +1,336 @@
+/**
+
+\page dusime DUSIME key concepts
+
+A good simulator, aside from generating the behaviour of the "real
+thing" with the appropriate fidelity, will provide a number of extra
+possibilities to its users (experimentators or trainees). An aircraft
+simulation can normally be stopped and started in mid-air, and it is
+often useful to have "playback" and "repeat" functions, with which one
+can review a previous simulation, or jump back to a point where things
+got interesting to have another try at the task.
+
+On a distributed real-time system, such meta-functions have to be
+implemented carefully. DUECA by itself gives the necessary tools to
+create a distributed calculation process, but has no additional
+facilities specifically for simulations. DUSIME is a (very thin and
+small) application on top of DUECA that does all these things. A part
+of DUSIME sends out DUECA events to make the rest of the simulation
+stop, start, take a snapshot, test the hardware, etc.
+
+Another part of DUSIME must be present in each of the modules that
+participate in a DUSIME simulation, because each module must
+understand the instructions to start, stop, etc. To make things easy
+for developers, this part is all encapsulated into the code of the
+HardwareModule and SimulationModule classes. By deriving their module
+from a SimulationModule or HardwareModule, developers are ensured of
+DUSIME compatibility.
+
+\section dusime_trim Trim condition calculation
+
+@warning Trim calculation is presently not implemented
+
+
+A trim condition of a model is a model state, combined with values for
+the input signals, that satisfies certain criteria. Take for example
+trimming an aircraft model for horizontal flight. You want to find a
+power setting, control input and aircraft attitude so that after the
+start of the simulation, and with identical input signals:
+
+<ul>
+<li> The speed remains constant
+<li> The airplane flies level (i.e., vertical speed is 0)
+<li> The flight is symmetric
+<li> The airplane keeps its pitch attitude
+</ul>
+
+Finding such a trim condition is done by an iterative process. In this
+process, state variables, derivatives of state variables and input
+variables can have different roles:
+
+<ol>
+<li> A \em Constraint. This is a part of the vehicle state
+that may be set to a specific value by the experiment leader. For
+example the aircraft position is a constraint.
+<li> A \em Target. This is a part of the state -- or of the
+derivative of the state, that has to be within certain bounds. For
+example, you want the pitch acceleration ( \f$ dq/dt \f$ ) to  be zero, so
+that the aircraft does not start pitching when the simulation is
+started.
+<li> A \em Control. This is something the initial condition
+calculation can use to achieve the targets. For example the pitch
+attitude may be varied until the flight path is level, and the
+elevator input is varied until the pitch acceleration is zero.
+</ol>
+
+It is possible to specify the constraints, targets and controls for a
+number of different initial condition modes, currently, DUSIME knows
+the following modes:
+<ol>
+<li> FlightPath, with specification of the flight path angle and
+speed, gets a power setting, attitude and elevator/trim input.
+<li> Speed, with specification of the speed and power setting, gets a
+flight path angle, attitude and elevator/trim input.
+<li> Ground, for a calculation of an initial condition on the ground,
+with the gear down and at zero speed
+</ol>
+
+It is important to realise that DUSIME knows actually nothing about
+your model, and that it cannot do the trimming without the module's
+help. Also, the initial condition modes are just conventions. In the
+model you have to specify all variables (state, derivative of state or
+input) that play a role in the inco calculation, and specify which
+role they play for each of the inco modes. You also have to provide
+the calculation for each of the inco modes.
+
+
+\section dusime_snap Snapshot taking and loading
+
+One of the luxuries of simulation is that you can repeat the mistakes
+you have made in a simulation. A simulator can remember what has
+"happened", and restore a state of the model and hardware that was
+recorded in the past. This is popularly called a "snapshot". A
+simulation snapshot is a complete (!) copy of the simulation model
+state. It is possible to reload this copy, and so jump back in the
+simulation to a previous point.
+
+The state that you calculate in a trim calculation for the model does
+not differ from the state you take in a snapshot. For economy of
+programming (not computer cycle use), DUSIME combines these two
+mechanisms. If you calculate a trim condition for your model, a
+snapshot is made of that trimmed state, and this snapshot is used to
+transfer the state of the trim model to the state of the model used in
+the calculations.
+
+\section dusime_state States of the simulation
+
+A very important thing to remember in DUECA/DUSIME, is that there are
+two different levels of "state" for a module. The first level of state
+concerns the "DUECA" aspect of a module. Regarding DUECA, a normal
+module can be in one of the following states:
+
+<ol>
+<li> Off. The module is not running, i.e. its main activity (normally its
+work in the simulation) is not switched on.
+<li> Working. The module is working, i.e. its main activity is switched
+on. Normally this means that triggering events, such as the arrival of
+data on a channel, give rise to scheduling of the activity, and the
+activity is subsequently invoked.
+</ol>
+
+An additional state is possible for a module with a CriticalActivity,
+in general these kinds of activity are only used by HardwareModule
+derived modules:
+
+<ol>
+<li> Safe. The module is running in safe mode. This means that the
+CriticalActivity of the module is calling an alternate callback method
+of the module. This method must drive the hardware to a safe state and
+keep it there.
+</ol>
+
+Now DUECA does not directly tell the Activity objects when to start
+and when to stop, because it does not know exactly which activities
+should be started and stopped. Instead, one of four virtual methods
+from the Module base class are called:
+
+<ol>
+<li> Module::initialStartModule. This method is only useful for
+modules with CriticalActivity objects, and these objects should be
+switched on at this point (using Activity::switchOn). The effect will
+be that the activity will start running in safe mode.
+
+<li> Module::startModule. Normal modules should switch on their
+activities when this method is called (using Activity::switchOn, with
+the provided TimeSpec). Modules with CriticalActivity objects switch
+their activity to the working mode, with the
+CriticalActivity::switchWork method.
+
+<li> Module::stopModule. Normal modules can switch their activities
+off in this method (Activity::switchOff), Modules with
+CriticalActivity objects switch their activity to the safe mode with
+the CriticalActivity::switchSafe method.
+
+<li> Module::finalStopModule. Again, this method is only useful for
+modules with CriticalActivity objects, and these objects should be
+switched off at this point (using Activity::switchOff). From the point
+defined by the provided TimeSpec on, the activity will no longer be
+running.
+</ol>
+
+The additional advantage of this mechanism is that your module at
+least knows that a mode change takes place. The effect is that, seen
+from a DUECA viewpoint, there are three possibilities; a module is
+switched off, and its activities will not be invoked, a module is
+running in safe mode, or a module is working.
+
+Hardware devices controlled from a DUECA module will always be
+controlled from safe mode initially, then, if the module has indicated
+it is ready to go into working mode, the control may be from working
+mode, and before dueca is exited -- barring program crashes of course
+-- control will again be from safe mode. Ergo, hardware devices must
+be able to switch "elegantly" between safe and working mode, and they
+must be able to start and end participation in a DUECA-controlled
+simulation in safe mode.
+
+Simulation functionality is added by DUSIME, with a number of states
+that are only handled within DUECA's working mode, and so these states
+must all fit within the method that is called by the module's main
+Activity. A module should call the Module::getAndCheckState method to
+find out which DUSIME state is active. A number of states are defined,
+and of these the following are "steady" states:
+
+<ol>
+<li> SimulationState::Inactive. This is the initial DUSIME mode that a
+HardwareModule will enter after its CriticalActivity has been switched
+from Safe to Working. The controlled hardware device must be able to
+make a smooth transition from the commands give to it in Safe mode to
+the commands given to it in (Working + Inactive) mode, and vice versa.
+
+<li> SimulationState::HoldCurrent. This is a state in which a
+HardwareModule or a SimulationModule is prepared to participate in the
+simulation. In HoldCurrent, hardware is kept in a state from which at
+any moment the simulation may start, and the model is kept "frozen",
+i.e. there is no update with time.
+
+<li> SimulationState::Advance. In this state, the simulation is
+running normally. The model state is advanced to keep in pace with the
+progress of wall clock time, hardware inputs are read out to provide
+the control to the model and output hardware provides cueing on the
+basis of the model output.
+
+<li> SimulationState::Replay. This state is like Advance, but the
+input to the simulation is from a previously recorded inputs, instead
+of from the hardware and the pilot's control actions.
+</ol>
+
+Since some hardware cannot switch state infinitely fast, a number of
+transition states have been defined. A module stays in a transition
+state until it indicates that the transition is complete, then it will
+be in the final state of the transition. Note that for different
+modules the transition to the final state may be asynchronous; the
+control loading system may have reached HoldCurrent while the motion
+system is still in transition.
+
+<ol>
+<li> SimulationState::Inactive_HoldCurrent. The transition from
+Inactive to HoldCurrent. For example for the SRS motion system this
+means moving the motion system from the down position to the neutral
+or center position for the simulation.
+
+<li> SimulationState::Calibrate_HoldCurrent. This transition state is
+always entered from HoldCurrent and returns to HoldCurrent. In this
+state the hardware may perform calibration, if needed. If no
+calibration is needed, immediately indicate that the transition is
+complete, with HardwareModule::transitionComplete(), and do the action for
+HoldCurrent.
+
+<li> SimulationState::Advance_HoldCurrent. This transition state is
+entered from the Advance state. The hardware must return to the
+starting position/state for HoldCurrent.
+
+<li> SimulationState::HoldCurrent_Inactive. This transition state is
+entered from the HoldCurrent state. The hardware must return to the
+Inactive state, e.g., the motion system goes down.
+</ol>
+
+Modules derived from the HardwareModule class may receive any of the
+above states after calling the HardwareModule::getAndCheckState
+method. Modules that "only" do model calculations do not need this
+full set of states, therefore the SimulationModules::getAndCheckState
+method for these modules only returns three different states:
+HoldCurrent, Replay and Advance. All other states, the Inactive state
+and all transition states, are mapped onto the HoldCurrent state.
+
+Hardware that is controlled by a DUSIME module, may expect the
+following actions from that module:
+
+<table>
+<tr>
+<td> DUECA activities Off </td>
+<td> No communications </td>
+</tr>
+
+<tr> <td> DUECA activities Safe </td> <td> The hardware must be driven
+to a safe state, and it must be kept there. This mode is the initial
+mode in which communication with DUECA is established, and it is
+normally also the mode in which communication will be stopped. In a
+normal, controlled shutdown, this mode is entered from the Inactive
+mode. This mode may also be entered at any time due to an error
+condition in DUECA. In this latter case the transition to the safe
+position need not be "elegant".  </td> </tr>
+
+<tr>
+<td> DUSIME Inactive </td>
+<td> The hardware is kept in a down / inactive / inert
+state. Transitions to and from Inactive and Safe may occur
+instantaneously, and should be handled gracefully (i.e. no bumps,
+awkward movements) </td>
+</tr>
+
+<tr>
+<td> DUSIME Inactive_Holdcurrent </td>
+<td> The hardware is brought to the starting position for cueing. </td>
+</tr>
+
+<tr>
+<td> DUSIME HoldCurrent </td>
+<td> The hardware is kept in the starting position for cueing. </td>
+</tr>
+
+<tr>
+<td> DUSIME Calibrate_Holdcurrent </td>
+<td> From the starting position for cueing, perform a calibration, if
+necessary, and return to that starting position. </td>
+</tr>
+
+<tr>
+<td> DUSIME Active</td>
+<td> Provide cues/obtain inputs. </td>
+</tr>
+
+<tr>
+<td> DUSIME Replay</td>
+<td> For hardware that only provides cues, this mode might be the same
+as the Active mode. Hardware that provides input may somehow replay
+the input (e.g. the control loading simulation replays the movements
+by adding the recorded pilot force trace to the input).</td>
+</tr>
+
+<tr>
+<td> DUSIME Active_Holdcurrent</td>
+<td> Return to starting position for cueing </td>
+</tr>
+
+<tr>
+<td> DUSIME HoldCurrent_Inactive</td>
+<td> go to the "down" position </td>
+</tr>
+</table>
+
+Note that not all hardware needs to make distinctions between all these
+modes, the control strategy applied may map onto a limited number of
+modes for the hardware. This mapping may be easily implemented within
+the DUSIME HardwareModule controlling the hardware.
+
+\section dusime_ready Indicating that you are ready to leave a mode
+
+DUECA is a distributed system, and the state machines that control
+DUECA and DUSIME must take this into account. For a DUSIME hardware
+module, things are complex, but the rules are simple; if the module
+enters a transition state, like Inactive_HoldCurrent, it can say in
+that state as long as it needs, and only when it indicates that it is
+ready, with transitionComplete(), the DUSIME controller can proceed to
+the next state.
+
+Simulation modules only get the "final" states, and implicitly
+indicate to DUSIME that their transitions are complete. However, in
+some cases it might be better to not do this. Typical examples are
+modules that handle a configuration window for an experiment, and a
+transition from HoldCurrent to Advance should only take place after
+the experiment is properly configured. In that case, use the complete
+list of parameters to the dueca::SimulationModule::getAndCheckState()
+function, and only set the second parameter to true when the module is
+ready to continue to other states.
+
+*/

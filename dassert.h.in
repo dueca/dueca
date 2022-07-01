@@ -1,0 +1,30 @@
+/* ------------------------------------------------------------------   */
+/*      item            : dassert.hxx
+        made by         : Rene van Paassen
+        date            : 170324
+        category        : header file
+        description     : Control of assert statements, only to be
+                          used in debug/test versions
+        changes         : 170324 first version
+        language        : C++
+        copyright       : (c) 17 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+#ifndef dassert_hxx
+#define dassert_hxx
+
+/** Flag to determine whether assert is active or inert */
+#cmakedefine ASSERT_ACTIVE
+
+#ifdef ASSERT_ACTIVE
+#include <cassert>
+#else
+#ifdef assert
+#undef assert
+#endif
+#define assert(A)
+#endif
+
+#endif

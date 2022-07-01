@@ -1,0 +1,8 @@
+(Type double)
+(Type dueca::Object3 "#include \"Object3.hxx\"")
+
+(Stream Object5
+  (Inherits dueca::Object3)
+  (Option msgpack)
+  (double extra (Default 0.0))
+)

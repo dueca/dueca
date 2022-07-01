@@ -1,0 +1,117 @@
+/* ------------------------------------------------------------------   */
+/*      item            : debprint.h.in
+        made by         : Rene van Paassen
+        date            : 180214
+        category        : header file
+        description     : Helper for debug printing, not for production
+        changes         : 180214 first version
+        language        : C++
+        copyright       : (c) 2018, 2020 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+/** @file debprint.h
+
+    Debug print is activated through CMake define flag BUILD_DEBPRINT
+
+    In a source file using debug print, 4 levels may defined
+
+    - DEB (or DEB0)
+    - DEB1
+    - DEB2
+    - DEB3
+
+    The define DEBPRINTLEVEL controls the activated levels. Set to -1
+    to disable for the file, then 0, 1, 2, 3 for activating the different
+    DEB# macros.
+
+    Accompanying file undebprint.h is needed for headers, it removes the
+    debprint defines, so that each source file can select its own level
+    of debugging.
+*/
+
+#ifndef BUILD_FEXCEPT
+/** Floating point exceptions code */
+#cmakedefine BUILD_FEXCEPT
+#endif
+
+#ifndef BUILD_DEBPRINT
+/** DEBUG code */
+#cmakedefine BUILD_DEBPRINT
+#endif
+
+#ifdef DEBDEF
+#error "Multiple use of debprint.h, close off a previous file with undebprint.h"
+#endif
+
+
+#ifdef BUILD_DEBPRINT
+
+// by default, enable only DEB(A)
+#ifndef DEBPRINTLEVEL
+#define DEBPRINTLEVEL 0
+#endif
+
+// remember debug header is defined, and use as flag in code
+#define DEBDEF
+
+#else
+
+// when in production, disable all
+#ifdef DEBPRINTLEVEL
+#undef DEBPRINTLEVEL
+#endif
+#define DEBPRINTLEVEL -1
+
+#endif
+
+#ifndef DEB0
+# if DEBPRINTLEVEL >= 0
+#  define DEB0(A) std::cerr << A << std::endl;
+# else
+#  define DEB0(A)
+# endif
+#else
+# error "DEB0 defined outside debprint.h"
+#endif
+
+#ifndef DEB
+# if DEBPRINTLEVEL >= 0
+#  define DEB(A) std::cerr << A << std::endl;
+# else
+#  define DEB(A)
+# endif
+#else
+# error "DEB defined outside debprint.h"
+#endif
+
+#ifndef DEB1
+# if DEBPRINTLEVEL >= 1
+#  define DEB1(A) std::cerr << A << std::endl;
+# else
+#  define DEB1(A)
+# endif
+#else
+# error "DEB1 defined outside debprint.h"
+#endif
+
+#ifndef DEB2
+# if DEBPRINTLEVEL >= 2
+#  define DEB2(A) std::cerr << A << std::endl;
+# else
+#  define DEB2(A)
+# endif
+#else
+# error "DEB2 defined outside debprint.h"
+#endif
+
+#ifndef DEB3
+# if DEBPRINTLEVEL >= 3
+#  define DEB3(A) std::cerr << A << std::endl;
+# else
+#  define DEB3(A)
+# endif
+#else
+# error "DEB3 defined outside debprint.h"
+#endif

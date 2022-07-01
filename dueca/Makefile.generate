@@ -1,0 +1,6 @@
+# make the transmitted objects
+$(BUILT_SOURCES) : generated-types
+        ../codegen/dueca-codegen < generated-types
+
+#
+

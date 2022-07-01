@@ -1,0 +1,37 @@
+;; -*-scheme-*-
+(Header "
+        from item       : NameSet.dco
+        date            : 130928
+        category        : comm object specification
+        description     : Basic named object or channel
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+        language        : C++
+        documentation   : DUECA_API")
+
+;; use standard stl string to capture the name
+(Type std::string "#include <string>")
+
+;; Name tuple as used in DUECA. The tuple is typically written in URL-type
+;; fashion, with the data class type before the dots, e.g.,
+;; MyDataClass://entity/part, or MyDataClass://something
+;;
+;; Originally, the naming in DUECA was limited to three-part names
+;;   <ol>
+;;   <li> Entity. The name of the (bigger) entity this object (module
+;;        or channel) belongs or corresponds to.
+;;   <li> Class. The type of thing it is. The module class name for a
+;;        module, or the data class name for a channel.
+;;   <li> Part. In order to distinguish between multiple
+;;        channels/modules of the same type within one Entity.
+;;   </ol>
+;;
+;; This is now re-coded to a name of Class://Entity/Part, and if part is
+;; omitted, to Class://Entity
+(EventAndStream NameSet
+       (IncludeFile NameSetExtra)
+       (ConstructorCode "validate_set();")
+       (FullArgsConstructorCode "validate_set();")
+       (std::string name (Default "://"))
+       )

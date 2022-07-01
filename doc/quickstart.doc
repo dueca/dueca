@@ -1,0 +1,1155 @@
+// -*-c++-*-
+
+/** \page quickstart Quick start in programming
+
+This section of the manual assumes that you are already familiar with
+some of the concepts used in DUECA and DUSIME. If you encounter
+concepts that you are not familiar with, they should have a hyperlink
+to the documentation where they are explained, follow the hyperlink,
+and use the return button on your browser to get back to this
+section.
+
+\section quick_usingexample Using an example
+
+This section of the documentation guides you through the creation of a
+few DUECA modules, at the hand of a simple example. This example is
+the first useful application ever implemented in DUSIME, a simulation
+of a lifting-body space plane, used for evaluation of handling
+qualities in the landing phase.
+
+First some data about the example simulation. This simulation is
+implemented on the Human-Machine Systems lab of the
+\htmlonly <A href="http://www.cs.lr.tudelft.nl/"> Control and
+Simulation </A> \endhtmlonly
+\latexonly Control and Simulation \endlatexonly
+Division, Faculty of Aerospace Engineering
+
+The simulation model of the equations of motion of the spaceplane,
+including the control augmentation system, was programmed in one
+Simulink model. Using the Real-Time Workshop (RTW) toolbox, C code was
+generated for this Simulink model. Input of the RTW code are the pitch
+and roll stick inputs, and the output of the code is an output vector
+with all spaceplane motions.
+
+The simulation was controlled with a control loaded side stick. This
+stick uses a hydraulic servo motor to simulate mechanical properties,
+in this case the mechanical properties of a passive (mass, spring and
+damper) stick.
+
+Instrument display was done on a PC with a fast graphics card. The
+display is drawn using the output of the RTW model.
+
+In addition to the display output, output to file was needed. The
+stick force and position data, and the spaceplane model output data,
+were recorded at a 50 Hz rate. Output to the control position of the
+experiment leader was also needed, during the run some key variables
+were shown in a window at the experiment leader's position, and key
+variables at certain points in the experiment (points along the
+pre-defined trajectory) were also shown and recorded. In this way it
+was for example possible to see the sink rate at touch down directly
+after a run.
+
+\section quick_bloks Modules (or Blocks)
+
+The first step in designing the simulation is setting up a (DUECA)
+data flow diagram. This diagram defines the modules used in the
+simulation, and the data (types) they send to each other.
+
+\image html spaceplane.png "DUECA data flow diagram for the spaceplane" width=15cm
+
+The data flow diagram contains the following blocks:
+<ul>
+
+<li> A module MMSLabStick, which reads the input force on the stick
+(i.e. directly from hardware), calculates the dynamics of the stick
+simulation, outputs the result of this calculation to the stick (to
+hardware), and also sends out stick position and force over a channel.
+
+<li> A module SpacePlane, which reads the stick input (position),
+feeds that to the RTW model, makes an update of the model, and sends
+out the output vector of the model over a channel.
+
+<li> A module DisplaySpace, which reads the spaceplane output vector,
+and draws the instrument display.
+
+<li> A module NumericOutput, which reads the spaceplane output vector
+the stick position and force data, and prints these to a file.
+
+<li> A module Evaluator, which reads the spaceplane output vector,
+calculates the deviation from the nominal path and presents this and a
+few other key variables in a window.
+</ul>
+
+These are all the modules that are needed from a model
+point-of-view. One other module is added for practical reasons. As
+will be explained in the following, the stick control loading and the
+spaceplane model run on different computers. The control loading has
+to run at a high update rate (2000 Hz), and it also produces data at
+2000 Hz. The spaceplane model runs slower (50 Hz), and thus it needs
+every 40th output of the control loading model. Now, without
+modifications, DUECA would send the stick data at 2000 Hz to the other
+computers, where only 1/40 th of this data would be used. An
+additional routine, called RateRedution, which runs in the computer
+with the stick module, reads the stick data and writes it again with
+only 50 Hz.
+
+\section quick_pipes Channels and data types
+
+Data that is exchanged with external hardware (such as the side stick
+electronics) is input and output directly from the module controlling
+that hardware. All communication between modules however, should be
+done by DUECA channels. For each of the channels we use, the type of
+data that should be sent over the channels must be defined.
+
+For example, the MMSLabStick module sends out stick roll position,
+stick roll force, stick pitch position and stick pitch force. As a
+bonus it also sends out the rate (velocity) of the stick roll and
+pitch position. All these data should be assembled in a C++ class that
+can be "sent over" a channel. Such classes should adhere to certain
+conventions, i.e. they need a method to be packed into a format for
+sending, and a method to be unpacked, etc. To make the writing of
+these data objects easier, a code generator has been written for
+DUECA. The code generator has to be fed with the following data, so
+that it can make the PrimaryControls object that is sent by the
+MMSLabStick module. This definition is written in a .dco file with the same name as the transmitted object, sod PrimaryControls.dco. Note that this file is quite bare, it is good practice to add a header block and comments to this file, and these will be transmitted also to the generated code.
+
+\verbatim
+(Type double)
+
+(EventAndStream PrimaryControls
+        (double stick_roll )
+        (double stick_pitch )
+        (double roll_moment)
+        (double pitch_moment)
+        (double roll_rate)
+        (double pitch_rate)
+        )
+\endverbatim
+
+The first line indicates that there is a basic type, "double", which
+is of course the double precision floating point type of C++. Then a
+new object class is defined, "PrimaryControls", which can be sent over
+both event and stream channels. This class has members stick_roll,
+stick_pitch, roll_moment, pitch_moment, roll_rate and pitch_rate, all
+of type "double". The code that is generated by the code generator can
+be seen \ref primarycontrols_code "here". Additional classes that are
+generated for the spaceplane simulation are the output of the
+spaceplane, "SpacePlaneY" and an event class that is used to switch
+between display types in the experiment, "DisplaySelect". This can all
+be specified in one file, so the rest of the generated-types file
+contains:
+
+\verbatim
+(EventAndStream SpacePlaneY
+        (double Y 29 ))
+
+(Type int )
+(Event DisplaySelect
+        (int type ))
+\endverbatim
+
+If you are interested in the use of the code generator and the
+semantics of its input files, you can find all that
+\ref codegenerator "here".
+
+\section quick_names Names of modules and channels
+
+As you may remember from the
+\ref main_intro "introduction", DUECA offers a "publish-subscribe"
+mechanism. This is a mechanism that enables a module to get to the
+data it needs, also when this module "does not know" exactly where the
+data is located. In simplified terms, a module can ask DUECA to give
+it access to a specific channel with data, if it knows how the data is
+called. As you may remember also from section on
+\ref key_entity "Entities"
+DUECA can handle different entities in the same DUECA process. Now,
+a module should have the possibility to subscribe to a channel from
+its own entity, i.e. the entity that it belongs to, without having to
+worry about getting data from other entities.
+
+To handle all this, DUECA uses a fixed naming scheme. I must warn you
+that this naming scheme is provisional, and that it will certainly be
+updated, but for now this is what is installed. Everything in DUECA,
+be it a channel or a module, has a name that consists of three
+elements:
+
+<ol>
+
+<li> The entity name, that is the name of the thing the module belongs
+to. For example, if we want to simulate the laboratory aircraft of the
+\htmlonly <A href="https://www.tudelft.nl/en/ae/"> Faculty of
+Aerospace Engineering </A>\endhtmlonly \latexonly Faculty of Aerospace
+Engineering \endlatexonly , then we would give all modules the entity
+name "PH-LAB". For the spaceplane we will use the entity name
+"space1" (since it does not really exist, and therefore it has no
+registration).
+
+<li> The class name, which is the name of what it really is. The class
+name is fixed for a certain class of module, and it is supplied in the
+C++ code of the module. For example for the MMSlabStick module class,
+the class name is "mmslab-stick".
+
+<li> To differentiate between multiple modules of the same class
+within an entity (for example if you simulate the engine of an
+aircraft with a certain module, and you have a two-, three- or
+four-engine aircraft), there is a third name component, the part
+name. Because the spaceplane simulation does not use the same module
+twice, this part name is not really needed in the example.
+
+</ol>
+
+The naming for channels is similar to the naming for modules, but in
+this case the class name is equal to the class name of the data
+object that is sent over the channel.
+
+Now in most cases, a module can know what channels to subscribe to on
+the basis of its own name. As an example, take the SpacePlane
+module. If we create an entity "space1", then the full name of
+the spaceplane module will be ("space1", "space-plane", ""), the
+first part for the entity name, the second for the class of the module,
+and the last part, the part name, is empty. (Note: for C++ classes the
+convention is to let each word of the class name begin with a capital
+letter. DUECA modules are however normally created from a
+\ref minitut_scheme "Scheme"
+script, and in Scheme the convention is to use all lower-case letters,
+and separate the words with a hyphen; "-". For DUECA modules
+therefore, we use the Scheme naming convention)
+
+The SpacePlane module subscribes to the stick data and publishes the
+aircraft output vector. The channel name for the stick data is
+("space1", "PrimaryControls", ""), with the class name of the
+SpacePlane module replaced by the (C++) name of the class of data
+("PrimaryControls") that is sent over the channel. Likewise, the name
+of the output channel can be constructed as ("space1", "SpacePlaneY",
+""). As you see, in most cases a module knows what data to subscribe
+to and publish by checking its own name.
+
+\section quick_id ID
+
+Now the name of a module completely identifies the module. However,
+for everysecond communication in DUECA, sending all these names is a
+bit cumbersome. Therefore a module (and any other reasonably sized
+object in DUECA), gets assigned an id. This id consists of two integer
+numbers, of which the first defines the node in which the module
+lives. The second number is unique within each node.
+
+\section quick_priority Activity and Priority
+
+Now each of the modules in the example has a "main activity", and that
+is the calculation of its piece of the simulation. As mentioned in the
+\ref key_activity "section about Activity",
+if you want DUECA to do something for you, then you have to create an
+Activity object. Before we can plunge into the programming, you have
+to know how DUECA executes these activities, so that you understand
+the parameters with which activity objects can be tuned.
+
+A characteristic of a real-time program is that the correctness of the
+program not only depend on the correctness of the output that it
+generates, but also on the timing of the output. Often different tasks
+have to be performed, with different timing requirements. Take for
+example the control loading simulation for the side stick. The IO with
+the stick hardware and the calculation of the stick properties
+simulation is done 2000 times per second, every 500
+usec. Communication with the other nodes in the DUECA process is done
+50 times per second. A communication cycle may take up to 1 msec (1000
+usec), with the computer simply waiting for the response from the
+other computers during most of the time.
+
+If DUECA could do only one thing at a time, either stick simulation or
+communication with the other nodes, it would not be possible to run
+the stick simulation 2000 times per second, because once in every
+forty cycles the communication would "paralyse" the computer for
+approximately 1000 usec, or two cycles. Therefore DUECA uses multiple
+threads of execution, and each thread is assigned a different
+priority. The operating system (if it has real-time capabilities)
+takes care that the thread with the highest priority is handled
+first. If there is no work in that thread, the thread with the next
+highest priority is handled.
+
+\image html threads.png "Example time line with three different priorities. Activities can interrupt activities with lower priorities, e.g. activity A interrupts activities B and C, and activity D interrupts C."
+
+Since DUECA processes may have (much) more modules, and activities for
+these modules, than there are priorities, activities will have to share a
+priority, and thereby share a thread. Within one thread, only one
+activity can be handled at a time, and this activity must be completed
+before the next activity can be started. So it is also important to
+know which of the activities that have to be run with a certain priority
+should be the first to run. To determine that, DUECA also defines an
+"order" for the activities.
+
+The importance of activities is now summarised in a PrioritySpec, a
+priority specification, which has two elements:
+<ul>
+<li> priority, which determines the thread in which the activity will
+run
+<li> order, which determines the importance relative to other
+activities in this thread. The higher the order, the more important
+the activity.
+</ul>
+
+\section quick_access Channels and Access Tokens
+
+We already discussed that a channel can only transport one data type,
+and that we need a special class, which fortunately can be generated
+easily with the code generator, for the objects that are sent over the
+channel. In the section on naming, the publish-subscribe mechanism was
+mentioned, i.e. you need the name of a channel, in the form of
+character strings, to let DUECA find it for you. Obviously, setting
+DUECA to work with a description of a channel each time you want to
+write or read something would not work; the system would spend all its
+time looking up channels for you. There must be some one-time
+initialisation for your access to the channel, and from then onwards
+there must be some "quick" method to read or write data.
+
+This one-time initialisation is implemented in DUECA in the form of
+access tokens. An access token is your private key to using the
+channel. You can make access tokens for reading or for writing. When
+you make the access token, you specify a name for the channel you
+would like to access, and your module has to supply its own id (so
+that, if your module doesn't behave, you can be blamed).
+
+Four kinds of access tokens are provided:
+<ul>
+<li> StreamChannelReadToken, for reading data from a stream
+channel.
+<li> StreamChannelWriteToken, for writing data to a stream
+channel.
+<li> EventChannelReadToken,  for reading an event in an event channel.
+<li> EventChannelWriteToken, for writing an event to an event
+channel.
+</ul>
+
+You remember the difference between
+\ref channeltypes "event and stream" data, do you?  Your module
+should check the access token to see whether it is valid, and when it
+is valid the token can be used for sending or receiving data.
+
+\section quick_code1 First piece of class definition
+
+Now, finally, a first piece of the class definition for the SpacePlane
+module. First, include the appropriate header files:
+\dontinclude SpacePlane.hxx
+
+\skip dusime
+\until e01
+
+What you see here is the inclusion of header files for all commonly
+used dusime stuff, the access tokens, and for the object types that
+are sent over the channels. The next part is specific for this module,
+and that is inclusion of a Simulink real-time workshop header
+("simstruc.h"), and the header of the Simulink model, that for some
+reason has been called "complete".
+
+Now we can declare the spaceplane class, it is derived from the
+SimulationModule class
+
+\until e02
+
+You need to do something in your module. In the SpacePlane module, all
+working code is generated from Simulink with real-time workshop. The
+SpacePlane model does not have a good landing gear simulation, and the
+actual landing (after initial touch of the ground) is not of interest
+for the experiment. So, there has been a stop height defined for the
+simulation.  Now first the variables that the simulation works with are
+declared.
+\until z_stop
+
+The simulation can take so-called snapshots. These are complete copies
+of the state -- and you better make sure complete is really complete
+-- which can be stored and later re-used to jump back to a previouse
+position. Declare the room for temporarily storing these snapshots.
+
+\until s_x
+
+\b RESULT
+<em> Whenever a SpacePlane object is created (constructed in c++
+parlance), it will have room for the data needed in the simulation. </em>
+
+Then the spaceplane needs access tokens for the channels that it reads
+from and writes to:
+
+\until SpacePlaneState
+
+The classes StreamChannelReadToken and StreamChannelWriteToken are
+\ref minitut_template "templated classes."
+That means that they have to be "specialized", by
+supplying a template parameter. In this case the template parameter is
+the class of data that is sent over the channel.
+
+\b RESULT
+<em> The module will have access to a channel with PrimaryControls data,
+for reading, and one with SpacePlaneY data and another one with
+SpacePlaneState data, for writing. The names of those
+channels are determined in the constructor of the SpacePlane class. </em>
+
+For running the simulation, the channels with the controls and the
+output are all that is needed by the SpacePlane module. However,
+in the future DUSIME will support implementation of  the calculation of trim
+conditions for the model. The trim conditions, also called initial
+conditions, are a certain input (stick position) and state that
+enables you to nicely start flying.
+These trim conditions are found by trial and error. For
+example if you want to start flying the spaceplane at a certain
+altitude and with a certain speed, then the trim condition calculation
+finds the stick (pitch) position, flight path angle and attitude with
+which you can start flying without pitching immediately up or down. To
+support this trial and error process for finding a trim condition, you
+need a set of event channels that can be used in parallel to the
+stream channels that are used in the simulation. This is something for
+later worry, since it is not implemented in DUSIME yet.
+More is said about the trim condition calculation in section
+\ref dusime_trim "Trim Condition Calculation".
+
+Now, as discussed in the section on \ref key_activity %Activity,
+if you want DUECA to call you whenever your model needs updating, you have to
+create an Activity object. The common kind of %Activity object that is
+used by modules is an ActivityCallback object. Such an object
+activates a Callback object when the activity must be performed, and
+this %Callback object in turn calls a method of your module. So you
+need:
+
+<ul>
+<li> A %Callback object to be supplied to each activity that you want to make.
+<li> An %ActivityCallback object to embody each of your activities.
+</ul>
+
+\until do_calc
+
+\b RESULT
+<em> The SpacePlane class now has an Activity. In the constructor it
+will be specified that the doCalculation function is called for this
+activity. Whenever the activity has been triggered, and DUECA
+determines it has time for it (depending on its priority), the
+doCalculation function is called. </em>
+
+The list of data members we need for the SpacePlane class is almost
+complete. The only things that are missing are some static members
+(see the explanation on \ref minitut_static "static members"). These
+are essentially the same for all simulation modules.
+
+\until getMyParameterTable
+
+Summarising, in a class you need:
+<ol>
+
+<li> Access tokens for the data you read and the data you write. In
+addition to the (stream) access tokens for the normal simulation
+calculation, you usually need event access tokens for the initial
+condition calculation.
+
+<li> Of course, the necessary data for your simulation. If your DUSIME
+module encapsulates model state (e.g. a state vector of an airplane,
+state variables/vectors of subsystems), then this state \em should \em
+be \em contained \em within \em the \em module \em class. Do not rely
+on channels to keep your state variables for you, channels are for
+communication purposes.
+
+<li> The data for calculation of trim conditions. DUECA and DUSIME can
+perform a trim calculation in parallel to a running simulation, and
+your module has to be up to that. It is not difficult, see the section
+on \ref dusime_trim "trim calculation".
+
+<li> A slot for keeping one copy of the state, in case you need to take
+a snaphot, see the section on \ref dusime_snap "snapshots".
+
+<li> Callback function objects and ActivityCallback objects, for
+allocating your activities. Usually two activities are needed, one for
+the normal simulation and one for initial condition calculation.
+
+</ol>
+
+\section quick_constructor Constructor and destructor
+
+The declaration of the constructor for your module class has to have a
+fixed set of parameters. Here are the constructor and destructor:
+
+\until ~SpacePlane
+
+The constructor gets a pointer to the Entity of which the module is a
+part, a C-string with the part name, and a
+\ref quick_priority "priority specification".
+A destructor never has parameters.
+
+Let's take a look at the constructor implementation:
+
+\dontinclude SpacePlane.cxx
+\skip SpacePlane::SpacePlane
+\until e01
+
+
+Quite a chunk, let's look at this in detail:
+\dontinclude SpacePlane.cxx
+\skip SpacePlane::SpacePlane
+\until STATES*sizeof(real_T)),
+
+The first two lines is just the start of the definition of the
+constructor. The part after the colon (:), contains the initialisation
+of the parent classes (just SimulationModule in this case) and the
+data members. You can see that the SimulationModule parent class needs
+the entity pointer, the classname (which refers to a static data
+member, remember), the part name, the initial condition table and as
+last parameter the size of the state, in bytes. If you don't do any
+initial condition calculation, just put a NULL pointer there, if you
+have no state in the module, enter 0 for the size of the state and
+remove the snapshot loading and taking code.
+
+Then the data for the simulation is initialised:
+
+\until z_stop
+
+S is the simstruc pointer for the RTW simulation data. z_stop is
+the stop altitude for the simulation. Note that, while z_stop is
+initialised here, it can still be changed, because it is added to the
+ParameterTable, see below.
+
+Ather this the access tokens are created:
+
+\until "SpacePlaneState"
+
+For each access token, one supplies:
+<ul>
+<li> The id of the module, using getId(). getId() is a method of the
+NamedObject class, an ancestor (actually a great-grandparent) of the
+SpacePlane class.
+<li> The name of a channel, in the form of the (entity, classname,
+part) tuple. Use a NameSet object for this.
+</ul>
+
+And then it is time for the magic of activity allocation:
+
+\until do_calc
+
+Here cb1 is a callback object. These require a pointer to the object
+that they will be performing the callback on (the this pointer) and a
+reference to the member function that they will be calling,
+SpacePlane::doCalculation is a function defined in the SpacePlane
+class.
+
+The activity is allocated by creating the activity object
+do_calc. This again require the id of the module, a name for the
+activity, a pointer to a callback object, and a specification of the
+priority of the activity. The name for the activity is used for
+presenting the activity in log overviews. It does not have to be
+unique, but it is nicer if it is.
+
+The priority specification that was passed to the constructor is used
+for the activity of the module, do_calc. The priority specification
+determines how DUECA handles that activity, a high priority means that
+an activity is run as soon as possible, a low priority means that it
+is run when no other more important jobs are handled.
+
+Now let's look at what happens in the constructor body:
+
+\until RTW_MODEL
+
+This module uses Simulink real-time workshop code. This code may use
+values for infinite and not-a-number, each module that uses Simulink
+code should therefore call rt_InitInfAndNaN. The line below that
+creates a new instance of the model. A standard rhyme of calls has to
+follow to initialise this model:
+
+\until e00
+
+The last piece of code really has to do with the activities:
+\until e01
+
+The setTrigger calls specify that the condition for scheduling the
+activity is triggered by something else, here the arrival of data on
+the channel for which "controls" is the access token, triggers
+scheduling of the do_calc activity.
+
+\b RESULT
+<em> The SpacePlane's activity is now linked to the channel with
+PrimaryControls. Whenever new data arrives here, the doCalculation
+function will be called, so that the SpacePlane can calculate the new
+output data and send it over the output channels </em>
+
+All this work in the constructor, what else needs to be done? The
+section of declaration of constructor and destructor listed, besides
+the aforementioned two, also the function "complete". Here is the
+implementation of the complete function:
+
+\until e02
+
+That is right, it does nothing. When a module is added to DUECA's
+configuration script, first its constructor is called. Then all
+parameters supplied in the script are fed to the module, and after
+that the "complete" function is called. In the complete function you
+can do initialisation that depends on the parameter values that were
+fed to the module.
+
+The destructor simply deletes the Simulink model:
+
+\until e03
+
+\section quick_further Further specification of the module
+
+You see that with the fixed number of parameter for the constructor,
+it is not possible to tailor your module to your wishes, you might for
+example want to modify the stop altitude for the simulation, z_stop,
+if you have defined a runway in your experiment that has an altitude
+differing from zero. To enable you to provide parameters to your
+module, DUECA offers two different mechanisms:
+
+<ul>
+
+<li> Member function calls, with the MemberCall class. You can make a
+simple member function for each parameter that you might want to
+supply to your module. In a "parameter table" for your module class
+you enter %MemberCall objects that define how your module class should
+be notified of a parameter value.
+
+<li> Variable probes, with the VarProbe class. For a number of
+"simple" variables, such as integers, doubles, floats, strings,
+etc. you can enter a %VarProbe object in the parameter table. Your
+module will not notice that it it being probed, but the variables
+reference in a %VarProbe can be modified from outside your class. It is
+"dirtier", certainly trickier, but saves a lot of typing.
+
+</ul>
+
+In addition, we want to be able to specify the timing for the
+spaceplane simulation calculation. Therefore we need a TimeSpec object
+too. Here they all are:
+
+The SpacePlane class is ideal as an example, because it has one
+%VarProbe and two MemberCalls. For the member function calls we of course
+need member functions in the class declaration:
+
+\dontinclude SpacePlane.hxx
+
+\skip s01
+\until checkTiming
+
+The first defines a function that takes a reference to  a const TimeSpec,
+and returns a boolean value. The function should return true if the
+data it gets is acceptable, and false if not.
+
+Its implementation is:
+\dontinclude SpacePlane.cxx
+\skip s02
+\until e04
+
+What happens here is that the activity do_calc, i.e. the activity for
+updating the model state, gets a time specification. For example a
+time specification (0, 10) will mean that the do_calc activity becomes
+periodic, and will always be called for times (n*10,
+(n+1)*10), see the section on \ref key_periodic "periodic activation".
+
+\b RESULT
+<em> Instead of reacting to the data as it comes in on the
+PrimaryControls channel, the SpacePlane activity (with function
+doCalculation) will be called only when the time specification says it
+is time for another step. The data on the PrimaryControls channel may
+come in every step, so be written for (0, 1), (1, 2) etcetera, but the
+activity follows the increments in the TimeSpec. You may use this to
+step down in update frequency, or to step up, so the activity is
+called more often than the writing on the channel. </em>
+
+The checkTiming function is a "standard" one for many modules. It
+implements a check on activation and completion times:
+
+\until e05
+
+\b RESULT <em> The checkTiming function installs a TimingCheck on the
+activity. The %TimingCheck will compare start and stop times of the
+activity with the real-time clock, and send reports to a DUECA's
+TimingView module (assuming you have created one of those in the
+dueca.mod script). You can use this to see how your simulation performs
+timing-wise. </em>
+
+The variable that will be probed directly is the altitude for
+stopping the simulation, z_stop. Here is the parameter table for the
+SpacePlane module:
+
+\dontinclude SpacePlane.cxx
+\skip ParameterTable*
+\until e06
+
+A parameter table is an array containing ParameterTable struct
+objects. Each ParameterTable object has a string and a pointer to a
+GenericVarIO object, which may be a MemberCall or VarProbe. The
+parameter table has to be closed off with a ParameterTable object
+filled with two NULL pointers. The strings will be the commands that
+can be used in the model script file to specify parameters for the
+module.
+
+The MemberCall and VarProbe classes are
+\ref minitut_template "templated classes", each taking two template
+parameters, the module class and the type of the object that is passed
+in the call, or modified. Only a limited set of classes may be
+specified for this second template parameters, check the documentation
+for the MemberCall and VarProbe.
+
+\b RESULT <em> Now the stop height can be specified from the script in
+dueca.mod, by adding " 'set-stop-height 10.0 " (or some other value) to
+the make-module call. Likewise, the timing and a check on the timing
+can be specified in the script </em>
+
+\section quick_interface Interfacing with the Entity
+
+When a DUECA or DUSIME module is created from a
+\ref conf_mod "model creation script",
+first the module's constructor is called, and
+then, using MemberCall and VarProbe objects, the module is fed with
+the parameters specified in the creation script. Then the "complete"
+method is called. For the access to the channels, the module has to
+wait until DUECA has told (by making the access token objects "valid)
+that the channels are OK. So after the call to
+the constructor returns, it is not guaranteed that a module is ready
+to participate in a simulation or another calculation. To check
+readiness, and to give modules the opportunity to preform additional
+initialisation, the Entity to which the module belongs will call the
+module's "isPrepared" method. Here is the declaration:
+
+\dontinclude SpacePlane.hxx
+\skip cooperation
+\until stopModule
+
+The isPrepared function has to return true when the module is
+prepared. In the startModule and the stopModule functions, the module
+has to start and stop its activities.
+
+\dontinclude SpacePlane.cxx
+\skip isPrepared
+\until e07
+
+For the spaceplane there is no additional calculation in the
+isPrepared member function.  What a module always should do is check
+whether the access tokens for reading and writing are valid. The
+isPrepared function should return false when the module is not ready.
+
+Since a module can be re-intialised (also with new parameters supplied
+via the parameter table), the isPrepared() function can be called
+multiple times. As a module creator you should take this into
+account.
+
+\b RESULT <em> The isPrepared function will be called at start-up. As
+long as it does not return true, DUECA will refuse to start your
+module, check this in the interface. With the startModule and
+stopModule calls, all modules will be started and stopped
+synchronously. </em>
+
+\section quick_work The work itself
+
+Now, I think you will agree that it is about time for getting down to
+business, and describe how the real work is done by the module. All
+previous declarations and implementation was just for administration,
+getting access to channels, defining activities and enabling
+configuration of your module via parameters in the module script. Now
+we get to the actual work done by the SpacePlane module. There are two
+basic jobs to be distinguished:
+
+<ul>
+<li> Calculation of the space plane simulation
+<li> Calculation of a trim condition (which we leave out for now)
+</ul>
+
+Let us start with the simulation itself. We have seen in the section
+about \ref quick_constructor "the constructor"
+that there is a member function doCalculation that is called whenever the
+activity do_calc is invoked. The declaration of this member function
+is:
+
+\dontinclude SpacePlane.hxx
+\skip s03
+\until doCalculation
+
+It is called with a \ref key_timespec "time specification". This time
+specification defines the time for which the calculation has to be
+done. For example, a time specification ts=(1000,1010), with a value
+for the time granule of 0.01 s, means that the calculation has to be
+done for the model time 10 s to 10.1 s. Here is the implementation:
+
+\dontinclude SpacePlane.cxx
+\skip s07
+\until e09
+
+Quite a bit of code, I must admit, and it is not purely model
+calculations, also some administration code. DUSIME will facilitate
+the implementation of a simulation that can start and stop on command,
+take "snapshots" of the model state, return to these snapshots, trim a
+model and start from the trimmed state. Now, not to save work on the
+part of DUSIME, but in order to obtain a more powerful and flexible
+system, the modules have to cooperate in this. The main activity of a
+module (as implemented here by the doCalculation function), has to be
+able to do the following:
+
+<ul>
+
+<li> In the HoldCurrent mode, the module must keep the current
+simulation state. The output that the module is producing must be
+repeated.
+
+<li> In the Advance or Replay mode, the module must make an update of
+the simulation state, and produce the output.
+
+<li> Make a snapshot (= a complete copy) of the model state. Making a
+snapshot can be requested both when in HoldCurrent or Advance mode.
+
+</ul>
+
+Now we will discuss this code bit by bit:
+\dontinclude SpacePlane.cxx
+\skip s07
+\until getAndCheckState
+
+The getAndCheckState member function is a function implemented by the
+SimulationModule parent class. The SimulationModule code keeps up with
+DUSIME commands that request changes in simulation state. This
+function has to be called at least once <em> every time </em> the main
+activity is invoked. It returns one of the three possible states of a
+simulation, Advance, Replay and HoldCurrent.
+
+The first piece of code handles the HoldCurrent case.
+
+\until e08a
+
+What a simulation should do in HoldCurrent, is repeat the output of
+the last time. Remember that the SpacePlane module is triggered on the
+input on the channel with PrimaryControls. Likewise, other modules can
+be triggered on the channels that the SpacePlane produces. For that to
+work, the SpacePlane must \em always produce output, so also in
+HoldCurrent. This piece of code simply reads the output and the state
+from the Simulink model, and sends it over the output channels.
+
+\b RESULT <em> Previous output is repeated over the output channels,
+giving modules that trigger on those channels a chance to be
+activated. </em>
+
+The next piece of code is called in the Replay and Advance modes,
+reads the data from the input channel and feeds it to the Simulink
+model.
+
+\until stick_roll
+
+To get access to a stream channel, you construct a StreamReader
+object. Construction of this object needs the access token for the
+channel, and the time specification with which doCalculation was
+called, so you get the right data.
+
+The simulink model can be queried for a pointer to the input data with
+the ssGetU() function. Then the data is copied from the
+PrimaryControls object to the Simulink input vector.
+
+The following piece of code calculates the output of the RTW/Simulink
+model,  accesses the output channel, and copies the output of the
+Simulink model to the SpacePlaneY object in the output channel and the
+state output channel, using StreamWriter objects.
+
+\until s08a
+
+Because the space plane showed really strange behaviour when the speed
+becomes slower and slower (and the subjects in the experiment don't
+like that, it is better to have no roll-out on the runway than to have
+a roll-out that you cannot control), a quick hack was inserted to stop
+the updating of the model when the spaceplane has landed, that is why
+there is a test for the altitude of the model in the next piece of
+code:
+
+\until s08b
+
+The call to MdlUpdate does discrete updates of the model, and it
+has to be called NSAMPLE_TIMES times. For this model that is two
+times, one for the continuous time update, and the second for a
+discrete time update.
+
+\b RESULT <em> In these modes, the state of the SpacePlane model is
+updated, and results (state and output) are sent over their respective
+channels. </em>
+
+Now, if a snapshot is requested, a copy of
+the model state must be kept for storage. The RTW model is not very
+large, so we can simply make a copy of the state. This copy is stored
+in the s_x vector (a data member of the SpacePlane class), and it will
+be sent later by the sendSnapshot routine.
+
+\until e09
+
+The snapshotNow() function is a function of the SimulationModule
+class, and returns true when a snapshot has to be sent.
+
+\section quick_snap Snapshot
+
+DUECA uses multi-threading, to have several activities run in
+parallel. A (time-)critical activity, such as the updating of the
+space plane model state, must run at a high priority. Activities that
+are less time-critical should run at lower priorities. An example of
+these activities is the calculation of a trim condition, another
+example is the sending of a snapshot. By using multi-threading, DUECA
+can interrupt a slower, less-important calculation in the middle of
+processing, and dedicate itself to more time-pressing matters.
+
+Now it might seem that sending the snapshot directly from the
+doCalculation routine is a bit unlikely to be a problem for the
+real-time calculation, and if you thought that, you are absolutely
+right. The 20 or so double precision values that have to be copied and
+sent are not of any real influence on the cycle time of the
+model. However, we must keep an eye out for the future, and if you
+happen to develop a model with a megabyte of state data, then copying
+and sending the snapshot is not a small task. Therefore the function
+that sends off the snapshots is independent of the model calculations
+and it is run at a low priority, so that it won't interfere with the
+model calculations. Here is its declaration, and the declaration of
+its counterpart, loadSnapshot:
+
+\dontinclude SpacePlane.hxx
+\skip DUSIME
+\until loadSnapshot
+
+The fillSnapshot and loadSnapshot functions are re-implementations of
+a virtual prototype defined in the SimulationModule class (meaning
+that, when calling the fillSnapshot from the SimulationModule class,
+the function that is called will be the re-implementation given here
+in the SpacePlane class). Here is the
+implementation of the fillSnapshot function:
+
+\dontinclude SpacePlane.cxx
+\skip e07
+\until s07
+
+As you can see, the fillSnapshot has to fill a snapshot object with the
+appropriate data, and
+it takes three parameters as argument, a time specification, a
+snapshot object and a
+boolean flag, "from_trim". If from_trim is true, then the snapshot must
+be taken of the state of the model produced in the calculation for a
+trim condition, if it is false, it needs the state from a running
+simulation. Looking back at the description of the routine that does
+the \ref quick_work "model calculation",
+you can see that the snapshot data was already copied there to a
+member variable of the SpacePlane class. This data has to be sent with
+the fillSnapshot function.
+
+%Snapshot objects have a variable size, and the object you get has
+been sized up to the snapshot size that you specified in the
+SimulationModule call. It contains a buffer in which a module may pack
+any data it sees fit, and the snapshot object is automatically tagged
+with the module's full name. At the start of the function, an
+amorphous storage object, which can pack almost anything into an array
+of bytes, is created.
+
+With packData calls, the data can be inserted into the AmorphStore
+object, which actually packs the data (in a computer hardware
+independent fashion) into the %Snapshot object's buffer.
+
+The loadSnapshot does the reverse, it takes a Snapshot, makes an
+AmorphReStore object from the Snapshots filled buffer, and pulls data
+from that object to fill the Simulink model's state
+
+\section quick_trim Trimming the model
+
+This is not implemented yet. Bummer!
+
+\section quick_finish Connection to the scripting language
+
+Now, in the above you have seen how a module class is written, now all
+that is missing is the means to use it within DUECA/DUSIME. The
+generally advised method for setting up a simulation -- and the only
+method you can get any support for -- is by means of a model creation
+script. This script, written in scheme, is interpreted by DUECA to
+create all modules and entities in a complete DUECA process. To make
+your module callable/creatable from scheme, you have to make one
+TypeCreator object, and the usual way to do this is by creating a
+static variable in your module implementation file:
+
+\dontinclude SpacePlane.cxx
+\skip s10
+\until TypeCreator<SpacePlane>
+
+The classname will now be the name under which the SpacePlane module
+is known in scheme, and the parameters from the parameter table can be
+supplied in the scheme script to tailor or change the space plane
+module.
+
+\b RESULT <em> The TypeCreator object is "static", and that means that
+it will be made when the dueca program is started. The TypeCreator
+tells the Scheme interface code that a new type of module can be
+created, what it is called and what the parameter table is. Its name
+is not important, the only thing that is important is that there has
+to be (exactly!) one TypeCreator per new module type.</em>
+
+*/
+
+
+
+/*
+
+In \ref quick_work "the section on the actual work" done by the
+module, the doCalculation function was discussed. Here we discuss the
+work done by the doIncoCalculation module, and the periphery around
+it. The "theory" of initial condition (trim condition) calculation in
+DUSIME is discussed in the description of the
+\ref dusime_trim "trimming in DUSIME". Here we
+discuss the implementation of this in the SpacePlane module.
+
+The trim calculation activity, do_inco, is linked to the event
+channels with controls data. For the trim calculation, the Control and
+Constraint variables, which may be input or state variables, must be
+adjusted, and then the target variables, which are usually found in
+the derivative of the state, must be calculated. This means that the
+"inputs and outputs" of the trim calculation are actually quite
+different from those of the normal simulation calculation. A trick has
+been applied to make trim calculation easier, and to make it look a
+lot like the normal calculation:
+
+<ol>
+
+<li> Before an iteration in the trim calculation takes place, a data
+packet is sent to the SimulationModules. The inco table that is
+supplied by a module in the constructor is then used to insert the
+data from this packet, which contains the values for the Control and
+Constraint variables of the trim calculation, into these variables in
+the module (SpacePlane) class. This means that variables like i_gamma,
+i_speed, i_theta etcetera automatically get their correct values.
+
+<li> The modules that do not need to read data from channels, for
+example the MMSLabStick module, let their initial condition activity
+be triggered by the arrival of the trim calculation data. That means
+that these activities take place after the Control and Constraint
+variables have been inserted. Other modules, which do read data from
+the inco input channels, trigger on joint presence of these data and
+the inco input data.
+
+At invocation of the trim activity, the Control and Constraint data,
+as well as the inco input from other modules, is used to calculate the
+inco output and the derivative of the state. The inco output is sent
+over the inco output channels.
+
+<li> With a call to sendIncoResults in the trim activity,
+(doIncoCalculation), the SimulationModule is prompted to gather the
+trim results and send these off to the DUSIME module controlling the
+trim condition calculation.
+
+</ol>
+
+This means that the thing that you see in the SpacePlane class is only
+the "on the surface" part of the trim calculation. The housekeeping
+for sending all that data around and getting it at the right place is
+done by code in the SimulationModule class. The first thing to get
+right is the IncoTable:
+\code
+const IncoTable* SpacePlane::getMyIncoTable()
+{
+  static IncoTable inco_table[] = {
+    {(new IncoVariable("altitude", 0.0, 100000.0))
+     ->forMode(FlightPath, Constraint),
+     new VarProbe<SpacePlane,double>(&SpacePlane::i_z)},
+
+    {(new IncoVariable("x-posn", -100000.0, 100000.0))
+     ->forMode(FlightPath, Constraint),
+     new VarProbe<SpacePlane,double>(&SpacePlane::i_x)},
+
+    {(new IncoVariable("qdot", -1.0, 1.0, 0.0001))
+     ->forMode(FlightPath, Target),
+     new VarProbe<SpacePlane,double>(&SpacePlane::i_qdot)},
+
+    // ... most incovariables clipped, see original source
+
+    {(new IncoVariable("gamma", -1.0, 0.0))
+     ->forMode(FlightPath, Control),
+     new VarProbe<SpacePlane,double>(&SpacePlane::i_gamma)},
+
+    {NULL, NULL}
+  };
+  return inco_table;
+}
+\endcode
+
+You see that each entry in the inco table (each %IncoTable object)
+contains a pointer to an IncoVariable, and a pointer to a VarProbe (or
+a MemberCall if you wish to use that). Each %IncoVariable has a name, a
+minimum value, a maximum value and an allowable deviation. With
+forMode calls you can specify the role that the %IncoVariable has in a
+certain inco calculation. Here only the FlightPath mode is considered,
+if you have more modes, you can chain the forMode calls (they return a
+pointer to the %IncoVariable they were called for). For targets, the
+allowable deviation must be given, if you don't, the deviation is 0,
+and the calculation is likely to take forever.
+
+Discrete controls, such as gear up, gear down, should be mapped to an
+integer variable, calling the %IncoVariable with integer arguments will
+give a discrete valued %IncoVariable. This only works for Constraint
+variables however.
+
+Next the inco calculation itself.  The first
+thing that is done in the inco calculation is access the input in the
+event channel, and copy it to the input of the RTW model used (or
+mis-used) for inco calculation:
+\code
+void SpacePlane::doIncoCalculation(const TimeSpec& ts)
+{
+  // NOTE: this inco calculation is independent from the inco mode
+  // required. Currently only one inco mode is implemented
+  // (FlightPath). Revise this calculation when more inco modes are
+  // specified.
+
+  // read the event equivalent of the input data
+  const Event<PrimaryControls> *e;
+  const PrimaryControls        *d;
+  i_controls.getNextEvent(e, ts);
+  d = e->getEventData();
+
+  // copy the input:
+  real_T *U = ssGetU(i_S);
+  U[0] = d->stick_pitch;
+  U[1] = d->stick_roll;
+\endcode
+
+The i_(something) variables in the SpacePlane class all get a proper
+value "automagically". These variables are used to construct the state
+of the trim model. Note that only one trim type (FlightPath) is
+covered by the SpacePlane module, so we don't have to handle the
+different trim modes.
+\code
+  // define the starting state, using input from the inco variables
+  // the inco variables have been "manipulated" beforehand, based on
+  // the information in the inco table
+  real_T *X = ssGetX(i_S);
+  X[X_P] = 0.0;
+  X[X_Q] = 0.0;
+  X[X_R] = 0.0;
+  X[X_U] = i_speed * cos(i_theta - i_gamma);
+  X[X_V] = 0.0;
+  X[X_W] = i_speed * sin(i_theta - i_gamma);
+  X[X_PHI] = 0.0;
+  X[X_THETA] = i_theta;
+  X[X_PSI] = i_psi;
+  X[X_X] = i_x;
+  X[X_Y] = i_y;
+  X[X_Z] = i_z;
+\endcode
+
+Then with a simple call to the RTW code, derivatives of the state are
+calculated.
+\code
+  // Calculate the derivatives (if you have discrete states, make also
+  // a discrete state step, and calculate the differences between new
+  // state and current state)
+  sfcnDerivatives(i_S);
+\endcode
+
+Now the derivative state of the RTW inco model is not directly
+accessible to the SimulationModule code returning the results of the
+inco model, so we have to copy this.
+\code
+  // copy the output to the inco variables that may be used as targets
+  real_T* DX = ssGetdX(i_S);
+  i_qdot = DX[X_Q];
+  i_wdot = DX[X_W];
+  i_udot = DX[X_U];
+\endcode
+
+Finally, the %SimulationModule class has to be made aware of the fact
+that the trim calculation is complete.
+\code
+  // use a method from my parent class (SimulationModule) to send of
+  // the inco results. This depends on the relevant data in the inco
+  // variables!
+  sendIncoResults(ts);
+}
+\endcode
+
+Note that in this version of DUECA/DUSIME (as of June 2018), the trim
+condition calculation has not yet been implemented. Bummer!
+*/

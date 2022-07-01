@@ -1,0 +1,53 @@
+;; -*-scheme-*-
+(Header "
+        original item   : HDFLogConfig.dco
+        made by         : Rene' van Paassen
+        date            : 170521
+        api             : DUECA_API
+        description     : Configuration/Coordination hdf logging
+        copyright       : (c) 2017-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type vstring "#include <stringoptions.h>")
+
+;; Configuration message for HDF5 logging.
+;;
+;; When configured to listen to config messages, the HDF5Logger will
+;; only start logging after such a message has been received.
+;;
+;; Possible modes of operation:
+;;
+;; - Simply configuring the attribute for the default logging; send
+;;   one message, with filename and prefix empty, and optionally the
+;;   attribute string filled. This uses the default filename supplied
+;;   to the logger, and no prefix.
+;;
+;; - Multiple log files; send a message whenever a new log should be
+;;   started, typically in HoldCurrent mode. When the filename is not
+;;   empty, a new file is opened using the filename. When the filename
+;;   is empty, and also the prefix is empty, a new filename is used
+;;   with the default naming pattern.
+;;
+;; - Multiple logs in a single file; if the filename is empty, and the
+;;   prefix is non-empty, the current file is used, and an additional
+;;   set of logging data is added under the new prefix. The first
+;;   message sent in this way may also specify the filename.
+(Event HDFLogConfig
+       ;; File name pattern for creating an HDF log, if empty, use previous
+       ;; or default file name.
+       ;;
+       ;; This uses boost::posix_time to fill any patterns with time
+       ;; and/or date information. Possible patterns include %Y %m %d
+       ;; %H %M %S for year, month, day, hour, minute and second,
+       ;; respectively.
+       (vstring filename)
+       ;; path prefix for the logging. Can be used to log multiple
+       ;; sets in a single file. If empty, no prefix is used
+       (vstring prefix)
+       ;; attribute string that will be added to the log base point, for
+       ;; additional logging/condition information.
+       ;; If the prefix is empty, this is attribute is attached to the
+       ;; file root group, otherwise to the chosen prefix.
+       (vstring attribute)
+       )

@@ -1,0 +1,16 @@
+;; -*-scheme-*-
+(Header "
+        item            : ScriptConfirm.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Start-up confirmation message
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type uint16_t )
+
+;; Script confirmation, sent when configuration has been fully received
+(Event ScriptConfirm
+       ;; confirmation number is updated each confirmation cycle
+       (uint16_t confirm_no))

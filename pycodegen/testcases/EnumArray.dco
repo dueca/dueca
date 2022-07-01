@@ -1,0 +1,8 @@
+(Enum Mode uint8_t ON OFF)
+(IterableType dueca::fixvector<3,Mode> "#include <fixvector.hxx>")
+(Enum Two uint16_t One Two)
+
+(Stream EnumArray
+        (fixvector<3,Mode> mode)
+        (Two two 2)
+        )

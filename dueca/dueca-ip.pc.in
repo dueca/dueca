@@ -1,0 +1,16 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+scriptsuffix=
+
+Name: dueca-ip
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca-ip${staticsuffix}
+Cflags: -I${dueca_includedir}
+Requires: dueca = ${version}
+

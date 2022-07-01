@@ -1,0 +1,57 @@
+;; -*-scheme-*-
+(Header "
+        item            : ChannelReadInfo.dco
+        made by         : Rene' van Paassen
+        date            : 180301
+        description     : Additional information on channel use
+        copyright       : (c) 2018-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Different types of information message
+(Enum InfoType uint8_t
+      ;; Attaching to a numbered entry
+      byId
+      ;; Attaching to a labeled entry
+      byLabel
+      ;; Multiple attachement, to all matching classes
+      Multiple
+      ;; Remove again, entry deleted
+      Deleted
+      ;; Reader removes token
+      Detached)
+
+;; GlobalId, points to channel or client
+(Type GlobalId "#include <dueca/GlobalId.hxx>")
+
+;; Entry id type
+(Type entryid_type "#include <dueca/ChannelDef.hxx>")
+
+;; Creation id is unsigned 32 bit int
+(Type uint32_t "#include <inttypes.h>")
+
+;; logical
+(Type bool)
+
+;; Useful information about channel readers
+(Event ChannelReadInfo
+       (IncludeFile ChannelReadInfoExtra)
+
+       ;; channel id
+       (GlobalId channelid)
+
+       ;; client id
+       (GlobalId clientid)
+
+       ;; creation id
+       (uint32_t creationid)
+
+       ;; entry number
+       (entryid_type entryid)
+
+       ;; reading all or just time-selected
+       (bool sequential)
+
+       ;; type of notification
+       (InfoType action)
+  )

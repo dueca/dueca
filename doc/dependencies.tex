@@ -1,0 +1,149 @@
+% arara: xelatex
+% arara: xelatex
+
+\documentclass[11pt,a4paper,twoside]{scrreprt}
+\usepackage{graphicx}
+%\usepackage{fontspec}
+%\setmainfont[Ligatures=TeX]{XITS}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{tabularx}
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = blue, %Colour of internal links
+  citecolor   = red, %Colour of citations
+  pdfauthor={Rene van Paassen},
+  pdftitle={DUECA 2.x - software dependencies},
+  pdfkeywords={Distributed Real-Time Simulation},
+  pdfsubject={}
+}
+\usepackage{fancyhdr}
+\newcommand{\PBS}[1]{\let\temp=\\#1\let\\=\temp}
+
+\begin{document}
+\begin{titlepage}
+\vspace{80pt}
+\begin{center}
+\Huge
+DUECA 2.0 software dependencies
+\end{center}
+\vfill
+
+\newcommand\docversion{1.0}
+\newcommand\docdate{March 22, 2016}
+
+\begin{tabular}{@{}>{\PBS{\bfseries\raggedleft}}l>{\PBS\raggedleft}l}
+Author: & M. M. (Ren\'e) van Paassen\\
+Reference: & xx \\
+Version: & \docversion \\
+Date: & \docdate
+\end{tabular}
+\end{titlepage}
+\clearpage
+
+\chapter{Introduction}
+
+DUECA (Delft University Environment for Communication and Activation) is a middleware layer for the implementation and deployment of real-time simulations (or other computational processes) on distributed computing hardware. An application programmer can create ``modules'' in DUECA as self contained elements of a real-time computing process. The modules communicate within the simulation over ``channels'', which can transport user-defined data types. DUECA then provides the following:
+
+\begin{description}
+\item[(E)] in a configuration script, modules are assigned to the appropriate ``nodes'' (computers),
+\item[(C)] the DUECA middleware layer provides the communication between and synchronisation of the different nodes, transporting configuration data and the channel data as appropriate,
+\item[(A)] DUECA activates the modules' activities as specified, either triggering on elapsed clock time or on the arrival of needed channel data, effectively creating the schedule in an automatic fashion.
+\end{description}
+
+This set-up enables an application programmer to develop simulation modules with little consideration of or knowledge on real-time programming aspects; decisions on thread use, distribution and scheduling priorities can be taken later when deploying the simulation. The flexibility of the scripting language also enables testing at the desktop, typically with joystick input and several output windows for visualisation, limiting development time on the deployment hardware. All data communication is time-tagged, enabling debugging of the real-time properties of a simulation.
+
+DUECA with its extensions (DUSIME, which is an interface for simulation control and dueca-extra, which is a library containing several auxiliary classes) was developed at Delft University of Technology, principally by its main author, René van Paassen, with smaller contributions by Joost Ellerbroek and Olaf Stroosma. Its ``ecology'' of modules has been developed by students and employees of the Control and Simulation division, with the more generic modules (motion filters, joystick and control loading hardware IO, generic 3D visualisation, UDP communication to external hardware) all developed by employees.
+
+In over 15 years of testing by MSc. and PhD students in courses and for thesis work, and development and use by expert users, DUECA has matured to a stable code base. It is commonly installed on a variety of different Linux distributions, notably openSUSE, Fedora, Debian, Ubuntu, SUSE Linux Enterprise Desktop, and it is built for different versions of these distributions on the TU Delft's OBS build server. Supporting packages are built on the OpenSUSE build server (\url{https://build.opensuse.org}). Examples of these supporting package are a kernel with the PREEMPT\_RT real-time patch, and the associated EtherCAT driver for IO with EtherCAT hardware, these are available at \url{https://build.opensuse.org/project/show/home:repabuild:preempt} and \url{https://build.opensuse.org/package/show/home:repabuild:withupdates} respectively.
+
+Applications within the Control and Simulation division include simulation on desktop computers, the SIMONA Research Simulator and a smaller fixed-base simulator in the Human-Machine Systems Laboratory. DUECA is also used for data acquisition applications in the inertial sensor calibration laboratory, and for data acquisition and automatic control experiments in the PH-LAB laboratory aircraft.
+
+There are 2 main branches of development, DUECA 0.x, which is currently at version 0.15.43, and the newer DUECA 2.0, which is currently at version 2.4.0. Compared to DUECA 0.x, DUECA 2 includes a major overhaul of the memory allocation for small objects, of the channel communication system and the activation logic. It is -- with the exception of a few rarely used aspects, such as custom-modified channel object code\footnote{To eliminate the need for custom-modified channel object code, DUECA 2.0 offers additional flexibility in the code generator.} -- upwards compatible with existing DUECA 0.x code. DUECA 2 is also available for MAC OSX, using macports as its source for dependencies, and installable as a macports package.
+
+For various aspects, DUECA uses external libraries or programs, mostly based on open-source licenses. This document lists these external dependencies for DUECA 2.2 and above, and should cover most, if not all dependencies. This list of dependencies has been based on the macports Portfile, the RPM spec files and the Debian build files used to create DUECA builds. Commonly used tools (e.g. the bash shell) are not included in this list.
+
+\chapter{Dependencies}
+
+\section{Build dependencies}
+
+DUECA requires the cmake build suite, a ``make'' program and a C++ compiler. In addition a lex and yacc program (commonly flex and bison are used). Python is used in various scripts, and python-pyparsing is used for the DUECA channel object code generator for DUECA 2.
+
+For documentation building, doxygen, inkscape and graphviz are used, and the program svn2cl is used to generate a ChangeLog file.
+
+\begin{table}
+  \caption{Build tools for building DUECA code}
+  \begin{tabularx}{\textwidth}{l>{\PBS{\raggedright}}X}\hline\hline
+    product & description \\ \hline
+    cmake & Generation of Makefiles, \url{https://cmake.org/} \\
+    flex & Lexical analyser, code generation, \url{http://flex.sourceforge.net/} \\
+    bison & Parser generator, \url{https://www.gnu.org/software/bison/} \\
+    python & General-purpose programming language, \url{https://www.python.org/} \\
+    pyparsing & Parser for python \url{https://pyparsing.wikispaces.com/} \\
+    C++ compiler & As required, gnu c++ (various versions \url{https://gcc.gnu.org/}) or XCode \url{https://developer.apple.com/xcode/} \\
+    make & Preferably GNU make \url{https://www.gnu.org/software/make/}
+  \end{tabularx}
+\end{table}
+
+\begin{table}
+  \caption{Build tools for building DUECA documentation}
+  \begin{tabularx}{\textwidth}{l>{\PBS{\raggedright}}X}\hline\hline
+    product & description \\ \hline
+    svn2cl & Generate ChangeLog file from svn entries, \url{https://arthurdejong.org/svn2cl/} \\
+    doxygen & Generate user documentation, \url{http://www.stack.nl/~dimitri/doxygen/} \\
+    inkscape & Generate illustrations, \url{https://inkscape.org/} \\
+    graphviz & Automatic inheritance graphs, \url{http://www.graphviz.org/} \\
+  \end{tabularx}
+\end{table}
+
+\section{Run-time and library dependencies}
+
+DUECA can be configured to use several external libraries. Commonly, one of the nodes in a DUECA process contains an interface for control of the simulation. This interface may be implemented using the GTK+ library, version 2 or version 3. Several other graphical libraries may be used, for GL visualisation for example.
+
+\begin{table}
+  \caption{Dependency on graphical libraries (all optional)}
+  \begin{tabularx}{\textwidth}{l>{\PBS{\raggedright}}X}\hline\hline
+    product & description \\ \hline
+    freeglut & GL visualisation, \url{http://freeglut.sourceforge.net/} \\
+    freetype & GL font library, \url{http://www.freetype.org/} \\
+    fltk & GL visualisation, \url{http://www.fltk.org/index.php} \\
+    libglade2 & reading GTK+ 2 interface specifications, \url{https://developer.gnome.org/libglade/} \\
+    libxml2 & XML reading, requirement for libglade2 \\
+    xz library & Compression, requirement for libglade2 \\
+    gtkglext & GL visualisation with GTK+ 2, \url{https://projects.gnome.org/gtkglext/} \\
+    glui & GL based gui, \url{http://glui.sourceforge.net/} \\
+    GTK+ 2.x & Graphical interface library, \url{https://developer.gnome.org/gtk2/stable/} \\
+    GTK+ 3.x & Graphical interface library, \url{https://developer.gnome.org/gtk3/stable/} \\
+    X11 & GL visualisation with GTK+ 3, or directly with X11, \url{https://en.wikipedia.org/wiki/X_Window_System} \\
+    gtkmm2 & C++ bindings for gtk 2, \url{http://www.gtkmm.org/en/} \\
+    gtkmm3 & C++ bindings for gtk 3, \url{http://www.gtkmm.org/en/} \\
+    rapidjson & JSON conversion, \url{http://rapidjson.org/} \\
+  \end{tabularx}
+\end{table}
+
+Two commercial product interfaces are available. For high-speed, low-latency, real-time communication, DUECA can use SCRAMNet cards. A modified SCRAMNet driver is used, and a SCRAMNet communications object can be built for DUECA. This object is optional. I \emph{do not} generally recommend using this in new installations. Support for Linux is mediocre, and maintaining/updating the SCRAMNet driver for newer Linux kernels requires considerable end user expertise and effort.
+
+Another often used product in our simulations is the Simulink Coder (formerly Real-Time Workshop) for Matlab/Simulink\textregistered{} models. There is a generator for module code that can generate a DUECA module that uses a Simulink-coded model. A custom-built and modified library with Simulink module code can be generated and used with these modules. This use requires the appropriate Matlab/Simulink installation and license. If required, this library can be created at a client's site, using a python script. This script can extract the Matlab/Simulink code and combine this with Makefiles and additional code to create a package that can be turned into a macports, rpm or deb installable library. Alternatively expert users can ``roll their own'' integration with a Simulink model, without relying on the dueca-rtw libraries.
+
+A number of components are needed for DUECA's basic functioning; notably guile, boost, eigen3, python (either version 2 or 3) and tinyxml (Table~\ref{t:depneed}).
+
+\begin{table}
+  \caption{Dependency on other libraries and programs}
+  \label{t:depneed}
+  \begin{tabularx}{\textwidth}{l>{\PBS{\raggedright}}X}\hline\hline
+    product & description \\ \hline
+    boost & C++ library, optionally boost\_python for scripting language \url{http://www.boost.org/}, Boost Software License \\
+    tinyxml & XML reading library, zlib license \url{http://www.grinninglizard.com/tinyxml/index.html} \\
+    eigen3 & Matrix library \url{http://eigen.tuxfamily.org/index.php?title=Main_Page} \\
+    python & programming language, for channel object code generator and module template generation, optionally for start script \url{https://www.python.org/} \\
+    python-pyparsing & parser for channel object code generator \url{https://pyparsing.wikispaces.com/} \\
+    guile & Scheme scripting language \url{http://www.gnu.org/software/guile/} \\
+    cvs & back-end for version control \url{http://www.nongnu.org/cvs/} \\
+  \end{tabularx}
+\end{table}
+
+Different DUECA modules may of course need their own libraries, for example the joystick interface module (under Mac OSX) uses libSDL, and the 3D viewing module uses plib, Ogre or OpenSceneGraph.
+
+\end{document}

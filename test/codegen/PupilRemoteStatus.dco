@@ -1,0 +1,15 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemoteStatus.dco
+        made by         : René van Paassen
+        date            : 210912
+        description     : Status for simple PupilRemote use")
+
+(Type double)
+
+;; Status update for PupilRemote
+(Object PupilRemoteStatus
+        (Option hdf5)
+        ;; remote recording time
+        (double rtime)
+        )

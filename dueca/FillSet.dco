@@ -1,0 +1,17 @@
+;; -*-scheme-*-
+(Header "
+        original item   : FillSet.dco
+        made by         : Rene' van Paassen
+        date            : very old
+        description     : For sending bulk data over reflective comm
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(IterableVarSizeType varvector<uint8_t> "#include <varvector.hxx>")
+
+;; An object used by the reflectiveFillPacker/UnPacker to send around data.
+;; should be optimized in the future
+(Event FillSet
+       ;; array with data, variable length
+       (varvector<uint8_t> data (DefaultSize 0)))

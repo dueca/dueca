@@ -1,0 +1,80 @@
+/* State machine for reading DCO files from MSGPACK data */
+
+digraph msgpack_to_dco {
+
+  node [shape=point,label=""]Init,Exit;
+  node [shape=circle];
+
+  MemberSelect[label="MemberSelect"];
+  MemberKey[label="MemberKey"];
+  MemberKeyRead[label="MemberKeyRead"];
+  MemberFill[label="MemberFill"];
+  Value[label="Value"];
+  ValueRead[label="ValueRead"];
+
+  StartArray[label="StartArray"];
+  ArrayMode[label="ArrayMode"];
+  ArrayValue[label="ArrayValue"];
+  ArrayValueRead[label="ArrayValueRead"];
+  ArrayNested[label="ArrayNested"];
+  ArrayRead[label="ArrayRead"];
+
+  StartMap[label="StartMap"];
+  MapKeyMode[label="MapKeyMode"];
+  MapKey[label="MapKey"];
+  MapKeyRead[label="MapKeyRead"];
+  MapValueMode[label="MapValueMode"];
+  MapValue[label="MapValue"];
+  MapValueRead[label="MapValueRead"];
+  MapNested[label="MapNested"];
+  MapRead[label="MapRead"];
+
+  Init->MemberSelect [label="start_map"];
+  MemberSelect->MemberKey [label="start_map_key"];
+  MemberKey->MemberKeyRead [label="visit"];
+  MemberKeyRead->MemberFill [label="end_map_key"];
+
+  // read a single value
+  MemberFill->Value [label="start_map_value & single"];
+  Value->ValueRead [label="visit"];
+  ValueRead->MemberSelect [label="end_map_value"];
+
+  // read an array of values
+  MemberFill->StartArray [label="start_map_value & iterable"];
+  StartArray->ArrayMode [label="start_array"];
+
+  // single value
+  ArrayMode->ArrayValue [label="start_array_item & single"];
+  ArrayValue->ArrayValueRead [label="visit"];
+  ArrayValueRead->ArrayMode [label="end_array_item"];
+
+  // nested value
+  ArrayMode->ArrayNested [label="start_array_item & nested"];
+  ArrayNested->ArrayMode [label="end_array_item"];
+  ArrayNested->ArrayNested [label="subreader cycle"];
+
+  // finished with array
+  ArrayMode->ArrayRead [label="end_array"];
+  ArrayRead->MemberSelect [label="end_map_value"];
+
+  // read a map of values
+  MemberFill->StartMap [label="start_map_value & mapped"];
+  StartMap->MapKeyMode [label="start_map"];
+  MapKeyMode->MapKey [label="start_map_key"];
+  MapKey->MapKeyRead [label="visit"];
+  MapKeyRead->MapValueMode [label="end_map_key"];
+
+  // single value
+  MapValueMode->MapValue [label="start_map_value & single"];
+  MapValue->MapValueRead [label="visit"];
+  MapValueRead->MapKeyMode [label="end_map_value"];
+
+  // nested value
+  MapValueMode->MapNested [label="start_map_value & nested"];
+  MapNested->MapKeyMode [label="end_map_value"];
+  MapNested->MapNested [label="subreader cycle"];
+
+  // finished with map
+  MapKeyMode->MapRead [label="end_map"];
+  MapRead->MemberSelect [label="end_map_value"];
+}

@@ -1,0 +1,4 @@
+/* dueca-conf-intrusive.h.in.  */
+
+/* If the inheritance for smart pointer is available */
+#cmakedefine HAVE_BOOST_SMART_PTR_INTRUSIVE_REF_COUNTER_HPP

@@ -1,0 +1,39 @@
+;; -*-scheme-*-
+(Header "
+        item            : DataTimeSpec.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        documentation   : DUECA_API
+        description     : split off this class from the original TimeSpec
+                          file; auto generated (partially) to make fluently
+                          packable
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+
+
+;; basic type is normally an uint32_t, defined in above header
+(Type TimeTickType)
+
+;; DataTimeSpec is a special bare-bones version of TimeSpec. It is
+;; used for storage of the time specification with the data in
+;; channels. The advantage is that DataTimeSpec has no virtual
+;; functions and thus no virtual table pointer. This does not only
+;; make it smaller, but it also make the DataTimeSpec usable across a
+;; reflective/shared memory device where a virtual table pointer
+;; would be erroneous in all but one process.
+(EventAndStream DataTimeSpec
+                (IncludeFile DataTimeSpecExtra)
+                (AddToHeader "DUECA_NS_START;
+typedef uint32_t TimeTickType;
+class TimeSpec;
+class PeriodicTimeSpec;
+DUECA_NS_END;
+#include <algorithm>")
+                ;; The time interval starts here
+                (TimeTickType validity_start (Default 0))
+                ;; The time interval ends <em>before</em> this
+                (TimeTickType validity_end (Default 0))
+                )
+

@@ -1,0 +1,32 @@
+/** \page module_make Makefile for module
+
+Here is the template Makefile for creating a module:
+
+\include Makefile.mod
+
+A few things (might) have to be adjusted:
+
+<ul>
+<li> You might use additional libraries in your simulation. In that
+case, specify the headers here:
+\skip needed
+\until EXTRA_INCLUDES
+
+<li> Normally, all .cxx files are compiled and included in your module
+code. Change the following line if you need to select only some:
+\skip c++-files
+\until CPPSRC
+
+<li> Likewise for .c files:
+\skip c-files
+\until CSRC
+
+
+<li> You can also make local additions to this makefile:
+\skip SECTION
+\until local-mrproper
+</ul>
+
+Note that, aside from the includes line, it is normally not necessary
+to edit this makefile.
+*/

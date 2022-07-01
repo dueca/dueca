@@ -1,0 +1,186 @@
+// -*-c++-*-
+/**
+
+\mainpage DUECA/DUSIME version @VERSION@ -- Application Programmers Interface
+
+\section main_intro Introduction
+
+
+DUECA (Delft University Environment for Communication and Activation)
+is a framework for the implementation of (real-time) programs. This
+framework is written in C++, so if you want to make programs for
+DUECA, you will have to program in C++ too. A framework also means
+that you will have to write your programs in a certain style. Of
+course, restricting yourself to using a framework seems foolish if you
+don't get anything back in turn. But if you stick to the framework,
+DUECA, can offer you some advantages that might make it worthwile to
+use DUECA.
+
+The DUECA framework offers four important advantages (services):
+<ol>
+
+<li> Communication. DUECA can transport your data for you. As long as
+you are using a single computer on which you run your program, this
+might not seem important, but if you have a program that is split over
+several computers (such as a simulation), this becomes a big
+advantage. By sticking to DUECA's rules for communication, the pieces
+of your program will be able to communicate, whether they are running
+on a single computer or distributed over a network. DUECA not only
+distributes your data, but time-tags all data and keeps the data
+history in a small buffer, enabling robust and deterministic
+simulations (each run, given the same inputs, produces the same
+outputs).
+
+<li> Activation. In a real-time program, you often have a task that
+has to be carried out regularly, with a certain \em update \em
+rate. Or you have tasks that have to run in response to certain
+events. In conventional frameworks for real-time programs (which DUECA
+is not), you would have to add a call to your routine somewhere in a
+"main loop", at an appropriate update rate. In DUECA you simply
+specify the update rate that your task needs, and what data should be
+available when your task runs. The schedule is created automatically
+and dynamically. A viewer is available to inspect the result, and
+aggregate data such as average, minimum and maximum activation and
+completion time can be logged.
+
+<li> Creation. In DUECA you can make pieces of program that are called
+"modules". An example of a module could be the engine simulation for
+an aircraft, but you can also put your whole aircraft simulation into
+one big module. As you start up DUECA, a script file is read. This
+script file describes how your simulation is built up from different
+modules. As long as modules communicate in the same way, with DUECA's
+mechanisms, you can swap one module for another, for example you could
+swap a "joystick" module you use on a PC for the "control-loading"
+module you would use in a flight simulator.
+
+There are two important advantages in the use of a script file for the
+"creation" of a simulation, one is that, once you have a library of
+modules, you can easily create a simulation out of what you have
+(display, stick, fms, etc.) and a few new modules you make. The other
+advantage is that you can transport simulations easily from one
+environment (or simulator) to the other, by just swapping the modules
+that do the input and output to all hardware devices. You will find
+that the most frequent transition will be back and forth from the desk
+where you do your development work to the simulator where the final
+product is deployed. This transition is facilitated by using a
+software repository and DUECA's configuration capabilities.
+
+<li> Configuration. As mentioned, a simulation in DUECA can run on a
+single computer, or on a number of computers connected in a
+network. In the latter case, one DUECA program, called a \em node,
+runs in each of the computers. In each node, the local DUECA program
+reads a configuration file that provides the necessary information to
+start up on the node, and tells DUECA how to connect to all the other
+nodes in the DUECA network. The information in the creation script, as
+discussed in the previous point, is distributed when all nodes are
+connected.
+
+Typically, each environment where you run will get its own
+configuration. In a DUECA project, there is support for maintaining
+the configurations for different environments. A standard
+configuration, labeled "solo/solo" is typically used for the
+development on a single desktop, this configuration will be created
+when you start a new DUECA project. Having these configurations helps
+you to seamlessly switch back and forth between your desktop
+development environment and a simulator or hardware where the final
+project is deployed.
+
+</ol>
+
+In more technical terms, DUECA is a middleware environment for the
+implementation of processes characterized by a data-flow architecture
+on a distributed computing network. DUECA provides tools to run such
+processes in real-time.
+
+This documentation is there to help you write applications in
+DUECA. It contains descriptions of all the classes needed to interface
+with DUECA, and some tutorial material.
+
+\section intro_dusime DUSIME
+
+DUSIME (Delft University SIMulation Environment), is a
+simulation-specific extension implemented on top of DUECA. DUSIME
+extends the basic capabilities of DUECA (Communication, Activation,
+Creation and Configuration), and provides basic simulation services
+with these. DUSIME gives you the infrastructure to make a simulation
+that can stop, start, take snapshots of the model state, re-initialise
+to a pre-defined model state (and maybe in some future version
+calculate trim conditions for the model). This manual is written for
+people who use DUECA with DUSIME, and all the examples concern
+simulation models.
+
+\section overview Overview of the documentation
+
+This documentation has been set up to help you get started in
+programming and using DUSIME modules as quickly as possible. It is
+really necessary to use a hypertext version of this documentation (so
+html or acrobat). The first step you take is to take a look at how to
+set up your application, and then you can plunge into the deep with
+the quickstart manual. The quick start contains numerous links to
+concepts and theory you need as you implement a module. Follow these
+if you feel that you need them, and use the "back" button on your
+browser to get back to the line of argument in the quick start
+section.
+
+Then go on with building an executable and configuring your
+simulation.
+
+<ul>
+<li> @ref setup "How to set up your application"
+
+<li> @ref quickstart "Quick start in programming"
+
+<li> @ref keyconcept "DUECA key concepts"
+
+<li> @ref dusime "DUSIME key concepts"
+
+<li> @ref example2 "A simulation project from A to Z"
+
+<li> @ref configure "Configuration files"
+
+<li> @ref confpy "Configuration files (python version)"
+
+<li> @ref confref "Reference documentation for objects in dueca.cnf"
+
+<li> @ref defmod "Reference documentation for default modules in dueca.mod"
+
+<li> @ref rtw "Including code generated from Simulink"
+
+<li> @ref coder "Including code generated from Simulink, Matlab 2015a and later"
+
+<li> @ref extra "Additional utilities"
+
+<li> @ref appdevel "Application development with dueca-project (old)"
+
+<li> @ref appdevelg "Application development with dueca-gproject"
+
+<li> @ref dueca2 "Difference between DUECA 0.x and DUECA 2.x versions"
+
+<li> @ref hdf5 "HDF5 logging"
+
+<li> @ref pyscript "Python script extensions"
+
+<li> @ref analysis "Run log file analysis"
+
+<li> @ref plotting "Plotting live data with a web browser"
+
+<li> @ref log "Log message generation and control"
+
+<li> @ref faq "Frequently Asked Questions (and Encountered Problems)"
+
+<li> @ref bugs "Open bugs"
+
+<li> @ref othersoft "Additional software you might need to install"
+
+<li> @ref cmake "Hints on using CMake with the new project structure"
+
+<li> @ref reposetup "Proposed git repository set-up"
+
+<li> @ref xmlrep "XML representation of DCO objects"
+
+<li> @ref jsondco "JSON representation of DCO objects"
+
+
+</ul>
+
+*/

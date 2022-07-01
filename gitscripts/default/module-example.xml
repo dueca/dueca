@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- Example/test version of an modules xml file -->
+<machine
+    xmlns="https://dueca.tudelft.nl"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
+  <module>
+    <module>flexi-stick</module>
+    <project>https://dueca.tudelft.nl/projects/FlexiStick.git</project>
+    <version>1.0</version>
+  </module>
+  <module>
+    <module>IOController</module>
+    <project>https://dueca.tudelft.nl/projects/CSControlLoading.git</project>
+  </module>
+</machine>

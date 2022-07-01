@@ -1,0 +1,195 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: fig2dev Version 3.2 Patchlevel 5d -->
+<!-- CreationDate: Tue Nov 18 23:25:03 2014 -->
+<!-- Magnification: 1.050 -->
+<svg        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        width="5.7in" height="2.7in"
+        viewBox="1139 494 6814 3297">
+<g style="stroke-width:.025in; fill:none">
+<!-- Text -->
+<text xml:space="preserve" x="2503" y="967" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">control</text>
+<!-- Text -->
+<text xml:space="preserve" x="2503" y="1204" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">loading</text>
+<!-- Line: box -->
+<rect x="1889" y="661" width="1228" height="755" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="4393" y="967" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">aircraft</text>
+<!-- Text -->
+<text xml:space="preserve" x="4393" y="1204" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">dynamics</text>
+<!-- Line: box -->
+<rect x="3779" y="661" width="1228" height="755" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="5669" y="661" width="1228" height="755" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="6283" y="1086" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">display</text>
+<!-- Line: box -->
+<rect x="5669" y="1842" width="1228" height="755" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="6283" y="2290" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">motion</text>
+<!-- Line: box -->
+<rect x="5669" y="3023" width="1228" height="755" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="6283" y="3448" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">logging</text>
+<!-- Text -->
+<text xml:space="preserve" x="7228" y="661" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">visual</text>
+<!-- Text -->
+<text xml:space="preserve" x="7228" y="897" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">cues</text>
+<!-- Text -->
+<text xml:space="preserve" x="7228" y="1842" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">motion</text>
+<!-- Text -->
+<text xml:space="preserve" x="7228" y="2078" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">cues</text>
+<!-- Text -->
+<text xml:space="preserve" x="1559" y="661" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="end">pilot</text>
+<!-- Text -->
+<text xml:space="preserve" x="1559" y="897" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="end">input</text>
+<!-- Line -->
+<polyline points="3118,1039
+3527,1039
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 3118 1039 - 3811 1039-->
+<polygon points="3525 1102
+3777 1039
+3525 976
+3525 1102
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="5007,1039
+5417,1039
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 5007 1039 - 5700 1039-->
+<polygon points="5415 1102
+5667 1039
+5415 976
+5415 1102
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="6897,2220
+7307,2220
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 6897 2220 - 7590 2220-->
+<polygon points="7304 2283
+7556 2220
+7304 2157
+7304 2283
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="6897,3401
+7307,3401
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 6897 3401 - 7590 3401-->
+<polygon points="7304 3464
+7556 3401
+7304 3338
+7304 3464
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="5149,1039
+5149,2173
+5417,2173
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 5149 2173 - 5700 2173-->
+<polygon points="5415 2236
+5667 2173
+5415 2110
+5415 2236
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="5149,1039
+5149,3259
+5417,3259
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 5149 3259 - 5700 3259-->
+<polygon points="5415 3322
+5667 3259
+5415 3196
+5415 3322
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="1181,1039
+1637,1039
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 1181 1039 - 1921 1039-->
+<polygon points="1635 1102
+1887 1039
+1635 976
+1635 1102
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="6897,1039
+7307,1039
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 6897 1039 - 7590 1039-->
+<polygon points="7304 1102
+7556 1039
+7304 976
+7304 1102
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="3259,1039
+3259,3543
+5417,3543
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 3259 3543 - 5700 3543-->
+<polygon points="5415 3606
+5667 3543
+5415 3480
+5415 3606
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Text -->
+<text xml:space="preserve" x="7228" y="3259" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">datafiles</text>
+</g>
+</svg>

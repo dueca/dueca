@@ -1,0 +1,60 @@
+/** \page macosx Mac OS X as development station
+
+Running DUECA on Mac OSX
+
+\section macosx_intro Introduction
+
+DUECA is a middleware environment for real-time distributed
+calculation. DUECA has been developed since 1998, been taken in
+production in 1999, used in the SIMONA Research Simulator since
+2001. DUECA development was initially targeted at Linux and QNX
+Neutrino, the operating systems used in running the SRS and various
+other labs and facilities at Control and Simulation. Since 2014 a
+version for MAC OS X has become available. Early experience shows that
+his version runs fine, but in terms of real-time performance is no
+match for running DUECA on Linux with even a standard kernel, and
+certainly no match for running it on a Linux with a PREEMPT_RT patched
+kernel. Thus this DUECA version is targeted at development and
+demonstration purposes, for running a lab it is really recommended to
+run under Linux.
+
+\section macosx_requirements Required software
+
+For running this DUECA version, the following is recommended:
+
+<ul>
+<li> Mac OS X software -- through the App Store:
+<ul>
+<li> XCode </li>
+</ul>
+
+<li> Other software
+<ul>
+<li> XQuartz, https://xquartz.macosforge.net</li>
+<li> pyparsing, open a terminal and use easy_install pyparsing
+</ul>
+<li> MacPorts software
+<ul>
+<li> The base MacPorts package
+<li>autoconf </li>
+<li>automake</li>
+<li>boost></li>
+<li>cvs</li>
+<li> eigen3</li>
+<li>fltk </li>
+<li>freeglut </li>
+<li>freetype </li>
+<li>glui </li>
+<li>gtk2 </li>
+<li>gtkglext </li>
+<li>gtkmm </li>
+<li>guile </li>
+<li>libglade2 </li>
+<li>libtool </li>
+<li>pkgconfig </li>
+<li>svn2cl </li>
+<li>xfig </li>
+</ul>
+</li>
+</ul>
+*/

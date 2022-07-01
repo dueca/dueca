@@ -1,0 +1,7 @@
+(Type int)
+(Type string32 "#include <stringoptions.h>")
+
+(EventAndStream Object
+  (int i 10 (Default 0))
+  (string32 t (Default "sometext"))
+)

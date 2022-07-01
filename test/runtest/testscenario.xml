@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scenario xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl testscenario.xsd">
+  <project name="FlexiStick">
+    <window>DUECA/DUSIME control panel</window>
+    <window>HID feedback</window>
+    <window>Are you serious?</window>
+  </project>
+  <execute>
+    <platform>solo</platform>
+    <node>solo</node>
+  </execute>
+  <actions>
+    <check window="HID feedback" x="13" y="14" r="0" g="0" b="0" timeout="5.0"/>
+    <click window="HID feedback" x="13" y="14" button="Button.left" pressed="true"/>
+    <click window="HID feedback" x="13" y="14" button="Button.left" pressed="false"/>
+    <check window="DUECA/DUSIME control panel" x="468" y="102" r="246" g="245" b="244" timeout="5.0"/>
+    <click window="DUECA/DUSIME control panel" x="431" y="17" button="Button.left" pressed="true"/>
+    <click window="DUECA/DUSIME control panel" x="431" y="17" button="Button.left" pressed="false"/>
+    <check window="DUECA/DUSIME control panel" x="464" y="101" r="246" g="245" b="244" timeout="5.0"/>
+    <click window="DUECA/DUSIME control panel" x="468" y="147" button="Button.left" pressed="true"/>
+    <click window="DUECA/DUSIME control panel" x="468" y="147" button="Button.left" pressed="false"/>
+    <check window="DUECA/DUSIME control panel" x="468" y="147" r="191" g="191" b="189" timeout="5.0"/>
+    <click window="DUECA/DUSIME control panel" x="466" y="185" button="Button.left" pressed="true"/>
+    <click window="DUECA/DUSIME control panel" x="466" y="185" button="Button.left" pressed="false"/>
+    <check window="DUECA/DUSIME control panel" x="466" y="184" r="191" g="191" b="189" timeout="5.0"/>
+    <click window="DUECA/DUSIME control panel" x="464" y="143" button="Button.left" pressed="true"/>
+    <click window="DUECA/DUSIME control panel" x="464" y="143" button="Button.left" pressed="false"/>
+    <check window="DUECA/DUSIME control panel" x="464" y="143" r="191" g="191" b="189" timeout="5.0"/>
+    <click window="DUECA/DUSIME control panel" x="465" y="104" button="Button.left" pressed="true"/>
+    <click window="DUECA/DUSIME control panel" x="465" y="104" button="Button.left" pressed="false"/>
+    <check window="DUECA/DUSIME control panel" x="465" y="104" r="246" g="245" b="244" timeout="5.0"/>
+    <click window="DUECA/DUSIME control panel" x="14" y="53" button="Button.left" pressed="true"/>
+    <click window="DUECA/DUSIME control panel" x="14" y="53" button="Button.left" pressed="false"/>
+    <check window="DUECA/DUSIME control panel" x="75" y="107" r="145" g="148" b="149" timeout="5.0"/>
+    <click window="DUECA/DUSIME control panel" x="75" y="107" button="Button.left" pressed="true"/>
+    <click window="DUECA/DUSIME control panel" x="75" y="107" button="Button.left" pressed="false"/>
+    <check window="Are you serious?" x="29" y="83" r="156" g="159" b="159" timeout="5.0"/>
+    <click window="Are you serious?" x="29" y="83" button="Button.left" pressed="true"/>
+    <click window="Are you serious?" x="29" y="83" button="Button.left" pressed="false"/>
+  </actions>
+</scenario>

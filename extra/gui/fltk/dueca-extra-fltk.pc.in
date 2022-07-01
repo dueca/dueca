@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+initfunc=-Wl,@ldundef@InitExtraFltk
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-extra-fltk
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} ${initfunc} -ldueca-extra-fltk${staticsuffix}
+Cflags:
+Requires: dueca-fltk = ${version}, dueca-extra = ${version}

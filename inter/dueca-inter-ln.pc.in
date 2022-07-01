@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+initfunc=-Wl,@ldundef@InitInter
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-inter
+Description: Interconnection capabilities for dueca
+Version: ${version}
+Libs: -L${libdir} ${initfunc} -ldueca-inter@scriptsuffix@
+Cflags:
+Requires: dueca-inter = ${version}

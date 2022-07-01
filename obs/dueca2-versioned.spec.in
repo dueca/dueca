@@ -1,0 +1,183 @@
+%define name dueca-%(echo "@dueca_VERSION@" | tr . _)
+%define ver  @dueca_VERSION@
+
+%define gtkthree_config 1
+%define glui_config 1
+%define gtkmm_config 1
+%define hdf5_config 1
+%define udpcom_config 1
+%define python3_config 1
+
+%if 0%{?sle_version} && 0%{?sle_version} <= 120300 && 0
+%define websock_config 0
+%else
+%define websock_config 1
+%endif
+
+Summary: Middleware for real-time distributed systems
+Name: %name
+Version: %ver
+Release: 1
+License: EUPL-1.2
+Group: Libraries/
+
+Requires: python3
+Requires: cvs
+Requires: python3-pyparsing
+BuildRequires: python3-xlwt
+Requires: eigen3-devel
+Requires: freeglut-devel
+Requires: fltk-devel
+Requires: libglade2-devel
+Requires: gtkglext-devel
+Requires: libtinyxml-devel
+Requires: doxygen
+Requires: make
+Requires: gcc-c++
+
+Requires: libguile1-devel
+Requires: guile1
+
+BuildRequires: libguile1-devel
+BuildRequires: guile1
+BuildRequires: msgpack-devel
+
+%if 0%{?python3_config}
+BuildRequires: python3-devel
+BuildRequires: libboost_python3-devel
+%define SCRIPT_PYTHON_CONFIG -DSCRIPT_PYTHON=ON
+%endif
+%if 0%{?python_config}
+BuildRequires: python-devel
+Requires: python-devel
+%define SCRIPT_PYTHON_CONFIG -DSCRIPT_PYTHON=ON
+%endif
+
+%if 0%{?sle_version}
+BuildRequires:  libboost_system-devel >= 1.60
+BuildRequires:  libboost_thread-devel >= 1.60
+BuildRequires:  libboost_filesystem-devel >= 1.60
+BuildRequires:  libboost_coroutine-devel >= 1.60
+BuildRequires:  libboost_context-devel >= 1.60
+BuildRequires:  libboost_regex-devel >= 1.60
+%if 0%{?is_opensuse} == 0
+BuildRequires:  libboost_headers-devel-impl >= 1.60
+%endif
+%else
+BuildRequires:  boost-devel
+%endif
+Requires: boost-devel
+
+%if 0%{?suse_version}
+Requires: libXmu-devel
+Requires: libXi-devel
+BuildRequires: libXmu-devel
+BuildRequires: libXi-devel
+%endif
+
+%if 0%{?glui_config}
+Requires: glui-devel
+BuildRequires: glui-devel
+%define GLUI_CONFIG -DBUILD_GLUTGUI=ON
+%endif
+
+%if 0%{?gtkthree_config}
+%define GTKTHREE_CONFIG -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON
+BuildRequires:  gtkmm3-devel
+BuildRequires:  gtk3-devel
+%endif
+BuildRequires: fdupes
+BuildRequires: fltk-devel
+BuildRequires: eigen3-devel
+BuildRequires: flex
+BuildRequires: bison
+BuildRequires: libglade2-devel
+BuildRequires: gcc-c++
+BuildRequires: freeglut-devel
+BuildRequires: graphviz
+%if 0%{?suse_version}
+BuildRequires: graphviz-gd
+%endif
+BuildRequires: doxygen
+BuildRequires: cmake
+BuildRequires: gtkglext-devel
+BuildRequires: inkscape
+BuildRequires: python3-pyparsing
+BuildRequires: rapidjson-devel
+%if 0%{?gtkmm_config}
+%define GTKMM_CONFIG -DBUILD_GTKMM=ON
+%if 0%{?suse_version}
+BuildRequires: gtkmm2-devel pkg-config
+%else
+BuildRequires: gtkmm24-devel pkgconfig
+%endif
+%endif
+%if 0%{?hdf5_config}
+%define HDF5_CONFIG -DBUILD_HDF5=ON
+BuildRequires: hdf5-devel
+%endif
+%if 0%{?udpcom_config} || 0%{?websock_config}
+BuildRequires: openssl-devel
+BuildRequires: Simple-Websocket-Server-devel
+BuildRequires: Simple-Web-Server-devel
+%endif
+%if 0%{?udpcom_config}
+%define UDPCOM_CONFIG -DBUILD_UDP=ON
+%endif
+%if 0%{?websock_config}
+%define WEBSOCK_CONFIG -DBUILD_WEBSOCK=ON
+%endif
+
+Source0: file:///usr/src/redhat/SOURCES/dueca-%{ver}.tar.bz2
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
+
+%description
+
+DUECA is a middleware library for the implementation of real-time data
+flow processes on distributed hardware. It is currently used for the
+Man-Machine lab of the Control and Simulation Division, Aerospace
+Engineering, Delft University of Technology, on the SIMONA Research
+Simulator, for the displays in the PH-LAB laboratory aircraft and on
+a some other set-ups.
+
+This spec file prepares a versioned install, it is possible to install this
+version alongside others, and use static linking to create the executables.
+
+%prep
+%setup -q -n dueca-%{ver}
+
+%build
+
+mkdir build
+cd build
+cmake \
+    -DCMAKE_INSTALL_PREFIX=/opt/dueca-%{version} \
+    -DDUECA_DOC_PATH:PATH=/opt/dueca-%{version}/shared/doc \
+    -DALSO_INIT_GLUT=ON \
+    -DDUECA_BUILD_STATIC=ON \
+    -DDUECA_BUILD_SHARED=OFF \
+    -DDUECA_INIT_STATIC=ON \
+    %{?GLUI_CONFIG} \
+    %{?GTKMM_CONFIG} \
+    %{?GTKTHREE_CONFIG} \
+    %{?HDF5_CONFIG} \
+    %{?UDPCOM_CONFIG} \
+    %{?WEBSOCK_CONFIG} \
+    %{?SCRIPT_PYTHON_CONFIG} \
+    -DBUILD_X11GL=ON \
+    ..
+
+make VERBOSE=1
+make doc
+
+%install
+cd build
+make DESTDIR=%{buildroot} install
+
+%files
+%defattr(-, root, root)
+%doc README.md ChangeLog.md AUTHORS COPYING
+/opt/dueca-%{version}
+
+
+

@@ -1,0 +1,30 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/cmake.mk
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+DEB_CMAKE_EXTRA_FLAGS += -DALSO_INIT_GLUT=ON \
+			-DCMAKE_BUILD_TYPE=Release \
+			-DSYSCONF_INSTALL_DIR=/etc \
+			-DDUECA_BUILD_STATIC=OFF \
+			-DDUECA_BUILD_SHARED=ON \
+			-DDUECA_INIT_STATIC=ON \
+			-DDUECA_DOC_PATH:PATH=/usr/share/doc \
+			-DBUILD_GLUT=ON \
+			-DBUILD_GLUTGUI=ON \
+			-DBUILD_GTK2=ON \
+			-DBUILD_GTKMM=ON \
+			-DBUILD_GTK3=ON \
+			-DBUILD_GTKMM3=ON \
+			-DBUILD_HDF5=ON \
+			-DBUILD_UDP=ON \
+			-DBUILD_WEBSOCK=ON \
+			-DSCRIPT_PYTHON=ON \
+			-DFORCE_PYTHON_MALLOC=ON \
+			-DSCRIPT_SCHEME=ON \
+			-DBUILD_DDFF=ON \
+			-DTRY_INSTALL_PYTHON_BUILD=ON \
+		-DCMAKE_INSTALL_LIBDIR:PATH=/usr/lib/$(DEB_HOST_MULTIARCH)

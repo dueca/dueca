@@ -1,0 +1,57 @@
+#!/bin/sh
+FILE=$1
+
+usage() {
+    echo "$0 filename"
+    echo "Looks for any filename, and moves it to filename.number"
+    echo "If a folder 'runlogs' is found, the file is moved there, and"
+    echo "labeled with the file creation time"
+}
+
+zerofile() {
+    mv $FILE $FILE.0
+    exit 0
+}
+
+if [ -z "$FILE" ]; then
+    usage
+    exit 1
+fi
+
+if [ ! -e $FILE ]; then
+    exit 0
+fi
+
+if [ -d runlogs ]; then
+    CTIME=$(stat -c "%w" ${FILE})
+
+    if [ "$CTIME" = "-" ]; then
+       CTIME=$(stat -c "%x" ${FILE})
+    fi
+    CTIME=$(echo ${CTIME} | cut --delimiter="." -f 1 | tr " " "_")
+    mv ${FILE} runlogs/${FILE}.${CTIME}
+
+else
+
+    if ls $FILE.?* 1>/dev/null 2>/dev/null; then
+
+        # get length of basic filename, +2 for cutting later
+        CIDX=`expr ${#FILE} + 2`
+
+        # obtain the highest extension number, omit all other types of extension
+        NUMBER=`ls $FILE.?* 2>/dev/null | sed -e "/$FILE\..*[^0-9].*/d" | cut -c $CIDX- | sort -n | tail -1`
+
+        # if no file with numerical extension, start a tradition
+        if [ -z "$NUMBER" ]; then
+            zerofile
+        fi
+
+        # move to the next higher number
+        mv $FILE $FILE.`expr $NUMBER + 1`
+        exit 0
+    fi
+    zerofile
+fi
+
+
+

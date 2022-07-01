@@ -1,0 +1,39 @@
+This is a comm-objects directory of a DUECA application. This directory
+contains the code to generate the objects that are sent over channels
+between modules. Note that this code is automatically generated from
+files with a .dco (dUECA communication object) extension.
+
+  - module.o (generated), contains the compiled code with the
+    communication objects
+
+  - doc (generated), contains the html documentation, generated with
+    doxygen. 
+
+  - comm-objects.lst, unused in comm-objects directories
+
+The various targets of this Makefile:
+
+  clean     : normal cleaning (remove .o files)
+
+  mrproper  : super cleaning, remove everything automatically
+              generated
+
+  doc       : generate documentation for the modules, for all module and
+              the comm-objects directory "doc" subdirs are generated
+
+  depend    : calculate dependencies and generate automatically
+              generated code
+
+  all       : make the communication objects code
+
+You will see just a small piece of this Makefile in your
+directory. This piece can be tailored, specifically:
+
+EXTRA_INCLUDES : add additional include paths and defines here
+
+The following defines normally need not be changed:
+
+DUECATYPES  : all .dco files in your module. Please do
+              not change this definition unless you really have to,
+              and really know what you are doing.
+

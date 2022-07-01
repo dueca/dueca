@@ -1,0 +1,3 @@
+
+/* Define if SO_PRIORITY is defined */
+#cmakedefine SYMBOL_SO_PRIORITY

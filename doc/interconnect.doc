@@ -1,0 +1,184 @@
+// -*-c++-*-
+
+/** @page inter DUECA Interconnector
+
+    If you want to extend your simulation to multiple entities running
+    on multiple simulators, it sometimes does not make sense to put
+    that all in one dueca process. Several external tools are known
+    for simulation interconnection, such as HLA and DIS, however these
+    require you to re-code a lot of the communication, while you
+    already have DUECA. Easy communication between DUECA processes is
+    what the interconnector is for.
+
+    The DUECA Interconnector consists of a pair of modules and their
+    supporting classes. Add these modules to your dueca project by
+    specifying --inter as one of the DUECA components in the main
+    project Makefile.
+
+    @section inter_capable Capabilities and limitations
+
+    The Interconnector will transmit any number (theoretically up to
+    32767, but that seems a bit much for most computers) of
+    user-defined channels. The specified channels are inspected for
+    entries (written by other modules than the interconnector), and
+    these entries are copied to all connected DUECA processes. Channel
+    type is preserved, so the copied channels and their entries are
+    exactly as in the originating DUECA process. Any entry found in
+    the monitored channels (and not associated (i.e., written by) to
+    the interconnector) will replicated across the network to the
+    master and other peers, independently of the peer in which it was
+    created.
+
+    The timing is translated. The peers look at the current time, the
+    time in the data messages, and write the data in the channel with
+    an updated time, roughly correct with respect to wall clock
+    time. The peers will lock-in to each other's timing, keeping time
+    intervals constant, unless clocks drift too much and a correction
+    is needed. It is also possible to synchronize the peers' clocks to
+    the master's clock. This is only possible if node on which the
+    peer's connector is running is not already synchronized, so the
+    connector must be running on the master timing/send node.
+
+    One restriction to watch out for is that the timing of the
+    different DUECA processes must be compatible. Specifically, that
+    means that the time granule (see the dueca::Ticker class) values are
+    equal, this is checked when the connection is set up, so check the
+    logs for this if connection seems to fail.
+
+    The connected channels are monitored, and when an entry is added
+    to or removed from a channel, this entry is copied along all
+    connections. A current limitation is that a single channel can
+    have only 65535 entries created (that means that if you dedicate
+    your simulation to creating and deleting entries, something that
+    DUECA will happily endure because it can re-use the ID´s it uses
+    to distinguish entries, you will exhaust the interconnector after
+    this number of new entries).
+
+    One of the DUECA processes needs to be master for the
+    interconnector, here the administration is done. The master must
+    be running for the entire duration of the simulation, but new
+    peers can connect and can leave again. As above, the number of
+    connections over the master lifetime is limited, in this case to
+    65534.
+
+    When a peer connects, its channels and entries in the channels are
+    configured, and it starts joining the communication. History from
+    before the connection is not available, but any new transmits are
+    copied. You might want to consider this when using channels for
+    static information; you might need to re-write static data
+    occasionally to refresh the channel ends in connected peers. Note
+    that communication is "dumb", and channel data is transmitted in
+    full by the Interconnector, differential pack (which can be done
+    between DUECA nodes) is not supported. (Quick quiz question: How
+    can you "update" the data in a channel to a new time, but not
+    change it, and have minimal load on the communication between your
+    dueca nodes?)
+
+    The Interconnector uses WebSocket connections for the initial
+    handshake and communication of configuration data (which channels,
+    entries, etc.), and it can use UDP messages for the data
+    cycle. Data arrival is monitored, and when a UDP message is lost,
+    the interconnector will try to recover the communication. It is
+    possible to use point-to-point UDP communication, but only between
+    a single master and a client. Multicast and broadcast messages are
+    also possible, this permits multiple clients with a single
+    master. With the exception of the WebSocket connection
+    information, all configuration is done in the master. It is
+    possible to use the WebSocket communication also for the data
+    communication, the system will then function as a star network,
+    with all messages from a peer being reflected by the master by
+    fanning them out to other peers.
+
+    @section inter_master Master configuration
+
+    The master node is started with the following script commands:
+
+    \verbinclude channel-replicator-master.scm
+
+    The master will perform its calculation according to the timing
+    specified, so it is not necessary to configure a separate priority
+    for the master. However, this is still strongly recommended,
+    because the master might block for longer times if one of the
+    peers fails to communicate. The master is coded as a normal DUECA
+    module, and it will need to be in "work" mode to communicate with
+    peers.
+
+    The main configuration parameters are the list of channels to
+    monitor, and the UDP address.  The channels need to be specified
+    in dueca 2.x format, so:
+
+    @verbatim
+    DataClass://entity/part/subpart
+    @endverbatim
+
+    In the master, you can also indicate a channel name for join
+    notice messages. This channel gets \ref
+    dueca::ReplicatorPeerJoined messages for each peer that joins the
+    group. With these messages, you can see that a peer has joined,
+    and from which connection it joins.
+
+    With a second configured channel, you can send \ref
+    dueca::ReplicatorPeerAcknowledge messages back. These can indicate
+    acceptance or rejection of the peer, and can carry some optional
+    payload. The payload will be sent to a channel on the peer side,
+    if the peer has been configured to do so. You can use this to
+    kick-start the simulation at the peer side, you can for example
+    tell a peer which under which callsign it will fly. Note that the
+    size of the information is limited to approximately 1000 bytes. If
+    you need to send more information, open a channel and have it
+    replicated! If the acknowledge channel is not configured, all
+    peers attempting to join are implicitly accepted.
+
+    If you want to monitor the interconnector's progress, you can
+    specify a channel with \ref dueca::ReplicatorInfo messages. These
+    give information on:
+
+    <ul>
+
+    <li> Peers joining. The peer_id is given, the IP address is given
+    in the name field and the entry_id field is mis-used to indicate
+    the network port from which the peer joins </li>
+
+    <li> Peers leaving. Only the peer_id is given </li>
+
+    <li> Entries being created. The peer_id indicates the originating
+    peer, entry_id, data_class and channelname are given. The name
+    field contains the label of the entry. The entry_id is the id that
+    DUECA uses to distinguish entries in a channel. Note that the
+    Interconnector uses another id to distinguish entries among peers
+    and master, and that DUECA entry_id's in the different peers might
+    differ!</li>
+
+    <li> Entries being deleted. Only peer_id, entry_id and channelname
+    are filled. </li>
+
+    </ul>
+
+    @section inter_peer Peer configuration
+
+    Here are the configuration instructions for the peer.
+
+    \verbinclude channel-replicator-peer.scm
+
+    The peer nodes will actually block on the message cycle initiated
+    by the master. This means that peer nodes need a separate
+    priority, which cannot be shared with any other modules. Peer
+    nodes will still obey the normal DUECA module commands. Peers will
+    set up their connection to the master once they enter "work"
+    mode. When a peer leaves work mode normally (at least if
+    controlled by DUECA, not as a result of a crash or uncaught
+    exception), the locally created entries will be removed from the
+    channels and the connection with the master is stopped. To a master
+    and the other peers that continue running, it will look like the
+    peer has disappeared, and all entries in the channels
+    corresponding to the peer will be removed. The peer may later join
+    again, it will receive a new ID from the master, and all
+    replicated entries will be re-created again.
+
+    The peer configuration is limited to the contact details of the
+    master. The master may be specified as an internet address or as a
+    hostname. By specifying an information channel in a node with a
+    peer, with \ref dueca::ReplicatorPeerAcknowledge objects, you can
+    get notified of the establishment of the connection and the
+    additional information sent by the master.
+*/

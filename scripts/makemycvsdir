@@ -1,0 +1,48 @@
+#!/bin/sh
+
+if [ ! -z $1 ]; then
+    CVSDIR=$1
+else
+    CVSDIR=${HOME}/MyCVS
+fi
+
+TMPDIR=/tmp/makemycvsdir$$
+
+cd ${HOME}
+
+if [ -e ${CVSDIR} ]; then
+
+    echo "There is already a file or dir ${CVSDIR}!"
+    exit 1
+fi
+
+mkdir ${CVSDIR}
+CVSROOT=${CVSDIR} cvs init
+
+if [ -e ${TMPDIR} ]; then
+
+    echo "problem, cannot complete the configuration"
+    exit 2
+fi
+
+mkdir ${TMPDIR}
+cd ${TMPDIR}
+cvs -d ${CVSDIR} checkout CVSROOT
+cd CVSROOT
+cat >cvsignore <<EOF
+comm-objects.h
+.depend
+dueca_run.x
+.machine
+dueca.scratch
+dueca.objects
+dueca.channels
+dueca.activities
+EOF
+cvs -d ${CVSDIR} add cvsignore
+cvs -d ${CVSDIR} commit -m "initial ignore file"
+cvs -d ${CVSDIR} release
+cd ${HOME}
+rm -rf ${TMPDIR}
+
+echo "Created and initialised repository ${CVSDIR}"

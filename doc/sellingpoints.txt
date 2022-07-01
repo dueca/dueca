@@ -1,0 +1,48 @@
+- memory management, lock-free allocation and de-allocation of small objects
+
+- advanced logging; lock-free, constant-time (using abovementioned allocation), distributed + centralized, all log points ID tagged, information on thread, count, switchable, different classes&priorities,
+
+- self generated schedule. triggering mechanism, lock-free, constant time, advanced treatment of simulation time, combining/splitting time spans, scheduling/triggering concepts.
+
+- schedule robust to disruptions, due to consistent data view (e.g. scenegraph set-up, data load)
+
+- channels, time-consistent view, lock-free (except config), transparent, time tagging, reading/writing options, extendable on the fly (addition of new reading or writing tokens, addition of new ends in modules). Set-up of channel on new end involves bulk transportation and updates.
+
+- complex channel data, code generator, extensible, integrates with stl containers, additional real-time optimized containers.
+
+- composable simulation, modules, quick re-configuration, configuration with scripting language, easy configuration with script parameters, simple programming of parameter links and callbacks.
+
+- communication back-ends, microsecond level synchronization, efficient binary transportation, with checksum, difference pack.
+
+- timing log and snapshot facilities.
+
+- version control, parallel development, configurations for development/deployment
+
+- distributed state machine, safety features for interaction with hardware.
+
+- integration of scheduling, communication, creation.
+
+- different scheduling and run modes, configurable runtime
+
+Facilitates:
+
+- advanced real-time simulation, good timing, complex scheduling tasks (different rates, etc.) are easy
+
+- collaborative development, incremental development, platform independence (desktop/simulation hardware)
+
+- role distribution, coder vs configuration expert. Real-time expertise provided by DUECA
+
+- quick re-configuration of the simulation, rapid development and prototyping
+
+- inspection and debugging of distributed real-time simulation
+
+- integration with debugging tools like gdb, ddd, valgrind
+
+- deterministic simulation (eliminate race conditions)
+
+- truly distributed real-time processes, up to combination of high update rate (2500, 5000 Hz) with standard rate (100 Hz, 200Hz) etc updates, all with time synchronization
+
+- advanced, optimized scheduling solutions, like locking visualization code to the display update rate and extrapolation of simulation data, see WorldView as an example
+
+- imaginative solutions, such as simulating delay through channel storage, using a channel as a crash log are easily implemented.
+

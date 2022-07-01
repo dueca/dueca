@@ -1,0 +1,25 @@
+;; -*-scheme-*-
+(Header "
+        original item   : Enum10.dco
+        made by         : Rene' van Paassen
+        date            : 20210907
+        description     : Test valued/typed enum and enum class
+        copyright       : (c) 2020-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Enumerated value
+;; To be created outside a DCO class
+(EnumClass Enum10 uint16_t
+           ;; The first element
+           One = 0x100
+           ;; The second
+           Two = 0x200
+           Three = 513)
+
+;; An enumerator
+(Enumerator Enum10 
+	    (Option hdf5)
+	    (Option msgpack)
+            (IncludeFile Enum10Extra) )
+

@@ -1,0 +1,18 @@
+/**
+
+\mainpage DUECA/DUSIME version @VERSION@ Inspection Documentation (confidential)
+
+\section intro Introduction
+
+DUECA is a middleware environment for the implementation of processes
+characterized by a data-flow architecture on a distributed computing
+network. DUECA provides tools to run such processes in real-time.
+
+This documentation is confidential. It contains a large part of the
+DUECA sources, and is intended for inspection purposes; the hypertext
+format allows a quick navigation through the sources, and the
+integrated manual, comments and source code facilitate visual checks
+
+\ref scramnet "SCRAMNet communication under DUECA"
+
+*/

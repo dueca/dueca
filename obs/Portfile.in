@@ -1,0 +1,131 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4
+# $Id$
+
+PortSystem          1.0
+
+PortGroup cmake     1.0
+PortGroup active_variants 1.1
+
+name                dueca
+version             @VERSION@
+revision            0
+categories          science
+license             proprietary
+maintainers         gmail.com:rene.vanpaassen
+platforms            darwin
+description         Real-Time middleware layer
+long_description    Long description
+homepage            http://www.cs.lr.tudelft.nl/
+distfiles            dueca-@VERSION@.tar.bz2
+checksums           rmd160  RMD160 \
+                    sha256  SHA256
+
+depends_build-append   port:doxygen
+
+use_parallel_build  no
+
+depends_build       port:eigen3 \
+                    port:freeglut \
+                    port:freetype \
+                    port:glui \
+                    port:gtk2 \
+                    port:gtkglext \
+                    port:gtkmm \
+                    port:libglade2 \
+                    port:boost \
+                    port:gtk3 \
+                    port:gtkmm3 \
+                    port:hdf5 \
+                    port:pkgconfig \
+                    port:rapidjson-devel \
+		    port:ninja
+
+depends_lib         port:eigen3 \
+                    port:freeglut \
+                    port:freetype \
+                    port:glui \
+                    port:gtk2 \
+                    port:gtkglext \
+                    port:gtkmm \
+                    port:libglade2 \
+                    port:boost \
+                    port:gtk3 \
+                    port:gtkmm3 \
+                    port:hdf5 \
+                    port:cvs \
+                    port:pkgconfig \
+                    port:rapidjson-devel \
+                    port:simple-websocket-server \
+                    port:simple-web-server \
+                    port:openssl
+
+
+configure.args-append   \
+                    -DBUILD_GTK2=ON -DBUILD_GTKMM=ON \
+                    -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON \
+                    -DBUILD_GLUT=ON -DBUILD_GLUTGUI=ON \
+                    -DBUILD_FLTK=OFF -DBUILD_SHM=ON \
+                    -DDUECA_BUILD_SHARED=ON \
+                    -DDUECA_BUILD_STATIC=OFF \
+                    -DDUECA_INIT_STATIC=ON \
+                    -DGLUT_INCLUDE_DIR=/opt/local/include/GL \
+                    -DBUILD_X11GL=ON  \
+                    -DNEW_LOGGING=ON  \
+                    -DBUILD_HDF5=ON   \
+                    -DBUILD_UDP=ON    \
+                    -DALSO_INIT_GLUT=ON \
+                    -DUSE_ATOMIC=ON \
+                    -DCMAKE_PREFIX_PATH=${prefix} \
+                    -DBUILD_WEBSOCK=ON \
+                    -DCMAKE_BUILD_TYPE:STRING="Unix Makefiles" \
+                    -DCMAKE_OSX_ARCHITECTURES=x86_64
+
+variant             python36 \
+                    conflicts python37 python38 python39 \
+                    description "with python 3.6 scripting" {
+    configure.args-append  -DSCRIPT_PYTHON=ON
+    depends_lib-append           port:python36 \
+                                 port:py36-parsing
+    require_active_variants boost python36
+}
+
+variant             python37 \
+                    conflicts python36 python38 python39 \
+                    description "with python 3.7 scripting" {
+    configure.args-append  -DSCRIPT_PYTHON=ON
+    depends_lib-append           port:python37 \
+                                 port:py37-parsing
+    require_active_variants boost python37
+}
+
+variant             python38 \
+                    conflicts python36 python37 python39 \
+                    description "with python 3.8 scripting" {
+    configure.args-append  -DSCRIPT_PYTHON=ON
+    depends_lib-append           port:python38 \
+                                 port:py38-parsing
+    require_active_variants boost python38 \
+                            boost-numpy python38
+}
+variant             python39 \
+                    conflicts python36 python37 python38 \
+                    description "with python 3.9 scripting" {
+    configure.args-append  -DSCRIPT_PYTHON=ON
+    depends_lib-append           port:python39 \
+                                 port:py39-parsing \
+				 port:py39-wheel \
+				 port:py39-pip
+    require_active_variants boost python39 \
+                            boost-numpy python39
+}
+
+
+variant             guile \
+                    description "with scheme scripting" {
+    configure.args-append  -DSCRIPT_SCHEME=ON
+    depends_lib-append           port:guile
+}
+
+if {![variant_isset python36] && ![variant_isset python37] && ![variant_isset python38]} {
+    default_variants +python38 +guile
+}

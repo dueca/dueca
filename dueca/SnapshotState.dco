@@ -1,0 +1,42 @@
+;; -*-scheme-*-
+(Header "
+        item            : SnapshotState.dco
+        made by         : Rene' van Paassen
+        date            : 130928
+        category        : comm object specification
+        description     : Basic named object or channel
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+        language        : C++
+          documentation   : DUECA_API")
+
+(Type dummy)
+
+;; Enum type for the different snapshot states and commands
+(Enum
+ Type uint8_t
+ ;; clear memory used for snapshot
+ SnapClear
+ ;; prepared module for taking snapshot
+ SnapPrepared
+ ;; take the snapshot at the indicated time
+ SnapNow
+ ;; confirm the snapshot has been taken
+ SnapTaken
+ ;; say this module does not send a snapshot
+ SnapSendNotApplicable
+ ;; confirm snapshot has been sent off
+ SnapSent
+ ;; confirm snapshot data has been re-loaded
+ SnapLoaded
+ ;; complain no data available
+ SnapNotFilled
+ ;; command came too late
+ TooLateForSnap
+)
+
+;; Enum event type for keeping snapshot info
+(Event SnapshotState
+       ;; actual state
+       (Type state))

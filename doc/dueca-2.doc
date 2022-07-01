@@ -1,0 +1,496 @@
+/** \page dueca2 Transition to DUECA 2 and beyond
+
+DUECA revamped -- changes in channel code.
+
+\section dueca2_intro Introduction
+
+In 2014, development on a new implementation of DUECA's channels was
+started. The old implementation used three different types of channel;
+
+<ul>
+
+<li> Event channels. An event is an occurrence that happened at a
+single point in time, and it may have data associated to it. At any
+given time in dueca's simulation, zero, one or multiple events may
+be written in an event channel. The common way to deal with
+events is to read and handle them all.
+
+<li> Stream channels. Stream channels are for data that may change,
+but in principle at each moment in time has a single value. The
+position and attitude of a vehicle are examples of stream data. The
+common way to deal with stream channels is to read the data for a
+specific time, enabling a module in the simulation to obtain a
+time-consistent view of the simulation.
+
+<li> Multistream channels are like stream channels, but holding
+several entries in parallel. Entries may be added and removed while
+the simulation is running. Such channels are useful to for example
+assemble the data from all vehicles in the simulation (or in an area
+of the simulation).
+
+</ul>
+
+The new DUECA2 has only a single channel type, which is flexible and
+configurable, to offer the above functionalities and others.
+
+DUECA2 has compatibility objects that enable an application programmer
+to create all these channel and data types, but under the hood these all
+map to DUECA2's new UnifiedChannel object. To help old-time DUECA
+programmers in the transition, and to help new DUECA programmers in
+reading old code, the following sections describe the equivalence
+between the old and new channel types.
+
+Note that channels in general are created as needed. The application
+developer's code does not directly create a channel, but creates
+access tokens, either for reading or writing a channel. If the channel
+did not yet exist, it will be created, and if the channel existed, the
+access token will simply use that existing channel.
+
+\section dueca2_eventchannel Event channels
+
+Note that we are now discussing how code *used to be*, and that for
+new code I recommend you to use the new channel interfaces.
+
+Read access to an event channel is obtained by creating an
+EventChannelReadToken, and write access by creating an
+EventChannelWriteToken. These tokens need the data class that is to be
+written or read as template. As an example, in the class header might
+will see:
+
+\code
+EventChannelReadToken<mydata>           r_event;
+
+EventChannelWriteToken<mydata>          w_event;
+\endcode
+
+Subsequently, the constructors for the tokens are called when your
+module is constructed.
+
+\code
+MyModule::MyModule() :
+  // ... construction of other parts of the module
+  r_event(getId(), NameSet(entity, "MyData", ""),
+          ChannelDistribution::NO_OPINION, Regular, NULL),
+  w_event(getId(), NameSet(entity, "MyData", ""),
+          ChannelDistribution::SOLO_SEND, Regular, NULL),
+  // ... further objects, and constructor body code
+\endcode
+
+Two common use-cases are distinguished:
+
+<ul>
+
+<li> There is one sending node, and multiple reading nodes. The
+     sending node uses ChannelDistribution::SOLO_SEND in its call, and
+     the reading nodes use ChannelDistribution::NO_OPINION.
+
+<li> There is one main reading node, possibly additional reading
+     nodes, and there are possibly multiple sending nodes. In this
+     case the main reading node (one which must always be present for the
+     simulation to function), uses ChannelDistribution::JOIN_MASTER in
+     the call, and all other nodes, also the sending nodes, use
+     ChannelDistribution::NO_OPINION.
+
+</ul>
+
+In the "old" DUECA's, with a JOIN_MASTER type event channel, and in
+case DUECA ran over different nodes, and thus each of these nodes had
+a local channel end, all event data would first be sent to the channel
+end -- in one of the nodes -- where the token with the JOIN_MASTER is
+located, and then the data would fan out again and be readable in the
+other channel ends.
+
+To read data from this channel, or write data to the channel,
+EventReader and EventWriter objects are used.
+\code
+  { // the actual writing action takes place at the end of this scope
+    EventWriter<mydata> w(w_event, ts);
+    // assign the data
+    w.data() = something;
+    // or
+    w.data().somemember = somethingelse;
+  }
+
+  { // in a block, so data access is released at the end of this scope
+    EventReader<mydata> r(r_event, ts);
+    // and for example print it
+    std::cout << r.data() << std::endl;
+  }
+\endcode
+
+Now we discuss the modern equivalent of this channel type. With the
+new UnifiedChannel channels, the old event channel functionality can
+be obtained by creating normal read and write tokens:
+
+\code
+  ChannelReadToken         r_event;
+  ChannelWriteToken        w_event;
+\endcode
+
+Note that the class template is not needed here. All distinction is now made
+in the constructor calls:
+
+\code
+MyModule::MyModule() :
+  // ... construction of other parts of the module
+  r_event(getId(),                                // id of owner
+          NameSet("mydata://myentity/channel"),   // name of channel
+          "mydata",                               // name of data class
+          entry_any,                              // read any entry
+          Channel::Events,                        // expect events
+          Channel::OnlyOneEntry,                  // expect only one entry
+          Channel::ReadAllData,                   // do step-wise read
+          0.0,                                    // span to keep data 
+	                                          // irrelevant when stepwise
+          NULL),                                  // callback when valid
+
+  w_event(getId(),                                // id of owner
+          NameSet("mydata://myentity/channel"),   // name of channel
+          "mydata",                               // name of data class
+          "an optional label",                    // label for the entry
+          Channel::Events,                        // write events
+          Channel::OnlyOneEntry,                  // exclude others
+          Channel::OnlyFullPacking,               // detail on transport
+          Channel::Regular,                       // transport class
+          NULL),                                  // callback when valid
+  // ... further objects, and constructor body code
+\endcode
+
+In this case, one can choose between writing the channel as event or
+as stream data. The choice for reading, either time-based, or starting
+with the oldest data and working towards the present, is independent
+from that with the new channels, while the old event channel had this
+linked. The above case assumes only one writing end, and the reading
+token is only valid when that one writing end has been found. By
+exploring other options for EntryArity, this can be adjusted. The
+reading end reads all available data sequentially, and when data has
+to be transported between nodes, the full data point is packed -- the
+alternative would be to pack the difference between the present and
+previous point.
+
+Equivalence for the JOIN_MASTER variant is implemented by specifying
+Channel::OneOrMoreEntries at the writing end, and
+Channel::ZeroOrMoreEntries at the reading ends. ZeroOrMoreEntries also
+implies that the channel is considered valid when created, no data
+needs to be written yet. With the EntryArity::OnlyOneEntry or
+EntryArity::OneOrMoreEntries, a token does not become valid until
+writing entries are present.
+
+To read the event data, the DataReader class is used. Only now a
+template for the data type needs to be included. A second template
+determines the timing aspects of the reading access. The easiest
+option for event-type reading is to use the VirtualJoin template here.
+
+\code
+  {
+    DataReader<mydata, VirtualJoin> r(r_event, ts);
+    // and for example print it
+    std::cout << r.data() << std::endl;
+  }
+\endcode
+
+VirtualJoin tries to access all entries in the channel in turn, until
+one has data that complies with the requested time (in this case,
+smaller or equal to the ts validity start). By omitting the time, in
+principle infinity is assumed, and any data present is returned:
+
+\code
+  {
+    DataReader<mydata, VirtualJoin> r(r_event);
+    // and for example print it
+    std::cout << r.data() << std::endl;
+  }
+\endcode
+
+For a case where you know only one entry is being read, you can use
+MatchIntervalStartOrEarlier instead of VirtualJoin.
+
+Writing is similar to the previous case:
+
+\code
+  { // in a block, actual writing takes place at the end of the scope
+    DataWriter<mydata> w(w_event, ts);
+    // assign the data
+    w.data() = something;
+    // or
+    w.data().somemember = somethingelse;
+  }
+\endcode
+
+\section dueca2_streamchannel Stream channels
+
+Note that we are again discussing how code *used to be*, and that for
+new code I recommend you to use the new channel interfaces.
+
+Read access to an stream channel is obtained by creating an
+StreamChannelReadToken, and write access by creating an
+StreamChannelWriteToken. These tokens need the data class that is to be
+written or read as template. As an example, in the class header might
+will see:
+
+\code
+StreamChannelReadToken<mydata>           r_stream;
+
+StreamChannelWriteToken<mydata>          w_stream;
+\endcode
+
+Subsequently, the constructors for the tokens are called when your
+module is constructed.
+
+\code
+MyModule::MyModule() :
+  // ... construction of other parts of the module
+  r_stream(getId(), NameSet(entity, "MyData", ""),
+          11, Regular, NULL),
+  w_stream(getId(), NameSet(entity, "MyData", ""),
+           11, Regular, NULL),
+  // ... further objects, and constructor body code
+\endcode
+
+Stream channels always have one sending node, and multiple reading
+nodes. In terms of the new DUECA 2 channels, there is thus only one
+"entry" in the channel. The "depth" of a channel is an important
+property, in the above case it is 11, which means that there is an
+11-data-point history in the channel. The old implementation was
+imperfect, in that the first access token that effectively created the
+channel determines the depth of the channel. If you use the
+compatibility interface, this old behaviour, with the exception of the
+imperfection, is replicated. New channel interfaces typically specify
+the time span you need.
+
+To read data from this channel, or write data to the channel,
+StreamReader and StreamWriter objects are used.
+\code
+  { // the actual writing action takes place at the end of this scope
+    StreamWriter<mydata> w(w_stream, ts);
+    // assign the data
+    w.data() = something;
+    // or
+    w.data().somemember = somethingelse;
+  }
+
+  { // in a block, so data access is released at the end of this scope
+    StreamReader<mydata> r(r_stream, ts);
+    // and for example print it
+    std::cout << r.data() << std::endl;
+  }
+\endcode
+
+If you are not sure about the age of the data in the channel, it is
+also possible to use a variant on the StreamReader which reads out the
+latest data:
+
+\code
+  { // No time given, gets the latest data
+    StreamReaderLatest<mydata> r(r_stream);
+    // and for example print it
+    std::cout << r.data() << std::endl;
+  }
+\endcode
+
+Now we discuss the modern equivalent of this channel type. With the
+new UnifiedChannel channels, the old stream channel functionality can
+again be obtained by creating normal read and write tokens:
+
+\code
+  ChannelReadToken         r_stream;
+  ChannelWriteToken        w_stream;
+\endcode
+
+Note that the class template is not needed here. All distinction is now made
+in the constructor calls:
+
+\code
+MyModule::MyModule() :
+  // ... construction of other parts of the module
+  r_stream(getId(),                               // id of owner
+          NameSet("mydata://myentity/channel"),   // name of channel
+          "mydata",                               // name of data class
+          0,                                      // read entry number 0
+          Channel::Continuous,                    // expect stream data
+          Channel::OnlyOneEntry,                  // empty channel not valid
+          Channel::JumpToMatchTime,               // match data to time arg
+          0.11,                                   // keep 0.11 s of data (min)
+          NULL),                                  // callback when valid
+
+  w_stream(getId(),                               // id of owner
+          NameSet("mydata://myentity/channel"),   // name of channel
+          "mydata",                               // name of data class
+          "an optional label",                    // label for the entry
+          Channel::Continuous,                    // write streams
+          Channel::OnlyOneEntry,                  // exclude others
+          Channel::OnlyFullPacking,               // detail on transport
+          Channel::Regular,                       // transport class
+          NULL),                                  // callback when valid
+  // ... further objects, and constructor body code
+\endcode
+
+With Channel::Continuous, the data is written as stream data. Data
+time specifications should be contiguous, with the exception of gaps
+in the time where the simulation has stopped. The choice for reading,
+either time-based, or starting with the oldest data and working
+towards the present, is again independent for the new channels, while
+the old stream channel had this linked, reading was always
+time-based. The above case assumes only one writing end, and the
+reading token is only valid when that one writing end has been
+found.
+
+There is one important caveat in the equivalence between old and new
+channels, and that is the specification of channel depth. For the new
+channels, the specification is a floating point number, indicating the
+duration in seconds that data has to be kept. The old channels used a
+number of copies. The conversion implemented in the
+StreamChannelReadToken class now uses the base rate of the clock in
+your DUECA node, and converting the number of copies to a time span,
+however if you do not write your channel at the base clock update
+rate, there will be a mismatch here. The implementation on the other
+hand is more "correct". The new depth is maintained per channel end,
+and is equal to the largest value supplied by the reading tokens. This
+same depth used to be relevant also for the packing of data that has
+to be sent to another dueca node (and thus a source of lost data in
+case packing was delayed), however that has been de-coupled now.
+
+To read the stream data, the DataReader class is used. A
+template for the data type needs to be included. The second template
+determines the timing aspects of the reading access. The equivalent
+option for old stream-type reading is the MatchIntervalStart template.
+
+\code
+  {
+    DataReader<mydata, MatchIntervalStart> r(r_stream, ts);
+    // and for example print it
+    std::cout << r.data() << std::endl;
+  }
+\endcode
+
+With MatchIntervalStart, the DataReader looks at the time associated
+with the datapoints in the channel, and returns the data point that
+was valid for the start of the interval ts. If no data has been
+written for that time, the DataReader exits with a NoDataAvailable
+exception.
+
+For reading the latest data, the MatchIntervalStartOrEarlier is
+used. When matching data is found, that data is returned, otherwise
+the latest datapoint (thus earlier than the ts) is returned. Again, by
+omitting the time specification, eternity is assumed, and the very
+latest time point is returned.
+
+\code
+  {
+    DataReader<mydata, MatchIntervalStartOrEarlier> r(r_stream);
+    // and for example print it
+    std::cout << r.data() << std::endl;
+  }
+\endcode
+
+Writing is similar to the previous case, and to writing event
+data. Note that the ts time specification should match up now, writing
+with ts = TimeSpec(1000, 1010) indicates a span of data validity, and
+the next write should be TimeSpec(1010,1020):
+
+\code
+  { // in a block, actual writing takes place at the end of the scope
+    DataWriter<mydata> w(w_stream, ts);
+    // assign the data
+    w.data() = something;
+    // or
+    w.data().somemember = somethingelse;
+  }
+\endcode
+
+\section dueca2_multistreamchannel MultiStream channels
+
+The MultiStream tokens were also templated, and thus looked in the class
+definition like:
+
+@code
+  MultiStreamReadToken<multidata>        r_multi;
+  MultiStreamWriteToken<multidata>       w_multi;
+@endcode
+
+The code in the constructor follows a familiar pattern, with some variations:
+
+@code
+  r_multi(getId(),                       // the owner
+          NameSet(entity, "multidata", ""), // name of the channel
+          100,                           // an unsigned value, indicating
+                                         // the depth of the channel, now in
+                                         // tick increments
+          Channel::Regular,              // transport class for updates
+          Channel::Bulk,                 // transport class initial value
+          NULL),                         // callback when valid
+  w_multi(getId(),                       // owner
+          NameSet(entity, "multidata", ""), // name of the channel
+          100,                           // depth of the channel
+          Channel::Regular,              // transport class for updates
+          Channel::Bulk,                 // transport class initial value
+          NULL),                         // callback when valid
+@endcode
+
+Looking back, there is quite some ambiguity in the interface. What
+happens if the depth and the transport classes do not match, for
+example?
+
+Each write token wrote only one entry in the channel. The read tokens are used to traverse over all the entries in the channel. The old code for writing:
+
+@code
+  {
+    MultiStreamWriter<multidata> w(w_multi, ts);
+    w.data() = something; // etc. works the same as the two other writers
+    // typically in a scope, because the actual atomic write is at deleting
+    // the writer
+  }
+@endcode
+
+Reading is by selecting different entries in the channel:
+
+@code
+  // spool to the first entry in the channel
+  r_multi.selectFirstEntry();
+
+  // read all the entries
+  while (r_multi.haveEntry()) {
+    {
+      // use a MultiStreamReader to access this entry in the channel
+      MultiStreamReader<multidata> r(r_multi, ts);
+      // read, with r.data()
+
+      // close off this block, so reader is destroyed and read
+      // access is released. If you don't do that, the
+      // selectNextEntry call will throw an AccessNotReleased
+      // exception!
+    }
+    // step to the next entry in the channel
+    r_multi.selectNextEntry();
+  }
+@endcode
+
+The new unified channel can implement this, and has more useful
+tricks, such as a dueca::ChannelWatcher, which allows you to get
+informed when entries are added to or deleted from a channel, so that
+you can open read tokens specifically to these entries, and retain
+information on them.
+
+Again, the same new read and write tokens can be used. Specific tricks to watch out for are:
+
+* Allow zero or multiple entries, with dueca::Channel::ZeroOrMoreEntries .
+
+* Each write token will implement an entry in the channel.
+
+* If you want to read multiple entries with one token, use entry_any
+  for entry id.
+
+* You can use the dueca::ChannelReadToken::selectFirstEntry(),
+  dueca::ChannelReadToken::selectNextEntry() and
+  dueca::ChannelReadToken::haveEntry() calls on the read token.
+
+* It is better to use the dueca::ChannelWatcher interface, which gives
+  you information on created entries. Then use the given entry id to
+  select that entry for reading.
+
+Note that the new channels allow different data classes per entry! So
+not all entries need to be having the same data type. In addition, the
+system considers class inheritance. You can open and access read
+tokens with a parent class of the data in an entry.
+
+*/

@@ -1,0 +1,26 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemoteConfig.dco
+        made by         : René van Paassen
+        date            : 210912
+        description     : Configuration for simple PupilRemote use")
+
+(Type std::string "#include <string>")
+
+;; Command mode for the module
+(Enum Command uint8_t
+      ;; Start a calibration
+      StartCalibration
+      ;; Stop a calibration
+      StopCalibration
+      ;; Accept a new recording template
+      RecordingTemplate)
+
+;; Configuration command for PupilRemote
+(Object PupilRemoteConfig
+        (Option hdf5)
+        ;; Command mode
+        (Command command (Default RecordingTemplate))
+        ;; new recording name
+        (std::string fntemplate)
+        )

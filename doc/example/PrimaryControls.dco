@@ -1,0 +1,72 @@
+;; -*-scheme-*-
+(Header "
+        item            : PrimaryControls.dco
+        made by         : Rene' van Paassen
+        date            : long ago...
+        description     : Typical set of variables to describe input from 
+                          primary controls (stick or column, rudder pedals)
+        copyright       : (c) 2018-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; float as the basic type for data
+(Type float)
+;; we add a test value, used for start-to-end time delay tests
+(Type int32_t)
+
+;; Aircraft-oriented set of control inputs
+;;
+;; The input variables (ux, uy, etc.) may be scaled by the module
+;; doing the input, such as joystick control or control loading. The
+;; displacement, velocity and force/torque values should correspond to
+;; the inputs measured on the actual device. Note that these will
+;; typically may not be correct for joysticks that don't have force
+;; measurement.
+(Object PrimaryControls
+	(Option hdf5)
+ 	;; input around x-axis; roll, left positive
+  	(float ux (Default 0.0f))
+	;; input about y axis; pitch, forward positive
+	(float uy (Default 0.0f))
+	;; input about z axis; yaw (pedals, twist..), left positive
+	(float uz (Default 0.0f))
+	;; for helicopters, collective input
+	(float uc (Default 0.0f))
+
+	;; displacement of the control about x axis
+	(float Sx (Default 0.0f))
+	;; displacement of the control about y axis
+	(float Sy (Default 0.0f))
+	;; displacement of the control about z axis
+	(float Sz (Default 0.0f))
+	;; displacement of the control about collective axis
+	(float Sc (Default 0.0f))
+
+	;; velocity of the control about x axis
+	(float dSx (Default 0.0f))
+	;; velocity of the control about y axis
+	(float dSy (Default 0.0f))
+	;; velocity of the control about z axis
+	(float dSz (Default 0.0f))
+	;; velocity of the control about collective axis
+	(float dSc (Default 0.0f))
+
+	;; moment of the control about x axis
+	(float Mx (Default 0.0f))
+	;; moment of the control about y axis
+	(float My (Default 0.0f))
+	;; moment of the control about z axis
+	(float Mz (Default 0.0f))
+	;; moment of the control about collective axis
+	(float Mc (Default 0.0f))
+
+	;; input left brake
+	(float fbrake_left (Default 0.0f))
+	;; input right brake
+	(float fbrake_right (Default 0.0f))
+
+	;; test input, used for end-to-end time delay measurement; it
+	;; should be passed through model update and visual
+	;; generation, and may there generate a visual indication
+	(int32_t test (Default 0))
+	)

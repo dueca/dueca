@@ -1,0 +1,20 @@
+;; -*-scheme-*-
+(Header "
+        original item   : ConfigFileRequest.dco
+        made by         : Rene' van Paassen
+        date            : 200617
+        description     : Simple text-based object
+        copyright       : (c) 2020-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type std::string "#include <string>")
+
+;; simply transmit a single string
+(Event ConfigFileRequest
+       (Option hdf5)
+       ;; name/label of the requested configuration
+       (std::string name)
+       ;; data, if non-zero, indicates new config file
+       (std::string config)
+       )

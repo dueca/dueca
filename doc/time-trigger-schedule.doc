@@ -1,0 +1,214 @@
+/** @page time DUECA time, triggering and scheduling
+
+This page provides a more in-depth and integral overview of the
+concept of time in DUECA. (it is still incomplete)
+
+\section time_tagging Time tagging data
+
+In DUECA, all data that is sent over DUECA channels is
+time-tagged. When specifying an entry in a channel with a
+ChannelWriteToken, the module that creates the entry defines how the
+data's time should be interpreted.
+
+<ul>
+
+<li> When using Channel::Continuous in the creation of the token, the
+data is a representation of a continously changing value. Of course,
+in a digital computer simulation, data has to be sampled, and truly
+continous data cannot be represented. In most cases, the sampled data
+is assumed constant over a specific time interval. This interval is
+specified by the time validity for the data is supplied with the time
+specification used when creating a DataWriter on the token. As an
+example:
+
+\code
+DataWriter<MyData> w(my_token, ts);
+\endcode
+
+The interval ts must start at some integer simulation tick t1, and end
+at a later simulation tick t2. Its validity span is defined as @f$[t1,
+t2>@f$, that is, the time t2 is not included in the
+validity. Typically, the next time the data is written, a new interval
+is used that connects to the previous interval, so the data then
+starts at t2, and ends at some later time t3. In most cases the
+duration of intervals are all the same, however DUECA can perfectly
+handle data in channels that are written with unequal interval
+durations. The intervals for the data do have to connect, however, if
+not, DUECA will complain about jumps in time. The only time data does
+not connect is when modules stop running and later resume
+running. This type of data with connecting intervals is called
+"Stream" data.
+
+With stream data, if the channel is written (i.e., we are not considering
+a gap in time where the simulation does not run), there is just a
+single value defined for each time point, intervals cannot overlap.
+
+A second way of defining data is by using the Channel::Event parameter
+in the ChannelWriteToken construction. This type of data describes
+discrete events in time, with the events not having a duration, their
+timing is only defined by a single discrete time stamp. There can also
+be multiple events written in a channel for the same time stamp. A
+keypress for example can be regarded as event data.
+
+\section time_activity Time validity of activities
+
+To get a simulation in DUECA, you should create an Activity object and
+arrange for it to be scheduled by DUECA. The most common type of
+Activity object is the CallbackActivity, which is supplied with a
+callback object for calling one of your module's methods. These
+methods are always called with a time specification as one of the
+parameters. The time specification in this case determines the model
+time (logical time) for which the activity is called. In most
+simulations and cases, this model time is a time span, with the same
+semantics as for specifying the time for channel stream data.
+
+The time specification passed to your method can be used to access the
+logically consistent time set of data matching that activation.
+
+\section time_wallclock Wall clock time
+
+If you want to create a real-time simulation, "wall clock time" is the
+time that relates to the real-time of the outside world. In most
+cases, your simulation must keep pace with that real elapsed time. In
+DUECA, you can specify that activities are connected to the wall clock
+time by creating a clock object for them, using either an
+dueca::AperiodicAlarm, which gives off a single "shot" of activation, or a
+dueca::PeriodicAlarm, which gives off regular time spans.
+
+The best way of connecting a simulation to the wall clock is by
+letting the activities that interact with the world's inputs (control
+devices, switches, etc. ) be triggered on a PeriodicAlarm. In
+addition, some activities that interact with the output hardware
+should be triggered on a PeriodicAlarm.
+
+Connecting the input activities to a PeriodicAlarm ensures that the
+data is generated at the specified time and interval. Since DUECA
+attempts to (and usually can) synchronize the different computer
+nodes, this ensures that input devices are sampled almost
+simultaneously.
+
+The interconnecting calculation steps (model updates, control) <em>
+should be triggered on the availability of the data</em> from the
+input/sampling activities. A programmer cannot and need not know in
+advance in which computer these activities are executed.
+
+@section time_example Example case for further discussion
+
+To make this explanation a little more concrete, assume a car
+simulation on four computers, the foot pedals are connected to
+computer F, the steering wheel input to computer W, the motion system
+to computer M, and the visuals to computer V.
+
+In total we might have seven modules, a PedalsIO module for the pedals,
+a WheelIO module for the steering wheel, a CarSim module for the
+simulation, an OutsideVisual module for the visual, a MotionFilter
+module to filter the motion, a MotionIO module to apply the motion
+to the hardware, and a Logger module to record the experiment.
+
+Of these modules, the PedalsIO and WheelIO need to be time-triggered,
+and use a PeriodicAlarm.
+
+Output to a motion system is a critical activity, when no data is
+available, the motion system should be carefully handled.  A case in
+which motion data arrives too late might drive the system into its
+limits, if the harware continues with a given velocity set-point, or
+abruptly stop with high accelerations, if the hardware tries to hold a
+target position. Especially when developing, it is all too easy to
+create a bug that would delay the delivery of data somewhere in the
+chain between inputs and motion. MotionIO should thus <em> also </em>
+trigger on time, check that its data is present, and if not, implement
+a shutdown strategy.
+
+Output to the visual system is somewhat less critical. A simple visual
+generation might simply trigger on the incoming data needed for
+drawing the image, but we will discuss a slightly better
+implementation here.
+
+@section time_triggerandschedule Triggering and scheduling concepts
+
+When your code in DUECA needs to react to "something", either to time
+passing or data becoming available in a channel, a number of things
+have to be done:
+
+<ul>
+
+<li> A callback object, which enables calling of one of your module's
+methods, must be created.
+
+<li> An "Activity" needs to be created. When using dueca-module script
+to create template code for a module, by default a module with one
+activity is created. The activity uses the callback object to know
+which method to call when the activity is scheduled, and a priority
+specification to know in which priority and order to run.
+
+<li> Triggering conditions need to be specified for the
+activity. Triggering can for example be on an AperiodicAlarm or
+PeriodicAlarm, for time-based triggering, or on channel read
+tokens. These all act as triggers, and triggers can also be combined.
+
+<li> The Activity must be switched on, for the triggering to have a
+scheduling effect. Of course, the Activity can also be switched off
+again.
+
+</ul>
+
+You can see triggering as providing a time base for an activity. For
+example, a PeriodicAlarm with its start and period defined by (0, 20)
+provides time spans of @f$[0, 20>@f$, @f$[20, 40>@f$, etc., and they
+are provided at the times when the wall clock passes 0, 20, 40, ....
+
+When the triggering conditions are met, <em>and</em> the activity is
+switched on, the activity will be scheduled.
+
+DUECA runs by default multi-threaded, and each thread can have a
+(configurable) operating system thread priority. Each thread is
+"handled" by an ActivityManager.
+
+Scheduling means that the Activity is put on the to-do list of one of
+the ActivityManagers, together with the time or time span calculated
+by the triggering process. Which ActivityManager that is, is determined
+by the PrioritySpec given when the Activity was created. The priority
+object in the PrioritySpec indicates the ActivityManager. Here 0 is
+the lowest-priority ActivityManager (one that is not running
+real-time), and the highest selectable priority depends on the
+configuration in dueca.cnf.
+
+A second element in the PrioritySpec is the order. The order
+determines the importance of the Activity with respect to other
+activities in the same priority. The higher the order, the more
+important the Activity, and the earlier it will be scheduled. However,
+the start time of the time specification for which the schedule is
+calculated is also considered. To move ahead of an other Activity that
+is e.g. 10 tick values earlier, the order of the Priority spec should
+be 10*100 = 1000 higher than the order of the other Activity.
+
+Once scheduled, the activities in an ActivityManager's to-do list will
+be invoked one-by-one, as fast as possible.
+
+@section time_combining Combining trigger values
+
+One of the most notable features of DUECA is that it implements logic
+to combine triggering. Most commonly, "and" logic is required. Imagine
+a module waiting on the data availability on two channels, you can simply specify that the triggering is a combination of these two:
+
+@code
+my_activity.setTrigger(channel_a && channel_b);
+@endcode
+
+A combined dueca::TriggerAnd object is created under the hood here (by
+the && operator); you can also choose to explicitly create this
+one. It will look at time intervals produced on channel_a, and those
+on channel_b, and schedule the activity when these overlap, as in the
+example given in the figure below.
+
+TODO
+
+If the data on one of the channels is delayed, triggering of the
+activity will also be held up, but the information on trigger
+intervals on both channels is still remembered and observed.
+
+For completeness, "or" combination of triggering is also possible,
+however, it is seldom found to be of use, and I will not further
+discuss it here.
+
+*/

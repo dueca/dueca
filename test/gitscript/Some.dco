@@ -1,0 +1,5 @@
+(Type uint32_t "#include <cinttypes>")
+
+(Stream Some
+	(Option hdf5)
+	(uint32_t count))

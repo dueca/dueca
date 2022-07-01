@@ -1,0 +1,35 @@
+;; Some basic types we use
+(Type double )
+(Type int32 )
+(Type float )
+
+;; this is the object that describes the spaceplane control input
+(EventAndStream PrimaryControls
+        ;; measured roll position of the side stick
+        (double stick_roll )
+        ;; measured pitch position from the side stick
+        (double stick_pitch )
+        ;; measured roll moment on the stick
+        (double roll_moment)
+        ;; measured pitch moment on the stick
+        (double pitch_moment)
+        ;; roll rate of the stick
+        (double roll_rate)
+        ;; pitch rate of the stick
+        (double pitch_rate))
+
+;; and the spaceplane output is simply a large vector
+(EventAndStream SpacePlaneY
+        ;; elements of the output vector
+        (double Y 29 ))
+
+;; for selection of the display type, with tunnel or not
+(Event DisplaySelect
+        (int type ))
+
+;; define Lisp mode for this file, for emacs
+;; Local Variables: **
+;; mode: lisp **
+;; fill-column: 75 **
+;; comment-column: 0 **
+;; End:

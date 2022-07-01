@@ -1,0 +1,31 @@
+;; -*-scheme-*-
+(Header "
+        original item   : Object9.dco
+        made by         : Rene' van Paassen
+        date            : 20210907
+        description     : Test valued/typed enum and enum class
+        copyright       : (c) 2020-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; A first, simple C-style enum type
+(Enum Num1 uint16_t
+      ;; comment describing One
+      One
+      Two
+      Three)
+
+;; A second, C++ style enum type
+(ClassEnum Num2 uint32_t
+	   ;; first member
+	   One = 0x01
+	   ;; second
+	   Two = 2 )
+
+;; Test object
+(Object Object9
+	;; first member
+	(Num1 num1 (Default One))
+	;; second member
+	(Num2 num2 (Default Num2::Two))
+	)

@@ -1,0 +1,41 @@
+/* ------------------------------------------------------------------   */
+/*      item            : dueca-version.h.in
+        made by         : Rene' van Paassen
+        date            : 20010308
+        category        : header file (in)
+        description     : Defines the current version
+        documentation   : in DUECA_API, but directly from configure
+        copyright       : (c) 2001 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+/** \file dueca-version.h
+
+    This file defines the current DUECA version and macros for version
+    testing
+*/
+
+#ifndef dueca_version_h
+#define dueca_version_h
+
+/** Numerical single version number */
+#define DUECA_VERSION_NUM \
+  @dueca_VERSION_MAJOR@*1000000 +  \
+  @dueca_VERSION_MINOR@*1000 +     \
+  @dueca_VERSION_PATCH@
+
+/** DUECA's major version number */
+#define DUECA_VERMAJOR @dueca_VERSION_MAJOR@
+/** DUECA's minor version number */
+#define DUECA_VERMINOR @dueca_VERSION_MINOR@
+/** DUECA's revision number */
+#define DUECA_REVISION @dueca_VERSION_PATCH@
+/** Version as a complete string */
+#define DUECA_VERSIONSTRING "@dueca_VERSION@"
+
+/** Calculate the numerical version */
+#define DUECA_VERSION(MAJOR,MINOR,REVISION) \
+  (MAJOR*1000000+MINOR*1000+REVISION)
+
+#endif

@@ -1,0 +1,31 @@
+;; -*-scheme-*-
+(Header "
+        item            : ChannelCountResult.dco
+        made by         : Rene' van Paassen
+        date            : 180509
+        description     : Return a count of channel entry writes/reads
+        copyright       : (c) 2018-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Creation id is unsigned 32 bit int
+(Type uint32_t "#include <inttypes.h>")
+
+(IterableType entries_list
+"#include <EntryCountResult.hxx>
+#include <varvector.hxx>
+typedef dueca::varvector<dueca::EntryCountResult> entries_list;")
+
+(Type GlobalId "#include \"GlobalId.hxx\"")
+
+;; Useful information about channel readers
+(Event ChannelCountResult
+
+       ;; channel number
+       (GlobalId channelid)
+
+       ;; creation id
+       (uint32_t countid)
+
+       (entries_list entries)
+       )

@@ -1,0 +1,23 @@
+/* ------------------------------------------------------------------   */
+/*      item            : nodes.h.in
+        made by         : Rene' van Paassen
+        date            : ???
+        category        : header file
+        description     : limit number of nodes dueca
+        changes         : ??????? first version
+        language        : C++
+        copyright       : (c) 1999 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+#define MAX_NODES @MAX_NODES@
+#define MAX_MANAGERS @MAX_MANAGERS@
+
+#if MAX_NODES > 254
+#error "Current DUECA has a limit of 254 nodes"
+#endif
+
+#if MAX_MANAGERS > 64
+#warning "Do you really need that many activity managers?"
+#endif

@@ -1,0 +1,98 @@
+// -*-c++-*-
+
+/** \page websock Net interaction with WebSockets
+
+How to use websockets for communication with
+external programs.
+
+\section websock_websocket WebSocket
+
+To interact with web technologies, there is a WebSockets server for
+DUECA, dueca::websock::WebSocketsServer. This server can perform
+several functions:
+
+  - Make specified channels available on WebSocket URL endpoints.
+
+  - Offer channel information on WebSocket URL endpoints. This is
+    particularly useful when dealing with channels with a dynamic
+    number of entries.
+
+  - Create writing entries in a channel after connection by a
+    WebSocket URL endpoint.
+
+The server uses generic DCO introspection and reading/writing to
+convert the content of DCO objects in the channels to JSON and
+vice-versa.
+
+The module presents a single "^/configuration" URL, which can be
+opened to receive a JSON-encoded message listing the module's
+effective configuration, i.e. what types of endpoint are configured,
+and how these can be accessed. This message also contains a parameter
+"granule", giving DUECA's value for a single time increment. This can
+be used to convert tick values received later into time values.
+
+Configuration of the module, information returned on the configuration
+message and the URL endpoints are all aligned. For example, the "info"
+configuration parameter for the module is used to define which
+channels need to be monitored for channel information, i.e., created
+or removed entries. The "info" entry in the configuration response
+message lists all endpoints and channels for which entry monitoring is
+available. With that information, a user can connect to the
+"^/info/<endpoint>" url for receiving information on the channel's
+entries.
+
+<table>
+<caption id="websock_config">Websock module config</caption>
+<tr><th>Config</th><th>Endpoint</th><th>Explanation</th></tr>
+
+<tr> <td>info</td><td>^/info/&lt;endpoint&gt;</td>
+
+<td>Set up a URL for receiving information on configured entries in a
+channel. Initial information at connection is sent immediately, later
+changes are pushed by the DUECA application.</td></tr>
+
+<tr> <td>current</td><td>^/current/&lt;endpoint&gt;?entry=&lt;id&gt;</td>
+
+<td>Set up a URL for reading the latest (current) data from a single
+entry in a channel. Data is only returned in response to a write on the
+channel. </td></tr>
+
+<tr> <td>read</td><td>^/read/&lt;endpoint&gt;?entry=&lt;id&gt;</td>
+
+<td>Set up a URL for reading all messages from a single
+entry in a channel. Data is pushed by the DUECA application.</td></tr>
+
+<tr> <td>write</td><td>^/write/&lt;endpoint&gt;</td>
+
+<td>Set up a URL for writing to a DUECA channel. Timing may be supplied or
+automatically added by DUECA on the basis of current time.</td></tr>
+
+<tr> <td>write-preset</td><td>^/write/&lt;endpoint&gt;</td>
+
+<td>A variant of write. The only difference is that the channel entry
+is created immediately by the module, making it present at the start
+of DUECA. There may be only one websocket connection writing this
+entry; after a disconnect, another connection may be created to
+substitute the original connection. Since this is a variant of write,
+the presented URL and the information are as for the "write"
+entry.</td></tr>
+
+<tr> <td>write-and-read</td><td>^/write-and-read/&lt;endpoint&gt;</td>
+
+<td>Connect a pair of channels to a websocket endpoint. A module
+servicing this pair of channels must create a write entry (to be read
+on the websocket), in response to each entry created by the websocket
+module upon connect.</td></tr>
+</table>
+
+Note that depending on the endpoint type, initial JSON messages are
+used to set-up and define the communication.
+
+\section websock_json JSON
+
+The server uses JavaScript Object Notation (JSON) to communicate
+channel data. The JSON channel reading and writing is also available
+to client code with the functions dueca::JSONtoDCO and
+dueca::DCOtoJSONcompact .
+
+*/

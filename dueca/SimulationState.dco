@@ -1,0 +1,67 @@
+;; -*-scheme-*-
+(Header "
+        item            : SimulationState.dco
+        made by         : Rene' van Paassen
+        date            : 130928
+        category        : comm object specification
+        description     : Basic named object or channel
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+        language        : C++
+          documentation   : DUECA_API")
+
+(Type dummy)
+
+(Enum
+ Type uint8_t
+
+ ;; A state, shared between the SimulationModule and
+ ;; HardwareModule. The simulation is poised to start.
+ HoldCurrent
+
+ ;; In this state, the simulation is running.
+ Advance
+
+ ;; In this state, the simulation is played again with recorded
+ ;; input. Most modules can simply run their Advance code for this
+ ;; @todo The replay functionality has not yet been implemented.
+ Replay
+
+ ;; A state, exclusive for HardwareModule, in which the hardware is in
+ ;; the safe position, but not error code.
+ Inactive
+
+ ;; Transition from inactive to HoldCurrent, for example lifting the
+ ;; simulator cab to neutral position.
+ Inactive_HoldCurrent
+
+ ;; A transition state during which calibration is carried out. After
+ ;; calibration the state transitions to HoldCurrent.
+ Calibrate_HoldCurrent
+
+ ;; A transition state from Advance, participation in the simulation,
+ ;; back to HoldCurrent. Transitional State.
+ Advance_HoldCurrent
+
+ ;; A transition state from Replay, back to HoldCurrent.
+ Replay_HoldCurrent
+
+ ;; A transition from HoldCurrent to inactive, for example going
+ ;; down.
+ HoldCurrent_Inactive
+
+ ;; Not a state, for initialising combination.
+ Neutral
+
+ ;; Undefined.
+ Undefined
+ )
+
+(Event SimulationState
+       (IncludeFile SimulationStateExtra)
+       ;; the actual state
+       (Type t (Default Undefined))
+)
+
+

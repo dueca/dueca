@@ -1,0 +1,83 @@
+// -*-c++-*-
+/** \page coder Including code from Simulink (new, from Matlab 2015a)
+
+Many computer-aided control engineering packages have an option to
+export a model to C or C++ code. Often this option is used to solve a
+calculation-intensive problem in a quicker way, because the exported
+model does not suffer from the overhead from the package, but this
+code can also be ported to other environments. DUECA currently offers
+the possibility to include Simulink models converted with Simulink Coder.
+
+This description is based on Matlab 2016b, with Simulink
+8.11. Packages with Simulink 8.13 (2017b) and 9.0 (2018b) are also
+available. You need several items for these steps:
+
+<ol>
+
+<li> Of course a current Matlab license with the Simulink Coder
+enabled, to convert your Simulink model to c.
+
+<li> A package with the header files and compiled library code for any
+auxiliary code that your c-converted Simulink model might use. At TU
+Delft we use rpm or deb packages for this, the librtwxxx and
+librtwxxx-devel or librtwxxx-dev.
+
+<li> From librtw8_11 onwards the packages have a settings file,
+/usr/share/librtw8_11/dueca_rtw_config.m, that automatically adjusts
+to the right settings for code generation.
+
+</ol>
+
+To generate code you need the following options:
+
+<ol>
+
+<li> Run dueca_rtw_config on your model. This sets the correct properties for the code generation.
+
+<li> Under "Solver", this selects a fixed step solver. You may specify a new step
+size. Note that the step size must match your DUECA update rate -- if
+needed, you can also tweak the DUECA code to call your Simulink model
+several times per DUECA time step. Open the configuration parameters
+dialog (Simulation -- Model configuration parameters).
+
+<li> Under "Code Generation", select ert.tlc as system target is selected, use
+language "C", and check for "Generate code only"
+
+<li> Under "Code Generation -- Comments", select all you want to see
+in your C code
+
+<li> Under "Code Generation -- Interface", make sure that
+"Reusable function" is selected for the packaging, and as well as "Use dynamic memory
+allocation" and "Terminate function required". Keep "Classic call
+interface" and "Single output/update function" unchecked. Don't check
+"MAT-file logging". For the option "Pass root-level IO as:", select
+"Structure reference".
+
+</ol>
+
+\section coder_call Calling the Simulink Coder code
+
+Generate a skeleton for your module by invoking the new-module script
+(use the right rtw version):
+\code
+new-module rtw8_11
+\endcode
+
+For calculation of the model response, you first need to set the input
+vector values. Look in doCalculation for the template code. This
+version of the generated code uses the Simulink Coder generated
+structs of IO, the commented code in the generated file should get you
+going, inspect the generated header file to see the structure of the
+inputs and outputs.
+
+\section coder_link Linking
+
+To link in the proper library, add the Simulink library as a component
+to DUECA, in the DCOMPONENTS variable in the main makefile, --rtw8_11
+or --rtw8_13, --rtw9_0 or --rtw9_2 currently. This library already
+includes compiled code from some common generated files such as
+rt_nonfinite.c, rtGetNaN.c, rtGetInf.c files. These are generated
+automatically, but should not be included in the sources you compile
+with the DUECA module.
+
+*/

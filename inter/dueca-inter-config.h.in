@@ -1,0 +1,20 @@
+/* ------------------------------------------------------------------   */
+/*      item            : dueca-inter-config.h.in
+        made by         : Rene van Paassen
+        date            : 200405
+        category        : header file
+        description     :
+        changes         : 200405 first version
+        language        : C++
+        copyright       : (c) 2020 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+#ifndef dueca_inter_config_h
+#define dueca_inter_config_h
+
+
+#cmakedefine HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP
+
+#endif

@@ -1,0 +1,117 @@
+// -*-c++-*-
+
+/** @page jsondco JSON representation of DCO objects
+
+    JSON is a commonly used data communication format. This chapter
+    describes how DCO objects are converted into JSON.
+
+    @section jsondco_intro Introduction
+
+    A JSON object describes data as label - value pairs. Since the
+    value in such a pair can contain another JSON object, complex
+    nested data structures can be represented. There can be several
+    uses for a JSON representation of a DUECA DCO objects. The
+    simplest is for communication with some external code that does
+    not want to, or is not able to, use the DCO packing/unpacking
+    mechanisms.
+
+    If the structure of the DCO object is known to that code, only
+    packing the data, with variable names as label, is sufficient for
+    communication. This results in a compact mode for coding a DCO
+    object. If the structure of the DCO object is not known, or you
+    want to record the data in a more robust manner, the JSON
+    packaging can mix both class and datatype information from the DCO
+    object, and the values in the DCO object, in an extended mode.
+
+    @section json_compact
+
+    The following logic is used for compact packing of a DCO object in JSON:
+
+    * single-element data is packed with a label equal to the element name
+      and the value equal to the element value. If the value is in itself a
+      DCO object, this results in a nested JSON object. This is also valid
+      for the iterable types.
+
+    * iterable data is packed with a label equal to the element name, and the
+      values as an array.
+
+    * map data, which is iterable data with key values, is packed as
+      an array with JSON objects, which have a "key" and "value"
+      element. Note that this result would be identical for a normal
+      iterable (list, vector), of a DCO object with a key and value
+      member; you need to know the DCO object type to properly unpack
+      the data.
+
+    Here is an (incomplete) example for the DCO object structure:
+
+    @code{.scm}
+    (Type uint32_t)
+    (IterableType map<uint32_t,uint32_t> ...)
+    (IterableType fixvector<uint32_t,2> ...)
+    (Event MyDCO
+     (uint32_t single)
+     (map<uint32_t,uint32_t> themap)
+     (fixvector<uint32_t,4> thevec)
+     )
+    @endcode
+
+    Let's suppose there are three elements in the map. The compact JSON
+    translation would look like:
+
+    @code{.json}
+    {
+      "single" : 123,
+      "themap" : [ { "key" : 1, "value" : 1 },
+                   { "key" : 2, "value" : 2 },
+                   { "key" : 3, "value" : 3 } ],
+      "thevec" : [ 1, 2, 3, 4 ]
+    }
+    @endcode
+
+    @section json_extended Extended mode with class information
+
+    In the extended mode, the JSON object also contains information
+    about the data class.
+
+    The following logic is used for extended packing of a DCO object in JSON:
+
+    * The class name is packed with the label "class"
+
+    * If the class is derived from another dcoclass, the JSON has a label
+      "parent", which contains another extended packing, in this case of
+      the parent and its data.
+
+    * Data are coded in a list of JSON objects denoted by the label
+      members
+
+    * Each member object has the following
+
+      - a class/type name, packed with the label "class"
+
+      - the name of the member, after the label "name"
+
+      - the value or values, packed after the label "value"
+
+    Here is an example of the same object, now coded with extended information
+
+    @code{.json}
+    {
+      "class" : "MyDCO",
+      "members" : [
+        { "class" : "uint32_t",
+          "name" : "single",
+          "value" : 123 },
+        { "class" : "map<uint32_t,uint32_t>",
+          "name" : "themap",
+          "value" : [ { "key" : 1, "value" : 1 },
+                      { "key" : 2, "value" : 2 },
+                      { "key" : 3, "value" : 3 } ] },
+        { "class" : "fixvector<uint32_t,2>"
+          "name" : "thevec",
+          "value" : [ 1, 2, 3, 4 ] }
+        ]
+    }
+    @endcode
+
+    Until now, the extended mode is a plan only, it has not been implemented.
+*/

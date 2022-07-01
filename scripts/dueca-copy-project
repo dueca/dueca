@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+
+# Here we want to copy a project the basic workflow is:
+#               Export the original project
+#               Find the modules.*nodes* and find all the modules from this project
+#               For each platform
+#                       For each module, check if it is copied,
+#                       ifnot copy it, check all the channels required and copy them
+#               Copy all the run-folder things
+#               Delete the original exported project
+#               Compile the project for you
+#
+#       If you find problems or fixes, please let me know! (Dirk -> d.vanbaelen@tudelft.nl)
+# Note that this is produced during C&S - TU Delft working time so TU Delft copyright applies.
+# Although the TU Delft copyright principles prevail, I would like to add the
+# Beerware license (adopted from https://people.freebsd.org/~phk/):
+#
+# ----------------------------------------------------------------------------
+# "THE BEER-WARE LICENSE":
+# As long as you retain this notice you can do whatever you want with this stuff.
+# If we meet some day, and you think this stuff is worth it,
+#                 you can buy me a beer in return.
+# ----------------------------------------------------------------------------
+#
+import subprocess
+import tempfile
+import os
+import sys
+
+def copyProject(source, target):
+
+    cvsroot = os.environ.get('DAPPS_CVSROOT', None)
+
+    # export from the main repository
+    tempdir = tempfile.mkdtemp()
+    print(f"Working in {tempdir}")
+    os.mkdir(f"{tempdir}/bare")
+    os.mkdir(f"{tempdir}/test")
+
+    # create a temporary cvs repository
+    os.chdir(tempdir)
+    os.mkdir("DUECACVS")
+    envcopy = os.environ.copy()
+    envcopy["CVSROOT"] = tempdir + os.sep + "DUECACVS"
+    envcopy["DAPPS_CVSROOT"] = tempdir + os.sep + "DUECACVS"
+    subprocess.run(("cvs", "init"), env=envcopy)
+
+    # set the right ignores there
+    subprocess.run(("cvs", "checkout", "CVSROOT"), env=envcopy)
+    os.chdir("CVSROOT")
+    with open("cvsignore", 'w') as f:
+        f.write("""comm-objects.h
+.depend
+dueca_run.x
+.machine
+dueca.scratch
+dueca.objects
+dueca.channels
+dueca.activities
+*~
+""")
+    subprocess.run("cvs add cvsignore".split(), env=envcopy)
+    subprocess.run("cvs commit -m initial_ignore_file".split(), env=envcopy)
+    subprocess.run("cvs release".split(), env=envcopy)
+
+    # export the base project
+    os.chdir(f"../bare")
+    subprocess.call(("cvs", "-d", cvsroot, "export", "-r", "HEAD", source))
+
+    # rename the folder
+    os.rename(source, target)
+    os.chdir(target)
+
+    for f in os.listdir():
+
+        # process all comm-objects.lst files, replace source references for
+        # target references
+        lstfile = f"{f}/comm-objects.lst"
+        if os.path.isfile(lstfile):
+            os.rename(lstfile, lstfile + '~')
+            with open(lstfile + '~', 'r') as lf:
+                wf = open(lstfile, 'w')
+                for l in lf:
+                    l = l.replace(source + '/', target + '/')
+                    wf.write(l)
+                wf.close()
+
+        # process al modules.* files
+        if f.startswith("modules.") and os.path.isfile(f):
+            os.rename(f, f+ '~')
+            with open(f + '~', 'r') as mf:
+                wf = open(f, 'w')
+                for l in mf:
+                    l = l.replace(source + '/', target + '/')
+                    wf.write(l)
+                wf.close()
+
+    # import the copied project
+    subprocess.run(("cvs", "import", "-m", f"copy from project {source}",
+                    target, "dueca-copy-project", "copy"),
+                    env=envcopy)
+
+    # try it out
+    os.chdir("../../test")
+    envcopy["DAPPS_CVSROOT"] = f"{tempdir}/DUECACVS"
+    envcopy["DAPPS_CVSEXTRAROOT"] = os.environ["DAPPS_CVSROOT"]
+    subprocess.run(("dueca-project", "checkout", target, "HEAD", "solo"),
+                   env=envcopy)
+
+    print(f"Check out the resulting project in {tempdir}/test")
+
+def importProject():
+    location = os.getcwd().split(os.sep)
+    print("location", location)
+    try:
+        idxtest = location.index('test')
+        print("location", idxtest)
+        os.chdir(os.sep.join(location[:idxtest]) + os.sep + 'bare')
+    except ValueError:
+        try:
+            idxbare = location.index('bare')
+            os.chdir(location[:idxbare].join(os.sep) + os.sep + 'bare')
+        except Exception:
+            if 'bare' not in os.listdir() or 'test' not in os.listdir():
+                print("Cannot find the copied project, run from the "
+                      " temporary folder")
+                sys.exit(1)
+
+    try:
+        target = [p for p in os.listdir('.') if p[0] != '.'][0]
+        print(f"Creating copied project {target}")
+        yn = input("Proceeed, (y/n)? ")
+        if yn.lower() not in ('y', 'yes'):
+            print("Aborting")
+            sys.exit(0)
+        os.chdir(target)
+        envcopy = os.environ.copy()
+        envcopy['CVSROOT'] = envcopy['DAPPS_CVSROOT']
+        subprocess.run(("cvs", "import", "-m", f"copied project",
+                        target, "dueca-copy-project", "copy"),
+                       env=envcopy)
+        print("Done")
+    except Exception as e:
+        print(f"No luck in importing your project, {e}")
+
+def usage():
+    print("""dueca-copy-project [SOURCE [DESTINATION]]
+dueca-copy-project -i
+
+    Where
+        SOURCE is the project you want to copy (just the project name)
+        DESTINATION is the name of the new project
+
+    This creates a temporary folder, with the following:
+    - A local CVS repository with the new project. ${tmp}/DUECACVS
+    - The copied and modified project checked out in ${tmp}/test
+    - Intermediate result/working copy in {tmp}/bare
+
+    After a trial run in the temporary folder, you may import the
+    project to the dueca repository with `dueca-copy-project -i`
+""")
+
+
+# The main function which calls all
+if len(sys.argv) == 2 and sys.argv[1] == "-i":
+    importProject()
+    sys.exit(0)
+elif len(sys.argv) == 2 and (sys.argv[1] == '-h' or sys.argv[1] == '--help'):
+    print()
+    usage()
+    sys.exit(0)
+elif len( sys.argv ) > 3:
+    print()
+    usage()
+    sys.exit( 0 )
+elif len( sys.argv ) == 3:
+    source = sys.argv[ 1 ]
+    dest   = sys.argv[ 2 ]
+elif len( sys.argv ) == 2:
+    source = sys.argv[ 1 ]
+    dest   = input( 'Enter the destination project name: ' )
+elif len( sys.argv ) == 1:
+    source = input( 'Enter the source project name: ' )
+    dest   = input( 'Enter the destination project name: ' )
+else:
+    # We should not be here...
+    print()
+    usage()
+    sys.exit( 0 )
+
+print( 'Copying ' + source + ' to ' + dest )
+copyProject( source, dest )
+print('Inspect the results, and use "dueca-copy-project -i" to import into\n'
+      'the default repository')

@@ -1,0 +1,34 @@
+INPUT = ../dueca ../dusime ../extra .. ./mainpage-inspec.doc ./scramnet.txt ./example/StreamReaderExample.cxx ./app_development.doc ./simulink-inspec.doc
+FILE_PATTERNS = *.cxx *.hxx *.c *.h
+# EXTRACT_ALL = yes
+OUTPUT_DIRECTORY = ./inspec
+LATEX_HEADER = "header-inspec.tex"
+PROJECT_NAME = "DUECA/DUSIME"
+EXTRACT_PRIVATE = yes
+EXTRACT_STATIC = yes
+BRIEF_MEMBER_DESC = yes
+HTML_FOOTER = "htfoot-inspec.html"
+EXTRA_PACKAGES = amsmath
+PDF_HYPERLINKS = yes
+INLINE_SOURCES = yes
+GENERATE_RTF = no
+GENERATE_MAN = no
+GENERATE_LATEX = no
+USE_MATHJAX = yes
+IMAGE_PATH = ./images
+ENABLE_PREPROCESSING = yes
+MACRO_EXPANSION = yes
+EXPAND_ONLY_PREDEF = yes
+PREDEFINED = HAVE_CONFIG_H \
+         "SCM_FEATURES_DEF= \
+  /** This is a reference to the single object containing Scheme class \
+      information. */ \
+  static SchemeData&      scheme_sd(); \
+  /** This contains the per-object Scheme information. */ \
+  mutable SchemeObject      scheme_id; \
+  /** This call initialises the accessibility from Scheme. */ \
+  static void schemeInit()"
+EXPAND_AS_DEFINED = SHARED_MEM_COMM DUSIME_MODULES USE_GTK \
+        DUECA_NS DUECA_NS_START DUECA_NS_END
+
+EXAMPLE_PATH = ./example

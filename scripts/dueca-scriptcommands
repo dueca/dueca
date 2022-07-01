@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+# -*-python-*-
+
+#       item            : dueca-scriptcommands
+#       made by         : Rene van Paassen
+#       date            : 040408
+#       category        : python script/program
+#       description     : this script accepts names of source files
+#                         on its command line, and searches through
+#                         these files, trying to find clues of modules
+#                         or script creatable objects, and it will
+#                         print the script instructions for these
+#       changes         : 040407 first version
+#       language        : python
+
+import os
+import re
+import sys
+
+# check that the command line contains file names
+if len(sys.argv) < 2:
+    print('// Please supply source files on command line')
+    sys.exit(1)
+
+# regular expression 1, a module name
+findmod = re.compile(
+    'const\s+char\s*\*\s+const\s+\w+::classname\s*=\s*"([-a-zA-Z0-9_]+)"\s*;')
+
+# regular expression 2, an object accessible from dueca
+findobj = re.compile(
+    'SCM_FEATURES_NOIMPINH\(\s*\w+\s*,\s*\w+\s*,\s*"([-a-zA-Z0-9_]+)"\s*\)\s*;')
+
+
+# loop over all file names supplied, open the files, and look for
+# characteristic patterns
+for filename in sys.argv[1:]:
+    try:
+        print("reading file " + filename)
+
+        # open the file
+        fs = open(filename)
+
+        # search for modules
+        m = findmod.findall(''.join(fs.readlines()))
+
+        # now for objects
+        fs.seek(0)
+        m = m + findobj.findall(''.join(fs.readlines()))
+
+        # figure out the project directory (if applicable)
+        pnames = os.getcwd().split(os.sep)
+        pdir = pnames[-3]
+
+        # is there a dueca_run.x in the project directory?
+        if os.access('./dueca_run.x', os.X_OK):
+            prog = './dueca_run.x'
+        elif os.access('../dueca_run.x', os.X_OK):
+            prog = '../dueca_run.x'
+        else:
+            prog = '../../' + pdir + '/dueca_run.x'
+
+        # and call dueca_run.x to generate script descriptions
+        for i in m:
+            s = os.system('DUECA_SCRIPTINSTRUCTIONS="' + i + \
+                          '" ' + prog + ' >"' + i + '.scm"')
+            if s:
+                print("error trying to create " + i + '.scm')
+            else:
+                print("wrote " + i + '.scm')
+    except IOError:
+        print("Cannot open file " + filename)

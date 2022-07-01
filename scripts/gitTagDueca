@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if ! grep -q 'project[(]dueca' CMakeLists.txt; then
+    echo "Not called in right place"
+    exit 1
+fi
+
+#ECHO=echo
+VERMAJOR=$(grep 'set[(]VERMAJOR' CMakeLists.txt | \
+                   sed -e 's@set(VERMAJOR *\([0-9]*\))@\1@')
+VERMINOR=$(grep 'set[(]VERMINOR' CMakeLists.txt | \
+                   sed -e 's@set(VERMINOR *\([0-9]*\))@\1@')
+REVISION=$(grep 'set[(]REVISION' CMakeLists.txt | \
+                   sed -e 's@set(REVISION *\([0-9]*\))@\1@')
+VERSION=$VERMAJOR.$VERMINOR.$REVISION
+GITTAG=$(echo "${VERSION}")
+
+# root of the repository with source
+GITSERVER=$(git remote -v | grep '^origin.*[(]fetch[)]$' | \
+                sed -e 's/origin[[:space:]]*\([^[:space:]]*\).*$/\1/')
+
+# does the tag exist?
+HAVETAG=$(git tag -l "$GITTAG")
+
+if [ -n "$HAVETAG" ]; then
+   if [ x$1 = x-f ]; then
+      echo "Forcing, first removing ${GITTAG}"
+      git tag -d ${GITTAG}
+      git push origin --delete ${GITTAG}
+   else
+      echo "Tag already exists, you might consider forcing a re-tag with -f"
+      exit 1
+   fi
+fi
+
+echo "Creating tag ${GITTAG}"
+git tag -a "$GITTAG" -m "DUECA version ${VERSION}"
+git push origin "$GITTAG"

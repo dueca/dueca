@@ -1,0 +1,5 @@
+# this file contains a list of all modules needed for your application
+# on a specific machine
+# note that the comm-objects directories should not be listed here
+# example:
+# @AppName@/some-module

@@ -1,0 +1,237 @@
+;; -*-scheme-*-
+;; dueca.cnf: created with DUECA version @dueca-version@
+;; Created on: @date@
+;;; parameter defining cooperation with other nodes
+(define this-node-id @this-node-id@)                ; id of the current node
+(define no-of-nodes @no-of-nodes@)                 ; total number of nodes used
+(define send-order @send-order@)                  ; order/prio in send cycle
+
+;;; parameter defining real-time behaviour
+(define highest-manager @highest-manager@)             ; max priority of activities
+(define run-in-multiple-threads? #t)   ; test with #f with threading problems
+(define rt-sync-mode @rt-sync-mode@)                ; 0=sigwait, obsolete
+                                       ; 1=select, portable, obsolete
+                                       ; 2=nanosleep, good for all modern
+                                       ;   Linux kernels,
+                                       ;   slaves as well as masters
+                                       ; 3=rtc, obsolete
+
+(define graphic-interface "@graphic-interface@")       ; selection of interface
+                                       ; "gtk2", "gtk3", "none" or "glut"
+
+;;; parameters defining "size" of the time. Note that all nodes should have
+;;; the same compatible-increment, and for all nodes
+;;; tick-time-step/tick-base-increment should be the same
+(define tick-base-increment 100)       ; logical increment of time, each tick
+(define tick-compatible-increment 100) ; same, but used at start-up
+(define tick-time-step 0.01)           ; time step for each tick
+(define communication-interval 100)    ; interval for initiating comm
+
+;;; parameter for communication using multicast (old style)
+(define if-address "@if-address@")   ; address of own ip interface
+(define mc-address "224.0.0.1")        ; multicast address
+(define mc-port 7500)                  ; multicast port
+(define master-host "@master-host@")   ; hostname or IP of the comm master
+
+;;; parameters for udp/websocket based communication (new style)
+;;; * on the comm master (send-order 0), adjust the config url to a websocket
+;;;   on the current machine, on a peer (send-order > 0), adjust it to point to
+;;;   the master's websocket
+(define config-url (string-append
+                    "ws://" master-host ":7500/config"))  ; master's endpoint
+;;; * data communication, only used on comm master
+;;;   If using udp, the network address implies the communication type;
+;;;   multicast, broadcast, or else peer-to-peer
+;;;   If using websockets (less real-time, better for crossing firewalls),
+;;;   the websocket base URL must match the configuration socket
+(define data-url (string-append
+                  "udp://" mc-address ":7501"))
+
+;;; common communication parameters
+(define packet-size 4096)              ; size of packets
+(define bulk-max-size (* 128 1024))    ; max size of bulk messages
+(define comm-prio-level 3)             ; priority communication process
+(define unpack-prio-level 2)           ; priority unpacking incoming data
+(define bulk-unpack-prio-level 2)      ; priority unpacking bulk data
+
+;;; choice for the communication. Note that only one of the switches
+;;; below may be true, and that they must be false when only one node is
+;;; used
+(define use-ip-comm? #f)                      ; if true, use old ethernet
+(define use-udp-comm?
+  (and (> no-of-nodes 1) (not use-ip-comm?))) ; use new netmaster/netpeer
+
+
+;;; -------------------------------------------------------------------
+
+;;;  0 - A list to assemble references to dueca objects
+(define (make-extender local-list)
+  (lambda (object)
+    (set! local-list (append local-list (list object)))))
+(define dueca-list (make-extender (list )))
+
+;;;  1 - ObjectManager. This enables named objects to be created,
+;;;      and allows query of the node id and number of nodes
+(dueca-list
+ (make-object-manager 'node-id        this-node-id
+                      'no-of-nodes    no-of-nodes))
+
+;;;  2 - the environment. The environment will create the necessary
+;;;      number of activity managers, so activities may now be
+;;;      scheduled. From this point on it is also possible to create
+;;;      activities
+(dueca-list
+ (make-environment 'multi-thread      run-in-multiple-threads?
+                   'highest-priority  highest-manager
+                   'graphic-interface graphic-interface))
+
+;;; 2c - now priority specs can be made
+(define comm-prio                      ; priority communication process
+  (make-priority-spec 'priority       comm-prio-level
+                      'order          0))
+(define unpack-prio                    ; priority unpacking incoming data
+  (make-priority-spec 'priority       unpack-prio-level
+                      'order          0))
+(define bulk-unpack-prio               ; priority unpacking bulk data
+  (make-priority-spec 'priority       bulk-unpack-prio-level
+                      'order          0))  ; priorityspecs
+
+;;;  3 - Packers, and a packer manager. Packers are passive
+;;;      objects, accessed directly, and provide the configuration
+;;;      data for remote communication. The unpackers use an
+;;;         activity, and therefore must start after the environment
+(define pkt '())
+(define upkt '())
+(define fpkt '())
+(define fupkt '())
+
+(if (or use-ip-comm? use-udp-comm?)
+    (list
+     (set! pkt (make-packer))
+     (set! upkt (make-unpacker       'priority-spec unpack-prio))
+     (set! fpkt (make-fill-packer    'buffer-size   bulk-max-size))
+     (set! fupkt (make-fill-unpacker 'priority-spec bulk-unpack-prio
+                                     'buffer-size   bulk-max-size))
+     )
+  )
+
+;;; the packer manager keeps an inventory of all packers for transport to
+;;; other nodes. The three arguments are a fill (bulk) packer, a normal packer
+;;; and (if possible) a high-priority packer
+;;; currently room for 12 nodes
+(if (> no-of-nodes 1)
+    (dueca-list (make-packer-manager
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)
+                 'add-set (make-packer-set fpkt pkt pkt)))
+  (dueca-list (make-packer-manager)))   ; this one for zero nodes
+
+;;;  4 - The channel manager. From now on channel-using objects can
+;;;      be created.
+(dueca-list (make-channel-manager))
+
+;;;  5 - The ticker. A channel-using object! From now on
+;;;      ticker-using objects can be created
+(dueca-list (make-ticker  'base-increment           tick-base-increment
+                          'compatible-increment     tick-compatible-increment
+                          'time-step                tick-time-step
+                          'priority                 highest-manager
+                          'sync-mode                rt-sync-mode))
+
+;;;  6 - communication hardware accessors. These may use the ticker
+;;;      or channels to trigger activity.
+(if use-ip-comm?
+    (dueca-list
+     (make-ip-multicast-accessor
+      'packer pkt                     ; packer
+      'unpacker upkt                  ; unpacker
+      'output-buffer-size packet-size ; size of send buffers
+      'no-output-buffers 5            ; need a few
+      'input-buffer-size packet-size  ; >= send buffers of peers
+      'no-input-buffers 50            ; NB, with n senders, each
+                                      ; cycle fills n-1 buffers
+      'mc-address mc-address          ; ip address
+      'port mc-port                   ; base port, will use range
+      'if-address if-address          ; of own interface
+      'timeout 50000                      ; usec
+      'n-senders no-of-nodes          ;
+      'send-order send-order          ; # in send sequence.
+      'time-spec
+      (make-time-spec
+       0 communication-interval)      ; timing
+      'priority comm-prio             ; priority comm process
+      'delay-estimator                ; delay estimation
+      (make-transport-delay-estimator
+       'const-delay 50.1              ; initial estimate set-up time
+       'delay-per-byte 1.1            ; initial estimate, [us]
+       's-v 20.1                      ; s.d. observation, 10 us
+       's-const-delay 10.1            ; s.d. fixed delay
+       's-delay-per-byte 0.1          ; s.d. delay per byte
+       'innov-max 100.1               ; cap on innovation step [us]
+       )
+      'fill-packer fpkt               ; packer for bulk data
+      'fill-unpacker fupkt            ; unpacker bulk
+      )
+     )
+  )
+
+;; new UDP/websocket based communication, master, send-order zero
+(if (and use-udp-comm? (equal? send-order 0))
+    (dueca-list
+     (make-dueca-net-master
+      'packer pkt                     ; packer
+      'unpacker upkt                  ; unpacker
+      'fill-packer fpkt               ; packer for bulk data
+      'fill-unpacker fupkt            ; unpacker bulk
+      'data-url data-url              ; data communication; udp point-to-point
+                                      ; broadcast or multicast (decoded from
+                                      ; address), or websocket
+      'config-url config-url          ; configuration communication
+                                      ; websocket URL
+      'timeout 0.2                    ; timeout, for recovery from missing
+                                      ; messages in data communication
+      'packet-size packet-size        ; maximum data packet size, buffer size
+      'set-priority comm-prio         ; communication priority level
+      'set-timing                     ; timing cycle
+      (make-time-spec 0 communication-interval)
+      ;; 'node-list 2 1 3 ..          ; optionally, specify the comm order
+                                      ; as a list with node-ids
+      'n-logpoints 500                ; log use and performance
+      'if-address if-address          ; network interface
+      )
+     )
+    )
+
+;; new UDP/websocket based communication, peer, send-order nonzero
+(if (and use-udp-comm? (> send-order 0))
+     (dueca-list
+      (make-dueca-net-peer
+       'packer pkt                    ; packer
+       'unpacker upkt                 ; unpacker
+       'fill-packer fpkt              ; packer for bulk data
+       'fill-unpacker fupkt           ; unpacker bulk
+       'config-url config-url         ; configuration communication
+                                      ; websocket URL
+       'set-priority comm-prio        ; communication priority level
+       'set-timing                    ; timing cycle, only initial start, when
+                                      ; not yet running multi-thread
+       (make-time-spec 0 communication-interval)
+       'if-address if-address         ; interface. When empty, selects default
+       )
+      )
+     )
+
+;;;  7 - Pass control to the environment again.
+;;;      It will now invoke a completeCreation method
+;;;      from the previously created singletons (0, 1, 3, 4, 5, 6) to
+;;;      give these the opportunity to do additional initialisation
+;;;      Then it creates the EntityManager for this node

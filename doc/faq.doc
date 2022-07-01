@@ -1,0 +1,151 @@
+// -*-c++-*-
+/** \page faq Frequently Asked Questions (and Encountered Problems)
+
+Assorted questions
+
+\section faq_notrigger When I press the "HoldCurrent" or "Advance"
+button, most of my modules won't follow the DUSIME state transition.
+
+A module only completes a state transition if the getAndCheckState()
+method is used. If some of your modules are not triggered, for example
+due to problems in communication, or because the channels they trigger
+on are not written to, getAndCheckState() does not get called. So the
+problem may be somewhere "upstream", in a module that provides the
+data and therefore also the triggering for the module that is not
+behaving. For proper functioning, you should always write output data
+(In HoldCurrent, in Advance, in Replay) so modules downstreams get
+triggered properly.
+
+A good way of checking this is with the channel view. This view lists
+all channels and entries written, and the read accesses to these
+entries. One of the most common mistakes is a small typing error in a
+channel name, therefore check whether the channel entries your module
+subscribes to become valid, and that these are indeed being written
+to.
+
+Another issue may be that your module encountered an error. Exceptions
+that are thrown and not caught by the module will be caught by
+DUECA. A message will be printed to the log about the exception, and
+the module will be disabled. Look back in the log files for these
+"uncaught exception" messages.
+
+\section faq_graphicsthread My gtk windows come up, but as soon as dueca is running, I get gdk errors
+
+DUECA starts up GTK in the priority 0 thread. GTK is by itself not
+thread-safe, and strange errors and crashes can occur if you
+interact with the GTK windows from different threads. Make sure that
+ALL modules that open and service graphics windows run in the
+administrative thread, i.e. with a priority 0! If you use GLUT windows
+and no special (outdated!) techniques like glutsweeper, the same rule
+applies.
+
+\section faq_unresponsive The interface windows respond very slowly
+
+The interface updating is done by the lowest-priority thread. When
+this thread has no work to be done, it suspends until there is a job
+pending. However, to keep the interface alive, the interface code has
+to be run regularly. The ticker (normally in the highest-priority
+thread), wakes the graphics thread regularly, with a period defined by
+the "compatible" time specification. If you set this to be too low
+(smaller than 20 times per second) the interface will appear sluggish.
+
+\section faq_timedisorder I get error messages about "time disorder"
+
+The is an error message from the simulation module. The module checks
+that activation time is neatly increasing, if it finds that it is
+"going back in time", this message is given. This can happen for a
+module that has more than one activity. In only one of the activities
+of the module you should call the "getAndCheckState()" method. If you
+call it in both, the message appears. In the other activity you should
+call the getCurrentState() method instead.
+
+\section fac_guile2 I am getting an error about "expression context"
+
+When you are working with newer DUECA (>2.3) and have an older
+configuration file, you might get the error:
+
+@verbatim
+definition in expression context, where definitions are not allowed.
+@endverbatim
+
+This is a message from the newer Scheme scripting used in some versions
+of DUECA. The following constructs are no longer allowed (an example
+from dueca.cnf):
+
+@code{.scm}
+(if use-ip-comm?
+    (list
+     (define pkt (make-packer))
+     ; .....
+     )
+  )
+@endcode
+
+Since here you are defining an object in the context of the if statement. To correct this, define anything you might want to define or modify as empty list, and use the set! statement to modify them, like:
+
+@code{.scm}
+(define pkt '())   ;; defined as empty list
+(define upkt '())
+(define fpkt '())
+(define fupkt '())
+
+(if use-ip-comm?
+    (list
+     (set! pkt (make-packer))
+     (set! upkt (make-unpacker       'priority-spec unpack-prio))
+     (set! fpkt (make-fill-packer    'buffer-size   bulk-max-size))
+     (set! fupkt (make-fill-unpacker 'priority-spec bulk-unpack-prio
+                                     'buffer-size   bulk-max-size))
+     )
+  )
+@endcode
+
+You might need to do this at multiple places in the dueca.cnf and dueca.mod files. Another option is to convert your configuration files to python and use that.
+
+\section faq_missingextra I am running on RedHat 9 (or something later) now, and I get "ERROR: missing or extra expression"
+
+This is an error in the scheme code, in your dueca.cnf script or your
+dueca.mod script. In the scheme installed on older versions of RedHat,
+the following:
+\verbatim
+()
+\endverbatim
+created an empty list. The scheme version installed on RedHat 9 no
+longer accepts this. However, you sometimes need an empty list. In
+dueca.cnf, change
+\verbatim
+(define dueca-list (make-extender ()))
+\endverbatim
+To read:
+\verbatim
+(define dueca-list (make-extender (list)))
+\endverbatim
+
+In your dueca.mod, you might also have a "()" in different places. Put
+a "(list)" there.
+
+\section faq_missingorincomplete If I try to make my project, I get "packages missing or with incomplete dependencies"
+
+DUECA (2.x) uses the dueca-config script and pkg-config for figuring
+out which headers to include and which libraries to link. For example
+you might get a message like:
+
+\verbatim
+/usr/bin/dueca-config Some packages missing or with incomplete dependencies
+/usr/bin/dueca-config packages with problems: dueca-dusime-sc dueca-dusime-gtk2-sc
+/usr/share/dueca/data/MakefileTail.app:17: *** dueca-config problem.  Stop.
+\endverbatim
+
+In this case, there is a problem with the pkgconfig scripts "dueca-dusime-sc" and  "dueca-dusime-gtk2-sc". Check with pkg-config what the actual problem might be:
+
+\verbatim
+pkg-config --cflags dueca-dusime-sc
+
+pkg-config --cflags dueca-dusime-gtk2-sc
+\endverbatim
+
+The problem might be because the relevant packages are not installed,
+or because some libraries are missing. In general the pkg-config
+message should give you the cues to fix this.
+
+*/

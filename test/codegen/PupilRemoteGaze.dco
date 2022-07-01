@@ -1,0 +1,56 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemoteGaze.dco
+        made by         : René van Paassen
+        date            : 210912
+        description     : Gaze for simple PupilRemote use")
+
+(Type float)
+(Type double)
+(Type std::string "#include <string>")
+(Type string16 "#include <dueca/stringoptions.h>")
+(IterableType std::list<PupilRemotePupil>
+              "// pupil datum list
+#include \"PupilRemotePupil.hxx\"
+#include <list>")
+(IterableType bincoordinates
+      "// gaze normals and eye center coordinates
+#include <map>
+#include <dueca/fixvector.hxx>
+typedef std::map<std::string,dueca::fixvector<3,float> > bincoordinates;")
+(IterableType dueca::fixvector<3,float>
+              "#include <dueca/fixvector.hxx>")
+(IterableType dueca::fixvector<2,float>
+              "#include <dueca/fixvector.hxx>")
+(Type int32_t)
+
+;; Gazeuration command for PupilRemote
+(Object PupilRemoteGaze
+        (Option hdf5)
+        (Option msgpack)
+
+        ;; reported topic
+	(string16 topic (Default "gaze"))
+
+        ;; confidence of gaze
+        (float confidence (Default 0.0f))
+
+        ;; norm space??
+        (dueca::fixvector<2,float> norm_pos (Default 0.0f))
+
+        ;; timestamp
+        (double ts (Default 0.0))
+
+        ;; selected eye normal
+        (dueca::fixvector<3,float> gaze_normal_3d (Default 0.0f) )
+
+        ;; selected eye center
+        (dueca::fixvector<3,float> eye_center_3d (Default 0.0f))
+
+        ;; gaze point
+        (dueca::fixvector<3,float> gaze_point_3d (Default 0.0f))
+
+        ;; underlying data
+        (std::list<PupilRemotePupil> base_data)
+        )
+

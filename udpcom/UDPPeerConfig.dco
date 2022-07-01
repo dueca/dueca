@@ -1,0 +1,41 @@
+;; -*-scheme-*-
+(Header "
+        original item   : UDPPeerConfig.dco
+        made by         : Rene' van Paassen
+        date            : 170205
+        description     : Configuration/Coordination replicator nodes
+        copyright       : (c) 2017-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; defines type of message
+(Enum MessageType uint8_t
+      ;; Hook up to preceding, data: peer_id of preceding in message chain
+      ;; and cycle at which the hookup should start, 0 if immediate
+      HookUp
+      ;; Peer leave message, data: peer_id and cycle at which peer leaves,
+      ;; 0 if ASAP
+      DeletePeer
+      ;; Configure new peer, data: peer_id
+      ConfigurePeer
+      ;; Initial configuration burst complete, no data
+      InitialConfComplete
+      ;; Client payload follows (from derived class), no data
+      ClientPayload
+      ;; Undefined, no data
+      Undefined
+      )
+
+(Type peer_id_t "#include <inttypes.h>\ntypedef uint16_t peer_id_t;")
+(Type uint32_t "#include <inttypes.h>")
+
+;; Configuration message for replicator coordination.
+(Event UDPPeerConfig
+       (IncludeFile UDPPeerConfigExtra)
+       ;; type of config message
+       (MessageType mtype (DefaultArg Undefined))
+       ;; peer id
+       (peer_id_t peer_id (DefaultArg 0U))
+       ;; message cycle selected for change
+       (uint32_t target_cycle (DefaultArg 0U))
+       )

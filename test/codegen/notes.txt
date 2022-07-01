@@ -1,0 +1,17 @@
+test1: fixed string and fixed-size array, old style
+
+test2: FixedIterableType, with fixedvector
+
+test3: iterable, with vector, and default size/value pair
+
+test4: Iterable, with list
+
+test5: Inheritance
+
+test6: test 2, but using ArraySize and a define
+
+test7: enum in class, with and without default,
+       constructorcode
+
+test8: ScriptCreatable, with includefile
+

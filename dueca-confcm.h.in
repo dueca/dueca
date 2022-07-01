@@ -1,0 +1,433 @@
+/* dueca-confcm.h.in.  */
+
+/* Define if building universal (internal helper macro) */
+#cmakedefine AC_APPLE_UNIVERSAL_BUILD
+
+/* Initialize glut, also when using gtk, for utilities */
+#cmakedefine ALSO_INIT_GLUT
+
+/* Define if you want to build the modules needed for dusime control */
+#cmakedefine BUILD_DMODULES
+
+/* Optimistic triggering on activities with setTimeSpec */
+#cmakedefine GREEDY_PERIODIC
+
+/* Define to 1 if you have the `atexit' function. */
+#cmakedefine HAVE_ATEXIT
+
+/* define if the Boost library is available */
+#cmakedefine HAVE_BOOST
+
+/* define if the compiler supports basic C++11 syntax */
+#cmakedefine HAVE_CXX11
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H
+
+/* Define to 1 if you have the <eigen3/unsupported/Eigen/MatrixFunctions>
+   header file. */
+#cmakedefine HAVE_EIGEN3_UNSUPPORTED_EIGEN_MATRIXFUNCTIONS
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#cmakedefine HAVE_FCNTL_H
+
+/* Define to 1 if you have the <FL/Fl.H> header file. */
+#cmakedefine HAVE_FL_FL_H
+
+/* Define to 1 if you have the <fp.h> header file. */
+#cmakedefine HAVE_FP_H
+
+/* Define to 1 if you have the <gdk/gdk.h> header file. */
+#cmakedefine HAVE_GDK_GDK_H
+
+/* Defined if a valid OpenGL implementation is found. */
+#cmakedefine HAVE_GL
+
+/* Define to 1 if you have the <glade/glade.h> header file. */
+#cmakedefine HAVE_GLADE_GLADE_H
+
+/* Define to 1 if you have the <glade/glade-xml.h> header file. */
+#cmakedefine HAVE_GLADE_GLADE_XML_H
+
+/* Define to 1 if you have the <glibconfig.h> header file. */
+#cmakedefine HAVE_GLIBCONFIG_H
+
+/* Defined if a valid GLU implementation is found. */
+#cmakedefine HAVE_GLU
+
+/* Define to 1 if you have the <glui.h> header file. */
+#cmakedefine HAVE_GLUI_H
+
+/* glutMainLoopEvent from freeglut is available */
+#cmakedefine HAVE_GLUTMAINLOOPEVENT
+
+/* Define to 1 if you have the <GLUT/glut.h> header file. */
+#cmakedefine HAVE_GLUT_GLUT_H
+
+/* Define to 1 if you have the <GL/freeglut.h> header file. */
+#cmakedefine HAVE_GL_FREEGLUT_H
+
+/* Define to 1 if you have the <GL/glui.h> header file. */
+#cmakedefine HAVE_GL_GLUI_H
+
+/* Define to 1 if you have the <GL/glut.h> header file. */
+#cmakedefine HAVE_GL_GLUT_H
+
+/* Define to 1 if you have the <GL/glu.h> header file. */
+#cmakedefine HAVE_GL_GLU_H
+
+/* Define to 1 if you have the <GL/glxext.h> header file. */
+#cmakedefine HAVE_GL_GLXEXT_H
+
+/* Define to 1 if you have the <GL/glx.h> header file. */
+#cmakedefine HAVE_GL_GLX_H
+
+/* Define to 1 if you have the <GL/gl.h> header file. */
+#cmakedefine HAVE_GL_GL_H
+
+/* Define to 1 if you have the <gtk/gtk.h> header file. */
+#cmakedefine HAVE_GTK_GTK_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <libguile18.h> header file. */
+#cmakedefine HAVE_LIBGUILE18_H
+
+/* Define to 1 if you have the <libguile.h> header file. */
+#cmakedefine HAVE_LIBGUILE_H
+
+/* Define to 1 if you have the <libkern/OSAtomic.h> header file. */
+#cmakedefine HAVE_LIBKERN_OSATOMIC_H
+
+/* Define to 1 if you have the `m' library (-lm). */
+#cmakedefine HAVE_LIBM
+
+/* Define to 1 if you have the <limits.h> header file. */
+#cmakedefine HAVE_LIMITS_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#cmakedefine HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mlockall' function. */
+#cmakedefine HAVE_MLOCKALL
+
+/* define if the compiler implements namespaces */
+#cmakedefine HAVE_NAMESPACES
+
+/* Define to 1 if you have the <native/task.h> header file. */
+#cmakedefine HAVE_NATIVE_TASK_H
+
+/* Define to 1 if you have the <native/timer.h> header file. */
+#cmakedefine HAVE_NATIVE_TIMER_H
+
+/* define if the compiler has numeric_limits<T> */
+#cmakedefine HAVE_NUMERIC_LIMITS
+
+/* Define to 1 if you have the `on_exit' function. */
+#cmakedefine HAVE_ON_EXIT
+
+/* Define to 1 if you have the <OpenGL/glu.h> header file. */
+#cmakedefine HAVE_OPENGL_GLU_H
+
+/* Define to 1 if you have the <OpenGL/gl.h> header file. */
+#cmakedefine HAVE_OPENGL_GL_H
+
+/* Define to 1 if you have the <posix/posix.h> header file. */
+#cmakedefine HAVE_POSIX_POSIX_H
+
+/* pthread_attr_setinheritsched is available */
+#cmakedefine HAVE_PTHREAD_ATTR_SETINHERITSCHED
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#cmakedefine HAVE_PTHREAD_H
+
+/* Define to 1 if you have the `rand' function. */
+#cmakedefine HAVE_RAND
+
+/* Define to 1 if you have the `random' function. */
+#cmakedefine HAVE_RANDOM
+
+/* Define to 1 if you have the <rtai_lxrt.h> header file. */
+#cmakedefine HAVE_RTAI_LXRT_H
+
+/* Define to 1 if you have the <sched.h> header file. */
+#cmakedefine HAVE_SCHED_H
+
+/* Define to 1 if you have the <scramnet.h> header file. */
+#cmakedefine HAVE_SCRAMNET_H
+
+/* Define to 1 if you have the <scrplus.h> header file. */
+#cmakedefine HAVE_SCRPLUS_H
+
+/* Define to 1 if you have the `select' function. */
+#cmakedefine HAVE_SELECT
+
+/* Define to 1 if you have the <setjmp.h> header file. */
+#cmakedefine HAVE_SETJMP_H
+
+/* Define to 1 if you have the `setuid' function. */
+#cmakedefine HAVE_SETUID
+
+/* Define to 1 if you have the <signal.h> header file. */
+#cmakedefine HAVE_SIGNAL_H
+
+/* Define to 1 if you have the `socket' function. */
+#cmakedefine HAVE_SOCKET
+
+/* Define if you have and want to use the sstream library */
+#cmakedefine HAVE_SSTREAM
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine HAVE_STRING_H
+
+/* Define to 1 if you have the <strstream> header file. */
+#cmakedefine HAVE_STRSTREAM
+
+/* Define to 1 if you have the <sys/neutrino.h> header file. */
+#cmakedefine HAVE_SYS_NEUTRINO_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#cmakedefine HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/shm.h> header file. */
+#cmakedefine HAVE_SYS_SHM_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#cmakedefine HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine HAVE_UNISTD_H
+
+/* Define to 1 if you have the <unix.h> header file. */
+#cmakedefine HAVE_UNIX_H
+
+/* Use nonstandard varargs form for the GLU tesselator callback */
+#cmakedefine HAVE_VARARGS_GLU_TESSCB
+
+/* Define to 1 if you have the <windows.h> header file. */
+#cmakedefine HAVE_WINDOWS_H
+
+/* Define to 1 if you have the <X11/XKBlib.h> header file. */
+#cmakedefine HAVE_X11_XKBLIB_H
+
+/* Define to 1 if you have the <X11/Xlib.h> header file. */
+#cmakedefine HAVE_X11_XLIB_H
+
+/* Define to 1 if you have the <X11/X.h> header file. */
+#cmakedefine HAVE_X11_X_H
+
+/* Define if you want the compiler to "see" the template source */
+#cmakedefine INCLUDE_TEMPLATE_SOURCE
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#cmakedefine LT_OBJDIR
+
+/* ios namespace is available */
+#cmakedefine NAMESPACE_IOS
+
+/* ios_base namespace is available */
+#cmakedefine NAMESPACE_IOS_BASE
+
+/* Define if you want the new logging code */
+#cmakedefine NEW_LOGGING
+
+/* Define if you want to disable catching mechanism for
+   activity/start/stop. Useful for debugging only. */
+#cmakedefine ACTIV_NOCATCH
+
+/* Name of package */
+#cmakedefine PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#cmakedefine PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#cmakedefine PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#cmakedefine PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#cmakedefine PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#cmakedefine PACKAGE_URL
+
+/* Define to the version of this package. */
+#cmakedefine PACKAGE_VERSION
+
+/* Define if you want to use shared memory communications (either with SYSV
+   shared memory, or hardware such as scramnet. What is built depends on the
+   headers available in your machine) */
+#cmakedefine BUILD_SHM
+#ifdef BUILD_SHM
+#define SHARED_MEM_COMM
+#endif
+
+/* The size of `double', as computed by sizeof. */
+#cmakedefine SIZEOF_DOUBLE
+
+/* The size of `float', as computed by sizeof. */
+#cmakedefine SIZEOF_FLOAT
+
+/* The size of `int', as computed by sizeof. */
+#cmakedefine SIZEOF_INT
+
+/* The size of `void *', as computed by sizeof. */
+#cmakedefine SIZEOF_VOID_P
+
+/* Define to 1 if you have the ANSI C header files. */
+#cmakedefine STDC_HEADERS
+
+/* Define if you want to build a version with a student license */
+#cmakedefine LICENSE_STUDENT
+
+/* Define if you want to build a version with an evaluation license */
+#cmakedefine LICENSE_EVAL
+
+/* Define if you want to use nanosleep for synchronisation */
+#cmakedefine SYNC_WITH_NANOSLEEP
+
+/* Define if you want to use qnx timer for synchronisation */
+#cmakedefine SYNC_WITH_QNXTIMER
+
+/* use rtai/lxrt to syncronize */
+#cmakedefine SYNC_WITH_RTAI
+
+/* Define if you want to use the /dev/rtc clock for synchronisation */
+#cmakedefine SYNC_WITH_RTC
+
+/* Define if you want to use select (portable!) for synchronisation */
+#cmakedefine SYNC_WITH_SELECT
+
+/* Define if you want to use sigwait for synchronisation */
+#cmakedefine SYNC_WITH_SIGWAIT
+
+/* use xenomai/posix to syncronize */
+#cmakedefine SYNC_WITH_XENOMAI
+
+/* Define if you want to enable testing options, which may slow down things
+   but are useful if you are testing multiple executables on one machine */
+#cmakedefine TEST_OPTIONS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#cmakedefine TIME_WITH_SYS_TIME
+
+/* Define if you want to use crope instead of string */
+#cmakedefine USE_CROPE
+
+/* Define if you want to use the Dueca-specific string library */
+#cmakedefine USE_DSTRING
+
+/* Define if you want to use exceptions in the code */
+#cmakedefine USE_EXCEPTIONS
+
+/* Define if you want to use fltk for windowing */
+#cmakedefine USE_FLTK
+
+/* Define if you use gettimeofday for clock measurement */
+#cmakedefine USE_GETTIMEOFDAY
+
+/* Define if you want to use glut for windowing */
+#cmakedefine USE_GLUT
+
+/* Define if you want to use glut gui for windowing */
+#cmakedefine USE_GLUT_GUI
+
+/* Define if you want to use gtk2 as one of the widget sets */
+#cmakedefine USE_GTK2
+
+/* Define if you want to use gtk3 as one of the widget sets */
+#cmakedefine USE_GTK3
+
+/* Define if you want to use gtkglext for GL windowing */
+#cmakedefine USE_GTKGLEXT
+
+/* Define if you want to add gtkmm to the gtk2 widgets */
+#cmakedefine USE_GTMM
+
+/* Define if you want to add gtkmm to the gtk3 widgets */
+#cmakedefine USE_GTMM3
+
+/* Define for using libglade (obsolete, should be removed) */
+#cmakedefine USE_LIBGLADE
+
+/* Define if you want to use posix threads */
+#cmakedefine USE_POSIX_THREADS
+
+/* Define if you run under QNX and want to use a Pentium TSC counter */
+#cmakedefine USE_QNXNTO_CLOCKCYCLES
+
+/* Define to use the qtgtk library to mix QT and GTK code */
+#cmakedefine USE_QTGTK
+
+/* use threads, in this case with xenomai */
+#cmakedefine USE_THREADS
+
+/* Define if you run under WIN32 and want to use a Pentium TSC counter */
+#cmakedefine USE_WIN32_PERFORMANCE_COUNTER
+
+/* Define if you want to use WIN32 threads */
+#cmakedefine USE_WIN_THREADS
+
+/* Define if you want to debug log ip communications */
+#cmakedefine LOG_COMMUNICATIONS
+
+/* Define if you want to debug log pack actions */
+#cmakedefine LOG_PACKING
+
+/* Version number of package */
+#cmakedefine VERSION
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+#if defined __BIG_ENDIAN__
+#define WORDS_BIGENDIAN 1
+#endif
+#else
+#ifndef WORDS_BIGENDIAN
+#cmakedefine WORDS_BIGENDIAN
+#endif
+#endif
+
+/* Define to 1 if the X Window System is missing or not being used. */
+#cmakedefine X_DISPLAY_MISSING
+
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
+#cmakedefine YYTEXT_POINTER
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#cmakedefine size_t
+
+/* Define to include test options in various code, e.g. net communication, with
+   explicit failure built in for testing. */
+#cmakedefine BUILD_TESTOPT
+
+/* Define to use and include the <atomic> c++ header */
+#cmakedefine HAVE_ATOMIC
+
+/* Send the packet ID when using fillpacker, as extra measure and debug
+   option */
+#cmakedefine FILLPACKER_SEND_ID
+
+/* Force malloc as allocator for embedded Python, seems to be necessary for
+   reasonable valgrind error messages on Ubuntu */
+#cmakedefine FORCE_PYTHON_MALLOC

@@ -1,0 +1,8 @@
+# this file contains a list of all modules needed for your application
+# on a specific machine
+#
+# note that the comm-objects directories should *not* be listed here
+# If you need to check out from a specific branch or version, add that
+# as the second argument on the line
+# example:
+# @project@/some-module   [branch-or-version]

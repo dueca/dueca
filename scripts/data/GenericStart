@@ -1,0 +1,226 @@
+#!/bin/sh
+
+if [ -z "$MAINDIR" -o \
+     -z "$MASTERNODE" -o -z "$ZERONODE" -o  \
+     -z "$RSHL" -o -z "$RSHQ" ]; then
+    cat <<EOF
+$Usage $0 Invoke this script as the tail of another script,
+         in which you define
+         MAINDIR     main run directory
+         NODES       all nodes, except 0 and the timing master
+                     nodes are identified by their machine name
+                     optionally, you may specify a node by entering
+                     machine:alias, where machine will be the machine
+                     name and alias is an alias for this node. The alias
+                     determines:
+                     - the directory from which the node is started
+                     - which "special" to run (alias_SPECIAL)
+                     - which XOPTS to run (alias_XOPTS)
+                     - which additional cleaning to do (alias_CLEANMORE)
+                     You may also add a user name to the
+                     node: user@node:alias, if you mix user names across
+                     machines
+         MASTERNODE  timing master node
+         ZERONODE    no 0 node. If this node is not listed in XNODES, LNODES
+                     etc., it will be started locally from the script
+         XNODES      [opt] nodes that run Linux, and need X started
+         MWMNODES    [opt] nodes that run Linux, and need X and mwm started
+         XFNODES     [opt] nodes that run Linux, and need X and xfce started
+         FVWMNODES   [opt] nodes that run Linux, and need X and fvwm started
+         LNODES      [opt] other nodes that run Linux
+         MNODES      [opt] notes that you will start manually (for debugging!)
+         RSHL        shell you will use for connections to Linux
+         RSHQ        shell you will use for connections to QNX
+         SUDO             [opt] set to 'sudo' to use sudo on Linux nodes
+                     Note that you don't need sudo; see the page
+                     "tuning linux workstations" in the DUECA documentation
+         WAITTIME    [opt] waiting time before starting timing master node
+         RUNONSTART  [opt] any command run before starting DUECA, it will
+                     be run on the local machine, as the current user
+         RUNONEXIT   [opt] any command or script to run after DUECA ends
+         NODENAME_SPECIAL [opt] for each alias/node that you define/use, you
+                     can define a command that should be run on that node
+                     instead of running ../../../dueca_run.x
+                     e.g. dutmms2_SPECIAL=./mystartscript
+         NODENAME_CLEANMORE [opt] for each (Linux) node, additional commands
+                     to run for cleaning up (e.g.
+                     dutmms6_CLEANMORE="killall -9 fgfs")
+         NODENAME_XOPTS [opt] Additional options for xinit start; these
+                     are the options after the --, see man xinit
+                     Useful: ":0 -br" start up with black screen
+                     ":1" start up on display 1, ":0 -config somefile" to
+                     specify a specific X configuration file
+EOF
+    exit 1
+fi
+
+startnode()
+{
+    # a node may be simply a machine name; then that name is also used
+    # for the start directory, or it may contain machine name and directory
+    # split with a colon, like   machine:dir
+    if echo $1 | grep -q '@' > /dev/null ; then
+        USER="$(echo $1 | cut --fields=1 --delimiter=@ )@"
+        NODEANDDIR="$(echo $1 | cut --fields=2 --delimiter=@ )"
+    else
+        USER=""
+        NODEANDDIR="$1"
+    fi
+
+    if echo $NODEANDDIR | grep -q ':' >/dev/null ; then
+        NODE=$(echo $NODEANDDIR | cut --fields=1 --delimiter=: )
+        ALIAS=$(echo $NODEANDDIR | cut --fields=2 --delimiter=: )
+    else
+        NODE=$NODEANDDIR
+        ALIAS=$NODEANDDIR
+    fi
+
+    # now start, depending on which option is selected
+    if test -n "$MNODES" && echo $ALIAS | grep -Eq "$MNODES"; then
+        # Manual start, for debugging or similar
+        echo "Please start node $1 by hand"
+        sleep 3
+    elif test -n "$XNODES" && echo $ALIAS | grep -Eq "$XNODES" ; then
+        # Linux node with X start
+        echo "Starting X node $1"
+        eval $RSHL $USER$NODE $SUDO rrunduecaX \"\'$MAINDIR/$ALIAS\'\" \
+             \"\'\$${ALIAS}_SPECIAL\'\" \"\'\$${ALIAS}_XOPTS\'\"
+    elif test -n "$MWMNODES" && echo $ALIAS | grep -Eq "$MWMNODES" ; then
+        # Linux node with X and mwm start
+        echo "Starting X with mwm node $1"
+        eval $RSHL $USER$NODE $SUDO rrunduecaXmwm \"\'$MAINDIR/$ALIAS\'\" \
+             \"\'\$${ALIAS}_SPECIAL\'\" \"\'\$${ALIAS}_XOPTS\'\"
+    elif test -n "$XFNODES" && echo $ALIAS | grep -Eq "$XFNODES" ; then
+        # Linux node with X and xfce start
+        echo "Starting X with xfce node $1"
+        eval $RSHL $USER$NODE $SUDO rrunduecaXxf \"\'$MAINDIR/$ALIAS\'\" \
+             \"\'\$${ALIAS}_SPECIAL\'\" \"\'\$${ALIAS}_XOPTS\'\"
+    elif test -n "$FVWMNODES" && echo $ALIAS | grep -Eq "$FVWMNODES" ; then
+        # Linux node with X and fvwm start
+        echo "Starting X with fvwm node $1"
+        eval $RSHL $USER$NODE $SUDO rrunduecaXfvwm \"\'$MAINDIR/$ALIAS\'\" \
+             \"\'\$${ALIAS}_SPECIAL\'\" \"\'\$${ALIAS}_XOPTS\'\"
+    elif test -n "$LNODES" && echo $ALIAS | grep -Eq "$LNODES" ; then
+        # Linux node start
+        echo "Starting Linux node $1"
+        eval $RSHL $USER$NODE $SUDO rrundueca \"\'$MAINDIR/$ALIAS\'\" \
+             \"\'\$${ALIAS}_SPECIAL\'\"
+    elif test "$ZERONODE" = "$ALIAS" ; then
+        echo "Starting zero node $1"
+        ( cd && eval $SUDO rrundueca \"$MAINDIR/$ALIAS\" \
+             \"\$${ALIAS}_SPECIAL\" )
+    else
+        # Linux node start
+        echo "ASSUMING Linux text node $1"
+        echo "If this is not what you want, add the node to either"
+        echo "MNODES, XNODES, MWMNODES, XFNODES or LNODES"
+        eval $RSHL $USER$NODE $SUDO rrundueca \"\'$MAINDIR/$ALIAS\'\" \
+             \"\'\$${ALIAS}_SPECIAL\'\"
+    fi
+}
+
+if [ "x$1" = "xstart" ]; then
+
+    # run any pre-run scripts
+    if [ -n "$RUNONSTART" ]; then
+        echo "Running start command $RUNONSTART"
+        $RUNONSTART
+    fi
+
+    # Start all nodes, except master and zero
+    for n in $NODES; do
+        startnode $n &
+    done
+
+    # node 0
+    if [ "$ZERONODE" != "$MASTERNODE" ]; then
+        echo "Starting node 0..."
+        startnode $ZERONODE &
+    fi
+
+    # The master timing node is started after a small wait
+    # Reducing it may cause the master timing node to be started before
+    # nodes that have to start an X window first are ready, leading to
+    # longer sync times!
+    sleep ${WAITTIME:-3}
+
+    echo "Starting master timing node $MASTERNODE (have fun!)"
+    startnode $MASTERNODE
+    RESULT=$?
+
+    # run any shutdown scripts
+    if [ -n "$RUNONEXIT" ]; then
+        echo "Running exit command $RUNONEXIT"
+        $RUNONEXIT
+    fi
+
+    echo "Dueca ended"
+    exit $RESULT
+fi
+
+listnode()
+{
+    # interpret node and dir
+    if echo $1 | grep -q ':' >/dev/null ; then
+        NODE=$(echo $1 | cut --fields=1 --delimiter=: )
+        DIR=$(echo $1 | cut --fields=2 --delimiter=: )
+    else
+        NODE=$1
+        DIR=$1
+    fi
+
+    echo "Log from Linux node $1"
+    $RSHL $NODE cat $MAINDIR/$DIR/normal.log
+    echo ""
+    echo ""
+    echo "Error log from Linux node $1"
+    $RSHL $NODE cat $MAINDIR/$DIR/error.log
+}
+
+if [ "x$1" = "xlist" ]; then
+    if [ "x$2" != "x" ]; then
+        listnode $2
+    else
+        for n in $NODES $MASTERNODE $ZERONODE; do
+            listnode $n
+        done
+    fi
+    exit 0
+fi
+
+cleannode()
+{
+    if echo $1 | grep -q '@' > /dev/null ; then
+        USER="$(echo $1 | cut --fields=1 --delimiter=@ )@"
+        NODEANDDIR="$(echo $1 | cut --fields=2 --delimiter=@ )"
+    else
+        USER=""
+        NODEANDDIR="$1"
+    fi
+
+    if echo $NODEANDDIR | grep -q ':' >/dev/null ; then
+        NODE=$(echo $NODEANDDIR | cut --fields=1 --delimiter=: )
+        ALIAS=$(echo $NODEANDDIR | cut --fields=2 --delimiter=: )
+    else
+        NODE=$NODEANDDIR
+        ALIAS=$NODEANDDIR
+    fi
+
+    echo "Cleaning Linux node $1"
+    $RSHL $NODE $SUDO /usr/bin/killall -s 9 dueca_run.x
+    if eval echo "Running \${${ALIAS}_CLEANMORE:-no_such_command} on $1 "| \
+            grep --invert-match no_such_command; then
+        eval $RSHL $NODE \$${ALIAS}_CLEANMORE
+    fi
+}
+
+if [ "x$1" = "xclean" ]; then
+
+   for n in $NODES $MASTERNODE $ZERONODE; do
+       cleannode $n
+   done
+   exit 0
+fi
+
+echo "Usage: $0 {start|list|clean}"
+

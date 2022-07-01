@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-ddff
+Description: Delft Data File Format logging tools for dueca
+Version: ${version}
+Libs: -L${libdir} -ldueca-ddff${staticsuffix}
+Cflags: -I${dueca_includedir}/ddff -DDUECA_CONFIG_DDFF
+Requires: dueca = ${version}

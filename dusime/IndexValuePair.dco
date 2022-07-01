@@ -1,0 +1,32 @@
+;; -*-scheme-*-
+
+(Header "
+        item            : IndexValuePair.dco
+        made by         : Rene' van Paassen
+        date            : 1301004
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type uint16_t)
+(Type double)
+
+;; An IndexValuePair is a combination of an index, pointing to a
+;; variable used in an initial condition or trim condition
+;; calculation, and a value for this variable. IndexValuePair objects
+;; are assembled into an IncoNotice object, which can be sent to and
+;; from a central initial condition machine (with a generic
+;; optimization method built in) that can calculate a global trim
+;; condition for an aircraft, or any other dynamical system for that
+;; matter.
+(Event
+ IndexValuePair
+
+ ;; index of the initial condition variable
+ (uint16_t index)
+
+ ;; value for this variable
+ (double value)
+ )
+

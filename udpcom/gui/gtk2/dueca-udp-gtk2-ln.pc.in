@@ -1,0 +1,16 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+libdir=@libdir@
+dueca_includedir=@dueca_includedir@
+version=@VERSION@
+staticsuffix=
+initfunc=-Wl,@ldundef@InitUDPComGtk2
+
+Name: dueca-udp-gtk2@scriptsuffix@
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} ${initfunc} -ldueca-udp-gtk2@scriptsuffix@
+Cflags: -I${dueca_includedir}/udpcom/gui/gtk2
+Requires: dueca-udp-gtk2
+

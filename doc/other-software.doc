@@ -1,0 +1,263 @@
+// -*-c++-*-
+
+/** @page othersoft Typical DUECA installation on Ubuntu
+
+    The simulation facilities operated by Control&Simulation at the
+    Delft University of Technology, such as the SIMONA Research
+    Simulation (SRS) and the Human Machine Interaction Laboratory
+    (HMILab), currently use Ubuntu Linux distributions. Besides DUECA,
+    these installations sometimes use several in-house developed, 3rd
+    party commercial or publicly available software libraries. This
+    page provides some hints on which libraries are typically used,
+    and how to install them.
+
+    @section othersoft_dueca DUECA itself
+
+    The DUECA software is distributed through a number of packages,
+    available for (currently) Ubuntu 18.04 and Ubuntu 20.04:
+
+    | Package                       | Description                        |
+    | :---------------------------- | :--------------------------------- |
+    | `dueca2`                      | Base DUECA package                 |
+    | `dueca2-dusime`               | DUSIME extension                   |
+    | `dueca2-extra`                | Various support, integration, etc. |
+    | `dueca2-hdf`                  | HDF5 logging module and tools      |
+    | `dueca2-udp`                  | Network communication              |
+    | `dueca2-inter`                | Multi-simulation connection        |
+    | `dueca2-websock`              | Websocket communication            |
+
+    The websocket communication offers the possibility to export your
+    DUECA data to web browsers. If you want to produce live plots with
+    your data, you can use an additional package:
+
+    | Package                       | Description                        |
+    | :---------------------------- | :--------------------------------- |
+    | `dplotter`                    | Web code for live plots            |
+
+    If you find you need to install this software on Ubuntu, ensure
+    you have configured the repository (see the README files on the
+    [dueca](https://dueca.tudelft.nl/yum) software server, and use the
+    supplied `dueca-xUbuntu_??.??.list` file. Then issue the commands:
+
+    @verbatim
+    apt-get update
+    apt-get install dueca2 dueca2-dusime dueca2-extra \
+                    dueca2-hdf dueca2-udp dueca2-inter dueca2-websock
+    @endverbatim
+
+    In case you miss one or more DUECA packages, the Makefile for a
+    project together with the DUECA configuration scripts will try to
+    tell you that one or more packages are missing. For example you
+    get a message like:
+
+    @verbatim
+    /tmp/bin/dueca-config Some packages missing or with incomplete dependencies
+    /tmp/bin/dueca-config packages with problems: dueca-websock-py
+    /tmp/share/dueca/data/MakefileTail.app:17: *** dueca-config problem.  Stop.
+    @endverbatim
+
+    DUECA uses the pkg-config program to indicate to the compilation
+    system which components are present. Sometimes the package is
+    missing completely, or there is something else wrong. Use
+    pkg-config manually to get some more information. In this case,
+    the problem was with the `dueca-websock-py` configuration, so try
+    that:
+
+    @verbatim
+    $ pkg-config --libs dueca-websock-py
+    Package dueca-websock-py was not found in the pkg-config search path.
+    Perhaps you should add the directory containing `dueca-websock-py.pc'
+    to the PKG_CONFIG_PATH environment variable
+    @endverbatim
+
+    In this case the `dueca2-websock` package simply has to be installed.
+
+    @section othersoft_cs Control and Simulation custom software
+
+    Over the years, students and staff at Control and Simulation have
+    created additional software, usually libraries, which is being
+    used in a number of DUECA projects. These are also available from
+    the abovementioned software repository. You need these in some
+    cases when developing new modules, or when borrowing or using
+    existing module and DUECA projects.
+
+    | Package                | Description                             |
+    | :--------------------- | :-------------------------------------- |
+    | `airportdb`            | Database facility for airport locations |
+    | `airportdb-dev`        | Development package airportdb           |
+    | `airportdb-data`       | Data for airportdb                      |
+    | `airportdb-doc`        | Documentation                           |
+    | `clodterrain`          | Lightweight terrain viewer with CLOD    |
+    | `clodterrain-dev`      | development package for clodterrain     |
+    | `clodterrain-doc`      | Documentation                           |
+    | `flightplan`           | FMS/flightplan library                  |
+    | `flightplan-dev`       | Development package for flightplan      |
+    | `flightplan-dueca-dev` | DUECA connection for flightplan         |
+    | `flightplan-data`      | Data for flightplan                     |
+    | `flightplan-doc`       | Documentation                           |
+    | `hmilib`               | Flight deck interface development       |
+    | `hmilib-dev`           | Development package for hmilib          |
+    | `hmilib-dueca2`        | DUECA connection for hmilib             |
+    | `hmilib-ftgl`          | FreeType font for hmilib                |
+    | `hmilib-glfont`        | GL font for hmilib                      |
+    | `hmilib-data`          | Data for hmilib                         |
+    | `hmilib-doc`           | Documentation                           |
+    | `sami`                 | Eurocontrol SAMI base package           |
+    | `libsami`              | Eurocontrol's SAMI wrapper              |
+    | `libsami-dev`          | Development files for libsami           |
+    | `libsami-data`         | Data for sami                           |
+    | `libsami-doc`          | Documentation                           |
+    | `srsfms`               | Flight Management System base package   |
+    | `srsfms-fmc`           | FMS Flight Management Computer library  |
+    | `srsfms-fmc-dev`       | Development files for srsfms-fmc        |
+    | `srsfms-cdu`           | FMS Command and Display Unit library    |
+    | `srsfms-cdu-dev`       | Development files for srsfms-fmc        |
+    | `srsfms-cdu-gtk2`      | Gtk2 graphics library implementation of the CDU |
+    | `srsfms-cdu-gtk3`      | Gtk3 graphics library implementation of the CDU |
+    | `srsfms-cdu-serial`    | Serial interface to CDU hardware        |
+    | `srsfms-common`        | Common facility for srsfms              |
+    | `srsfms-common-dev`    | Development files for srsfms-common     |
+    | `srsfms-data`          | Data for srsfms                         |
+    | `srsfms-doc`           | Documentation                           |
+
+    @section othersoft_generic Generic libraries and packages
+
+    Several openly available libraries are useful tools in developing
+    DUECA modules, and when using someone's existing project or
+    borrowing a module you need these libraries installed.
+
+    You may find that compiling or linking a DUECA project fails when
+    one of these libraries is missing. Usually you can see from the
+    compiler errors that a header file is missing, and then guess (or
+    try Google) to which library this file corresponds.
+
+    This section lists a common, but my no means exhaustive list of
+    these libraries. Only the -dev packages are listed, note that the
+    corresponding library packages will be automatically added when
+    you install one of the -dev packages.
+
+    | Package                | Description                             |
+    | :--------------------- | :-------------------------------------- |
+    | `libtinyxml-dev`       | XML parsing and writing library         |
+    | `libtinyxml2-dev`      | XML parsing and writing library (v2, both can be installed in parallel) |
+    | `libpugixml-dev`       | XML parsing and writing library         |
+    | `libopenal-dev`        | 3D audio library                        |
+    | `libalut-dev`          | 3D audio support library                |
+    | `mtl-dev`              | Math Template Library (older version, do not use on new projects) |
+    | `libeigen3-dev`        | Linear algebra library. Is installed by default when installing DUECA |
+    | `libsdl2-dev`          | Media/device library, often needed for joystick IO |
+    | `libopencv-dev`        | Computer vision library                 |
+    | `freeglut3-dev`        | GL support library                      |
+    | `libmatio-dev`         | Matlab file writing/reading, do not use on new projects. |
+
+    @section othersoft_matlab Support files for code generated from Simulink diagrams
+
+    It is possible to take most Simulink models, and use the Matlab
+    coder to generate C code from these models. DUECA offers modules
+    with templates for embedding and calling these C code models. To
+    complete this, an appropriate library needs to be linked with
+    DUECA.
+
+    | Package                | Description                             |
+    | :--------------------- | :-------------------------------------- |
+    | `librtw70-dev`         | RealTimeWorkshop version 7.0           |
+    | `librtw76-dev`         | RealTimeWorkshop version 7.6           |
+    | `librtw81-dev`         | RealTimeWorkshop version 8.1           |
+    | `librtw83-dev`         | RealTimeWorkshop version 8.3           |
+    | `librtw88-dev`         | RealTimeWorkshop version 8.8           |
+    | `librtw8-13-dev`       | RealTimeWorkshop version 8.13          |
+    | `librtw9-0-dev`        | RealTimeWorkshop version 9.0           |
+    | `librtw9-2-dev`        | RealTimeWorkshop version 9.2           |
+
+    Inspect the version in the generated code, and link the
+    appropriate library, by adding an `--rtwv...` (see the
+    `dueca-config` script for the available versions) to `DCOMPONENTS`
+    in the main Makefile.
+
+    Note that even older versions of Matlab/Simulink generated code
+    are also still supported. However, you should obviously avoid
+    these. When developing a project for the SIMONA simulator, ask
+    which Simulink version is currently used by the motion filters. To
+    ensure that people will later still be able to run your project,
+    please add the simulink model, any supporting Matlab m scripts
+    (e.g., for setting parameters and trimming) to the version
+    controlled software in your project.
+
+    @section othersoft_vrview 3D view scene graph libraries
+
+    To show out-of-the-window views, scene graph libraries are often
+    used. These are often quite complex and extensive; a "scene graph"
+    is a logical tree with objects that can be visualized, often at
+    the hand of 3D files created with software like Blender or
+    Maya. The WorldView module that is used in a number of DUECA
+    project can use a number of these scene graph libraries to create
+    an outside scene with stationary and moving objects.
+
+    Commonly used scene graph libraries are:
+
+    | Package                  | Description                             |
+    | :----------------------- | :-------------------------------------- |
+    | `libogre-1.9-dev`        | OGRE library                            |
+    | `ogre-media`             | Pack of commonly used media files for OGRE |
+    | `openscenegraph`         | OpenSceneGraph library                  |
+    | `libopenscenegraph-dev`  | Development files for OpenSceneGraph    |
+    | `libosgearth-dev`        | Earth extension for OpenSceneGraph      |
+    | `libplib-dev`            | A very simple scene graph library       |
+    | `libirrlicht-dev`        | IrrLicht scene graph library            |
+    | `flightgear`             | Not a scene graph, but flight simulator, sometimes used as backend for the graphics |
+
+    @section othersoft_module Commonly used generic modules
+
+    A number of DUECA components or modules are re-used in many
+    projects. These are general enough to be used and re-used without
+    modifications to the C++ code, and they are often highly
+    configurable through the startup script.
+
+    | Module                     | Description                             |
+    | :------------------------- | :-------------------------------------- |
+    | `FlexiStick/flexi-stick`   | Programmable joystick interface         |
+    | `SRSMotion/motion-limiter` | Motion limiter for the SRS              |
+    | `SRSMotion/motion-viewer`  | 3D view of the motion system            |
+    | `SRSMotion/simple-motion-logger` | Simple log for the motion system  |
+    | `Generic/multi-stick`      | Another joystick interface, simpler than flexi-stick, but less capable |
+    | `HMILabHardware/PedalsIO`  | IO for car pedals in the lab            |
+    | `HMILabHardware/SteeringWheelIO` | IO for steering wheel              |
+    | `UDPSlave/udp-reader`      | UDP network message receiver            |
+    | `UDPSlave/udp-writer`      | UDP network message sender              |
+    | `HeliControls/CyclicCollectiveController` | Control interface to helicopter controls |
+    | `WorldView/WorldView`      | Main module for 3D visualisation        |
+    | `WorldView/HMILabViewFiles` | Datafiles and scripts for HMI lab visualization |
+    | `WorldView/OgreViewer`     | OGRE interface for 3D visualisation     |
+    | `WorldView/OSGViewer`      | OpenSceneGraph interface for 3D visualisation     |
+    | `WorldView/PlibViewer`     | Plib interface for 3D visualisation     |
+    | `WorldView/SpecificationBase` | Support file for 3D visualisation    |
+    | `WorldView/FlightGearViewer` | Interface to communication with FlightGear |
+    | `WorldListener/WorldListener` | Main module for 3D sound generation  |
+    | `WorldListener/OpenALListener` | OpenAL interface for 3D sound       |
+
+
+    @section othersoft_hardware Communication with hardware and IO
+
+    In the SRS, the HMIlab and the PHLAB laboratory, a number of
+    computers interface with hardware devices. A number of libraries
+    are used for this interfacing. Note that these will be installed
+    on the computers that need them, typically there will be no special
+    hardware to interface with on your development computer.
+
+    | Package                    | Description                             |
+    | :---------------------     | :-------------------------------------- |
+    | `dd42992`                  | Interfacing for a DDC ARINC card        |
+    | `dd42992-dkms`             | Kernel module code for ARINC card       |
+    | `libdd42992-dev`           | Development library for ARINC card      |
+    | `libdd42992`               | Library for ARINC card                  |
+    | `ethercat`                 | Interfacing with EtherCAT stacks        |
+    | `libethercat-dev`          | Development library for EtherCAT        |
+    | `libethercat1`             | Library for ethercat                    |
+    | `libsynchro-dev`           | Development library for synchro card    |
+    | `libsynchro`               | Library for DDC synchro card            |
+    | `sb3624x-dkms`             | Kernel module for DDC synchro card      |
+    | `sb3624x`                  | Software for DDC synchro card           |
+    | `mxser`                    | Tools for MOXA serial card              |
+    | `mxser-dkms`               | Kernel module for MOXA serial card      |
+
+*/

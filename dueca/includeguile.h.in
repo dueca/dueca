@@ -1,0 +1,54 @@
+/* ------------------------------------------------------------------   */
+/*      item            : includeguile.h.in
+        made by         : Rene' van Paassen
+        date            : 20010308
+        category        : header file (in)
+        description     : includes the proper guile version header
+                          files
+        language        : C++
+        documentation   : in DUECA API, but directly from configure
+        copyright       : (c) 2001 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+/** \file includeguile.h
+
+    Guile headers
+*/
+
+#ifndef includeguile_h
+#define includeguile_h
+
+/* Define to 1 if you have the <libguile18.h> header file. */
+#cmakedefine HAVE_LIBGUILE18_H
+
+/* Define to 1 if you have the <libguile.h> header file. */
+#cmakedefine HAVE_LIBGUILE_H
+
+#if defined(SCRIPT_SCHEME)
+
+#if defined(HAVE_LIBGUILE18_H)
+#include <libguile18.h>
+#elif defined(HAVE_LIBGUILE_H)
+#include <libguile.h>
+#else
+#error "No suitable guile header"
+#endif
+
+#if (SCM_MAJOR_VERSION == 2 && SCM_MINOR_VERSION >= 2) || SCM_MAJOR_VERSION > 2
+#undef scm_sizet
+#define scm_sizet size_t
+#define SCM_STRINGP scm_is_string
+#define SCM_INUMP SCM_I_INUMP
+#define SCM_INUM  SCM_I_INUM
+#define SCM_VECTORP SCM_I_IS_VECTOR
+#define SCM_LENGTH SCM_I_VECTOR_LENGTH
+#define SCM_VELTS SCM_I_VECTOR_ELTS
+#define SCM_REAL SCM_REAL_VALUE
+#define scm_num2dbl(A,B) SCM_REAL_VALUE(A)
+#endif
+
+#endif
+
+#endif

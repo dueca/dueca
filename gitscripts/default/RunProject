@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# This is a script for starting the project @project@ on all computers
+# needed for platform @platform@. Create a symbolic link to this
+# script under ~/scripts, so that the lab control interface program
+# can incorporate start and stop your simulation. Adjust where needed
+
+RSHL=ssh
+RSHQ=rsh
+MAINDIR=dapps/@project@/@project@/run/@platform@
+
+# All nodes running this platform, except node no 0, and the timing
+# master node.
+NODES="@othernodes@"
+
+# Timing master node
+MASTERNODE="@masternode@"
+
+# Node zero, here the DUECA interface will show up, usually experiment
+# control station (srsecs or dutmms1)
+ZERONODE="@zeronode@"
+
+# Nodes where an X server needs to be started; this is an e-grep expression
+XNODES="@xnodes@"
+
+# If applicable, additional options for starting the X server, given per
+# node, an example (replace <node> by the node name, and use proper options)
+# <node>_XOPTS=":0 -config xorg.conf-dualserver -layout sides -nolisten tcp -novtswitch"
+
+# if applicable, additional instructions for cleaning after a run, given
+# per node, an example:
+# <node>_CLEANMORE="pgrep Xorg && pgrep Xorg | xargs sudo kill -9"
+
+# Nodes where just a shell needs to be started; e-grep expression
+LNODES="@lnodes@"
+
+# Beyond this point, you should not have to modify anything
+# check the GenericStart help for additional options
+source `dueca-config --path-datafiles`/data/GenericStart

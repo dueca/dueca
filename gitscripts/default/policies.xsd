@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   targetNamespace="https://dueca.tudelft.nl"
+	   xmlns="https://dueca.tudelft.nl"
+	   elementFormDefault="qualified">
+
+  <xs:element name="policies">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="policy" type="policy_t"
+		    minOccurs="0" maxOccurs="unbounded"/>
+	<xs:element name="policyfile" type="xs:string"
+	            minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="policy_t">
+    <xs:sequence>
+      <xs:element name="description" type="xs:string"
+		  minOccurs="0" maxOccurs="1"/>
+      <xs:element name="condition" type="condition_t"/>
+      <xs:element name="action" type="action_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="condition_t">
+    <xs:sequence>
+      <xs:element name="param" type="param_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="condition" type="condition_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="action_t">
+    <xs:sequence>
+      <xs:element name="param" type="param_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="param_t">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+	<xs:attribute name="name" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,264 @@
+/* ------------------------------------------------------------------   */
+/*      item            : DAtomics.hxx.in
+        made by         : Rene van Paassen
+        date            : 141109
+        category        : header file
+        description     : atomic functions wrapper
+        changes         : 141109 first version
+        language        : C++
+        copyright       : (c) 2016 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+#ifndef DAtomics_hxx
+#define DAtomics_hxx
+
+#cmakedefine USE_ATOMIC
+
+#if defined(USE_ATOMIC)
+#include <atomic>
+
+// portable, with std::atomic
+
+template<typename XX>
+struct atom_type
+{
+  typedef std::atomic<XX> type;
+};
+
+template<typename I32>
+inline I32 atomic_decrement32(typename std::atomic<I32>& mem)
+{
+  return std::atomic_fetch_sub(&mem, I32(1)) - I32(1);
+}
+
+template<typename I32>
+inline I32 atomic_increment32(typename std::atomic<I32>& mem)
+{
+  return std::atomic_fetch_add(&mem, I32(1)) + I32(1);
+}
+
+template<typename I64>
+inline bool atomic_swap64(std::atomic<I64>* mem, I64 currentval, I64 nextval)
+{
+  return std::atomic_compare_exchange_strong(mem, &currentval, nextval);
+}
+
+template<typename I64>
+inline I64 atomic_access(std::atomic<I64>& mem)
+{
+  return mem.load();
+}
+
+template<typename I64>
+inline I64 atomic_access(const std::atomic<I64>& mem)
+{
+  return mem.load();
+}
+
+template<typename I32>
+inline bool atomic_swap32(std::atomic<I32>* mem, I32 currentval, I32 nextval)
+{
+  return std::atomic_compare_exchange_strong(mem, &currentval, nextval);
+}
+
+template<typename I64>
+inline I64 atomic_increment64(typename std::atomic<I64>& mem)
+{
+  return std::atomic_fetch_add(&mem, I64(1)) + I64(1);
+}
+
+template<typename I64>
+inline I64 atomic_decrement64(typename std::atomic<I64>& mem)
+{
+  return std::atomic_fetch_sub(&mem, I64(1)) - I64(1);
+}
+
+template<typename I32>
+inline I32 atomic_add32(typename std::atomic<I32>& mem, I32 n)
+{
+  return std::atomic_fetch_add(&mem, n) + I32(n);
+}
+
+#else
+
+// classic, no atomic, type for compatibility atomic
+template<typename XX>
+struct atom_type
+{
+  typedef XX type;
+};
+
+template<typename I64>
+inline I64 atomic_access(I64& mem)
+{
+  return mem;
+}
+
+#ifdef __APPLE__
+
+#warning "classic atomics MAC OSX"
+#include <libkern/OSAtomic.h>
+
+template<typename I64p, typename I64>
+inline bool atomic_swap64(I64p mem, I64 currentval, I64 nextval)
+{
+  return OSAtomicCompareAndSwapPtrBarrier
+    (currentval, nextval, reinterpret_cast<void*volatile*>(mem));
+}
+
+template<typename I32p, typename I32>
+inline bool atomic_swap32(I32p mem, I32 currentval, I32 nextval)
+{
+  return OSAtomicCompareAndSwap32Barrier
+    (currentval, nextval, reinterpret_cast<volatile int32_t*>(mem));
+}
+
+template<typename I32>
+inline I32 atomic_increment32(I32* mem)
+{
+  return OSAtomicIncrement32(mem);
+}
+
+template<typename I64>
+inline I64 atomic_increment64(I64& mem)
+{
+  return OSAtomicIncrement64(reinterpret_cast<volatile long long *>(&mem));
+}
+
+template<typename I32>
+inline I32 atomic_decrement32(I32& mem)
+{
+  return OSAtomicDecrement32(reinterpret_cast<volatile int32_t*>(&mem));
+}
+
+template<typename I64>
+inline I64 atomic_decrement64(I64& mem)
+{
+  return OSAtomicDecrement64(reinterpret_cast<volatile long long *>(&mem));
+}
+
+template<typename I32>
+inline I32 atomic_increment32(I32& mem)
+{
+  return OSAtomicIncrement32(reinterpret_cast<volatile int32_t*>(&mem));
+}
+
+template<typename I32>
+inline I32 atomic_add32(I32& mem, I32 n)
+{
+  return OSAtomicAdd32Barrier(n, reinterpret_cast<volatile int32_t*>(&mem));
+}
+
+#else
+
+template<typename I64p, typename I64>
+inline bool atomic_swap64(I64p mem, I64 currentval, I64 nextval)
+{
+  return __sync_bool_compare_and_swap(mem, currentval, nextval);
+}
+
+template<typename I32p, typename I32>
+inline bool atomic_swap32(I32p mem, I32 currentval, I32 nextval)
+{
+  return __sync_bool_compare_and_swap(mem, currentval, nextval);
+}
+
+#if (__GNUC__ <= 4) && (__GNUC_MINOR__ <= 3)
+// a special section for the old stuff on SLES 11
+#warning "older gcc (4.3 or lower), alternative atomic increments/decrements"
+
+template<typename I64>
+inline I64 atomic_increment64(I64& mem)
+{
+  I64 curval = mem;
+  while (!atomic_swap64(&mem, curval, curval+1)) {
+    curval = mem;
+  }
+  return curval + 1;
+}
+
+template<typename I64>
+inline I64 atomic_decrement64(I64& mem)
+{
+  I64 curval = mem;
+  while (!atomic_swap64(&mem, curval, curval-1)) {
+    curval = mem;
+  }
+  return curval - 1;
+}
+
+template<typename I32>
+inline I32 atomic_add32(I32& mem, I32 n)
+{
+  I32 curval = mem;
+  while (!atomic_swap64(&mem, curval, curval+n)) {
+    curval = mem;
+  }
+  return curval + n;
+}
+
+template<typename I32>
+inline I32 atomic_increment32(I32& mem)
+{
+  I32 curval = mem;
+  while (!atomic_swap32(&mem, curval, curval+1)) {
+    curval = mem;
+  }
+  return curval + 1;
+}
+
+template<typename I32>
+inline I32 atomic_decrement32(I32& mem)
+{
+  I32 curval = mem;
+  while (!atomic_swap32(&mem, curval, curval-1)) {
+    curval = mem;
+  }
+  return curval - 1;
+}
+
+#else
+
+template<typename I64>
+inline I64 atomic_increment64(I64& mem)
+{
+  return __atomic_add_fetch(&mem, I64(1), __ATOMIC_CONSUME);
+}
+
+template<typename I64>
+inline I64 atomic_decrement64(I64& mem)
+{
+  return __atomic_sub_fetch(&mem, I64(1), __ATOMIC_CONSUME);
+}
+
+template<typename I32>
+inline I32 atomic_add32(I32& mem, I32 n)
+{
+  return __atomic_add_fetch(&mem, n, __ATOMIC_CONSUME);
+}
+
+template<typename I32>
+inline I32 atomic_increment32(I32& mem)
+{
+  return __atomic_add_fetch(&mem, I32(1), __ATOMIC_CONSUME);
+}
+
+template<typename I32>
+inline I32 atomic_decrement32(I32& mem)
+{
+  return __atomic_sub_fetch(&mem, I32(1), __ATOMIC_CONSUME);
+}
+
+// new gnu
+#endif
+
+// not apple
+#endif
+
+// not atomics
+#endif
+
+// header guard
+#endif

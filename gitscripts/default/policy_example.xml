@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+    Example file with some try-out definitions for policy editing.
+
+-->
+<policies xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl policies.xsd">
+  <policy name="replace-worldview-dco-motion" id="21-001">
+    <description>
+      While WorldView is a commonly-used module, it relies on DCO objects
+      from WorldListener; it is more efficient to move this to WorldView
+    </description>
+    <condition type="uses-dco">
+      <param name="dco">
+        BaseObjectMotion
+      </param>
+      <param name="project">
+	WorldListener
+      </param>
+      <param name="resultvar">
+	dcolist
+      </param>
+    </condition>
+    <action type="change-dco">
+      <param name="old_dco">
+	BaseObjectMotion
+      </param>
+      <param name="old_project">
+	WorldListener
+      </param>
+      <param name="new_dco">
+	BaseObjectMotion
+      </param>
+      <param name="new_project">
+	WorldView
+      </param>
+      <param name="inputvar">
+	dcolist
+      </param>
+    </action>
+  </policy>
+  <policy name="replace-worldview-dco-position" id="21-002">
+    <description>
+      While WorldView is a commonly-used module, it relies on DCO objects
+      from WorldListener; it is more efficient to move this to WorldView
+    </description>
+    <condition type="uses-dco">
+      <param name="dco">
+        BaseObjectPosition
+      </param>
+      <param name="project">
+	WorldListener
+      </param>
+      <param name="resultvar">
+	dcolist
+      </param>
+    </condition>
+    <action type="change-dco">
+      <param name="old_dco">
+	BaseObjectPosition
+      </param>
+      <param name="old_project">
+	WorldListener
+      </param>
+      <param name="new_dco">
+	BaseObjectPosition
+      </param>
+      <param name="new_project">
+	WorldView
+      </param>
+      <param name="inputvar">
+	dcolist
+      </param>
+    </action>
+  </policy>
+  <policy name="add-worldview-dco-position" id="21-003">
+    <description>
+      Old WorldView had ObjectMotion objects that did not inherit. Later
+      these objects inherited from BaseObjectPosition and BaseObjectMotion.
+      Add the relevant parents if not found in the comm-objects.lst
+    </description>
+    <condition type="and">
+      <condition type="uses-dco">
+	<param name="dco">
+          ObjectMotion
+	</param>
+	<param name="project">
+	  WorldView
+	</param>
+	<param name="resultvar">
+	  dcolist
+	</param>
+      </condition>
+      <condition type="not">
+	<condition type="and">
+	  <condition type="uses-dco">
+	    <param name="dco">
+              BaseObjectMotion
+	    </param>
+	    <param name="project">
+	      WorldView
+	    </param>
+	  </condition>
+	  <condition type="uses-dco">
+	    <param name="dco">
+              BaseObjectPosition
+	    </param>
+	    <param name="project">
+	      WorldView
+	    </param>
+	  </condition>
+	</condition>
+      </condition>
+    </condition>
+    <action type="change-dco">
+      <param name="new_dco">
+	BaseObjectPosition
+      </param>
+      <param name="new_project">
+	WorldView
+      </param>
+      <param name="inputvar">
+	dcolist
+      </param>
+    </action>
+    <action type="change-dco">
+      <param name="new_dco">
+	BaseObjectMotion
+      </param>
+      <param name="new_project">
+	WorldView
+      </param>
+      <param name="inputvar">
+	dcolist
+      </param>
+    </action>
+  </policy>
+
+  <policy name="add-worldview-specbase" id="21-004">
+    <condition type="and">
+      <condition type="or">
+	<param name="resultvar">
+	  modlist
+	</param>
+	<param name="inputvar">
+	  modlist1,modlist2
+	</param>
+	<condition type="has-module">
+	  <param name="project">
+	    WorldView
+	  </param>
+	  <param name="module">
+	    WorldView
+	  </param>
+	  <param name="resultvar">
+	    modlist1
+	  </param>
+	</condition>
+	<condition type="has-module">
+	  <param name="project">
+	    WorldListener
+	  </param>
+	  <param name="module">
+	    WorldListener
+	  </param>
+	  <param name="resultvar">
+	    modlist2
+	  </param>
+	</condition>
+      </condition>
+      <condition type="not">
+	<condition type="has-module">
+	  <param name="project">
+	    WorldView
+	  </param>
+	  <param name="module">
+	    SpecificationBase
+	  </param>
+	</condition>
+      </condition>
+    </condition>
+    <action type="change-module">
+      <param name="new_project">
+	WorldView
+      </param>
+      <param name="new_module">
+	SpecificationBase
+      </param>
+      <param name="inputvar">
+	modlist
+      </param>
+    </action>
+  </policy>
+</policies>

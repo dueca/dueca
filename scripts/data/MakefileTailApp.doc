@@ -1,0 +1,43 @@
+This is the main directory ('project directory') of a DUECA
+application. The various sub directories are:
+
+  - comm-objects: a directory with "communication objects",
+    definitions of classes that can be used to transport information
+    between different DUECA modules
+  
+  - run: a directory with configuration data for running this
+    application on different platforms. 
+
+  - All other directories are (or should be) directories with DUECA
+    modules. 
+
+The various targets of this Makefile:
+
+  clean     : normal cleaning (remove .o files)
+
+  mrproper  : super cleaning, remove everything automatically
+              generated
+ 
+  doc       : generate documentation for the modules, for all module and
+              the comm-objects directory "html" subdirs are generated
+
+  depend    : calculate dependencies and generate automatically
+              generated code
+
+  all       : create application executable
+
+  help      : generate this message
+
+You will see just a small piece of this Makefile in your
+directory. This piece can be tailored, specifically:
+
+DCOMPONENTS : list the flags that determine your choice of dueca core
+	      components, check the dueca-config script for options
+
+COMMON_INCLUDES : common include flag and header files for all modules
+
+EXTRALIBS   : provide additional libraries for linking.
+
+EXTRALIBS2  : additional libraries that are linked *after* standard
+              dueca libraries
+	

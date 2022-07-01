@@ -1,0 +1,41 @@
+;; -*-scheme-*-
+(Header "
+        original item   : NetTimingLog.dco
+        made by         : Rene' van Paassen
+        date            : 170205
+        description     : Peer information replicator nodes
+        documentation   : DUECA_API
+        copyright       : (c) 2017-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type uint16_t "#include <inttypes.h>
+#include <dueca/SimTime.hxx>")
+(Type uint32_t "#include <inttypes.h>")
+(Type float)
+(IterableType fixvector<20,uint16_t> "#include <fixvector.hxx>")
+
+;; Timing information on network use
+;;
+;; This provides a histogram view of the network communication time cycle.
+;; Timing is logged for a number of cycles, giving a histogram of times
+(Event NetTimingLog
+
+       (IncludeFile NetTimingLogExtra)
+
+       ;; number of items logged
+       (uint16_t n_points (Default 0))
+
+       ;; maximum in [us]
+       (uint32_t t_max (Default 0))
+
+       ;; estimate for message set-up
+       (float net_permessage)
+
+       ;; estimate for byte transmission time
+       (float net_perbyte)
+
+       ;; standard capacity
+       (fixvector<20,uint16_t> times (Default 0))
+)
+

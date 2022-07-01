@@ -1,0 +1,257 @@
+<?xml version="1.0" standalone="no"?> <!--*- mode: nxml -*-->
+<!DOCTYPE glade-interface SYSTEM "http://glade.gnome.org/glade-2.0.dtd" >
+
+<glade-interface>
+  <widget class="GtkWindow" id="trimcalc_window">
+    <property name="title" translatable="yes">Trim calculation</property>
+    <property name="type">GTK_WINDOW_TOPLEVEL</property>
+    <property name="modal">no</property>
+    <property name="allow_shrink">no</property>
+    <property name="allow_grow">yes</property>
+    <property name="window-position">GTK_WIN_POS_NONE</property>
+    <property name="visible">yes</property>
+
+    <child>
+      <widget class="GtkHBox" id="hbox2">
+        <property name="homogeneous">no</property>
+        <property name="spacing">0</property>
+        <property name="visible">yes</property>
+
+        <child>
+          <widget class="GtkScrolledWindow" id="scrolledwindow3">
+            <property name="hscrollbar_policy">GTK_POLICY_ALWAYS</property>
+            <property name="vscrollbar_policy">GTK_POLICY_ALWAYS</property>
+            <property name="shadow_type">GTK_SHADOW_IN</property>
+            <property name="width-request">420</property>
+            <property name="visible">yes</property>
+
+            <child>
+              <widget class="GtkTreeView" id="trim_tree">
+                <property name="can_focus">yes</property>
+                <property name="headers-visible">yes</property>
+                <property name="width-request">170</property>
+                <property name="height-request">150</property>
+                <property name="visible">yes</property>
+
+                <signal name="tree_select_row" handler="on_trim_tree_tree_select_row" />
+                <signal name="tree_unselect_row" handler="on_trim_tree_tree_unselect_row" />
+
+                <child>
+                  <widget class="GtkLabel" id="label30">
+                    <property name="child_name">CTree:title</property>
+                    <property name="label" translatable="yes">variable</property>
+                    <property name="justify">GTK_JUSTIFY_CENTER</property>
+                    <property name="wrap">no</property>
+                    <property name="xalign">0.5</property>
+                    <property name="yalign">0.5</property>
+                    <property name="xpad">0</property>
+                    <property name="ypad">0</property>
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+
+                <child>
+                  <widget class="GtkLabel" id="label31">
+                    <property name="child_name">CTree:title</property>
+                    <property name="label" translatable="yes">role</property>
+                    <property name="justify">GTK_JUSTIFY_CENTER</property>
+                    <property name="wrap">no</property>
+                    <property name="xalign">0.5</property>
+                    <property name="yalign">0.5</property>
+                    <property name="xpad">0</property>
+                    <property name="ypad">0</property>
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+
+                <child>
+                  <widget class="GtkLabel" id="label32">
+                    <property name="child_name">CTree:title</property>
+                    <property name="label" translatable="yes">value</property>
+                    <property name="justify">GTK_JUSTIFY_CENTER</property>
+                    <property name="wrap">no</property>
+                    <property name="xalign">0.5</property>
+                    <property name="yalign">0.5</property>
+                    <property name="xpad">0</property>
+                    <property name="ypad">0</property>
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+
+                <child>
+                  <widget class="GtkLabel" id="label34">
+                    <property name="child_name">CTree:title</property>
+                    <property name="label" translatable="yes">control</property>
+                    <property name="justify">GTK_JUSTIFY_CENTER</property>
+                    <property name="wrap">no</property>
+                    <property name="xalign">0.5</property>
+                    <property name="yalign">0.5</property>
+                    <property name="xpad">0</property>
+                    <property name="ypad">0</property>
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+
+            <child internal-child="hscrollbar">
+              <widget class="GtkHScrollbar" id="convertwidget1">
+                <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
+                <property name="visible">yes</property>
+              </widget>
+            </child>
+
+            <child internal-child="vscrollbar">
+              <widget class="GtkVScrollbar" id="convertwidget2">
+                <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
+                <property name="visible">yes</property>
+              </widget>
+            </child>
+          </widget>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">yes</property>
+            <property name="fill">yes</property>
+          </packing>
+        </child>
+
+        <child>
+          <widget class="GtkVBox" id="vbox5">
+            <property name="homogeneous">no</property>
+            <property name="spacing">0</property>
+            <property name="visible">yes</property>
+
+            <child>
+              <widget class="GtkLabel" id="label33">
+                <property name="label" translatable="yes">mode</property>
+                <property name="justify">GTK_JUSTIFY_CENTER</property>
+                <property name="wrap">no</property>
+                <property name="xalign">0.5</property>
+                <property name="yalign">0.5</property>
+                <property name="xpad">0</property>
+                <property name="ypad">0</property>
+                <property name="visible">yes</property>
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+
+            <child>
+              <widget class="GtkOptionMenu" id="trim_mode">
+                <property name="can_focus">yes</property>
+                <property name="history">0</property>
+                <property name="visible">yes</property>
+
+                <signal name="clicked" handler="on_trim_mode_clicked" />
+
+                <child internal-child="menu">
+                  <widget class="GtkMenu" id="convertwidget3">
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+
+            <child>
+              <widget class="GtkButton" id="trim_calculate">
+                <property name="can_focus">yes</property>
+                <property name="label" translatable="yes">calculate</property>
+                <property name="relief">GTK_RELIEF_NORMAL</property>
+                <property name="visible">yes</property>
+
+                <signal name="clicked" handler="on_trim_calculate_clicked" />
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+
+            <child>
+              <widget class="GtkButton" id="trim_cancel">
+                <property name="can_focus">yes</property>
+                <property name="label" translatable="yes">cancel</property>
+                <property name="relief">GTK_RELIEF_NORMAL</property>
+                <property name="visible">yes</property>
+
+                <signal name="clicked" handler="on_trim_cancel_clicked" />
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+
+            <child>
+              <widget class="GtkLabel" id="trim_status">
+                <property name="label" translatable="yes">status</property>
+                <property name="justify">GTK_JUSTIFY_CENTER</property>
+                <property name="wrap">no</property>
+                <property name="xalign">0.5</property>
+                <property name="yalign">0.5</property>
+                <property name="xpad">0</property>
+                <property name="ypad">0</property>
+                <property name="visible">yes</property>
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+
+            <child>
+              <widget class="GtkSpinButton" id="trim_entry_field">
+                <property name="can_focus">yes</property>
+                <property name="climb_rate">1</property>
+                <property name="digits">0</property>
+                <property name="numeric">yes</property>
+                <property name="update_policy">GTK_UPDATE_ALWAYS</property>
+                <property name="wrap">no</property>
+                <property name="snap_to_ticks">no</property>
+                <property name="visible">yes</property>
+                <property name="adjustment">1 0 100 1 10 10</property>
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+
+            <child>
+              <widget class="GtkButton" id="button1">
+                <property name="can_focus">yes</property>
+                <property name="label" translatable="yes">close</property>
+                <property name="relief">GTK_RELIEF_NORMAL</property>
+                <property name="visible">yes</property>
+
+                <signal name="clicked" handler="on_trim_closewindow_clicked" />
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">yes</property>
+            <property name="fill">yes</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+</glade-interface>

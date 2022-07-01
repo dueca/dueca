@@ -1,0 +1,62 @@
+/** \page executable Building an executable
+
+Making the actual programs
+
+\section exe_intro What is in a DUECA executable
+
+In the end, we want to run a simulation, in real-time on a slew of
+different computers. What is needed is a program that does the
+simulation. Now the previous sections explained how to set up a data
+flow diagram for a simulation, and how to implement modules in
+DUECA/DUSIME. What remains to be done is the creation of some sort of
+"main program", or in fact several main programs, one for each node,
+and combining all modules into executables for each of these nodes.
+
+In DUECA, these two steps are needed, but they are done in reverse
+order. First we "throw together" all modules and the code from the
+DUECA library, and in a second step the "main" program is made. This
+main routine is not in C++, but in scheme, and it is the script that
+describes the construction of the simulation model.
+
+\section exe_modules Organising modules
+
+In a first step, it helps to get your modules together. Consider
+the MMSLabStick module of the example. This module depends on some IO
+code to communicate with the A/D and D/A conversion cards that drive
+the stick hardware, it uses a class that is not a module
+(the PassiveManipulator class, not further elaborated here) that does
+the model calculations, and all this is combined in the MMSLabStick
+module, which does the interfacing with DUECA, calls the stick IO and
+calls the PassiveManipulator class to do the simulation.
+
+No I recommend (but you may disagree here, and provide your own
+solution), to keep all code for a module in a single directory, and,
+in an intermediate step, link an object file with all this code. A
+template \ref module_make "Makefile" for making a module object file
+can be found in the DUECA distribution. Now, when everything works,
+typing "make" in that directory gives you a file "module.o" with all
+code for the module in it.
+
+\section exe_program Organising an application
+
+The next step is combining all your module.o files and the
+DUECA/DUSIME library code into an executable file. My proposal is
+again to create a directory for the program, and make the directories
+for the modules all sub-directories for this directory. The template
+\ref exe_make "Makefile" for making a DUECA executable can be found in
+the DUECA distribution. Now, when everything works, typing "make" in
+that directory gives you an executable "dueca_run.x".
+
+The peculiar thing about DUECA is that the executable is just a
+collection of modules. Running the executable, without providing
+additional data, cannot produce sensible output. Two configuration
+scripts, described in the Section
+\ref configure "on configuration files"
+determine the behaviour of your executable. The first one
+"dueca.cnf" describes how the executable in a node should interact
+with the executables in other nodes, and the second one, "dueca.mod"
+describes the composition of the simulation.
+
+*/
+
+

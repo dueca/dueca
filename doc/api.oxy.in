@@ -1,0 +1,97 @@
+INPUT = mainpage-api.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/appdevelopment.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/set-up.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/minitut.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/keyconcept.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/dusime.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/quickstart.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/example.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/executable.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/exe_make.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/module_make.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/configuration.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/simulink.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/matlabcoder.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/codegenerator.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/extra.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/primarycontrols.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/faq.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/configuration-ref.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/gladeinterfaces.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/example/PulsedBody.hxx \
+        @CMAKE_BINARY_DIR@/dueca/SimStateRequest.hxx \
+        @CMAKE_CURRENT_SOURCE_DIR@/default-modules.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/tuning-linux.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/macosx.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/dueca-2.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/interconnect.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/hdf5logging.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/servicefunctor.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/bugs.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/configurationpy.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/pyscript.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/outputanalysis.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/json.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/plotting.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/time-trigger-schedule.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/websock.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/logmessages.doc \
+        @CMAKE_CURRENT_BINARY_DIR@/dueca-messagelist.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/other-software.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/cmake_hints.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/xml.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/policies.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/appdevelopmentg.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/repository.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/using-git.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/simplesimulation.md \
+        @apifiles@
+
+INCLUDE_PATH=@CMAKE_SOURCE_DIR@/dueca \
+             @CMAKE_SOURCE_DIR@/dusime \
+             @CMAKE_SOURCE_DIR@/inter \
+             @CMAKE_SOURCE_DIR@/udpcom \
+             @CMAKE_SOURCE_DIR@/websock \
+             @CMAKE_SOURCE_DIR@/hdf5utils \
+             @CMAKE_BINARY_DIR@/dueca \
+             @CMAKE_BINARY_DIR@/dusime \
+             @CMAKE_BINARY_DIR@/inter \
+             @CMAKE_BINARY_DIR@/udpcom \
+             @CMAKE_BINARY_DIR@/websock \
+             @CMAKE_BINARY_DIR@/hdf5utils \
+
+# EXTRACT_ALL = yes
+OUTPUT_DIRECTORY = @CMAKE_CURRENT_BINARY_DIR@/api
+PROJECT_NAME = "DUECA/DUSIME"
+# LATEX_HEADER = "header-api.tex"
+HTML_FOOTER = "htfoot-api.html"
+EXTRA_PACKAGES = amsmath
+EXAMPLE_PATH = @CMAKE_CURRENT_SOURCE_DIR@/example \
+               @CMAKE_CURRENT_BINARY_DIR@/example .
+#PDF_HYPERLINKS = yes
+GENERATE_LATEX = NO
+USE_MATHJAX = YES
+BRIEF_MEMBER_DESC = YES
+JAVADOC_AUTOBRIEF = YES
+GENERATE_RTF = NO
+GENERATE_MAN = NO
+HAVE_DOT=YES
+IMAGE_PATH = @CMAKE_CURRENT_SOURCE_DIR@/images \
+             @CMAKE_CURRENT_BINARY_DIR@/images \
+             @CMAKE_CURRENT_SOURCE_DIR@/simpsim
+ENABLE_PREPROCESSING = YES
+MACRO_EXPANSION = YES
+EXPAND_ONLY_PREDEF = YES
+PREDEFINED = SCM_FEATURES_DEF= \
+           DUECA_DEPRECATED(A)=
+EXPAND_AS_DEFINED = SHARED_MEM_COMM BUILD_DMODULES USE_GTK \
+        CCDUECA_NS DUECA_NS DUECA_NS_START DUECA_NS_END \
+        WEBSOCK_NS_START WEBSOCK_NS_END \
+        STARTHDF5LOG ENDHDF5LOG \
+        PRINT_NS_START PRINT_NS_END \
+        MSGPACKUS_NS_START MSGPACKUS_NS_END CCMSGPACKUS_NS \
+        DDFF_START DDFF_END
+SORT_MEMBER_DOCS = NO
+SHOW_INCLUDE_FILES = NO
+VERBATIM_HEADERS = NO
+DISTRIBUTE_GROUP_DOC = YES

@@ -1,0 +1,198 @@
+// -*-c++-*-
+
+/** @page pyscript Python script extensions
+
+    Since March 2018, DUECA has been extended with the option to use
+    Python as a scripting language for defining this DUECA set-up
+    (dueca_cnf.py) and the DUECA simulation or model
+    (dueca_mod.py). In addition to scripting your configuration, you
+    can also use python from a running simulation. Of course, there
+    are limitations, since the python code might not run strictly
+    real-time. However, parts with less stringent timing constraints,
+    like a plot of some of your signals, can now be programmed in
+    Python.
+
+    @section pyscript_iface Interfacing a module with the Python interpreter.
+
+    To read the dueca_cnf.py and dueca_mod.py scripts, DUECA starts a
+    Python interpreter from C++. Before that interpreter can be
+    started, all C++ classes and functions that can be created or
+    called from Python are exposed to the interpreter in an
+    initialization cycle. This cycle adds the `dueca` namespace and
+    all relevant classes. User defined modules can also use the
+    interpreter to run pieces of Python code, and can offer classes
+    and interfaces to be run in the initialization phase.
+
+    Modules in DUECA are all of type "Module" internally. They are
+    created based on the name of the module, and Python actually does
+    not differentiate between different "Module" objects, they all
+    look the same to Python. We need to be able to expose some module
+    data to the python script, and for that we need to explain to
+    python that our module has a certain accessible data class. The
+    DUECA interface to Python is based on boost::python, so we need
+    the boost:python headers. In the example we also use
+    boost::python::numpy, this is also added to the includes. Modify
+    your header file to include:
+
+    @code{.cxx}
+    #include <boost/python.hpp>
+    #include <boost/python/numpy.hpp>
+    namespace bpy = boost::python;
+    namespace np = boost::python::numpy;
+    @endcode
+
+    In this example we will expose a few arrays as numpy arrays to
+    Python.  To keep things flexible, we will put the numpy arrays in
+    a Python dictionary (dict). Let's assume your new module is called
+    "MyModule". Then we declare this python dictionary (on the C++
+    side) as a publicly accessible member of the MyModule class. In
+    your class declaration, include something like:
+
+    @code{.cxx}
+    public:
+      /// python dict, works only when using python script interface
+      bpy::dict data_dict;
+    private:
+
+      /// vectors with time and data?
+      double data_time[100];
+      double data_sine[100];
+    @endcode
+
+    @section pyscript_class Defining a Python class for your module type.
+
+    The MyModule instances are created in the normal fashion. However, we
+    will explain to Python that the MyModule class exists, and that it has
+    a data member called "data", which we will link to the data_dict we
+    defined above.
+
+    A bit of python glue code is needed to expose the module class
+    to Python, here is an example, put it somewhere in your
+    MyModule.cxx file:
+
+    @code{.cxx}
+    // this only works on Python scripting
+    #if defined(SCRIPT_PYTHON)
+
+    // this contains the interface to the scripting language
+    #include <dueca/ScriptInterpret.hxx>
+    #include <boost/shared_ptr.hpp>
+
+    // start function for declaring Python interface
+    static void startfunc()
+    {
+      // this example also uses numpy, so initialize that too
+      np::initialize();
+
+      // create a data class for this type of module. We do not need a
+      // constructor, since the module will be created as a normal
+      // module in Python; bpy::no_init prevents creating a Python-side
+      // constructor
+      bpy::class_<MyModule,
+                  boost::shared_ptr<MyModule>,
+                  boost::noncopyable >("MyModule", bpy::no_init)
+
+      // in this example we expose a python dictionary to Python
+      // created in the module, define it as a property of the MyModule
+      // class
+      .def_readonly("data", MyModule::data_dict);
+    }
+
+    // the start function code needs to be called when the rest of the
+    // DUECA python code is created. The following does the trick
+    static AddInitFunction addit(startfunc);
+
+    // end of Python-only code
+    #endif
+    @endcode
+
+    This glue code explains to the Python scripting that there is a
+    MyModule class, and that it has a "data" member. The
+    AddInitFunction object ensures that the start function is available
+    to the python interpreter; after the start of the interpreter
+    startfunc will be called.
+
+    @section pyscript_object Showing the instance to Python
+
+    The next step is some code to show the module instance itself to
+    Python. To do that, we make a Python object that wraps the C++ object,
+    and then -- from the C++ side -- add that object to the Python
+    workspace. This can be done in the Module::complete() method of your
+    module:
+
+    @code{.cxx}
+    bool MyModule::complete()
+    {
+
+    #if defined(SCRIPT_PYTHON)
+      try {
+
+        // import the main python module, and find the python namespace
+        bpy::object main_module = bpy::import("__main__");
+        bpy::object main_namespace = main_module.attr("__dict__");
+
+        // turn myself into a python object, and then add this object
+        // to the namespace. Be careful about the name; we don't want
+        // to overwrite another object that already has that name; here
+        // this name is fixed to "mymodule", but we could make it
+        // configurable
+        bpy::object self(bpy::ptr(this));
+        main_namespace["mymodule"] = self;
+
+        // as an example, make some python variables that will be
+        // found in my dictionary on the Python side
+        // data_time and data_sine are flat C arrays of type double and
+        // hold the data. (An alternative way to get/declare this data
+        // would be to use eigen3 vectors). Using these arrays we make
+        // numpy arrays
+
+        // define shape, stride and datatype of the numpy arrays
+        bpy::tuple shape = bpy::make_tuple(100);
+        bpy::tuple stride = bpy::make_tuple(sizeof(double));
+        np::dtype dt = np::dtype::get_builtin<double>();
+
+        // create the two arrays, set the module as owner
+        np::ndarray np_time = np::from_data(data_time, dt, shape, stride, self);
+        np::ndarray np_sine = np::from_data(data_sine, dt, shape, stride, self);
+
+        // add the arrays to my dict
+        data_dict["time"] = np_time;
+        data_dict["sine"] = np_sine;
+      }
+      catch(const bpy::error_already_set& e) {
+        PyErr_Print();
+        return false;
+      }
+    #endif
+
+      // rest of complete function
+      return true;
+    }
+    @endcode
+
+    Don't forget that we used the fixed name "mymodule" here. In a real
+    implementation, it would be better to make the python variable name
+    configurable (check ParameterTable).
+
+    @section pyscript_run Running code in Python
+
+    Now we can interact with the Python script, knowing that Python
+    now has an object "mymodule" in its namespace, that refers to this
+    module. You can access the mymodule.data dictionary, and read the
+    "time" and "sine" vectors in there.
+
+    There are several options for letting python run, one option would
+    be to define a python-side function, find it in the main
+    namespace, and call it. The simplest option is to just define and
+    run a piece of python script, for example in your doCalculation
+    method:
+
+    @code
+    ScriptInterpret::single()->runCode("print(mymodule.data)");
+    @endcode
+
+    This prints the data dictionary of the newly created module, using
+    the python-side print function.
+    */
+
+

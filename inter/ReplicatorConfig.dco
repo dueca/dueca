@@ -1,0 +1,84 @@
+;; -*-scheme-*-
+(Header "
+        original item   : ReplicatorConfig.dco
+        made by         : Rene' van Paassen
+        date            : 170205
+        description     : Configuration/Coordination replicator nodes
+        copyright       : (c) 2017-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; defines type of message
+(Enum MessageType uint8_t
+      ;; Configure new slave, data: slave id
+      ConfigureSlave
+      ;; Hook up to preceding, data: slave id of preceding in message chain
+      HookUp
+      ;; Add a channel, data: channel name, channel id
+      AddChannel
+      ;; Add an entry, data: originating slave id, channel id,
+      ;;                     provisional entry id,  entry id, entry name,
+      ;;                     dataclass, datamagic, time aspect,
+      ;;                     arity, packmode, transportclass
+      AddEntry
+      ;; Remove an entry, data: originating slave id, channel id, entry id
+      RemoveEntry
+      ;; Remove a channel, data: channel id,  slave id
+      RemoveChannel
+      ;; Slave leave message, data: slave id
+      DeleteSlave
+      ;; Initial configuration burst complete
+      InitialConfComplete
+      ;; Undefined
+      Undefined
+      )
+
+(Type slave_id_t "#include <inttypes.h>\ntypedef uint16_t slave_id_t;")
+(Type channel_id_t "#include <inttypes.h>\ntypedef uint16_t channel_id_t;")
+(Type entry_id_t "#include <inttypes.h>\ntypedef uint16_t entry_id_t;")
+(Type vstring "#include <stringoptions.h>")
+(Type dueca::Channel::EntryTimeAspect "#include <ChannelDef.hxx>")
+(Type dueca::Channel::EntryArity)
+(Type dueca::Channel::PackingMode)
+(Type dueca::Channel::TransportClass)
+(IterableType classlist_t
+"#include <list>
+#include <stringoptions.h>
+typedef std::list<vstring> classlist_t;")
+(IterableType magiclist_t
+"#include <list>
+#include <inttypes.h>
+typedef std::list<uint32_t> magiclist_t;")
+
+;; Configuration message for replicator coordination.
+(Event ReplicatorConfig
+       (IncludeFile ReplicatorConfigExtra)
+       ;; type of config message
+       (MessageType mtype (DefaultArg Undefined))
+       ;; slave id
+       (slave_id_t slave_id (DefaultArg 0U))
+       ;; channel id
+       (channel_id_t channel_id (DefaultArg 0U))
+       ;; entry id
+       (entry_id_t entry_id (DefaultArg 0U))
+       ;; provisional entry id
+       (entry_id_t tmp_entry_id (DefaultArg 0U))
+       ;; name, either channel or entry
+       (vstring name (DefaultArg ""))
+       ;; time type of data
+       (dueca::Channel::EntryTimeAspect
+        time_aspect (DefaultArg dueca::Channel::AnyTimeAspect))
+       ;; duplicity
+       (dueca::Channel::EntryArity
+        arity (DefaultArg dueca::Channel::ZeroOrMoreEntries))
+       ;; how is data transported within dueca
+       (dueca::Channel::PackingMode
+        packmode (DefaultArg dueca::Channel::OnlyFullPacking))
+       ;; class of transport
+       (dueca::Channel::TransportClass
+        tclass (DefaultArg dueca::Channel::Regular))
+       ;; dataclass, only for entry addition
+       (classlist_t dataclass)
+       ;; magic number for the dataclass, to check compatibility
+       (magiclist_t data_magic)
+       )

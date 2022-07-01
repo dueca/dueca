@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-extra-gtkmm3
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca-extra-gtkmm3${staticsuffix}
+Cflags: -I${dueca_includedir}/extra/gui/gtkmm3
+Requires: dueca-gtkmm3 = ${version}, dueca-extra-gtk3 = ${version}

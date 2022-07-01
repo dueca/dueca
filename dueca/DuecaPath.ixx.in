@@ -1,0 +1,15 @@
+// -*-c++-*-
+/* ------------------------------------------------------------------   */
+/*      item            : DuecaPath.ixx
+        made by         : Rene' van Paassen
+        date            : 010817
+        category        : only the path
+        description     :
+        changes         : 010817 first version
+        language        : C++
+        copyright       : (c) 2013 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+static const char* install_path = "@prefix@/share/dueca";

@@ -1,0 +1,25 @@
+;; -*-scheme-*-
+(Header "
+        item            : EntityConfirm.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Control entity state machine
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type SimulationState "#include <SimulationState.hxx>" )
+(Type TimeTickType "#include <SimTime.hxx>")
+(Type SnapshotState "#include <SnapshotState.hxx>")
+(Type GlobalId "#include <GlobalId.hxx>")
+
+;; EntityConfirm, for status feedback. \todo update this name!
+(Event EntityConfirm
+       ;; confirmation of the current state
+       (SimulationState current_state)
+       ;; state of the snapshot machine
+       (SnapshotState snap_state)
+       ;; time of last running of this module
+       (TimeTickType last_check)
+       ;; origin, sender
+       (GlobalId origin))

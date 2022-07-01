@@ -1,0 +1,335 @@
+// -*-c++-*-
+
+/** \page confref Configuring DUECA from Python or Scheme
+
+Much of the flexibility of DUECA stems from the fact that it has an
+interface to a script language, Python in this case, and that a
+simulation can be specified in a script. The scripting language used
+to be Scheme, but DUECA has grown a Python interface that is more
+flexible and also more popular.
+
+This page describes how to create the "big" dueca permanent objects
+(Environment, Packers, Transporters etc.) from a script, usually the
+dueca_cnf.py script.
+
+If you create a new DUECA project, or add nodes to an existing
+project, the dueca-project script will create dueca_cnf.py and
+dueca_mod.py files for you. Modification of the dueca_cnf.py file is
+usually by editing the variables in the start of the file. In rare
+cases, it is useful to modify the Environment object, with specific
+options for the GL graphics, or with customized priority levels for
+the different activity managers.
+
+If you want to know the options you can supply to the Environment, or
+any other object, carefully inspect the start-up blurp produced by
+DUECA, for example the following piece:
+
+@code
+Adding module (read-multi-stream)
+Adding module (write-multi-stream)
+Adding module (read-stream)
+Adding module (write-stream)
+Adding module (write-unified)
+Adding module (read-unified)
+Adding module (read-events)
+Adding module (write-events)
+Adding module (watch-channel)
+Adding module (poll-events)
+Adding module (test-triggerand)
+Adding module (hdf-log-control)
+Adding module (json-server)
+Adding object (MyBlip)
+Init from     [dueca-shm]
+Adding virt   (Accessor)
+Adding object (ShmAccessor)
+Adding object (ReflectivePacker)
+Adding object (ReflectiveUnpacker)
+Adding object (ReflectiveFillPacker)
+Adding object (ReflectiveFillUnpacker)
+Init from     [dueca-ip]
+Adding object (IPMulticastAccessor)
+Adding object (IPBroadcastAccessor)
+Adding object (IPTwoWay)
+Adding virt   (GenericPacker)
+Adding object (Unpacker)
+Adding object (Packer)
+Adding object (FillUnpacker)
+Adding object (FillPacker)
+Adding object (TransportDelayEstimator)
+Init from     [dueca-dusime]
+Adding module (inco-calculator)
+Adding module (dusime-bare)
+Init from     [dueca-gtk3]
+Adding module (timing-view)
+Adding module (activity-view)
+Adding module (dueca-view)
+Adding module (log-view)
+Adding module (channel-view)
+Adding GUI    "gtk3"
+Init from     [dueca-hdf5]
+Adding module (hdf5-logger)
+Adding module (hdf5-replayer)
+Init from     [dueca-udp]
+Adding object (NetMaster)
+Adding object (NetPeer)
+Init from     [dueca-websock]
+Adding module (web-sockets-server)
+Init from     [dueca-inter]
+Adding module (channel-replicator-master)
+Adding module (channel-replicator-peer)
+Init from     [dueca-dusime-gtk3]
+Adding module (dusime)
+Init from     [dueca-extra]
+Adding module (gl-sweeper)
+Init from     [dueca]
+Adding virt   (ScriptCreatable)
+Adding object (Environment)
+Adding object (PackerSet)
+Adding object (PackerManager)
+Adding object (Ticker)
+Adding object (TimeSpec)
+Adding object (PrioritySpec)
+Adding object (ObjectManager)
+Adding object (ChannelManager)
+Adding GUI    "none"
+@endcode
+
+This is from a test project, with loads of ways to stress-test
+DUECA. The first lines are a bunch of "Adding module"
+statements. These are all the modules in the project itself.
+
+After that, there are "Init from ... " statements. These are from
+different DUECA libraries, adding various modules and objects. As one
+of the last, the objects for starting DUECA are given. All
+configuration options for such an object can be retrieved, if you have
+a DUECA executable. For example, you can type:
+
+@code
+DUECA_SCRIPTINSTRUCTIONS=Environment ./dueca_run.x
+@endcode
+
+This runs the executable with the DUECA_SCRIPTINSTRUCTIONS environment
+variable set. When that is detected, the creation command for the
+given module or object, in this case Environment, is spit out. This is
+the result:
+
+@verbinclude environment.scm
+
+You can see there are some options for depth buffers, stencil buffers,
+gl contexts, etc., however, in most projects these are not needed.
+
+TODO: complete and modernize description
+
+
+There are two ways to provide arguments to the created objects. The
+preferred one for the big objects - especially those with many
+arguments - is to use label and data pairs. The label is given as a
+scheme literal, and one or a number of data items of the proper type
+follow it, for example:
+
+\code
+ (make-environment 'multi-thread      #t
+                   'highest-priority  3
+                   'graphic-interface "glut"
+                   )
+\endcode
+
+You can also give all arguments in a single list, just in the order
+in which they are defined in this file. This is often appropriate for
+smallish, simple objects, such as a priorityspec:
+
+\code
+  (make-priority-spec 2 0)
+\endcode
+
+Currently (version 0.11.27) work has progressed considerably to make
+DUECA script calls self-documented. If you start dueca with the
+environment variable DUECA_SCRIPTINSTRUCTIONS set, then dueca will,
+for those parts that have been converted, spit out the scheme commands
+to create these, e.g. do:
+
+\code
+DUECA_SCRIPTINSTRUCTIONS='' ./dueca_run.x
+\endcode
+
+Note that you do not need dueca.cnf or dueca.mod files to get the
+instructions.  The following sections give a reference for all
+scheme-creatable objects.
+
+\section confref_Environment Environment
+
+The Environment is a basic object in DUECA, and it controls the flow
+of the program. It also creates the ActivityManager objects.
+
+\verbinclude environment.scm
+
+Having no graphical interface is useful on machines that need no
+window interface. Machines with the dueca control windows (node 0),
+need the gtk or gtk2 graphical interface (depending on the options you
+chose for linking). For presenting displays full-screen, glut is often
+best.
+
+\section confref_Ticker Ticker
+
+The Ticker is the basic clock in DUECA. It takes care that real-time
+processes get scheduled at the proper times, and implements the
+"waiting method", to keep the program running at the pace of the
+real-time clock
+
+\verbinclude ticker.scm
+
+Note that the RTAI modes are usually not available.
+
+DUECA keeps an integer time counter, to count the simulation program
+steps. The time step for the tickers in different nodes in a single DUECA
+system may be different, but the integer time counters must all run at
+the same pace. So you may have a 100 Hz (0.01 s time step) clock in
+one node, and specify that the basic increment per time step is 10,
+Each second, the time counter is advanced by 1000 (100 * 10). In
+another node, you might specify a 1000 Hz clock, time step 0.001. Its
+basic increment is then set to 1, to get the same advance in the time
+counter (1000 * 1).
+
+\section confref_PrioritySpec PrioritySpec
+
+A PrioritySpec object defines the priority of a module's activity.
+
+\verbinclude priority-spec.scm
+
+When DUECA runs with multi-threading (see
+\ref confref_Environment "Environment"
+), different activities can be started in parallel. The "priority"
+determines the thread that will handle the activity, and the order
+determines which of the activities with the same priority gets handled
+first.
+
+
+\section confref_Packerset PackerSet
+
+Packers are the components in DUECA that take data from channels that
+has to be transported to another node. They "pack" the data into a
+transportable format, and offer it to the transporter that has a
+communication link with the appropriate node.
+
+A packer set is a combination of three packers, one for low-priority,
+"bulk" data, that will be sent when spare capacity is available, one
+for normal-priority data, that will be sent quickly and efficiently,
+and one for high-priority data. Note that the packer set does not
+always need three truely independent packers, in a simple solution it
+may contain three times the same packer.
+
+You have to create a packer set for each of the other nodes in the
+system. In most cases, the packer sets all looks the same, but in this
+way the flexibility is built in to have different transport mechanisms
+for different priority levels of data and to the different nodes in
+the system.
+
+The command to make a PackerSet is make-packer-set, and its arguments are:
+
+\verbinclude packer-set.scm
+
+Note that you can have all kinds of packers in a PackerSet, as long as
+they are derived from the GenericPacker class.
+
+\section confref_PackerManager PackerManager
+
+The PackerManager maintains a table, one entry for each node, with a
+PackerSet in each entry. If data from a channel has to be sent to
+other nodes, the PackerManager table is consulted to determine which
+Packer(s) are used to route the data so that it is communicated to the
+other node.
+
+\verbinclude packer-manager.scm
+
+The old way of specifying packer sets is with a vector of packer
+sets. Please note that the new method, repeated calls of 'add-set,
+each call for a new packer set, is preferred.
+
+\section confref_TimeSpec PeriodicTimeSpec
+
+\verbinclude time-spec.scm
+
+The time specifications created from the script are in fact
+\em periodic
+time specifications. However, the can be used as a normal time
+specification also.
+
+\section confref_packers Packers and unpackers
+
+These cooperate with the IPBroadcastAccessor, the IPMulticastAccessor
+and the IPTwoWayAccessor.
+
+\verbinclude packer.scm
+
+\verbinclude unpacker.scm
+
+\verbinclude fill-packer.scm
+
+\verbinclude fill-unpacker.scm
+
+\section confref_delayestimator TransportDelayEstimator
+
+The TransportDelayEstimator helps an IP Accessor to estimate
+round-trip and single-trip times for data messages.
+
+\verbinclude transport-delay-estimator.scm
+
+\section confref_reflectivepackers Reflective packers and unpackers
+
+These cooperate with the ScramnetAccessor and the ShmAccessor.
+
+\verbinclude reflective-packer.scm
+
+\verbinclude reflective-unpacker.scm
+
+\verbinclude reflective-fill-packer.scm
+
+\verbinclude reflective-fill-unpacker.scm
+
+\section confref_accessor_udp Accessors to communication media (I)
+
+To connect DUECA nodes together, the modern way is to use a
+DuecaNetMaster in one node and one or more DuecaNetPeer accessors in
+the other nodes. Almost all configuration settings are performed in
+the DuecaNetMaster, message size, frequency, communication
+protocol. The DuecaNetPeer accessors only need information on how to
+connect to the DuecaNetMaster. 
+
+If your simulation set-up uses multiple Ethernet networks, it is
+important to specify which interface you use to connect to the rest of
+the simulation; failing to do so will result in an initial connection,
+because the WebSocket protocol used for initial connection is fairly
+resistant to this, but when the simulation transitions to real-time
+running this leads to communication errors.
+
+\verbinclude dueca-net-master.scm
+
+\verbinclude dueca-net-peer.scm
+
+\section confref_accessor_ip Old Accessors to communication media (II)
+
+
+Several different objects are available to access communication
+with IP protocols, normally over ethernet. For two-way communication,
+so two dueca nodes, the IPTwoWayAccessor is most appropriate. It is
+configured with the ip numbers of the two computers that need to
+communicate.
+
+\verbinclude ip-two-way.scm
+
+If you have more than two computers, the best option, if all computers
+and your network switch support it, is to use multicast for
+communicating between these computers. A multicast address is
+configured, (which must not interfere with other multicast groups). A
+range of IP ports is used, if n computers are communicating, then 2n
+ports are needed. Consider this if you have trouble with firewalls!
+
+\verbinclude ip-multicast-accessor.scm
+
+If for some reason multicast does not work, broadcast can be used.
+
+\verbinclude ip-broadcast-accessor.scm
+
+
+*/
+

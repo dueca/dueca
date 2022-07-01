@@ -1,0 +1,84 @@
+// -*-c++-*-
+
+/** @page plotting Plotting with WebSocket connection
+
+    Since 2020, DUECA has a module for WebSocket connections,
+    dueca::websock::WebSocketsServer. This module may be used for
+    channel data communication between DUECA and web applications, or
+    other applications, for example by using the Python WebSockets
+    libraries. Communication is through JSON encoded messages, with
+    information exchange in the very first message on the structure and
+    type of the data.
+
+    An additional use of this module is to generate live plots from
+    your DUECA channel data. To this end, a web application is
+    available that can be served by the same WebSocket module. The web
+    application enables you to have a view of your data from a
+    connected web browser, configure plots that use your data, and
+    show these plots in your browser. Since normally you would want to
+    have the same set of plots for a certain experiment or simulation,
+    you can also store the data connection and plot configuration in a
+    file, for later re-loading.
+
+    The application is still a bit rough around the edges, any
+    suggestions for improvement will be welcomed.
+
+    @section plotting_setup Setting up the data communication
+
+    To receive channel information over a WebSocket connection, you
+    need to enable the websocket module (--websock to the DCOMPONENTS
+    variable in the main Makefile), and configure which channels need
+    to be exported. The example given here is with python:
+
+    @code{.py}
+        mymods.append(
+           dueca.Module(
+               "web-sockets-server", "", admin_priority).param(
+                   ('info', ("mydata", "MyData://PHLAB")),
+                   ('write-and-read', ("plotconfig",
+                                       "ConfigFileRequest://dueca",
+                                       "ConfigFileData://dueca")),
+                   ('http-port', 8000),
+                   ('document-root', '/usr/share/dueca/dplotter/dist')))
+    @endcode
+
+    The 'info' configurations define endpoints that contain your
+    available channels. The 'write-and-read' endpoint is for storing
+    and retrieving configuration files. A module in the "dueca" entity
+    handles these file actions, add that to the DUECA_mods variable:
+
+    @code{.py}
+        DUECA_mods.append(dueca.Module("config-storage", "", admin_priority))
+    @endcode
+
+    With this, you can start up a browser, and connect to a running DUECA process, on port 8000. That will open a page with four tabs;
+
+    * Info. For indicating which endpoints/channels you want to read
+
+    * Data. Each configured channel may have one or multiple entries,
+      indicate which entries you want to read, and optionally inspect
+      the data.
+
+    * Plots. Create plots here.
+
+    * Config. Save or load configuration files.
+
+    The plots have controls to run, pause, pause&clear, or be
+    edited. Only one plot can be edited at a time. When a plot is
+    edited, lines can be added to the plot on the data page, just add
+    a line with the line button, and then drag variables from the data
+    view to the x or y field. If you drag the channel's tick, this
+    will be converted to time with DUECA's current time granule.
+
+    There is also an option to control the lines in the plot through a
+    run-control channel; this channel has a variable that is 0 for
+    pause, 1 for run, 2 for clearing; drag the runcontrol variable to
+    the reset field; this allows for programmatic control of the
+    plots, for example starting a new line when a new run is made. The
+    eraser can be used to clear lines.
+
+    A standard module, "PlotRunControl/plot-run-control", can be
+    configured to start plots in Advance, and stop and clear them
+    again in HoldCurrent mode.
+
+    */

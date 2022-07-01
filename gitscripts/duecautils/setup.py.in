@@ -1,0 +1,15 @@
+from setuptools import setup
+
+setup(
+    name='duecautils',
+    version='@DUVERSION@',
+    description='Support code for DUECA python scripts',
+    author="Rene van Paassen",
+    author_email="rene.vanpaassen@gmail.com",
+    package_dir = { 'duecautils' : '@CMAKE_CURRENT_SOURCE_DIR@/src' },
+    url = 'https://dueca.tudelft.nl/',
+    packages=["duecautils",
+              "duecautils.actions",
+              "duecautils.conditions",
+              "duecautils.codegen" ]
+)

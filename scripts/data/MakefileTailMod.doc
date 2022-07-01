@@ -1,0 +1,53 @@
+This is a module directory of a DUECA application. This directory
+contains the code to generate a single module. The following files and
+directories are special:
+
+  - module.o (generated), contains the compiled code for this module
+
+  - html (generated), contains the html documentation, generated with
+    doxygen. 
+
+  - images (optional), directory for putting images you would want in
+    the html documentation
+
+  - comm-objects.lst, contains a list of communication objects used by
+    this module. Use this list, do not include communication object
+    header code directly in your files
+
+  - comm-objects.h (generated), header file that references all
+    communication object headers.
+
+The various targets of this Makefile:
+
+  clean     : normal cleaning (remove .o files)
+
+  mrproper  : super cleaning, remove everything automatically
+              generated
+
+  doc       : generate documentation for the modules, for all module and
+              the comm-objects directory "doc" subdirs are generated
+
+  depend    : calculate dependencies and generate automatically
+              generated code
+
+  all       : make the module code
+
+You will see just a small piece of this Makefile in your
+directory. This piece can be tailored, specifically:
+
+EXTRA_INCLUDES : add additional include paths and defines here
+
+The following defines normally need not be changed:
+
+CPPSRC      : all C++ source files in your module. By default, it uses
+              all .cxx files in this directory, so normally you won't have
+              to adjust this
+
+CSRC	    : all C source files in your module, similarly takes all .c
+              files by default
+
+DUECATYPES  : all .dco files in your module. Note that you should keep
+              all .dco files in the comm-objects directory, please do
+              not change this definition unless you really have to,
+              and really know what you are doing.
+

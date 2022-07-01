@@ -1,0 +1,12 @@
+from setuptools import setup
+
+setup(
+    name='pyddff',
+    version='@DDFFVERSION@',
+    description='Modules for reading/writing the ddff file format',
+    author="Rene van Paassen",
+    author_email="rene.vanpaassen@gmail.com",
+    package_dir = { 'pyddff' : '@CMAKE_CURRENT_SOURCE_DIR@/src' },
+    url = 'https://dueca.tudelft.nl/',
+    packages=[ "pyddff" ]
+)

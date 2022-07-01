@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-dusime-gtk3
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir}  -ldueca-dusime-gtk3${staticsuffix}
+Cflags:
+Requires: dueca-gtk3 = ${version}, dueca-dusime = ${version}
+

@@ -1,0 +1,656 @@
+/** \page appdevel Application development with dueca-project
+
+To help in developing and porting an application, there is a standard
+file tree layout for application and a script that helps with the use
+of version control.
+
+\section appdevel_intro Version control and the "dueca-project" script
+
+In the "early years" of dueca, and especially with the first
+experiments on the SIMONA Research Simulator (SRS), it became apparent
+that support in version control and deployment of an application over
+several machines, and in different environments, is an essential part
+of the development environment of DUECA.
+
+To solve these difficulties, a script has been developed that helps
+the application developers on DUECA -- you -- use version control for
+their sources.
+
+
+What is version control, and what can it do for me?
+
+Version control systems record and track all the changes you make to
+your software. A version control system stores a "master copy" of the
+code you are working on in a "repository". The copy in the repository
+contains the software, and its complete history. At each point where
+you work on a program, and decide to "save" your changes to the
+repository, the version control system will update its copy. However,
+it will still remember the old copy, and if ever you need to get it
+back, you can do so by supplying the version control system with the
+date or a version number for the old copy.
+
+We could use a version control system directly, but there were a few
+more wishes on my (and others') wish list for development of DUECA
+applications. There are:
+<ul>
+<li> Easy re-use of developed modules, for example standard modules
+for joystick, SRS control loading, motion filtering and limiting, etc.
+<li> Quicker deployment on platforms such as the SRS and the HMI lab,
+by quicker and easier generation of configuration files.
+<li> Easy continued development on a multi-node
+configuration. Before, if you adapted something of a simulation on
+the SRS, you had to make sure that the changes were copied over to
+your "master copy" of the source.
+<li> A more uniform way of setting up the applications.
+</ul>
+
+To get all that done, I wrote a script called
+"dueca-project". This script enables you to quickly set up an
+application, use the version control system for as much as you need
+it, and it helps in quickly setting up an environment to run DUECA on
+multiple nodes. The examples given in the following description are
+for use of the Control and Simulation server for CVS. If you use
+another CVS server you can adapt the examples to your situation.
+
+\section appdevel_duecaproject What can you do with dueca-project
+
+Before you start, dueca-project needs something from you, namely it
+needs to know where the repository with sources is located. We will
+use the dueca.tudelft.nl as an example (this is the dueca software
+server of the Control and Simulation division). You need to supply the
+"CVS" root, a directory on the dueca.tudelft.nl that contains your source
+repository. Type in (in bash), the following:
+
+\verbatim
+export DAPPS_CVSROOT=:ext:john@dueca.tudelft.nl:/data/dueca-apps/CVS
+\endverbatim
+
+The example assumes that "john" is your user name (netid) on the
+dueca.tudelft.nl.
+
+In the above example, you are using a directory
+"/data/dueca-apps/CVS". This directory is used for serious
+development work, and you will be able to deploy the products
+developed in this directory on the laboratory facilities. If however
+you just want to play or practice a little, it is better to use a
+private repository in your home directory.
+
+\verbatim
+export DAPPS_CVSROOT=/home/john/MyCVS
+\endverbatim
+
+Now DAPPS_CVSROOT points to a directory in your own home
+directory. On most TU Delft computers this is actually a shared directory,
+giving you access to it from all computers. To be able to use it,
+you need to first create and populate this cvs repository with some
+default files by typing:
+
+\verbatim
+makemycvsdir
+\endverbatim
+
+You can still borrow or copy modules from the common cvs repository on
+the dueca.tudelft.nl server. The joystick module is there for example.
+You need to specify the location of this repositories, and any other CVS
+repositories that you might look in to borrow modules:
+
+\verbatim
+export DAPPS_CVSEXTRAROOT=:ext:john@dueca.tudelft.nl:/home/dueca-apps/CVS
+\endverbatim
+
+You still use your own username on the dueca.tudelft.nl, but specify a
+different directory. Talk to the administrator for the dueca.tudelft.nl for
+access rights to this directory. It is also possible to specify more
+than one additional CVS repository, by separating them with commas in
+the DAPPS_CVSEXTRAROOT variable.
+
+The dueca-project script also uses your user name from the environment variable
+"USER". On Linux this is already set, on QNX you have to add it to
+the environment.
+\verbatim
+export USER=john
+\endverbatim
+
+Note that the dueca.tudelft.nl only keeps the repository for you. You do not
+do any development work on that computer, the only time you log in
+there is to set your ssh keys, and possibly to create your own
+playground repository. Note that the repository files on the dueca.tudelft.nl
+(in /home/dueca-apps/CVS) should not be tinkered with. Any attempt to
+do so is for your own risk, you may break your project (bad luck), or
+earn the wrath and ire of others whose project you break (worse).
+
+Let's say you want to start a project called SuperFlyer. From the
+above you now should realise you work on your own PC. Type in:
+
+\verbatim
+dueca-project new SuperFlyer
+\endverbatim
+
+(NOTE: depending on your permissions, you can or cannot make new
+projects. If you cannot, ask one of the "dueca masters", René, André
+or Olaf to make the new project and sign it over to you. Or use your
+own cvs directory)
+
+The script now does the following things:
+<ul>
+<li> It makes a set of directories, as follows:
+\verbatim
+SuperFlyer
+SuperFlyer/SuperFlyer
+SuperFlyer/SuperFlyer/comm-objects
+SuperFlyer/SuperFlyer/run
+SuperFlyer/SuperFlyer/run/solo
+SuperFlyer/SuperFlyer/run/solo/solo
+\endverbatim
+
+The directory SuperFlyer is the "top" directory. All pieces under this
+directory are either parts of your application, or pieces that your
+application borrows from generic applications.
+
+The directory SuperFlyer/SuperFlyer is the "application" directory.
+Its sub-directories are either directories with modules or pieces of
+modules (the comm-objects directory only contains communication
+objects for example), and the "run" directory.
+
+The run directory contains different directories, one for each
+"platform". A platform is an environment in which you run dueca, for
+example the HMI lab, or the SRS. A default platform that is always
+created is "solo", this is the platform for development on a single
+computer.
+
+Each platform directory in turn contains one or more directories named
+after the computers (nodes) that are running in that platform. So if
+you have an application on the HMI lab, you have a directory HMI under
+run, which contains, for example, sub-directories dutmms1, dutmms2,
+dutmms4 and dutmms5.
+
+<li> It populates the directories with default files:
+<ul>
+     <li> A file Makefile.common, in the application directory. This
+     is the makefile you use when you don't have any "special wishes" (such
+     as linking a specific external library) on a certain node. The script
+     also makes a symbolic link to this makefile.
+
+     <li> A file "modules".solo. Each machine needs a modules.(machine
+     name) file, and since the script set you up for development on
+     "solo", it also made a modules.solo file. This file contains a
+     list of all modules in the application. Among these there may
+     also be modules borrowed from another application, such as
+     generic modules for joysticks etc.
+
+     <li> A Makefile in the comm-objects directory
+
+     <li> A file "comm-objects.lst" in the comm-objects
+     directory. Each sub-directory with a module or for compiling
+     stuff used by several modules (such as the communication objects)
+     needs one of these files. It lists the communication objects,
+     either special ones for your own modules, or generic ones for the
+     modules you borrow, that the module in that sub-directory
+     uses. Don't forget to list all the communication objects there,
+     because the script will use this list to decide which
+     communication objects it should pull out of the CVS repository.
+
+     <li> A file "report" in the run/solo (the platform)
+     directory. This is a file that will contain all success and
+     failure stories you have in running your application.
+
+     <li> A dueca.cnf and a dueca.mod file in the run/solo/solo (the
+     node) directory. The dueca.cnf file is ready for use, the
+     dueca.mod file has to be edited and completed by you.
+
+     <li> A links.script and a clean.script file, both in the
+     run/solo/solo directory. The links.script file can be edited by
+     you, into a script that makes symbolic links to the files in the
+     run-data directory, the clean.script file cleans out a run
+     directory.
+
+     <li> A README file in the run/run-data directory. The run-data
+     directory should contain all the additional data you need in the
+     simulation, and that is specific to your simulation.  Examples
+     are experiment condition definitions, tunnel-in-the-sky files,
+     initial condition files, etc. Data that is meant to be shared
+     with other project (for example the data for your visual and data
+     specific to modules that are meant to be borrowed) can best be
+     kept in a module directory, and the links.script file can then be
+     adapted to link to the data there.
+
+ </ul> </ul>
+
+All these files are "imported" into the versioning system, and then
+"checked out" again. As they are checked out, the versioning system
+adds a "CVS" directory to each directory it checks out. This directory
+contains information that is used to determine the status of your
+files with respect to the files that are in the repository. Don't mess
+it up, because CVS won't know what to do when you are asking it to
+synchronise your work with the repository.
+
+\section appdevel_borrow Borrowing stuff
+
+After this flying start, you might want to bring even more momentum
+to your project by borrowing a ready-made module from the
+repository. Such a module is the joystick module. Go to the
+application directory (remember, SuperFlyer/SuperFlyer), and type
+\verbatim
+dueca-project borrow-module
+\endverbatim
+You are then asked for the module name, enter "Generic/joystick". Then
+the script asks you which version you want. The latest of course, so
+you just hit return.
+
+If you do not want the latest version, you can always edit the
+modules.platform file. After the module name, you can add a CVS tag
+for the specific version you want to use, in this way you can be sure
+that you always get the same code, also if someone else checks in a
+newer version.
+
+Then a lot of CVS messages scroll over the screen, and
+Generic/joystick is placed under the top directory. Since the joystick
+also needs some communication objects, Generic/comm-objects is also
+checked out, and the appropriate communication objects
+(PrimaryControls.dco, SecondaryControls.dco, PrimarySwitches.dco,
+SecondarySwitches.dco) are put in that directory. By the way, dco
+stands for DUECA Communication Object.
+
+You were working on platform "solo", and so the modules.solo list is
+also adjusted. It now contains a line listing Generic/joystick and a
+version number for the joystick module. As long as you don't change
+the version number, that exact same version for the joystick module
+will be used if you check out or export (see CVS terms) your
+module. If ever you wanted to try a newer version, edit the
+modules.solo file and change the version number, and do "dueca-project
+update"
+
+\section appdevel_module Making your own modules
+
+Currently, we don't have enough ready made modules to completely
+assemble a project, and you want something that you can say is your
+very own, don't you? So it is time to try your hand at making a new
+module. Go to the application directory, and type:
+
+\verbatim
+dueca-project new-module
+\endverbatim
+
+What does the script then ask you? Of course, the name of the
+module. In this example we enter super-flyer, for the super-flyer
+dynamic model. (I prefer to keep the module name the same as the name
+the module later gets in the dueca.mod scheme script).
+
+The script now makes a directory super-flyer, with a Makefile, and a
+comm-objects.lst file. For the rest it is empty. It also adds a line
+to the modules.solo file:
+
+\verbatim
+SuperFlyer/super-flyer
+\endverbatim
+
+There is no version number, that means that the script will always get
+the latest version for you when you start editing, and that is what
+you want.
+
+To actually create the new module's code, go to the super-flyer module
+directory, and use the familiar new-module script:
+
+\verbatim
+cd super-flyer
+new-module SuperFlyer
+\endverbatim
+
+This generates the SuperFlyer.hxx and SuperFlyer.cxx files. However,
+the versioning system still knows nothing about these
+files. Therefore, \em and \em don't \em forget \em this \em step, you
+must add these to the versioning system by typing:
+
+\verbatim
+dueca-project add-source SuperFlyer.cxx SuperFlyer.hxx
+\endverbatim
+
+You should do this for all the stuff you create/add while not using the
+dueca-project script. And don't limit yourself to source files, also
+data you use for running (bitmaps, configuration data etc.) needs to
+be added, otherwise what you develop on your desktop machine won't be
+available to other platforms.
+
+\section appdevel_commobjects Communication objects
+
+If your module communicates with other modules, and most modules do,
+you need channels to send over communication objects. The file
+comm-objects.lst, in each module directory, lists all communication
+objects used by that specific module, and the script reads all these
+comm-objects.lst files to decide what data to pull out of the
+repository. Say you want to send out a DisplayData communication
+object from your SuperFlyer module. To create this object, go to the
+comm-objects directory of your application, and edit the object.
+
+\verbatim
+my-favourite-editor DisplayData.dco
+\endverbatim
+
+Use the .dco extension for these objects, otherwise the makefile won't
+be able to make heads or tails out of the stuff in the comm-objects
+directory. Type the definition for the DisplayData object, e.g.:
+
+\verbatim
+(Type float)
+(Stream DisplayData (float y 10))
+\endverbatim
+
+So the DisplayData object contains an array "y" with 10 elements. Now
+add a line to the comm-objects.lst file in the super-flyer directory
+(Not the one in the comm-objects directory!):
+
+\verbatim
+SuperFlyer/comm-objects/DisplayData.dco
+\endverbatim
+
+Note that the application name, SuperFlyer, must be included. Again,
+don't forget to tell the version system that you added something
+vital:
+
+\verbatim
+dueca-project add-source DisplayData.dco
+\endverbatim
+
+Because your SuperFlyer also needs the communication objects from the
+Generic/joystick module, also add these to the super-flyer/comm-objects.lst:
+
+\verbatim
+Generic/comm-objects/PrimaryControls.dco
+Generic/comm-objects/SecondaryControls.dco
+Generic/comm-objects/PrimarySwitches.dco
+Generic/comm-objects/SecondarySwitches.dco
+\endverbatim
+
+For the communication objects that you borrow from somewhere else, you
+can specify which revision (cvs tag) that you want to use for this
+objects. This works the same as for the modules that you borrow from
+another project, by specifying a revision, you are sure that you
+always get the same version.
+
+Note that the comm-objects directory is treated in a special way. All
+directories with modules are exported or checked out from CVS
+completely. In the comm-objects directories, only the following are
+exported or checked out:
+<ol>
+<li> The makefile
+<li> The comm-objects.lst file
+<li> All .dco files listed in the comm-objects.lst files from the
+modules.
+</ol>
+Note that any other stuff will not be checked out, so do not add any
+other files but .dco files to this directory. Note that there may be
+more .dco files in the repository, but if your modules don't need them
+(don't list them in the comm-objects.lst file), they are not checked
+out from the repository.
+
+\section appdevel_pseudomodule Pseudo modules
+
+The comm-objects directory does not produce a DUECA module, it
+produces code that will be used by other modules. This can be called a
+pseudo-module. If you have other objects to share among modules, you
+can add a psuedo-module to DUECA, using the normal dueca-project
+add-module command. Optionally you can remove the default Makefile and
+comm-objects.lst files (with dueca-project remove) that the script has
+placed there, if you don't want to put program source but only data in
+the pseudo-module directory.
+
+If you have code that you use in several modules, do not put that code
+into one of the module directories, but put that code in a
+pseudo module. You never know who in the future will need the modules,
+and whether they will need also the module that has the common
+code. If you use an include path like:
+
+\verbatim
+EXTRA_INCLUDES= -I../../MyProject/SharedCode
+\endverbatim
+
+Then people can also borrow the modules and the pseudo-module.
+
+\section appdevel_deploy Running on other platforms
+
+What to do if you want to run on another platform, say the HMI lab?
+Well, just before walking over you might want to make certain that the
+repository is up-to-date, so from the application directory:
+
+\code
+dueca-project commit
+\endcode
+
+This makes certain all changes in your code are put back into the
+repository. Then you walk over to the lab, and "check out" the
+project on one of the machines you are going to use:
+
+\code
+dueca-project checkout
+\endcode
+
+The script will ask you which project you want to check out, and
+whether you want the latest revision.
+
+Now the script will re-create the project directories as you had them
+on you desktop machine. Go into the application directory, and add a
+"platform"
+
+\code
+dueca-project new-platform
+\endcode
+
+Give the name of the platform, e.g. HMILab. In the run directory, next
+to the solo directory, you now also have an HMILab directory
+
+Now add the node (computer) you are working on.
+
+\code
+dueca-project new-node
+\endcode
+
+
+The script will ask you a whole host of things:
+<ul>
+<li> Name for the computer that runs the node (e.g. dutmms1)
+<li> Name for the platform. In this case HMILab
+<li> Number of nodes in this platform. Fill in the number of computers
+you intend to use for the simulation, e.g. 3
+<li> Node number for this machine. Give the node number. if the
+dutmms1 is used for experiment control, this must be node 0, so enter
+0.
+<li> Send/communication order number. Order in the send cycle. You decide!
+<li> Type of OS, l=Linux, q=QNX. Enter an l or q to indicate the type
+of operating system running on this computer.
+<li> Communication choice, none, i='ip', s='scramnet. The HMI lab uses
+ip communication, so enter i here
+<li> Graphic interface, "none", "gtk" or "glut". On the experiment
+control computer you need gtk as windowing system, so enter gtk.
+</ul>
+
+With all that information, the script creates a directory called
+after the computer, dutmms1 in this case, and puts a dueca.cnf and a
+dueca.mod file there. The dueca.cnf file is tailored with the
+information you entered above. For the dueca.mod file it might be
+quicker to copy and edit the file you had for "solo", than re-create
+the entire application. You might also have to edit the links.script
+file to create the proper links for running your application.
+
+Edit the modules.dutmms1 file to include all the modules you need on
+the dutmms1.
+
+Now you need to save your changes. Use
+
+\code
+dueca-project commit
+\endcode
+
+The next step is scary. Tell the versioning system that you are no
+longer interested in editing this application.
+
+\code
+dueca-project release
+\endcode
+
+Delete the entire stuff (if you don't trust this, rename the
+directory).
+
+Now walk over to the next machine (or do a remote log-in) and repeat
+the procedure there. Remember to commit,
+
+After doing all this, you end up with nothing on the machines, and
+everything in the repository. Check out the source on all the machines
+and compile, and then try to run the thing.
+
+\section appdevel_editmultiple Editing on multiple machines
+
+In theory, everything should be perfect in one go. In practice, this
+is seldom the case, and you might have to make some corrections to
+your code or data, before everything runs smoothly on the lab. The key
+thing to remember here is to update and commit frequently. Each time
+you start editing on another machine, run "dueca-project update". The
+source in the application directory (and below) will be synchronised
+with changes you made elsewhere and committed to the repository are
+now. After having edited and before switching to another computers,
+run "dueca-project commit". Note that extra commits or updates cannot
+hurt you, but forgetting it can get you in a (small, cleanable) mess,
+when CVS decides that the changes you made on several computers are
+not compatible with each other, and that it is up to you to revise the
+"merge".
+
+\section appdevel_specialize Specialization for a specific computer
+
+In some cases, usually when working with dedicated IO hardware on
+certain computers, such as a computer for control loading, you would
+like to have some more "control" over the compilation. For example,
+you need to link with specific libraries to access the IO cards, and
+use specific header files, files that you do not need when compiling
+on other computers. In that case there are two spots where you can
+modify the make files:
+<ul>
+<li> In the application directory, you can create a
+Makefile.machine, where for machine you fill in the specific
+name of the computer you are running on. At a check-out, a symbolic
+link will be made to this makefile.
+<li> In a directory with a module, you can also add a
+Makefile.machine. If the makefile in the application directory
+finds such a Makefile.machine, it will automatically use that
+Makefile instead of the "plain" on in the directory.
+</ul>
+Of course, do not forget to add the new makefiles to the version
+control by running dueca-project add-source
+
+\section appdevel_report Generating a report
+
+If everything runs at long last, don't forget to celebrate this by
+filing a report. Make really, really sure that all your sources are up
+to date, run a "dueca-project update" and a "dueca-project commit" on
+each machine. Then try your software again. If everything works, file
+a report by running:
+
+\code
+dueca-project report
+\endcode
+
+After answering the questions, the script will assing a "tag" to the
+sources in the repository, and write a piece of text to the
+HMILab/report file. The tag can be used to retrieve the sources that
+you ran the test with from the repository. This gives you an
+opportunity to go back to a version that is known to work, or to check
+what has changed between the "version that used to work" and the
+"version that crashes".
+
+\section appdevel_ends Odds and ends
+
+Instead of borrowing a module, if you intend to edit an existing
+module and adapt it to your own purposes, you can also use
+"dueca-project copy-module". The module directory ends up below your
+application directory, and you can edit and use it as if it were your
+own.
+
+Also without running a report you can tag the source in the repository
+with a name. You might want to do this because you are about to make
+significant changes to the application, and you want a quick reference
+to the soon-to-be-old version. Use "dueca-project tag-version"
+
+\section appdevel_cvs Making it easier to use the versioning system
+
+Each time you synchronise with the repository, CVS will use a Secure
+Shell (ssh) login to the repository. To be alowed to do that, you have
+to enter your password, and I can imagine you get tired of entering
+your password over and over again. If you use a public + secret key
+pair, you won't have to enter your password each time. The recipe is
+as follows.
+
+One-time work:
+<ul>
+<li> Generate a public and secret key pair, by running ssh-keygen:
+
+\code
+ssh-keygen -t dsa
+\endcode
+
+You should supply a password when ssh-keygen asks you.
+
+<li>
+Now you have to supply your password for the dueca.tudelft.nl only twice
+more. Once to copy your public key over:
+
+\code
+scp .ssh/id_dsa.pub dueca.tudelft.nl:
+\endcode
+
+Note the dot and double dot there!
+<li>
+And then to log in:
+
+\code
+ssh dueca.tudelft.nl
+\endcode
+
+Once in the dueca.tudelft.nl, create a .ssh directory, give it the proper
+permissions, make a file with "authorized keys", and give that the
+proper permissions.
+
+\code
+mkdir .ssh
+chmod 700 .ssh
+mv -i id_dsa.pub .ssh/authorized_keys2
+chmod 600 .ssh/authorized_keys2
+\endcode
+
+Logout. If now you try to log in again with ssh, you are asked for
+the password for your secret key. That does not seem like an
+improvement, does it?
+
+</ul>
+
+
+However, you can ask an agent to remember your secrets for you. The
+simple way (no x, single terminal, for example if you remotely log in
+to a computer)
+
+\verbatim
+exec ssh-agent bash
+ssh-add
+\endverbatim
+
+At this point you are asked for the "passphrase", the same one you
+entered when generating the key. From now on you can ssh to the
+dueca.tudelft.nl and use the dueca-project script without passwords.
+
+Most Linux installations, when using the X-windows environment,
+already have this "ssh-agent" started. In that case, once, in a
+window, do ssh-add. All windows now give you access to secure shell.
+
+Another thing that makes your work easier is using your .bash_profile
+file to supply the DAPPS_CVSROOT. Simply put the line:
+
+\verbatim
+export DAPPS_CVSROOT=:ext:john@dueca.tudelft.nl:/home/dueca-apps/CVS
+\endverbatim
+
+In your .bash_profile, and each time you login to your computer, this
+variable is set and ready for use by the dueca-project script
+
+\section appdevel_commands The dueca-project commands
+
+run dueca-project without arguments, and it will give you an overview
+of the available commands.
+
+*/

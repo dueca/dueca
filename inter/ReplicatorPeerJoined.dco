@@ -1,0 +1,22 @@
+;; -*-scheme-*-
+(Header "
+        original item   : ReplicatorPeerJoined.dco
+        made by         : Rene' van Paassen
+        date            : 170205
+        documentation   : DUECA_API
+        description     : Peer Information replicator nodes
+        copyright       : (c) 2017-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type vstring "#include <stringoptions.h>")
+(Type uint32_t "#include <inttypes.h>")
+(Type uint16_t "#include <inttypes.h>")
+
+;; Notification message on the joining of a peer to a replicator network
+(Event ReplicatorPeerJoined
+       ;; network address of the joining peer
+       (vstring netaddress (Default ""))
+       ;; proposed peer id -- for matching a possible response
+       (uint16_t peer_id (Default 0))
+       )

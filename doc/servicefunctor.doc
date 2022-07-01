@@ -1,0 +1,134 @@
+// -*-c++-*-
+
+/** @page dcofunctor DCO service functors
+
+    For creating generic interaction with channels, a functor
+    mechanism is available.
+
+    This functor mechanism is used by the hdf5 logging, but can be
+    used for other purposes as well.
+
+    The hdf5 logging capabilities for DUECA used a mechanism for
+    directly processing data in the channel access code. Rather than
+    "reading" data from a channel, for which client code needs to
+    know, or investigate, the structure of the data, an operation can
+    be directly requested from a @ref dueca::ChannelReadToken .  For
+    the hdf5 logging, that operation is the writing of the DCO object
+    data into a logging file.
+
+    After an initial implementation specific for hdf5 logging, which
+    lived for a mere few days, I recognised the need for a generic
+    mechanism, and created a set of functors that implement a specific
+    type of service for a certain datatype. This page explains about
+    the service functors.
+
+    @section dcofunctor_overview Overview of functors
+
+    To clarify a bit, take the example of the HDF5 functors. The
+    following set of classes is defined:
+
+    - A @ref dueca::DCOFunctor . The DCOFunctor is the base class for all
+      types of functor. This class has only virtual functions, these
+      will be used by the ChannelReadToken and ChannelWriteToken
+      classes to read from respectively write data into the channel.  To
+      get something useful out of this, the DCOFunctor needs two
+      children:
+
+      * One child common for the type of service; in the example this
+        is the @ref dueca::hdf5log::HDF5DCOReadFunctor.
+        This child implements the
+        client-side interface in its constructor. For the hdf5 code it
+        accepts the file to log into, the path where data is to be
+        logged, a "chunk" size, the number of elements in a DCO
+        object, and whether the time information needs to be
+        recorded. You generally need access to this child class in
+        your (generic) modules.
+
+      * A second child of the generic HDF5DCOFunctor that is specific
+        to the DCO type logged. These are created by the code
+        generator, but you can also code these by hand for specific
+        custom-designed services. This child calls the parent
+        (HDF5DCOFunctor), and it needs to know the data for the
+        parent's constructor. These data are dependent on the users
+        wishes (which file, etc. ). Typically you don't have access to
+        this child class from module code, and for HDF5 it is even
+        hidden in the .cxx file of a DCO object.
+
+    - To get access to the service functors themselves, a meta-functor
+      is used. DUECA's base metafunctor is dueca::DCOMetaFunctor. This class
+      has no methods at all.
+
+      * For each service, a child class of the DCOMetaFunctor is
+        created. For the HDF5 service it is
+        dueca::hdf5log::HDFDCOMetaFunctor . This
+        functor has a getFunctor call (a virtual method), which gets
+        supplied with all the client-side information needed for the
+        functor.
+
+      * Again, a (simple) derived class of the HDFDCOMetaFunctor is
+        created for each DCO object equipped with hdf5
+        capabilities. At start-up time, a single instance of this
+        derived class is created. It can be found by the
+        ChannelReadToken if the service name is supplied, with the
+        dueca::ChannelReadToken::getMetaFunctor templated method.
+
+        There it is cast back to the service-specific class (in the
+        exaple HDFDCOMetaFunctor), and supplied to the client. Using
+        the metafunctor you can generate a functor (whose internals
+        will remain unknown to both the client and the channel), that
+        can be used to perform the service.
+
+    With the pair of functors, code that knows only about the service
+    (through the functors' middle classes) can invoke this service for
+    channel entries with DCO objects for which the service has been
+    implemented.
+
+    The functor classes use inheritance to live in three different
+    areas of code. The channel code knows the functor by the
+    DCOFunctor and DCOMetaFunctor parents, that only allow
+
+    - to find and return a specific metafunctor matching the
+      channel data type and the requested service
+
+    - to call a functor with the channel data
+
+    The client code knows the first child of this, which exposes the
+    interfaces to the service. With this, the meta functor can be used
+    to create a functor, and the functor data can be saved or viewed.
+
+    The DCO object code knows the most specific versions of functor
+    and metafunctor objects, both specific for the DCO class and the
+    service. The following figure gives an overview:
+
+    @image html metafunctor.png "Functor and metafunctor classes"
+
+    @section dcofunctor_codegen Code generation
+
+
+    To make functor generation for DCO objects accessible for
+    developers, the code generator has been extended with a plugin
+    mechanism. Plugins can be installed with the DUECA installation
+    (generally /usr/share/dueca/DCOplugins ), the name of the plugin
+    file (without the .py extension) defines the name of the
+    service. The plugin files contain a single class definition,
+    AddOn, which has a number of methods to print additional code for
+
+    - header includes
+
+    - class body
+
+    - additional definitions in the header
+
+    - body file includes
+
+    - additional code for the body
+
+    Inspect the hdf5.py file to see how to create such an extension
+
+    @section dcofunctor_possibilities What to do with this?
+
+    This has many possibilities for creating generic modules. What
+    about serializing data to JSON or xml? Reading back and playing
+    back data? Reading and assembling data in vectors for plotting
+    on-line graphs?
+*/

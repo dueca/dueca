@@ -1,0 +1,5 @@
+#ifndef gencodegen_h
+#define gencodegen_h
+
+#define GENCODEGEN @GENCODEGEN@
+#endif

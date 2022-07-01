@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# -*-python-*-
+
+# this reads a modules.machine list, and spits out a list of module paths
+# relative to an application directory. Everything "foreign" is replaced by
+# ../foreign/...
+# comments are removed
+
+import os
+import string
+import sys
+import re
+
+def delReturn(i): return i.replace('\n','')
+
+def removeComments(list):
+
+    # filter the list, first take out all comments (starting with #)
+    only_comment = re.compile("\s*\#")
+    for i in list[:]:
+        if only_comment.match(i):
+            list.remove(i)
+
+    # now strip comments from lines
+    for i in range(0,len(list)):
+        idx_hash = list[i].find('#')
+        if idx_hash != -1:
+            list[i] = list[i][0:idx_hash]
+
+    # and strip \n, and possible whitespace
+    for i in range(0, len(list)):
+        list[i] = delReturn(list[i]).strip()
+    return list
+
+abspath = os.path.abspath('.')
+appname = abspath.split(os.sep)[-1]
+
+if sys.argv[1] == '--own':
+    fs = open(sys.argv[2])
+    own = 1
+else:
+    fs = open(sys.argv[1])
+    own = 0
+
+lis = removeComments(fs.readlines())
+
+for l in lis:
+
+    if l:
+
+        # split, because there may be a version number
+        m = l.split()[0]
+
+        # determing the module name part
+        apppart = m.split(os.sep)[0]
+
+        # if all modules (own not set) or module name part matches,
+        if not own or apppart == appname:
+
+            # check for makefile there
+            if (os.path.exists('../'+m+'/Makefile')):
+                print('../'+m)
+#            else:
+#                if (not own):
+#                    sys.stderr.write('No makefile in '+m+ \
+#                                     ', assuming this directory' + \
+#                                     ' contains only data\n')
+
+
+
+
+

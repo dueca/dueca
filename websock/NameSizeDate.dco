@@ -1,0 +1,24 @@
+;; -*-scheme-*-
+(Header "
+        original item   : NameSizeDate.dco
+        made by         : Rene' van Paassen
+        date            : 200617
+        description     : Simple text-based object
+        copyright       : (c) 2020-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type std::string "#include <string>")
+(Type uint32_t "#include <inttypes.h>")
+
+;; Details of a file, name, size, date
+(Event NameSizeDate
+       (Option hdf5nest)
+       ;; filename
+       (std::string name)
+       ;; file length
+       (uint32_t size (Default 0U))
+       ;; creation/modification date
+       (std::string date)
+       )
+

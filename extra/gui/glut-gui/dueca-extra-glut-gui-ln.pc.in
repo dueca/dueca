@@ -1,0 +1,16 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+initfunc=-Wl,@ldundef@InitExtraGlutGui
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-extra-glut-gui@scriptsuffix@
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} ${initfunc} -ldueca-extra-glut-gui@scriptsuffix@
+Cflags:
+Requires: dueca-extra-glut-gui = ${version}
+

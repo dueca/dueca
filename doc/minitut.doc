@@ -1,0 +1,388 @@
+/** \page minitut C++ concepts and primers
+
+This page is intended as a help for people who have little or no
+knowledge of C++. In my view, one does not have to be a full-fledged
+C++ programmer to be able to use DUECA, for example some people would
+\ref rtw "generate code from a Simulink model" and only want to link
+that. Such a job can be done without much prior knowledge of C++, by
+looking at examples and modifying these. Some of the C++ techniques
+and concepts you need to understand are explained in this page.
+
+\section constructor "Constructor and Destructor"
+
+C++ is a language that has been designed for object-oriented
+programming. OO programming is centered around (data) objects,
+possibly complex pieces of data, that also have their own functions
+(sometimes called methods) to deal with the data. C++ uses a class,
+which can contain data, consisting of simple types such as real and
+integer objects, or of other classes, and methods, the functions to do
+something useful with the data. Two special types of methods are the
+"constructor" and the "destructor".
+
+\code
+class MyClass
+{
+  // data:
+  int i;
+
+public:
+  // constructor
+  MyClass();
+
+  // another constructor
+  MyClass(int i2);
+
+  // destructor
+  ~MyClass();
+}
+\endcode
+
+With the constructor, you can make a new instance (a new one) of the
+MyClass object. If you write somewhere in the program:
+\code
+  // calls the first constructor
+  MyClass my_class;
+
+  // calls the second one
+  MyClass another(1);
+\endcode
+
+The MyClass constructor gets called. Several constructors may be
+defined, and since in the first example you did not give a parameter,
+the first one (the "default constructor") is chosen. When the
+constructed objects are no longer needed, the destructor is
+called. By the way, there is only one destructor.
+
+The constructor should contain code to correctly initialise the data
+in your class, but it is not limited to doing only this. DUECA often
+uses constructors with side effects, e.g. when making a channel access
+token, (EventChannelReadToken, EventChannelWriteToken,
+StreamChannelReadToken, StreamChannelWriteToken), the constructor
+informs DUECA about your wishes to use a channel.
+
+\section deriveclass "Derived Classes"
+
+In C++ (and other object-oriented languages) the concept of a "Class"
+is often used. One can see a class as a user-definable data type, and
+along with the type one can define operations that can be executed on
+the data. For example:
+
+\code
+class Person
+{
+private:
+  // the name of the person
+  const char* name;
+
+  // the date of birth (integers)
+  int year, month, day;
+
+public:
+  // constructor
+  Person(const char* name, int year, int month, int day);
+
+  // destructor
+  ~Person();
+
+  // a method
+  bool celebratesBirthday();
+
+  // another method
+  const char* getName();
+
+  // more methods ....
+};
+\endcode
+
+This example describes a new class, (you can also see this as a new
+data type), "Person". You can make an object of type person by
+"calling the constructor", for example this (a piece of code somewhere
+else in your program) makes a new person:
+
+\code
+  int i;
+  Person j("John", 1980, 12, 22);
+\endcode
+
+Now "j" is an object of type Person, just like the "i" in the example
+is an object of type int. Two integers can be added together, two
+persons can not (at least we have not defined how). You can use all
+the "public" (which means, available to the general public) member
+functions to get to know more things about Person j. Here we will
+print out whether j has his birthday today. This uses the output
+functions from the standard template library, the standard library in
+C++, for example 'cout << "Sorry"' means print the string "Sorry" on
+the standard output.
+
+\code
+  // see if person "j" celebrates his/her birthday
+  if (j.celebratesBirthday()) {
+    cout << j.getPersonName() << " celebrates his birthday today" << endl;
+  }
+  else {
+    cout << "Sorry " << j.getPersonName() << " it is not your birthday"
+         << endl;
+}
+\endcode
+
+ Two "methods" are
+defined in the above example, celebratesBirthday() and
+getPersonName(). The methods are like functions, and they can access
+the data of a Person object. Note that the data of a Person object as
+it is defined here is "private", which means that only the methods
+of the person object can modify or access that data directly. The
+methods getPersonName(), celebratesBirthday() and the constructor and
+destructor (two special methods, one makes a new Person, the other
+"destroys" the Person) are declared "public", any code can use these.
+
+Often it is useful to build forth upon the foundations of an existing
+class. For the example above, we might want to have a class
+"Student". The student should have all the properties of a "Person",
+but in addition a student number (and possibly other properties, but
+this example has to be kept simple). This is done in the following
+way:
+
+\code
+class Student: public Person
+{
+  // inscription number
+  int student_number;
+
+public:
+  // constructor
+  Student(const char* name, int year, int month, int day,
+          int student_number);
+  ~Student();
+
+  // methods ....
+};
+\endcode
+
+To code that does not know anything about the "Student" class, the
+Student objects behave just like Person objects. So you can check a
+Student's birthday with the same code that checks a Person's
+birthday. In other words, a Student is everything a Person is, and
+more.
+
+In the same way simulation-specific modules are derived from the
+SimulationModule class defined by DUSIME. To DUSIME and DUECA, your
+new class acts like a SimulationModule, and DUSIME knows how to handle
+those. An additional advantage is that the SimulationModule class
+contains code for useful things, such as taking a snapshot, and
+running in line with the rest of the simulation, that your
+newly-defined class automatically inherits.
+
+\section minitut_template Templates
+
+At some point in your programming career, you will find yourself
+copying old code and only slightly adapting it for use in a new
+situation. For example you have a list of something, and in this list
+you have to find the first element, the last element, you need to sort
+the list, or you want to add an element to the list. Then you need a
+list of SomethingElse, and you take your old list code, and basically
+change all text that says "something" into "SomethingElse".
+
+To make all this a bit quicker, templates have been invented. A
+template class simply implements a generic action, such as maintaining
+a list, or, in DUECA, accessing a channel, that can be done on
+different types of objects. The object type is given as a \em template
+\em parameter to the template class. For example MyList:
+
+\code
+template <class T>
+class MyList
+{
+public:
+  //constructor, destructor
+  MyList();
+  ~MyList();
+
+  // manipulating the list
+  void insertAtBegin();
+  void removeFromBegin();
+  T& getFirst();
+
+  void insertAtEnd();
+  void removeFromEnd();
+  T& getLast();
+};
+\endcode
+
+Now if you need a list of integers, or a list of spaceplanes:
+
+\code
+  MyList<int> int_list;
+  MyList<SpacePlane> spaceplane_list;
+\endcode
+
+Etcetera. Then you can use the insertAtBegin() and other methods
+defined for the list template class as you desire. There is one
+caveat. This list class is given here as an example. Lists, vectors
+and other common data types are used so often, and by so many
+programs, that there is a standard library for these objects, the
+\htmlonly <A href="http://www.sgi.com/tech/stl/"> STL. </A>
+\endhtmlonly
+\latexonly STL. \endlatexonly
+Unless you have really, really strong reasons, don't invent a list
+class by yourself, use the standard.
+
+\section minitut_static Static Members
+
+In a DUSIME module you will often see a few static members, at
+least the "classname" data member and normally a getMyIncoTable and
+getMyParameterTable member function.
+
+\code
+  // piece of MyModule class declaration
+  static const char* const           classname;
+  static const IncoTable*            getMyIncoTable();
+  static const ParameterTable*       getMyParameterTable();
+\endcode
+
+Static members of a class are not to be confused with the static
+keyword used in C/C++, for example, if you have in your file:
+
+\code
+static int ii;
+\endcode
+
+Means that you have created an integer ii that can only be referenced
+from the file where it is declared. Static class members are not
+limited to the file where they are declared or implemented.  A static
+member of a class means:
+
+<ul>
+
+<li> For a data member, that this data member is shared between all
+objects of that class. So in a DUSIME module, there is only one
+"classname". A data member has to have an implementation, so for
+example for the classname of MyModule, you would have in its .cxx
+file:
+\code
+const char* const MyModule::classname = "my-module";
+\endcode
+
+<li> For a function member, that this function member does not need an
+object of the class in its call. The following is possible (taking
+getMyIncoTable() as an example):
+\code
+MyModule m( ... module constructor parameters ... );
+
+// calling a static member function with object m
+m.getMyIncoTable();
+
+// calling a static member function without object
+MyModule::getMyIncoTable();
+\endcode
+
+</ul>
+
+You can also have static variables in a (member) function. For example
+in the getMyIncoTable() function:
+
+\code
+const IncoTable* MyModule::getMyIncoTable()
+{
+  static IncoTable inco_table[] = {
+    {(new IncoVariable("altitude", 0.0, 100000.0))
+     ->forMode(FlightPath, Constraint),
+     new VarProbe<MyModule,double>(&MyModule::i_z)},
+    { NULL, NULL}};
+
+  return inco_table;
+}
+\endcode
+
+Here the variable inco_table is a static variable. This means that the
+MyModule::getMyIncoTable() (static) method will only once create
+inco_table, however many times it is called, and that inco_table will
+remain in memory. That is also why we can return a pointer to
+inco_table, without the "static" keyword the inco_table would be made
+new every time the function is called, and it would be deleted again
+as the function exits.
+
+Since a function like MyModule::getMyIncoTable() gets only called from
+the constructor of the MyModule class, we could have simply declared a
+static variable inco_table in the file with the MyModule
+implementation. However, this leads to \em undefined \em behaviour \em
+of \em the \em program. The rule for static variables in a file is
+that simple types and C-type strings are made at compile time, so they
+are in the program when you start it, but the creation order of all
+other, more complex, static variables, like the inco_table, is
+undefined. So if you use static variables in other static variables,
+as DUECA does, you might be using something that is not
+initialised. That is why all "complex" static data should be wrapped
+in functions. If the function returns, you are assured that the static
+data has been created.
+
+\section minitut_scheme Scheme
+
+Just to make things clear, Scheme is not (and is not related to) C++,
+but I had no better section to put this in. Scheme is a programming
+language which evolved from another programming language, LISP. LISP
+and Scheme were designed to provide symbol manipulation capabilities,
+needed for example for symbolic differentiation.
+
+A Scheme version is available from www.gnu.org, in the form of a
+simple but powerful implementation, suitable as an "extension
+language". This version is used in DUECA. Soon after the start-up of
+DUECA, this scheme interpreter is started and fed with the
+configuration files. These configuration files actually contain a
+scheme program, and you can "program" the configuration. Some simple
+commands are:
+\verbatim
+(define a 10)
+\endverbatim
+This defines the variable a to be equal to the literal value
+10. Scheme does not make a distinction between functions or data, so
+you could equally define a function:
+\verbatim
+(define (square x) (* x x))
+\endverbatim
+You see that all scheme commands are given in brackets. The define
+command takes two arguments, and in this second case these are two
+lists, one with the name of the thing to be defined and a \em formal
+\em parameter "(square x)", and one with the body of the procedure.
+
+In a DUECA script, the define command is useful to create aliases for
+things you often need, for example:
+\verbatim
+(define normal-priority (make-priority-spec 1 0))
+\endverbatim
+
+One much-used construct in the dueca.mod file is the "if"
+function. When you make a module, you want to make sure that it is
+unique, and that it exists in only one node of a multi-node dueca. Now
+all nodes get fed the same dueca.mod file, so there has to be some
+mechanism to determine where your new module is going to live. The if
+statement takes two to three parameters, and works in the following manner:
+\verbatim
+(if (some-test) (do-something) (do-something-else))
+\endverbatim
+It executes the test, and if the result is true, it does the first
+statement after the test, and if false, it does the "something-else"
+statement. In a dueca.mod script it is used as follows:
+\verbatim
+(define myentity                           ; an entity
+  (make-entity "MY-ENTITY"                 ; name for this entity
+               (if (equal? 0 this-node-id) ; only in node 0
+                   (list                   ; I make a list
+                    (make-module 'my-module "" normal-priority)
+                                           ; with a new module in it
+                    )                      ; close off the list
+                   ()                      ; supply an empty list
+                                           ; to all other nodes
+                                           ; because the make-entity
+                                           ; requires one or more lists
+                )                          ; close off the if
+   )                                       ; close off make-entity
+)                                          ; close off the define
+\endverbatim
+You may add as many if statements, returning lists of modules or empty
+lists, as you like.
+
+This is about all you need with respect to writing a DUECA script in
+Scheme.
+
+*/
+

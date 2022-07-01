@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+     this file contains a list of all modules needed for your application
+     on a specific machine
+
+     note that the comm-objects directories should *not* be listed here.
+     The module name must be one of the folders in the given project.
+     The project must contain the full path to a git repository
+
+     If you encounter a message that a certain comm-objects folder cannot
+     be found, use dueca-project borrow-project to add that project url
+
+     If you need to check out from a specific branch, version or
+     revision, add that in the optional version field.
+-->
+<machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
+  <project>
+    <url>@url@</url>
+  </project>
+</machine>

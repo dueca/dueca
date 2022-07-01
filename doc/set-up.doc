@@ -1,0 +1,223 @@
+// -*-c++-*-
+/** \page setup How to set up your application
+
+Global set-up hints and concepts on DUECA project organisation
+
+\section modules Blocks and modules
+
+DUECA facilitates the implementation of a data-flow architecture. Many
+real-time simulations have a data-flow nature. Consider the simple
+example in the accompanying diagram:
+
+\image html images/dataflowblock.png "Block diagram for a simple simulation"
+
+The motions of the real-aircraft can be characterised as changes in
+continuous physical variables, and a block diagram is a common format
+for representing the structure of a model of the aircraft. In a block
+diagram, the arrows represent signals, also typically expressed as
+continuous functions of time.  In a digital simulation, all blocks
+have to be calculated with an update rate that is high enough to make
+the difference between the real "analogue" system and the digital
+implementation small enough to be unnoticeable.
+
+In DUSIME, each block in a block diagram is normally represented by a
+"module". Two types of DUSIME modules are possible:
+<ul>
+
+<li> A %SimulationModule. For a piece of simulation that is
+model-specific, and that does not do any (direct) communication with
+hardware, you should implement a %SimulationModule. You do this by creating
+a class that is derived from the dueca::SimulationModule class (Note for
+novice C++ programmers: \ref deriveclass "Derived Classes").
+
+<li> A %HardwareModule. This type of module is used to implement a
+piece of simulation that directly interfaces with the hardware of a
+simulator, for example the interfacing code for control loading
+hardware. A %HardwareModule is implemented by creating a class that is
+derived from the dueca::HardwareModule class. Note that you only need
+a %HardwareModule when you have to be careful with the hardware or
+with the user attached to that hardware. For interaction with a
+harmless device that does not require a specific set-up sequence
+(joysticks, displays), you can also use a %SimulationModule or a plain
+DUECA %Module.
+
+</ul>
+
+The primary difference between a %SimulationModule and a
+%HardwareModule is that the latter receives commands from DUSIME that
+tell it when and how to control the hardware, for example commands to
+drive the hardware to a neutral position, perform a test on the
+hardware IO, etc. A %HardwareModule also uses two main operation
+modes, one is implemented as a safe fallback, in which the only task
+is servicing the hardware, and the other for participation with the
+simulation, in which the module also communicates with the rest of the
+simulation.
+
+Control loading hardware is controlled by such a HardwareModule. Upon
+the simulaiton start, it will run through a sequence where it connects
+to the hardware, activates the hardware, and then brings it slowly to
+a neutral position. Only when that is ready the other modules in a
+simulation are started and communication starts.
+
+The main difference between a SimulationModule and a plain DUECA
+%Module is that a SimulationModule distinguishes extra states useful
+in simulations, namely keeping the simulation frozen, advancing and
+replaying. A dueca::Module only runs or not. In this example, the
+display may be a normal Module; the instrumentation has to be re-drawn
+anyhow, with either the data from the frozen simulation or the data
+from the moving simulation. However, if you want to show an extra
+indicator telling a pilot to manually set the throttle to a starting
+position while the simulation is frozen, you would need a
+SimulationModule.
+
+\section channels Data channels
+
+In the block diagram given in the previous section, the data
+connections between blocks are represented by lines with arrow ends
+drawn between the blocks. The data that is "sent" over these lines
+consists of scalar variables or vectors. In DUECA these data
+connections are implemented by "channels", and the type of data that
+can be sent is flexible. A DUECA diagram of the block diagram
+given above is:
+
+\image html images/dataflowdueca.png "Dueca data flow diagram for a simple simulation"
+
+Each square block is a module, and each oval is a channel. Modules can
+write to channels and read from channels. A module "lives" within one
+DUECA node (a computer with DUECA running on it), and a channel can
+(but does not necessarily have to) "flow" between different nodes,
+i.e., it can be distributed between different DUECA nodes (something
+which is not shown on the diagram, because we want to emphasize the
+logical structure of the simulation).
+
+Each channel can send a specific data type, but any kind of data can
+be sent across, strings, floating point values, integers, vectors or
+lists of these basic data types. The objects that can be sent through channels are called DUECA Communication Objects (DCO). In a DUECA project you will find these in the comm-objects (for communication objects) folders, and they have a filename with a '.dco' suffix. With a code generator, the DCO files are converted to C++ classes that can be sent through channels, here are some examples:
+
+<ul>
+
+<li> A data type for the primary controls (pitch, roll and yaw inputs
+with stick or yoke and rudder), let's call it PrimaryControls, with
+three data elements of type double:
+
+\code
+(Type double)
+
+;; Aircraft primary control inputs.
+(Stream PrimaryControls
+  ;; stick or yoke angle [rad]
+  (double stick_pitch (Default 0.0))
+  ;; lateral stick or wheel angle [rad]
+  (double stick_roll (Default 0.0))
+  ;; rudder excursion [m]
+  (double rudder_yaw (Default 0.0))
+)
+\endcode
+
+For more details see \ref codegenerator
+The type of data needs to be declared in the file's header, standard C++
+types (double, float, etc.) are available immediately.
+
+The following is a segment of what comes out of the code generator:
+
+
+\code
+class PrimaryControls
+{
+public:
+  double stick_pitch;
+  double stick_roll;
+  double rudder_yaw;
+
+  // constructor, destructor and further members
+};
+\endcode
+
+</li>
+
+<li> A data type for the output of an aircraft model. let's call it
+AircraftOutput, with an array of 20 elements of type double:
+
+\code
+class AircraftOutput
+{
+public:
+  dueca::fixvector<double,20> Y;
+
+  // constructor, destructor and further members
+};
+\endcode
+
+You can see that this object uses a dueca::fixvector, a fixed-length
+vector. It is best to make the objects that you send over a channel
+have a fixed size, so memory allocation and de-allocation can be done
+efficiently. Variable-length vectors, such as provided in the stl, can
+be used, but incur an additional memory allocation and de-allocation
+overhead which is often not acceptable in a real-time program.
+
+</li>
+
+<li> A data type for the input from a keyboard:
+
+\code
+class KeyPress
+{
+  uint8_t key;
+
+  // constructor, destructor and further members
+};
+\endcode
+
+</li> </ul> Note that there are many more (and possibly much more
+complicated) examples of data that you may wish to send in a
+simulation. Note also that you should not code these data classes by
+hand; there is a code generator supplied with DUECA that generates
+these classes from a ".dco" (DUECA Communication Object)
+specification. It adds the code needed to pack and unpack the DCO
+objects, and optionally provides extra code for e.g., logging such an
+object.
+
+\section channeltypes Channel types
+
+As was mentioned above, a channel handles a specific type of data, but
+channels can be set up for (almost) any type of data. Before DUECA
+2.0, several channel types existed. In DUECA 2.0 these were unified
+into a single, very flexible, channel. However, for most common use
+the good old channels are still sufficient. The programming interface
+for these types is still available, and since they are a bit simpler
+to understand and explain, the explanation starts with these two
+types:
+
+<ul>
+
+<li> StreamChannel. A stream channel treats its data as a continuous
+update of some output or state value. This approximates a continuous,
+analogue value in the real world. The stream data should be updated
+regularly, and at each time it has a single, specific value. When
+stream data is updated, it is updated for a logical time <i>span</i>,
+indicating the period for which the data is considered valid.
+
+<li> EventChannel. An event channel handles "event" data. An event is
+an occurrence that is unique in time, has no "duration", and it has
+some data associated with it. Event data is associated with a single
+point in time, and in a specific channel, multiple events may be
+associated with the same time. There may of course also be times that
+there are no events written in the channel.
+
+</ul>
+
+Typically, the PrimaryControls and AircraftOutput data mentioned in
+the \ref channels "previous section" would be implemented as stream
+data, while the KeyPress data would be sent as event data.
+
+\section highleveldesing Going about a design
+
+The advised way of starting a design of a simulation for DUECA would
+be to set up a data flow model for the simulated system. Identify what
+parts of the simulated system you want to implement as an individual
+block, and create a SimulationModule (or HardwareModule) class for
+those parts. Carefully consider what data is transmitted between those
+modules, and whether this is better represented as "continuous" stream
+data or as discrete events.
+
+*/

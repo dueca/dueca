@@ -1,0 +1,112 @@
+/* ------------------------------------------------------------------   */
+/*      item            : stringoptions.h.in
+        made by         : Rene' van Paassen
+        date            : 20010308
+        category        : header file (in)
+        description     : Defines the string types to be used in DUECA
+                          This file is processed by autoheader to make
+                          stringoptions.h
+        language        : C++
+        documentation   : in DUECA API, but directly from configure
+        copyright       : (c) 2001 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+/** \file stringoptions.h
+    Include this file if you want to use strings in DUECA.
+
+    DUECA's internal classes can use and handle different types of
+    strings. The normal configuration uses a DUECA-specific
+    implementation for strings of fixed length, the Dstring class,
+    combined with an implementation for variable length strings,
+    usually crope or string from workspace std:
+
+    If you want to use strings in DUECA, you should include this
+    file. Then the following string types are available to you:
+
+    <ul>
+
+    <li> string16, string32, string 64 and string128. These normally
+    map onto strings of a fixed maximum length (16, 32, 64 or 128
+    bytes), and fast memory allocation is used for the string
+    data.
+
+    <li> vstring. This maps onto the currently used implementation of
+    variable-length strings.
+
+    </ul>
+
+    Use of this file and the "defines" mentioned above assures you that
+    your model uses the same string types as used in DUECA.
+*/
+
+#ifndef stringoptions_h
+#define stringoptions_h
+#include <dueca_ns.h>
+
+/* Define if you want to use fixed length dueca strings */
+#cmakedefine USE_DSTRING
+
+#include <string>
+/// Map the varable length string onto string from std::
+typedef std::string vstring;
+
+#ifdef USE_DSTRING
+#include <Dstring.hxx>
+
+// map the fixed-length strings onto the Dstring types
+
+/** A fixed length string, of maximally 8 bytes. This string is
+    implemented using the Dstring class, so truncation may occur. */
+typedef DUECA_NS ::Dstring<8> string8;
+/** A fixed length string, of maximally 16 bytes. This string is
+    implemented using the Dstring class, so truncation may occur. */
+typedef DUECA_NS ::Dstring<16> string16;
+/** A fixed length string, of maximally 32 bytes. This string is
+    implemented using the Dstring class, so truncation may occur. */
+typedef DUECA_NS ::Dstring<32> string32;
+/** A fixed length string, of maximally 40 bytes. This string is
+    implemented using the Dstring class, so truncation may occur. */
+typedef DUECA_NS ::Dstring<40> string40;
+/** A fixed length string, of maximally 64 bytes. This string is
+    implemented using the Dstring class, so truncation may occur. For
+    memory allocation memory Arena's may be used */
+typedef DUECA_NS ::Dstring<64> string64;
+/** A fixed length string, of maximally 128 bytes. This string is
+    implemented using the Dstring class, so truncation may occur. */
+typedef DUECA_NS ::Dstring<128> string128;
+
+
+#else
+
+// all fixed-length strings map onto the variable-length string we
+// happen to be using
+
+/** A fixed length string, of maximally 8 bytes, which is mapped onto
+    a variable length string. Take care in this case with your code,
+    string truncation will not be detected. */
+typedef vstring string8;
+
+/** A fixed length string, of maximally 16 bytes, which is mapped onto
+    a variable length string. Take care in this case with your code,
+    string truncation will not be detected. */
+typedef vstring string16;
+
+/** A fixed length string, of maximally 32 bytes, which is mapped onto
+    a variable length string. Take care in this case with your code,
+    string truncation will not be detected. */
+typedef vstring string32;
+
+/** A fixed length string, of maximally 64 bytes, which is mapped onto
+    a variable length string. Take care in this case with your code,
+    string truncation will not be detected. */
+typedef vstring string64;
+
+/** A fixed length string, of maximally 128 bytes, which is mapped onto
+    a variable length string. Take care in this case with your code,
+    string truncation will not be detected. */
+typedef vstring string128;
+
+#endif
+#endif

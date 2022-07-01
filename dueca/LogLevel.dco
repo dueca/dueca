@@ -1,0 +1,29 @@
+;; -*-scheme-*-
+(Header "
+        item            : LogLevel.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Different log levels
+(Enum Type uint8_t
+      ;; A lot of information, on regular activities
+      Debug
+      ;; Some information, on state changes etc.
+      Info
+      ;; Not good, but we can handle it
+      Warning
+      ;; Error message, trouble
+      Error
+      ;; Not a proper level
+      Invalid)
+
+;; Defines different possible levels for logging data
+(EventAndStream LogLevel
+                (IncludeFile LogLevelExtra)
+                ;; The actual error level
+                (Type t (Default LogLevel::Debug))
+                )

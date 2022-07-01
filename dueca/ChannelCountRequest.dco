@@ -1,0 +1,19 @@
+;; -*-scheme-*-
+(Header "
+        item            : ChannelCountRequest.dco
+        made by         : Rene' van Paassen
+        date            : 180509
+        description     : Request a count of channel entry writes/reads
+        copyright       : (c) 2018-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Creation id is unsigned 32 bit int
+(Type uint32_t "#include <inttypes.h>")
+
+;; Useful information about channel readers
+(Event ChannelCountRequest
+
+       ;; creation id
+       (uint32_t countid)
+       )

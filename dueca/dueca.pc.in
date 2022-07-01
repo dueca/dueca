@@ -1,0 +1,16 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+threadlib=@CMAKE_THREAD_LIBS_INIT@
+atomlib=@ATOMIC_LIBRARY_LIBFLAGS@
+
+Name: dueca
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca${staticsuffix} ${threadlib} ${atomlib}
+Cflags: -I${prefix}/include -I${dueca_includedir} -I${dueca_includedir}/dueca
+Requires: pugixml

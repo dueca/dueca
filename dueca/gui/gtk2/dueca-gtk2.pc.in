@@ -1,0 +1,17 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+dueca_glut_util_libs=@dueca_glut_util_libs@
+X11_libs=@X11_LIBS@
+scriptsuffix=
+
+Name: dueca-gtk2
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca-gtk2${staticsuffix} ${dueca_glut_util_libs} ${X11_libs}
+Cflags: -DDUECA_CONFIG_GTK2 -I${dueca_includedir}/dueca/gui/gtk2
+Requires: dueca = ${version}, libglade-2.0 @dueca_glut_util_pkgs@

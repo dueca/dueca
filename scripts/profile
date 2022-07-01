@@ -1,0 +1,33 @@
+# This script is included when DUECA is remotely started up via the
+# rrundueca* scripts. Put platform specific environment variables etc. here
+
+# needed for X-windows
+export DISPLAY=:0.0
+export PATH=/usr/X11R6/bin:$PATH
+
+#    NVIDIA valid 'FSAA' Values
+#      value - description
+#        0   -   Off
+#        1   -   2x (2xMS)
+#        5   -   4x (4xMS)
+#        7   -   8x (4xMS, 4xCS)
+#        8   -   16x (4xMS, 12xCS)
+#        9   -   8x (4xSS, 2xMS)
+#       10   -   8x (8xMS)
+#       11   -   16x (4xSS, 4xMS)
+#       12   -   16x (8xMS, 8xCS)
+#       13   -   32x (4xSS, 8xMS)
+#       14   -   32x (8xMS, 24xCS)
+#       15   -   64x (16xSS, 4xMS)
+#export __GL_FSAA_MODE=15
+
+# NVIDIA anisotropic texture filtering options
+#0      No anisotropic filtering
+#1      2x anisotropic filtering
+#2      4x anisotropic filtering
+#3      8x anisotropic filtering
+#4      16x anisotropic filtering
+#export __GL_LOG_MAX_ANISO=4
+
+# locale setting for DUECA v3 data logging
+export LC_NUMERIC=en_US.UTF-8

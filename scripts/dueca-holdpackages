@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Block or enable relevant package updating
+
+# usage message if no arguments
+function usage()
+{
+    echo "Usage: $0 hold|release|status"
+    echo "Blocks or enables updates for dueca, hmilib, nvidia and"
+    echo "real-time kernel packages"
+}
+
+# extended regexp with all packages to hold
+WPACKAGES='^dueca2.*$|^hmilib.*$|^linux-.*-preempt$|^nvidia-.*-[0-9]+$|^libnvidia-.*$|^xserver-xorg-video-nvidia-[0-9]+$'
+
+if [ "$1" = "hold" ]; then
+
+    # get installed packages matching the regexp
+    PKGS=`dpkg --get-selections | grep "\<install$" | cut -f 1| egrep "$WPACKAG\
+ES"`
+
+    # mark them as hold
+    for P in $PKGS; do
+        echo "$P hold" | dpkg --set-selections
+    done
+
+elif [ "$1" = "release" ]; then
+
+    # get held packages
+    PKGS=`dpkg --get-selections | grep "\<hold" | cut -f 1| egrep "$WPACKAGES"`
+
+    # mark as install
+    for P in $PKGS; do
+        echo "${P} install" | dpkg --set-selections
+    done
+
+elif [ "$1" = "status" ]; then
+
+    # list of held packages (all)
+    dpkg --get-selections | grep "\<hold$"
+
+else
+
+    # message
+    usage
+fi

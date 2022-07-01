@@ -1,0 +1,529 @@
+#!/bin/bash
+
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+
+# various
+dueca_version="@dueca_VERSION@"
+major_minor="@VERMAJOR@_@VERMINOR@"
+staticflags="@staticflags@"
+unstaticflags="@unstaticflags@"
+STATCONTROL="@statcontrol@"
+INITCONTROL=""
+SCRIPTDEF="-DSCRIPT_SCHEME"
+SCRIPTSUFFIX="-sc"
+
+usage()
+{
+    cat <<EOF
+Usage: dueca-config [OPTIONS] [COMPONENT-OPTIONS]
+Options:
+        [--version]
+        [--libs]
+        [--cflags]
+        [--path-datafiles]
+        [--default-module-makefile]
+        [--default-exe-makefile]
+        [--scriptlang]
+        [--help]
+Component selection options:
+        --scramnet         # DUECA objects for SCRAMNet communication
+        --extra            # additional (non-module) helpers in DUECA
+        --dusime           # DUSIME objects
+        --inter            # DUECA process intercommunication
+        --hdf5             # HDF5 logging utilities
+	--ddff             # DDFF data file format
+        --rtw53 / --rtwv30 # Real-time workshop 3.0, from Matlab 5.3
+        --rtw60 / --rtwv40 # Real-time workshop 4.0, from Matlab 6.0
+        --rtw61 / --rtwv41 # Real-time workshop 4.1, from Matlab 6.1
+        --rtw65 / --rtwv50 # Real-time workshop 5.0, from Matlab 6.5
+        --rtwv61           # Real-time workshop 6.1, from Matlab 7.0
+        --rtwv64           # Real-time workshop 6.4, from Matlab 7.1
+        --rtwv65           # Real-time workshop 6.5, from Matlab 7.2
+        --rtwv70           # Real-time workshop 7.0, from Matlab 2007b
+        --rtwv76           # Real-time workshop 7.6, from Matlab 2010b
+        --rtwv81           # Real-time workshop 8.1, from Matlab 2011b
+        --rtwv83           # Real-time workshop 8.3, from Matlab 2012b
+        --rtwv88           # Simulink Coder 8.8, from Matlab 2015a
+        --rtwv8_11         # Simulink Coder 8.11, from Matlab 2016b
+        --rtwv8_13         # Simulink Coder 8.13, from Matlab 2017b
+        --rtwv9_0          # Simulink Coder 9.0, from Matlab 2018b
+        --rtwv9_2          # Simulink Coder 8.2, from Matlab 2019b
+        --xml              # Xml library needed for RTW state/parameter saves
+        --hmi              # HMIlib OpenGL interface library
+        --hmi-ftgl         # HMIlib only with ftgl support
+        --hmi-glfont       # HMIlib only with glfont support
+        --sami             # SAMI Standard Aircraft Modeling Interface
+        --ip               # DUECA objects for IP communication
+        --udp              # DUECA objects for newer UDP communication
+        --shm              # DUECA objects for shared mem communication
+        --websock          # WebSocket server external communication
+        --static           # link against static DUECA libraries
+        --gtk2             # include gtk2-based interfaces and framework
+                           # note that gtk2 is becoming obsolete, prefer gtk3
+        --gtkmm2 / --gtkmm # include gtkmm-based interfaces and framework
+        --gtk3             # include gtk3-based interfaces and framework
+        --gtkmm3           # include gtkmm-based interfaces with gtk3
+        --glut             # include glut-based framework
+        --glut-gui         # include glui-gui (glui) based framework
+        --fltk             # include fltk-based framework
+        --x11              # include components that use x11 directly
+        --qt               # add qt, only possible with gtk2
+        --python           # scripting interface with python
+        --scheme           # scripting interface with scheme (default)
+        --prefix           # return installation prefix
+        --libdir           # return installation library path
+
+Note that you can only use ONE of the real-time workshop versions at a time.
+The rtw53 etc. options are obsolete, and may be removed in a next version
+
+Note that the --rtw* options do NOT give you the cflags for that library,
+due to the potentially devastating effects of the defines in those flags,
+add these flags in the Makefiles that build the individual modules,
+preferably through pkg-config.
+
+Note that you can only use ONE of --gtk2 or --gtk3 at a time.
+EOF
+    exit $1
+}
+
+# error echo function
+echoerr() { echo "$@" 1>&2; }
+
+if test $# -eq 0; then
+    usage 1 1>&2
+fi
+
+# combination of dusime and gui needs extra care
+OPTDUSIME=''
+OPTGUI=''
+CFLAGS=''
+OPTUDP=''
+
+# the first option is command
+OPTION=$1
+# process the remaining as component selection options
+shift
+
+case $OPTION in
+    --version)
+        echo $dueca_version
+        exit 0
+        ;;
+
+    --prefix)
+        echo ${prefix}
+        exit 0
+        ;;
+
+    --libdir)
+        echo ${libdir}
+        exit 0
+        ;;
+
+    --scriptlang)
+        for i in $*; do
+            case "$i" in
+                --scheme)
+                    echo "scheme"
+                    exit 0
+                    ;;
+                --python)
+                    echo "python"
+                    exit 0
+                    ;;
+            esac
+            echo "unknown"
+            exit 0
+        done
+        ;;
+
+    --cflags | --cflagsrtw | --libs | --libsrtw | \
+        --docbuildlibs | --docbuildpath | --pkgconfigline)
+        PKGS=''
+
+        # have to iterate over selected components several times
+        COMPONENTS=$*
+
+        # by default include the main function in dueca-start
+        # can be modified by the --nomain option
+        DUECASTART="dueca-start\${SCRIPTSUFFIX}"
+
+        for i in $COMPONENTS; do
+            case "$i" in
+                --scheme)
+                    SCRIPTDEF="-DSCRIPT_SCHEME"
+                    SCRIPTSUFFIX="-sc"
+                    ;;
+                --python)
+                    SCRIPTDEF="-DSCRIPT_PYTHON"
+                    SCRIPTSUFFIX="-py"
+                    ;;
+                --rtw53 | --rtwv30 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV30"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS dueca-rtw-3.0"
+                    #fi
+                    ;;
+                --rtwv40 | --rtw60 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV40"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                    PKGS="$PKGS dueca-rtw-4.0"
+                    #fi
+                    ;;
+                --rtwv41 | --rtw61 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV41"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS dueca-rtw-4.1"
+                    #fi
+                    ;;
+                --rtwv50 | --rtw65 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV50"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS dueca-rtw-5.0"
+                    #fi
+                    ;;
+                --rtwv61 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV61"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS dueca-rtw-6.1"
+                    #fi
+                    ;;
+                --rtwv64 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV64"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS dueca-rtw-6.4"
+                    #fi
+                    ;;
+                --rtwv65 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV65"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS dueca-rtw-6.5"
+                    #fi
+                    ;;
+                --rtwv70 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV70"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS dueca-rtw-7.0"
+                    #fi
+                    ;;
+                --rtwv76 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV76"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS rtw7_6"
+                    #fi
+                    ;;
+                --rtwv81 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV81"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS rtw8_1"
+                    #fi
+                    ;;
+                --rtwv83 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV83"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS rtw8_3"
+                    #fi
+                    ;;
+                --rtwv88 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV88"
+                    #if [ "$OPTION" != "--cflags" ]; then
+                        PKGS="$PKGS rtw8_8"
+                    #fi
+                    ;;
+                --rtwv8_11 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV8_11"
+                    PKGS="$PKGS rtw8_11"
+                    ;;
+                --rtwv8_13 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV8_13"
+                    PKGS="$PKGS rtw8_13"
+                    ;;
+                --rtwv9_0 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV9_0"
+                    PKGS="$PKGS rtw9_0"
+                    ;;
+                --rtwv9_2 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV9_2"
+                    PKGS="$PKGS rtw9_2"
+                    ;;
+                --xml)
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_XML"
+                    PKGS="$PKGS tinyxml"
+                    ;;
+                --hmi)
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_HMI"
+                    PKGS="$PKGS hmilib-dueca${major_minor}\${SCRIPTSUFFIX}"
+                    OPTHMI=1
+                    ;;
+                --hmi-ftgl)
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_HMI_FTGL"
+                    PKGS="$PKGS hmilib-ftgl"
+                    ;;
+                --hmi-glfont)
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_HMI_GLFONT"
+                    PKGS="$PKGS hmilib-glfont"
+                    ;;
+                --sami)
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_SAMI"
+                    PKGS="$PKGS samimm"
+                    ;;
+                --gtk2)
+                    PKGS="$PKGS dueca-gtk2\${SCRIPTSUFFIX}"
+                    ;;
+                --gtkmm|--gtkmm2)
+                    PKGS="$PKGS dueca-gtkmm"
+                    ;;
+                --gtkmm3)
+                    PKGS="$PKGS dueca-gtkmm3"
+                    ;;
+                --gtk3)
+                    PKGS="$PKGS dueca-gtk3\${SCRIPTSUFFIX}"
+                    ;;
+                --glut)
+                    PKGS="$PKGS dueca-glut\${SCRIPTSUFFIX}"
+                    ;;
+                --glut-gui)
+                    PKGS="$PKGS dueca-glut-gui\${SCRIPTSUFFIX}"
+                    ;;
+                --fltk)
+                    PKGS="$PKGS dueca-fltk\${SCRIPTSUFFIX}"
+                    ;;
+                --qt)
+                    PKGS="$PKGS dueca-qt"
+                    ;;
+                --x11)
+                    PKGS="$PKGS dueca-extra-x11"
+                    ;;
+                --extra)
+                    PKGS="$PKGS dueca-extra\${SCRIPTSUFFIX}"
+                    OPTEXTRA=1
+                    ;;
+                --inter)
+                    PKGS="$PKGS dueca-inter\${SCRIPTSUFFIX}"
+                    ;;
+                --hdf5)
+                    PKGS="$PKGS dueca-hdf\${SCRIPTSUFFIX}"
+                    ;;
+                --dusime)
+                    PKGS="$PKGS dueca-dusime\${SCRIPTSUFFIX}"
+                    OPTDUSIME=1
+                    ;;
+                --scramnet)
+                    PKGS="$PKGS dueca-scramnet\${SCRIPTSUFFIX}"
+                    ;;
+                --ip)
+                    PKGS="$PKGS dueca-ip\${SCRIPTSUFFIX}"
+                    ;;
+                --udp)
+                    PKGS="$PKGS dueca-udp\${SCRIPTSUFFIX}"
+                    OPTUDP=1
+                    ;;
+                --websock)
+                    PKGS="$PKGS dueca-websock\${SCRIPTSUFFIX}"
+                    ;;
+                --shm)
+                    PKGS="$PKGS dueca-shm\${SCRIPTSUFFIX}"
+                    ;;
+                --static)
+                    if test -n "$staticflags" -a -n "$unstaticflags"; then
+                        STATCONTROL=" --define-variable=staticsuffix=-static"
+                    fi
+                    ;;
+                --noinit)
+                    INITCONTROL=" --define-variable=initfunc=\"\""
+                    ;;
+                --nomain)
+                    DUECASTART=""
+                    SCRIPTSUFFIX=""
+                    SCRIPTDEF=""
+                    ;;
+                *)
+                    echoerr "$0 unknown option \"$i\""
+                    exit 1
+                    ;;
+            esac
+            shift
+        done
+
+        # for the inclusion of gui elements in dusime
+        if test -n "$OPTDUSIME"; then
+            for i in $COMPONENTS; do
+                case "$i" in
+                    --gtk2)
+                        PKGS="$PKGS dueca-dusime-gtk2\${SCRIPTSUFFIX}"
+                        ;;
+                    --gtk3)
+                        PKGS="$PKGS dueca-dusime-gtk3\${SCRIPTSUFFIX}"
+                        ;;
+                    esac
+            done
+        fi
+
+        # gui elements hmi
+        if test -n "$OPTHMI"; then
+            for i in $COMPONENTS; do
+                case "$i" in
+                    --gtk2)
+                        PKGS="$PKGS hmilib-dueca${major_minor}-gtk2"
+                        ;;
+                    --gtk3)
+                        PKGS="$PKGS hmilib-dueca${major_minor}-gtk3"
+                        ;;
+                    esac
+            done
+        fi
+
+        # gui elements udpcom
+        if test -n "$OPTUDP"; then
+            for i in $COMPONENTS; do
+                case "$i" in
+                    --gtk2)
+                        PKGS="$PKGS dueca-udp-gtk2\${SCRIPTSUFFIX}"
+                        ;;
+                    --gtk3)
+                        PKGS="$PKGS dueca-udp-gtk3\${SCRIPTSUFFIX}"
+                        ;;
+                    esac
+            done
+        fi
+
+        # for the inclusion of gui elements in extra
+        if test -n "$OPTEXTRA"; then
+            # any gui elements require addition of glsweeper, init in extragui
+            EXTRAGUI=""
+            for i in $COMPONENTS; do
+                case "$i" in
+                    --gtk2)
+                        PKGS="$PKGS dueca-extra-gtk2\${SCRIPTSUFFIX}"
+                        EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                    --gtkmm|--gtkmm2)
+                        PKGS="$PKGS dueca-extra-gtkmm"
+                        ;;
+                    --gtkmm3)
+                        # no content yet
+                        # PKGS="$PKGS dueca-extra-gtkmm3"
+                        ;;
+                    --gtk3)
+                        PKGS="$PKGS dueca-extra-gtk3"
+                        EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                    --glut)
+                        PKGS="$PKGS dueca-extra-glut\${SCRIPTSUFFIX}"
+                        EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                    --glut-gui)
+                        PKGS="$PKGS dueca-extra-glut-gui"
+                        EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                    --fltk)
+                        PKGS="$PKGS dueca-extra-fltk"
+                        EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                    --x11)
+                        PKGS="$PKGS dueca-extra-x11"
+                        EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                esac
+            done
+            PKGS="$PKGS $EXTRAGUI"
+        fi
+
+        # merge in the scriptsuffix
+        PKGS=`eval echo "${PKGS}"`
+        DUECASTART=`eval echo "${DUECASTART}"`
+
+        # first check all packages are available
+        if [ -n "${PKGS}" ]; then
+            ALLTHERE=$(pkg-config ${PKGS} && echo yes)
+            if [ "x${ALLTHERE}" != "xyes" ]; then
+                MISSING=""
+                for p in ${PKGS}; do
+                    if ! pkg-config ${p} 2>/dev/null; then
+                        #echo "missing ${p}"
+                        MISSING="${MISSING} ${p}"
+                    fi
+                done
+                echoerr \
+                    "$0 Some packages missing or with incomplete dependencies"
+                echoerr \
+                    "$0 packages with problems:${MISSING}"
+                exit 1
+            fi
+        fi
+
+        # now generate cflags or libs, with the packages and pkg-config
+        if test "$OPTION" = "--cflags"; then
+            echo "$CFLAGS $SCRIPTDEF `pkg-config --cflags dueca $PKGS $DUECASTART` ${SCRIPTFLAGS}" \
+                | sed -e's/^[[:space:]]*//; s/[[:space:]]*$//'
+        elif test "$OPTION" = "--cflagsrtw"; then
+            echo "$CFLAGS `pkg-config --cflags $PKGS`" \
+                | sed -e's/^[[:space:]]*//; s/[[:space:]]*$//'
+        elif test "$OPTION" = "--libs"; then
+            echo "`pkg-config --libs$STATCONTROL$INITCONTROL dueca $PKGS $DUECASTART` ${SCRIPTLIBS}" \
+                | sed -e's/^[[:space:]]*//; s/[[:space:]]*$//'
+        elif test "$OPTION" = "--libsrtw"; then
+            echo "`pkg-config --libs $PKGS`"
+        elif test "$OPTION" = "--pkgconfigline"; then
+            echo "$PKGS"
+        elif test "$OPTION" = "--docbuildlibs"; then
+
+            # parent directory of build
+            SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+            TOPPATH=$( dirname "$SCRIPTPATH" )
+
+            # kick-off PKG_CONFIG_PATH and the library link dirs with
+            # dueca itself
+            PKG_CONFIG_PATH="$TOPPATH/dueca"
+            LIBLINE="-L$TOPPATH/dueca"
+
+            # look for the .pc files, and add
+            for P in $PKGS; do
+                if find "$TOPPATH" -name ${P}.pc >/dev/null; then
+                    DIR=$(dirname $(find "$TOPPATH" -name ${P}.pc))
+                    PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$DIR"
+                    LIBLINE="$LIBLINE -L${DIR}"
+                fi
+            done
+            echo "${LIBLINE} $(PKG_CONFIG_PATH=$PKG_CONFIG_PATH pkg-config --libs dueca $PKGS $DUECASTART) ${SCRIPTLIBS}"
+        elif test "$OPTION" = "--docbuildpath"; then
+            # parent directory
+            SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+            TOPPATH=$( dirname "$SCRIPTPATH" )
+            # find all .pc, and create PKG_CONFIG_PATH, kick-off with
+            DIR=$(dirname $(find "$TOPPATH" -name ${DUECASTART}.pc))
+            LIBLINE="$DIR"
+            for P in $PKGS; do
+                DIR="$(dirname $(find $TOPPATH -name ${P}.pc))"
+                LIBLINE="$LIBLINE:$DIR"
+            done
+            echo "$LIBLINE"
+        fi
+        exit 0
+        ;;
+
+    --path-datafiles)
+        echo "$prefix/share/dueca"
+        exit 0
+        ;;
+
+    --default-module-makefile)
+        echo "$prefix/share/dueca/GenericMakefile.mod"
+        exit 0
+        ;;
+
+    --default-exe-makefile)
+        echo "$prefix/share/dueca/GenericMakefile.exe"
+        exit 0
+        ;;
+
+    --help)
+        usage
+        exit 0
+        ;;
+
+esac
+exit 0
+

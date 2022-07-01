@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+# -*-python-*-
+
+import sys
+import os
+import string
+import re
+import socket
+import time
+
+# extend the search path
+fsdp = os.popen('dueca-config --path-datafiles')
+sys.path.append(fsdp.readline().strip())
+fsdp.close()
+from daux import getUserInput
+
+def Usage():
+    print("""Usage
+new-module TYPE NAME OPTIONS
+
+  TYPE       : type of module, currently one of:
+               rtw8_11 : Simulink Coder 8.11 (Matlab 2016b; ert target)
+               rtw8_13 : Simulink Coder 8.13 (Matlab 2017b; ert target)
+               rtw9_0 : Simulink Coder 9.0 (Matlab 2018b; ert target)
+               rtw9_2 : Simulink Coder 9.2 (Matlab 2019b; ert target)
+               dueca : bare dueca module. No dusime state change logic
+               dusime : dusime module, module code integrated in
+                        the module
+               simulation : dusime module with the model
+                        code in a separate class (not implemented)
+               hardware : dusime hardware module
+               helper : dueca helper class, not a module but a C++ class
+                        that can be created from the scheme script
+  NAME       : name for the new module
+  OPTIONS    : additional options, differing per module type
+
+  Only the TYPE must be supplied, all other arguments are prompted for if
+  not present
+""")
+
+# this makes a scheme-type command/word from one that is word-separated
+# by capitalisation. For example ConvertPSDSignal becomes convert-psd-signal
+def schemify(s):
+
+    # put into a list first
+    sl = []
+    for i in s:
+        sl.append(i)
+
+    # go from the back
+    sl.reverse()
+    rl = []
+    # set to 1, this helps with separation when the input word contains a
+    # capitalised abbreviation at the end
+    prevupper = 1
+
+    for i in sl:
+        # insert a seperation mark before an uppercase word
+        if i.lower() == i and prevupper > 1:
+            rl.insert(0, '-')
+
+        # add the lower case letter
+        rl.insert(0, i.lower())
+
+        # insert a separation mark before a "normal" word Dddd
+        if i.lower() != i and not prevupper:
+            rl.insert(0, '-')
+
+        # remember number of upper/lower letters
+        if i.lower() != i:
+            prevupper = prevupper + 1
+        else:
+            prevupper = 0
+
+    if rl[0] == '-':
+        rl.pop(0)
+
+    return ''.join(rl)
+
+def overWriteOK(f):
+    if os.path.exists(f):
+        while 1:
+            act = input('file "' + f + \
+                        '" exists, (o)verwrite, (s)kip, (a)bort? ')
+            act = act.lower()
+            if act == 'o':
+                return 1
+            elif act == 's':
+                return 0
+            elif act == 'a':
+                sys.exit(0)
+    else:
+        return 1
+
+
+def newRtw88Module(al, rtwver):
+    rtwver = 'rtwv' + rtwver[3:]
+    date = time.asctime(time.localtime(time.time()))
+    author = os.environ['USER']
+    sedcmd = 'sed -e "s/@Module@/' + al['name'] + '/g\n' + \
+              's/@date@/' + date +'/g\n' + \
+              's/@author@/' + author + '/g\n' + \
+              's/@smodule@/' + schemify(al['name']) + '/g\n' + \
+              's/@activityname@/' + al['activityname'] + '/g\n' + \
+              's/@rtwmodel@/' + al['rtwname'] + '/g\n' + \
+              's/@rtwversion@/' + rtwver + '/g"' + \
+              ' `dueca-config --path-datafiles`'
+    templatename = 'Simulink88Template'
+
+    for fileset in [(al['name'] + '.cxx', templatename + '.cxx'), \
+                    (al['name'] + '.hxx', templatename + '.hxx'), \
+                    (al['name'] + 'Test.cc', 'Simulink88Test.cc'), \
+                    ('Makefile' +al['name'] + 'Test', 'Simulink88Makefile')]:
+        if overWriteOK(fileset[0]):
+            os.system(sedcmd + '/data/default/' + fileset[1] + ' > ' + fileset[0])
+
+
+
+def newDuecaModule(al):
+    date = time.asctime(time.localtime(time.time()))
+    author = os.environ['USER']
+    sedcmd = 'sed -e "s/@Module@/' + al['name'] + '/g\n' + \
+              's/@date@/' + date +'/g\n' + \
+              's/@author@/' + author + '/g\n' + \
+              's/@activityname@/' + al['activityname'] + '/g\n' + \
+              's/@smodule@/' + schemify(al['name']) + '/g\"' + \
+              ' `dueca-config --path-datafiles`'
+    if overWriteOK(al['name'] + '.cxx'):
+        os.system(sedcmd + \
+                  '/data/default/DuecaModuleTemplate.cxx > ' +\
+                  al['name'] + '.cxx')
+    if overWriteOK(al['name'] + '.hxx'):
+        os.system(sedcmd + \
+                  '/data/default/DuecaModuleTemplate.hxx > ' +\
+                  al['name'] + '.hxx')
+
+def newDusimeModule(al):
+    date = time.asctime(time.localtime(time.time()))
+    author = os.environ['USER']
+    sedcmd = 'sed -e "s/@Module@/' + al['name'] + '/g\n' + \
+              's/@date@/' + date +'/g\n' + \
+              's/@author@/' + author + '/g\n' + \
+              's/@statesize@/' + al['nstate'] + '/g\n' + \
+              's/@activityname@/' + al['activityname'] + '/g\n' + \
+              's/@smodule@/' + schemify(al['name']) + '/g\"' + \
+              ' `dueca-config --path-datafiles`'
+    if overWriteOK(al['name'] + '.cxx'):
+        os.system(sedcmd + \
+                  '/data/default/DusimeModuleTemplate.cxx > ' +\
+                  al['name'] + '.cxx')
+    if overWriteOK(al['name'] + '.hxx'):
+        os.system(sedcmd + \
+                  '/data/default/DusimeModuleTemplate.hxx > ' +\
+                  al['name'] + '.hxx')
+
+def newHardwareModule(al):
+    date = time.asctime(time.localtime(time.time()))
+    author = os.environ['USER']
+    sedcmd = 'sed -e "s/@Module@/' + al['name'] + '/g\n' + \
+              's/@date@/' + date +'/g\n' + \
+              's/@author@/' + author + '/g\n' + \
+              's/@statesize@/' + al['nstate'] + '/g\n' + \
+              's/@activityname@/' + al['activityname'] + '/g\n' + \
+              's/@smodule@/' + schemify(al['name']) + '/g\"' + \
+              ' `dueca-config --path-datafiles`'
+    if overWriteOK(al['name'] + '.cxx'):
+        os.system(sedcmd + \
+                  '/data/default/HardwareModuleTemplate.cxx > ' +\
+                  al['name'] + '.cxx')
+    if overWriteOK(al['name'] + '.hxx'):
+        os.system(sedcmd + \
+                  '/data/default/HardwareModuleTemplate.hxx > ' +\
+                  al['name'] + '.hxx')
+
+def newSimulationModule(al):
+    date = time.asctime(time.localtime(time.time()))
+    author = os.environ['USER']
+    sedcmd = 'sed -e "s/@Module@/' + al['name'] + '/g\n' + \
+              's/@date@/' + date +'/g\n' + \
+              's/@author@/' + author + '/g\n' + \
+              's/@statesize@/' + al['nstate'] + '/g\n' + \
+              's/@activityname@/' + al['activityname'] + '/g\n' + \
+              's/@smodule@/' + schemify(al['name']) + '/g\"' + \
+              ' `dueca-config --path-datafiles`'
+    if overWriteOK(al['name'] + 'Mod.cxx'):
+        os.system(sedcmd + \
+                  '/data/default/SimulationModuleTemplate.cxx > ' +\
+                  al['name'] + 'Mod.cxx')
+    if overWriteOK(al['name'] + 'Mod.hxx'):
+        os.system(sedcmd + \
+                  '/data/default/SimulationModuleTemplate.hxx > ' +\
+                  al['name'] + 'Mod.hxx')
+    if overWriteOK(al['name'] + '.cxx'):
+        os.system(sedcmd + \
+                  '/data/default/SimulationModelTemplate.cxx > ' +\
+                  al['name'] + '.cxx')
+    if overWriteOK(al['name'] + '.hxx'):
+        os.system(sedcmd + \
+                  '/data/default/SimulationModelTemplate.hxx > ' +\
+                  al['name'] + '.hxx')
+
+def newDuecaHelper(al):
+    date = time.asctime(time.localtime(time.time()))
+    author = os.environ['USER']
+    sedcmd = 'sed -e "s/@Module@/' + al['name'] + '/g\n' + \
+              's/@date@/' + date +'/g\n' + \
+              's/@author@/' + author + '/g\n' + \
+              's/@smodule@/' + schemify(al['name']) + '/g\"' + \
+              ' `dueca-config --path-datafiles`'
+    if overWriteOK(al['name'] + '.cxx'):
+        os.system(sedcmd + \
+                  '/data/default/DuecaHelperTemplate.cxx > ' +\
+                  al['name'] + '.cxx')
+    if overWriteOK(al['name'] + '.hxx'):
+        os.system(sedcmd + \
+                  '/data/default/DuecaHelperTemplate.hxx > ' +\
+                  al['name'] + '.hxx')
+
+# main argument processing switch
+if len(sys.argv) < 2:
+    Usage()
+    sys.exit(1)
+
+if sys.argv[1].startswith('rtw88') or \
+   sys.argv[1].startswith('rtw8_11') or \
+   sys.argv[1].startswith('rtw8_13') or \
+   sys.argv[1].startswith('rtw9_0') or \
+   sys.argv[1].startswith('rtw9_2'):
+    al=getUserInput(
+        ['name', 'rtwname', 'activityname'], \
+        ['Give a (full) name for the module: ', \
+         'Give the name of the RTW model (must be different!): ', \
+         'A description for the activity: ' ])
+    if al:
+        newRtw88Module(al, sys.argv[1])
+    else:
+        print("Incomplete input");
+    sys.exit(0)
+
+if sys.argv[1] == "dueca":
+    al=getUserInput(['name', 'activityname'], \
+                    ['Give a (full) name for the module: ', \
+                     'A description for the activity: '])
+    if al:
+        newDuecaModule(al)
+    else:
+        print("Incomplete input");
+    sys.exit(0)
+
+if sys.argv[1] == "dusime":
+    al=getUserInput(['name', 'nstate', 'activityname'], \
+                    ['Give a (full) name for the module: ', \
+                     'The size of the state, in bytes', \
+                     'A description for the activity: '])
+    if al:
+        newDusimeModule(al)
+    else:
+        print("Incomplete input");
+    sys.exit(0)
+
+if sys.argv[1] == "hardware":
+    al=getUserInput(['name', 'nstate', 'activityname'], \
+                    ['Give a (full) name for the module: ', \
+                     'The size of the state, in bytes', \
+                     'A description for the activity: '])
+    if al:
+        newHardwareModule(al)
+    else:
+        print("Incomplete input");
+    sys.exit(0)
+
+if sys.argv[1] == "helper":
+    al=getUserInput(['name'], \
+                    ['Give a (full) name for the module: '])
+    if al:
+        newDuecaHelper(al)
+    else:
+        print("Incomplete input");
+    sys.exit(0)
+
+#if sys.argv[1] == "simulation":
+#    al=getUserInput(['name', 'nstate', 'activityname'], \
+#                    ['Give a (full) name for the module: ', \
+#                     'The size of the state, in bytes', \
+#                     'A description for the activity: '])
+#    if al:
+#        newSimulationModule(al)
+#    else:
+#        print("Incomplete input");
+#    sys.exit(0)
+
+# catch all stuff
+Usage()

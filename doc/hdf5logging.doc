@@ -1,0 +1,133 @@
+// -*-c++-*-
+
+/** @page hdf5 DUECA HDF5 logging facilities
+
+    For logging, a generic module to log channel data to HDF5 files is
+    available.
+
+    A quote on HDF5 from the [HDF website](https://www.hdfgroup.org/HDF5/)
+
+    > HDF5 is a data model, library, and file format for storing and
+    > managing data. It supports an unlimited variety of datatypes,
+    > and is designed for flexible and efficient I/O and for high
+    > volume and complex data. HDF5 is portable and is extensible,
+    > allowing applications to evolve in their use of HDF5.
+
+    HDF5 is a very convenient format for logging data, it is widely
+    used, can be read into Matlab or Python, and it allows for pretty
+    flexible and efficient logging of data. Log files are hierarchical
+    (that is what the "H" stands for), so you can organize all kinds
+    of data in a single file. In HDF5, you can add metadata
+    "properties" to the branches in your hierarchical data tree, so an
+    HDF file can be made self-documented. The capability to easily
+    convert most channel data to an HDF5 log was added for dueca 2.2,
+    spring 2017. This uses the service functor concept introduced for
+    channel access, see @ref dcofunctor "DCO service functor"
+
+    @section hdf5_capable Capabilities and limitations
+
+    HDF as a data format is oriented towards logging multi-dimensional
+    single-type data matrices. A hierarchical path can be used to
+    specify the location of the data in the file. Most classes of DCO
+    object can be directly logged in the generated hdf file, however,
+    there are some limitations on the complexity of the DCO objects.
+
+    - Each member of a DCO object is logged under a separate path,
+      give a base path to the logging of the data in a channel entry,
+      the data are logged as:
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      /<basepath>/data/<membername0>
+      /<basepath>/data/<membername1>
+      ....
+      /<basepath>/data/<membernamen>
+      /<basepath>/tick
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    - members with a fixed length will be logged as a 2-d array, so a
+      @ref dueca::fixvector type will be logged like that. Note that
+      this is a pretty efficient way to log with hdf5
+
+    - members with a variable length @ref dueca::limvector ,
+      @ref dueca::varvector, std::vector and std::list , will be
+      logged as a 1-d array with variable length vectors in the
+      elements. Note that logging in this manner in hdf5 is waaaaaay
+      less efficient than logging fixed-length data, so avoid this if
+      you can.
+
+    - DCO objects can be nested; if you want to log a DCO object with
+      nested DCO objects, you must indicate that to the code generator
+      of the *nested* objects (hdf5nest option). In that case for the
+      nested DCO objects you are limited to DUECA's own variable length
+      vectors and fixed length vectors, and to limited length strings
+      (dstring8, dstring16, etc.). Strings from std::string and
+      containers from std do not work
+
+    - The std::map container does not work (yet?).
+
+    @section hdf5_init Adding HDF5 logging to your project
+
+    To add hdf5 logging capability to your project, add the option
+    --hdf5 to the DCOMPONENTS variable in the makefile:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.make}
+    DCOMPONENTS = ....  --hdf5
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    @section hdf5_dco DCO objects
+
+    The HDF5 logging capabilities are based on additional code
+    generated for the DCO objects. To generate this code, add a line
+    with
+
+    ~~~~~~~~~~~~~~~~~{.scm}
+    (Option hdf5)
+    ~~~~~~~~~~~~~~~~~
+
+    This will make code that can *not* be nested, to get nested code,
+    but bear in mind the limitations discussed above, specify option
+    hdf5nest
+
+    ~~~~~~~~~~~~~~~~~{.scm}
+    (Option hdf5nest)
+    ~~~~~~~~~~~~~~~~~
+
+    Nested or nesteable code is for DCO objects that are to be used
+    within other DCO objects. The limitation here is that
+    variable-length objects cannot be used in nested DCO objects.
+
+    The generated code uses c preprocessor defines around the
+    additional components. When you don't have hdf5 on a computer, or
+    the --hdf5 option is not used, those parts will not be compiled,
+    so also when you no longer need hdf5 logging, this option can
+    safely remain in the DCO file.
+
+    @section hdf5_module HDF5 logging code
+
+    There is a standard HDF5 logging module, called, surprisingly,
+    @ref dueca::hdf5log::HDF5Logger . To get this module to log,
+    indicate which channel and entry must be logged, and repeat for
+    all requested channels. There is also an option
+    to monitor a specific channel and create logging for all entries
+    appearing in that channel. You can specify whether logging takes
+    place always, or only when the simulation is in advance, and it is
+    also possible to "throttle" the logging rate, however make sure
+    you only do this on clean signals, since the data is not filtered
+    before picking only a part of the data points.
+
+    It is also possible to create customized logging through the @ref
+    dcofunctor "DCO service functor" functionality. The functors for
+    HDF5 logging are @ref dueca::hdf5log::HDF5DCOWriteFunctor,
+    dueca::hdf5log::HDF5DCOReadFunctor, and @ref
+    dueca::hdf5log::HDF5DCOMetaFunctor
+
+    The logging module is configured with the following script commands:
+
+    \verbinclude hdf5-logger.scm
+
+    A matching hdf5 replayer can replay properly formatted hdf5 files;
+    @ref dueca::hdf5log::HDF5Replayer. Note that both the logger and
+    replayer can listen to channels that enable you to control the
+    replay or log; opening files or creating log sections in files, etc.
+*/
+
+

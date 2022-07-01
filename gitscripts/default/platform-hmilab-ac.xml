@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<configuration
+    xmlns="https://dueca.tudelft.nl"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://dueca.tudelft.nl platform.xsd">
+  <machineclasses>
+    <machineclass name="hmi-ecs" gui="gtk3"/>
+    <machineclass name="hmi-io" gui="none">
+      <config>
+        set(PROJECT_LIBRARIES -L$ENV{HOME}/dapps/hmi-io/build
+            -lhmi-io -lethercat)
+        set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/dapps/hmi-io/build
+            -I$ENV{HOME}/apps/hmi-io)
+      </config>
+      <modules>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>IOController</name>
+	  <version>master</version>
+	</module>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>ControlLoading</name>
+	  <version>master</version>
+	</module>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>CLConfigurations</name>
+	  <version>master</version>
+	</module>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>cl-analyser</name>
+	  <version>master</version>
+	</module>
+      </modules>
+    </machineclass>
+    <machineclass name="hmi-ig" gui="none">
+      <modules>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <name>WorldView</name>
+	  <version>master</version>
+	</module>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <name>OSGViewer</name>
+	  <version>master</version>
+	</module>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <name>HMILabViewFiles</name>
+	  <version>master</version>
+	</module>
+        <module>
+	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <name>SpecificationBase</name>
+	  <version>master</version>
+	</module>
+      </modules>
+    </machineclass>
+    <machineclass name="hmi-efis" gui="glut"/>
+    <machineclass name="hmi-host" gui="glut">
+      <modules>
+	<module>
+	  <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <name>OpenALListener</name>
+	  <version>master</version>
+	</module>
+	<module>
+	  <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <name>WorldListener</name>
+	  <version>master</version>
+	</module>
+	<module>
+	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <name>SpecificationBase</name>
+	  <version>master</version>
+	</module>
+      </modules>
+    </machineclass>
+  </machineclasses>
+  <platform name="hmilab" comm-master="dutmms4">
+    <node name="dutmms1" machineclass="hmi-ecs" node-number="0"/>
+    <node name="dutmms6" machineclass="hmi-host"/>
+    <node name="dutmms4" machineclass="hmi-io"/>
+    <node name="dutmms2" machineclass="hmi-efis"/>
+    <node name="dutmms14" machineclass="hmi-ig"/>
+    <node name="dutmms14b" machineclass="hmi-ig"/>
+  </platform>
+</configuration>

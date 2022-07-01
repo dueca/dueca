@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+# this uses a comm-objects.lst input, and spits out an include header for
+# getting these comm-objects
+# comments are removed
+
+import sys
+import os
+
+# extend the search path
+fsdp = os.popen('dueca-config --path-datafiles')
+sys.path.append(fsdp.readline().strip())
+fsdp.close()
+
+# import set of useful functions
+from daux import *
+
+if len(sys.argv) < 2:
+    print('// Forgot to provide comm-objects.lst file')
+    sys.exit(1)
+
+fs = open(sys.argv[1])
+
+lis = removeComments(fs.readlines())
+
+# first print doxygen stuff
+print(
+'''/** @file comm-objects.h
+
+    This file lists all DUECA Communication Objects that this module
+    depends on.
+
+    These are:''')
+
+# print all names of the comm objects for the comment
+for l in lis:
+    if l:
+        parts = l.split()
+        if parts[0][-4:] == '.dco':
+            print('    '+ parts[0][:-4].split('/')[2])
+print('*/')
+
+# now print all include statements
+for l in lis:
+    if l:
+        parts = l.split()
+        to_include = parts[0]
+        if to_include[-4:] == '.dco':
+            if len(parts) > 1:
+                print('#include "../../'+to_include[:-4]+'.hxx"' +
+                      ' //'+parts[1:].join())
+            else:
+                print('#include "../../'+to_include[:-4]+'.hxx"')
+        else:
+            print('//'+l)
+

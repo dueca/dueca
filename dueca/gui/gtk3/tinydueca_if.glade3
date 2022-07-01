@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!--*- mode: nxml -*-->
+<interface>
+  <object class="GtkWindow" id="dueca_if">
+    <property name="title" translatable="yes">DUECA</property>
+    <property name="type">GTK_WINDOW_TOPLEVEL</property>
+    <property name="modal">no</property>
+    <property name="allow_shrink">no</property>
+    <property name="allow_grow">yes</property>
+    <property name="window-position">GTK_WIN_POS_NONE</property>
+    <property name="visible">yes</property>
+    <child>
+      <object class="GtkVBox" id="vbox1">
+        <property name="homogeneous">no</property>
+        <property name="spacing">15</property>
+        <property name="visible">yes</property>
+        <child>
+          <object class="GtkToggleButton" id="button_stop">
+            <property name="can_focus">yes</property>
+            <property name="label" translatable="yes">stop</property>
+            <property name="relief">GTK_RELIEF_NORMAL</property>
+            <property name="active">yes</property>
+            <property name="visible">yes</property>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">no</property>
+            <property name="fill">no</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="button_safe">
+            <property name="can_focus">yes</property>
+            <property name="label" translatable="yes">safe</property>
+            <property name="relief">GTK_RELIEF_NORMAL</property>
+            <property name="active">no</property>
+            <property name="visible">yes</property>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">no</property>
+            <property name="fill">no</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="button_run">
+            <property name="can_focus">yes</property>
+            <property name="label" translatable="yes">run</property>
+            <property name="relief">GTK_RELIEF_NORMAL</property>
+            <property name="active">no</property>
+            <property name="visible">yes</property>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">no</property>
+            <property name="fill">no</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_quit">
+            <property name="can_focus">yes</property>
+            <property name="label" translatable="yes">quit</property>
+            <property name="relief">GTK_RELIEF_NORMAL</property>
+            <property name="visible">yes</property>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">no</property>
+            <property name="fill">no</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_shutdown">
+            <property name="can_focus">yes</property>
+            <property name="label" translatable="yes">shutdown</property>
+            <property name="relief">GTK_RELIEF_NORMAL</property>
+            <property name="visible">yes</property>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">no</property>
+            <property name="fill">no</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_confirm">
+            <property name="can_focus">yes</property>
+            <property name="label" translatable="yes">confirm</property>
+            <property name="relief">GTK_RELIEF_NORMAL</property>
+            <property name="visible">yes</property>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">no</property>
+            <property name="fill">no</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

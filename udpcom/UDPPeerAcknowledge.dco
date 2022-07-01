@@ -1,0 +1,37 @@
+;; -*-scheme-*-
+(Header "
+        original item   : UDPPeerAcknowledge.dco
+        made by         : Rene' van Paassen
+        date            : 170205
+        description     : Peer information replicator nodes
+        documentation   : DUECA_API
+        copyright       : (c) 2017-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type vstring "#include <stringoptions.h>")
+(Type bool)
+(Type uint16_t "#include <inttypes.h>")
+
+;; Start information for a peer joining a replicator network.
+;;
+;; With an object of this type, the application at the master end can
+;; accept or reject peer connections. Data for the peer (limited to 1K)
+;; can be added.
+;;
+;; At the peer end, this informs of the ID issued by the master, and of
+;; optionally peer data from the application
+(Event UDPPeerAcknowledge
+
+       ;; Data for the peer, if the master replicator has a channel
+       ;; connection to an application module that vets peer connections,
+       ;; the peer data returned by that module is passed to the newly
+       ;; connected peer
+       (vstring peerdata (Default ""))
+
+       ;; issued peer id -- for matching response
+       (uint16_t peer_id (Default 0))
+
+       ;; rejection flag
+       (bool reject (Default false))
+       )

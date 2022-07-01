@@ -1,0 +1,16 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+startlibs=@SCRIPT_LDFLAGS@
+startcflags=@SCRIPT_FLAGS@
+
+Name: dueca-start@scriptsuffix@
+Description: script start code for DUECA
+Version: ${version}
+Libs: -L${libdir} -ldueca-start@scriptsuffix@ ${startlibs}
+Cflags: -I${dueca_includedir}/dueca ${startcflags}
+Requires: dueca = ${version}

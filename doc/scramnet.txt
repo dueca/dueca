@@ -1,0 +1,158 @@
+/**
+
+\page scramnet SCRAMNet communication under DUECA
+
+If available, a DUECA set-up may use SCRAMNet hardware to perform the
+real-time communication. SCRAMNet hardware provides a replicated
+memory block in each of the computers equipped with a SCRAMNet
+card. DUECA writes its communication data to this replicated memory.
+
+\section scram SCRAMNet properties
+
+\htmlonly <A href="http://www.systran.com/scmain.html"> Systran
+SCRAMNet+ </A> \endhtmlonly
+\latexonly Systran SCRAMNet+ \endlatexonly
+(Shared Common RAM Network) is developed by Systran Corporation. It
+offers high speed and low latency transfer of data, and provides
+replicated shared-memory access for up to 254 hosts in a realtime
+network. Since the SCRAMNet card takes care of all data transport,
+network protocol, and error correction, the real-time communication
+performance of the individual hosts in the network is not required.
+DUECA uses SCRAMNet+ cards in "Platinum" mode, a mode which provides
+error correction on the network. All hosts in the SIMONA Research
+Simulator (SRS) network are based on little-endian
+processors. Therefore endianness conversion on the network is not
+required, and not used.
+
+Besides offering a common memory area to all computers in the
+real-time network, the SCRAMNet protocol also provides the capability
+to deliver interrupts to other computers in the network. By specifying
+that a SCRAMNet memory location can transmit and -- at the other end
+-- receive interrupts, a write to that location will generate an
+interrupt on the receiving computer or computers. SCRAMNet cards have
+an interrupt FIFO (1024 words deep) that can be read to obtain the
+location that generated the interrupt. This enables real-time
+synchronisation of the computers in a network, and immediate attention
+to incoming data. DUECA uses this facility for clock synchronisation
+and attention to incoming data.
+
+\section DUECAscram DUECA use of SCRAMNet
+
+Before understanding how DUECA uses the SCRAMNet memory, the reader
+needs to understand how data is transferred within DUECA itself. DUECA
+offers two types of "Channels" for the communication between modules
+in DUECA. Here modules can be seen as reasonably independent software
+blocks, that can request and specify their scheduling conditions and
+required update rate. In general (i.e. unless the programmer violates
+the rules for good DUECA applications) modules do not call each
+other's methods directly, but use the channels to send messages to
+each other.
+
+A message in a channel is not only represents data that is transferred
+between two or more modules, but it also can act as a trigger to
+schedule a module that receives and has to process the data. Two types
+of channels are currently implemented.
+<ul>
+<li> %Event channels. Events can be seen as messages transferred from one
+module to another. Each event is unique, and writing a new event to a
+channel does not "overwrite" the event already there. Events are
+stored in a channel until all modules that read these events have read
+(or discarded) them, after which they are destroyed.
+<li> Stream channels. Stream channels carry data that should be
+updated continously, for example, the position of an aircraft. At each
+time there is a "valid" position for the aircraft. Stream channels are
+implemented so that they contain a number of copies of the data, all
+differing in age. As new data is written, the oldest copy is thrown
+out. Having several copies in a stream channel enables DUECA to
+service systems with "fast" and "slow" modules. Each module gets a
+time-consistent view of its data, and the buffering function of the
+channel enables slower modules to keep working, without having to meet
+the stringent deadlines imposed by a fast writing module.
+</ul>
+
+In the communication over SCRAMNet (or, for that matter, over ethernet
+for low-cost set-ups), each node in the DUECA process has its own
+"send order". Send orders start at 0. In Ethernet as well as SCRAMNet
+set-ups, the node with send order 0 initiates the communication. It
+also provides the master clock for the entire DUECA process. Ethernet
+communication follows the send order, with transmission of blocks of
+data by the node with send order 0, 1, and
+on, up to the node with send order "n-1" for a set-up with "n"
+nodes. For SCRAMNet communication, only the initialisation is headed
+by the node with send order 0, after the network communication has
+been set-up, all nodes may write to the network as soon as data is
+produced.
+
+SCRAMNet use preserves the capabilities of DUECA channels, both the
+transport of data and the triggering properties, for modules that wait
+for incoming data. For "n" nodes in a DUECA process, the SCRAMNet
+memory (1 MB in the SRS computers) is laid out in the following
+manner:
+<ol>
+<li>
+A synchronisation area, of n 32bit words, ordered according to the
+send order. Here node no 0 writes an unsigned integer counter, which
+will be monotonically increasing and which indicates the time in the
+DUECA process. The other nodes receive interrupts upon the writing of
+the counter by node 0, synchronise their clock on this event, and
+write back their own time value.
+<li>
+Control and communication areas, n in total, so one of each for each
+node. The control area is laid out as follows:
+<ol>
+<li> A 32bit word, which contains the DUECA node id (not to be
+confused with the send order) of the sending node.
+<li> n 32bit words, that contain an writing/reading offset into the
+corresponding communication area proper. For a node with send order
+"i", the "i"th word contains the offset into the communication area
+that will be written next. The other words contain the offset of the
+word in the communication area that has been read last, for each of
+the corresponding receiving nodes.
+</ol>
+Corresponding control and communication areas are laid out
+pairwise. The communication area functions as a circular buffer,
+to which messages can be written. Normally, several kB are reserved
+for each of the communication areas. Their size is configurable.
+<li> The remaining SCRAMNet memory functions as a buffer for stream
+channel data. If a stream channel finds out its data is going to be
+used across multiple nodes, it can request space in this area for all
+its data copies. This space is then served on a first-come,
+first-serve basis. If the data space is not available, transport of
+data can still be done by means of the communication areas, by
+packing, copying and unpacking the data (Much like the process that
+takes place with DUECA processes that are based on Ethernet communication).
+</ol>
+
+Messages in the circular buffer formed by a communication and
+control area are composed of:
+<ol>
+<li> A message header, a single 32bit word, containing the channel
+number (15 bits), a flag indicating whether the data is packed into
+the communication area also (for event channels and stream channels
+that were out of luck) (1 bit), and either the index of the data set
+that has been last written (stream channel with data in the stream
+channel data buffer) or the length of the data packet in bytes (16
+bits).
+<li> Optionally, the data that is to be transported. This is padded
+with up to three bytes, so it ends on a long word boundary.
+</ol>
+
+Data is written onto SCRAMNet memory when it is produced, making the
+communication asynchronous from the time steps in the DUECA
+process. Currently the write index is updated after each write,
+resulting in an interrupt write to the other nodes in the network. A
+differentiation in message urgency is foreseen so that the write index
+is only updated after writing data from a channel with more urgent
+status, or once per tick, whichever comes sooner.
+
+Communication within DUECA modules remains the same, regardless of
+whether an implementation uses SCRAMNet or Ethernet for the
+communication between nodes, or when the written data is not
+communicated to another node. As a development and testing platform
+for the SCRAMNet communication, an implementation using SYSV shared
+memory and SYSV ipc is also available. This implementation can
+communicate between several DUECA nodes on the same computer, it uses
+the shared memory to replicate the SCRAMNet memory communication and
+ipc to simulate the interrupt writes.
+
+*/

@@ -1,0 +1,958 @@
+#!/usr/bin/env python3
+# -*-python-*-
+
+import sys
+import os
+import re
+import socket
+import time
+import tempfile
+
+# extend the search path
+fsdp = os.popen('dueca-config --path-datafiles')
+sys.path.append(fsdp.readline().strip())
+fsdp.close()
+
+import CVS
+from daux import *
+from commobjects import *
+from modules import *
+
+# need a cvs connection in most cases
+cvs = CVS.CVS()
+
+# check gtk availability
+if not bool(os.popen('pkg-config gtk+-3.0 2>/dev/null').close()):
+    gdefault = 'gtk3'
+elif not bool(os.popen('pkg-config gtk+-2.0 2>/dev/null').close()):
+    gdefault = 'gtk2'
+else:
+    gdefault = 'none'
+
+
+
+
+def Usage():
+    print("""Usage
+dueca-project COMMAND OPTIONS
+  Where COMMAND is one of:
+
+  Starting commands:
+    new              : start a new project
+    new-module       : add a module to this project
+    borrow-module    : use a (generic) module from another project
+    copy-module      : add a module to this project, copied from another
+
+  Version control commands
+    checkout         : check out a project from the repository
+    update           : update the project based on changes from repository
+    commit           : finalise changes in the project into the repository
+    add-source       : add a piece of source to the repository
+    tag-version      : give a version number for this code
+    show-version     : show all version numbers
+    export           : get a project from the repository, for compilation only
+    release          : stop working with this local copy of the sources
+    remove           : remove a file from the local copy *and* the repository
+    remove-module    : remove a module
+    list-versions    : list tags associated with a (borrowed) module
+
+  Deployment commands (getting stuff to run at different platforms)
+    new-platform     : tell that you want to run on a new platform (e.g. SRS)
+    new-node         : tell that you want to add a node to the platform
+    report           : tell about success or failure of running
+
+  OPTIONS are always optional, if not supplied you will be asked to supply
+  them
+""")
+
+
+
+
+def populate_appdir(dirname, appname, machine):
+
+    # change to new directory
+    t = TempCd(dirname)
+
+    # copy the makefile
+    os.system('cp `dueca-config --path-datafiles`' +
+              '/data/default/Makefile.app Makefile.common')
+
+    # quick fix old systems
+    if gdefault == 'gtk2':
+        os.system('sed -i -e"s/gtk3/gtk2/" Makefile.common')
+    elif gdefault == 'none':
+        os.system('sed -i -e"s/ --gtk3//" Makefile.common')
+
+    # and the modules.lst file
+    os.system('sed -e "s/@AppName@/' + appname +
+              '/" `dueca-config --path-datafiles`' +
+              '/data/default/modules.lst >modules.' + machine)
+
+    # return to old directory
+    t.goBack()
+
+
+def populate_moddir(dirname, appname):
+
+    # change to new directory
+    t = TempCd(dirname)
+
+    # copy the makefile
+    os.system('cp `dueca-config --path-datafiles`' +
+              '/data/default/Makefile.mod Makefile')
+
+    # and the comm-objects.lst file
+    os.system('sed -e "s/@AppName@/' + appname +
+              '/" `dueca-config --path-datafiles`' +
+              '/data/default/comm-objects.lst >comm-objects.lst')
+
+    # return to old directory
+    t.goBack()
+
+def populate_dcodir(dirname, appname):
+
+    # change to new directory
+    t = TempCd(dirname)
+
+    # copy the makefile
+    os.system('cp `dueca-config --path-datafiles`' +
+              '/data/default/Makefile.dco Makefile')
+
+    # and the comm-objects.lst file
+    os.system('sed -e "s/@AppName@/' + appname +
+              '/" `dueca-config --path-datafiles`' +
+              '/data/default/comm-objects.lst >comm-objects.lst')
+
+    # return to old directory
+    t.goBack()
+
+def create_moddir(dirname, appname):
+
+    # check the module directory does not exist
+    may_not_exist(dirname)
+
+    # create a new directory, add it to CVS
+    os.mkdir(dirname)
+    cvs.add(dirname)
+
+    # fill it
+    populate_moddir(dirname, appname)
+
+    # move, and add the stuff here to cvs
+    t = TempCd(dirname)
+
+    for i in ['Makefile', 'comm-objects.lst']:
+        cvs.add(i)
+
+    # return to old directory
+    t.goBack()
+
+def populate_envdir(dirname):
+
+    # change to new directory
+    t = TempCd(dirname)
+
+    # copy the default report file
+    os.system('cp `dueca-config --path-datafiles`' +
+              '/data/default/report .')
+
+    # return to old directory
+    t.goBack()
+
+def populate_rundir(dirname, al):
+
+    # change to new directory
+    t = TempCd(dirname)
+
+    # copy the makefile
+    #default files are in
+    fd = os.popen("dueca-config --path-datafiles")
+    defpath = fd.read()
+    defpath = defpath[:-1] + '/data/default'
+
+    # copy the clean and the link script, add a default dueca.mod
+    for i in ['clean.script', 'links.script']:
+        os.system('cp ' + defpath + os.sep + i + ' .')
+    if al['node'] == 0:
+        if al['scriptlang'] == 's':
+            os.system('cp ' + defpath + '/dueca.mod.in ./dueca.mod')
+        elif al['scriptlang'] == 'p':
+            os.system('cp ' + defpath + '/dueca_mod.py.in ./dueca_mod.py')
+
+    # determine optimal synchronisation mode
+    syncmode = 2
+
+    # communication switches
+    if al['no-nodes'] > 1: ipcomm = '#t'
+    else: ipcomm = '#f'
+    scramcomm = '#f'
+
+    # primary interface address
+    if al['no-nodes'] > 1:
+        try:
+            hname = socket.gethostname()
+            try:
+                ipaddress = socket.gethostbyname(hname)
+            except:
+                print('Cannot determine ip address, using ip="127.0.0.1"')
+                ipaddress = "127.0.0.1"
+        except:
+            print('Cannot determine host name, using ip="127.0.0.1"')
+            ipaddress = "127.0.0.1"
+        print("Assuming machine IP address", ipaddress)
+    else:
+        ipaddress = '127.0.0.1'
+
+    # fill in the missing fields in dueca.cnf
+    cnffiles = (al['scriptlang'] == 's' and [ 'dueca.cnf' ]) or \
+               (al['scriptlang'] == 'p' and [ 'dueca_cnf.py' ])
+    for f in cnffiles:
+        os.system('sed -e "s/@this-node-id@/' + str(al['node']) + '/\n' +
+                  's/@no-of-nodes@/' + str(al['no-nodes']) + '/\n' +
+                  's/@send-order@/' + str(al['send-order']) + '/\n' +
+                  's/@rt-sync-mode@/' + str(syncmode) + '/\n' +
+                  's/@graphic-interface@/' + str(al['graphic']) + '/\n' +
+                  's/@use-ip-comm@/' + str(ipcomm) + '/\n' +
+                  's/@if-address@/' + str(ipaddress) + '/\n' +
+                  's/@use-scram-comm@/' + str(scramcomm) + '/\n' +
+                  's/@highest-manager@/' + str(al['highest-manager']) + '/\n' +
+                  's/@date@/' +
+                  str(time.asctime(time.localtime(time.time()))) + '/\n' +
+                  's/@dueca-version@/' + '`dueca-config --version`' + '/" ' +
+                  '`dueca-config --path-datafiles`' + \
+                  '/data/default/%(f)s.in >%(f)s' % dict(f=f))
+
+    # return to old directory
+    t.goBack()
+
+
+# ----------------------------------------------------------------------- #
+# main loop implementation routines                                       #
+
+def newProject(al):
+
+    name = al['name']
+
+    # check that the name does not exist yet
+    if os.path.exists(al['name']):
+        print("There is already a file or directory",
+              "with the name", al['name'])
+        sys.exit(1)
+
+    if gdefault == 'none':
+        print('Missing gtk development headers, assuming graphics "none"')
+    else:
+        print('Found %s development headers, using those' % gdefault)
+
+    # directories created by default
+    directories = [os.sep,
+                   os.sep+name,
+                   os.sep+name+os.sep+'comm-objects',
+                   os.sep+name+'/run',
+                   os.sep+name+'/run/solo',
+                   os.sep+name+'/run/solo/solo',
+                   os.sep+name+'/run/run-data']
+
+    # create the directory structure
+    for d in directories:
+        print("Creating directory", name + d)
+        os.mkdir(name + d);
+
+    # move into this directory. Note that this one will not be in CVS
+    os.chdir(name)
+
+    # populate the directory with default
+    populate_appdir('.'+directories[1], name, 'solo')
+    populate_dcodir('.'+directories[2], name)
+    populate_envdir('.'+directories[4])
+    rdsolo = {'no-nodes' : 1,
+              'node' : 0,
+              'send-order' : 0,
+              'ostype' : 'l',
+              'scriptlang': al['scriptlang'],
+              'comm' : '',
+              'graphic': gdefault,
+              'highest-manager': 4}
+    populate_rundir('.'+directories[5], rdsolo)
+
+    # now move into the application directory
+    os.chdir(name)
+
+    # add something to the run-data directory
+    fs = open('run/run-data/README', 'w')
+    fs.write('''run-data and platform file rules
+--------------------------------
+
+This directory contains the data, initial condition files, bitmaps, etc
+that you need for running your application. Some hints for what data
+to put where:
+
+    * Configuration files, data, etc. *specific to one project only*
+      goes in the run/run-data folder
+    * Data that can be shared with other projects (3D models, bitmaps
+      etc, common configuration for e.g. hardware devices) is best
+      kept in a 'module' directory. Either together with module code
+      (such as for glade files matching a certain experiment interface)
+      or separately (e.g. visual terrain data). If you remove the
+      comm-objects.lst and Makefile from a module directory, it is treated
+      as a pseudo-module, and not included for compilation and you can
+      keep data there.
+    * Log data should not be checked in with the project.
+    * The run directories, under run/<platform>/node, only contain
+      - project configuration; dueca.cnf/dueca.mod, or
+        dueca_cnf.py/dueca_mod.py
+      - links.script and clean.script, which create links to all
+        appropriate data
+''')
+    fs.close()
+
+    # start putting things in CVS, move one directory down first
+    cvs.cimport(name, 'new application')
+    os.chdir('../..')
+
+    # and check them out, so editing can start
+    os.system('rm -rf ' + name)
+    al = {'machine':'solo','version':'','name':name}
+    checkoutApp(al)
+
+def newModule(al):
+
+    name = al['name']
+
+    # check we are in an applications directory, and that we get one
+    # modules.machine file
+    appname = CheckInAppDir(name)
+    mlist = ModulesList()
+    if mlist.has(name):
+        print("The module", name, "is already in", mlist.modlistname())
+        os.exit(1)
+
+    # make a new module directory, and add it to the modules.machine file
+    create_moddir(name, appname)
+
+    # add the module to the modules.lst
+    mlist.add(appname+os.sep+name)
+
+    # go to the new module directory and commit
+    t = TempCd(name)
+    cvs.commit('initial version', '')
+    t.goBack()
+
+def borrowModule(al):
+
+    name = al['name']
+    version = al['version']
+    if not version:
+        version = 'HEAD'
+    appname = CheckInAppDir()
+    nameparts = name.split(os.sep)
+
+    if len(nameparts) != 2:
+        print('Borrowed module should have form Application/Module')
+        sys.exit(1)
+
+    if nameparts[0] == appname:
+        print('Cannot borrow from myself')
+        sys.exit(1)
+
+    ml = ModulesList()
+    if ml.has(name):
+        print("To-be borrowed module is already in list, simply do an update")
+        sys.exit(1)
+
+    # move up one directory
+    t = TempCd('..')
+
+    # check that the thing is not already there
+    may_not_exist(name)
+
+    # export the module from CVS
+    cvs.export(name, version)
+
+    # if no version was given, find out what the latest version is, and
+    # take that one. Relies on maintainers of borrowable modules to now
+    # and then test these (or fake with a report# tag) and on the presence
+    # of modules.solo
+    if not version:
+        soloname = name.split(os.sep)[0]+'/modules.solo'
+        tags = cvs.findTags(soloname)
+        version2 = tags[0]
+    else:
+        version2 = version
+
+    # and go back again
+    t.goBack()
+
+    # add the module to the modules.machine list
+    ml.add(name, version2)
+
+    # update/export additional comm-objects
+    cl = CommObjectsList(ml, appname)
+    cl.reconstruct('')
+
+def copyModule(al):
+
+    name = al['name']
+    version = al['version']
+    appname = CheckInAppDir()
+    nameparts = name.split(os.sep)
+
+    if len(nameparts) != 2:
+        print('Copied module should have form Application/Module')
+        sys.exit(1)
+    newname = appname+os.sep+nameparts[1]
+
+    if nameparts[0] == appname:
+        print('Cannot copy from myself')
+        sys.exit(1)
+
+    ml = ModulesList()
+    if ml.has(newname):
+        print("To-be copied module conflicts with copy in list")
+        sys.exit(1)
+
+    # check that the thing is not already there
+    may_not_exist(nameparts[1])
+
+    if version:
+        version2 = version
+    else:
+        version2 = 'HEAD'
+
+    # create a temporary working directory
+    tdir = tempfile.mkdtemp()
+    # os.mkdir(tdir)
+
+    # move to the temp directory
+    t = TempCd(tdir)
+
+    # export the module from CVS
+    cvs.export(name, version2)
+
+    # and go back again
+    t.goBack()
+
+    # move the exported module
+    os.system('mv ' + tdir + os.sep +name+ ' .')
+
+    # and clear the remaining directories in /tmp
+    os.rmdir(tdir + os.sep + nameparts[0])
+    os.rmdir(tdir)
+
+    # add the module to the modules.machine list
+    ml.add(appname + '/' + nameparts[1], '')
+
+    # add it in cvs
+    cvs.add(nameparts[1])
+    #t = TempCd(nameparts[1])
+    cvs.recursiveAdd(nameparts[1])
+    # cvs.commit('initial copy')
+    t.goBack()
+
+    # update/export additional comm-objects
+    cl = CommObjectsList(ml, appname)
+    cl.reconstruct('')
+
+def checkoutApp(al):
+
+    # copy the arguments
+    if al['machine']: machine = al['machine']
+    else: machine = 'solo'
+    if al['version']: version = al['version']
+    else: version = ''
+    name = al['name']
+
+    # check that the thing we are checking out does not exit, and also a CVS
+    # directory is a bad omen
+    may_not_exist('CVS')
+    may_not_exist(name)
+
+    # create a top-level directory
+    os.mkdir(name)
+    t = TempCd(name)
+
+    # check out the main directory, and the run directory
+    cvs.checkoutNoRecurse(name, version)
+    cvs.checkout(name+'/run', version)
+
+    # flag the configuration/machine we are working on
+    os.chdir(name)
+    mi = MachineInfo(machine)
+
+    # create a symbolic link to Makefile, either from Makefile.machine or
+    # from Makefile.common (problem, what if you have a machine called common?)
+    if os.path.exists('Makefile.' + machine):
+        os.symlink('Makefile.'+machine, 'Makefile')
+    else:
+        os.symlink('Makefile.common', 'Makefile')
+
+    # check out the machine's modules and comm objects
+    ml = ModulesList()
+    ml.reconstruct(version)
+    cl = CommObjectsList(ml, name)
+    cl.reconstruct(version)
+
+    # return to outside directory
+    t.goBack()
+
+def updateApp():
+
+    # must be in the app directory
+    app = CheckInAppDir()
+
+    # call the update for the app directory files
+    cvs.updateLocal()
+
+    # call a recursive update of the run directory
+    #t = TempCd('run')
+    cvs.update('run')
+    #t.goBack()
+
+    # check out the machine's modules and comm objects
+    ml = ModulesList()
+    ml.updateModules()
+
+    # update all comm objects
+    cl = CommObjectsList(ml, app)
+    cl.reconstruct('')
+
+def commitApp(al):
+
+    message=al['message']
+    appname = CheckInAppDir()
+    cvs.commit(message)
+
+def addSource(al):
+
+    cvs.add(al['object+'])
+    # cvs.commit('initial revision', al['object+'])
+
+def tagAppVersion(al):
+
+    version = al['version']
+
+    # before entering the "up-to-dateness" of this version was already
+    # determined. Use cvs rtag to tag the repo completely
+    appname = CheckInAppDir()
+    cvs.rtag(version, appname)
+
+def showAppVersions(al = ''):
+
+    if al and al['app']:
+        print("Version tags for", al['app'], '(newest first)\n',
+              cvs.findTags(al['app']+os.sep+'modules.solo'))
+    else:
+        appname = CheckInAppDir()
+        print("Version tags for", appname, '(newest first)\n',
+              cvs.showtags())
+
+def exportApp(al):
+
+    # copy the arguments
+    if al['machine']: machine = al['machine']
+    else: machine = 'solo'
+    if al['version']: version = al['version']
+    else: version = 'HEAD'
+    name = al['name']
+
+    # check that the thing we are exporting does not exist, and also a CVS
+    # directory is a bad omen
+    may_not_exist('CVS')
+    may_not_exist(name)
+
+    # create a top-level directory
+    os.mkdir(name)
+    t = TempCd(name)
+
+    # export the main directory, and the run directory
+    cvs.exportNoRecurse(name, version)
+    cvs.export(name+'/run', version)
+
+    # flag the configuration/machine we are working on
+    os.chdir(name)
+    mi = MachineInfo(machine)
+
+    # create a symbolic link to Makefile, either from Makefile.machine or
+    # from Makefile.common (problem, what if you have a machine called common?)
+    if os.path.exists('Makefile.' + machine):
+        os.symlink('Makefile.'+machine, 'Makefile')
+    else:
+        os.symlink('Makefile.common', 'Makefile')
+
+    # touch a file to indicate that this is an exported directory
+    fd = open('.export-only', 'w')
+    fd.write('This application has been "exported". You cannot check in updates\n')
+    fd.close()
+
+    # check out the machine's modules and comm objects
+    ml = ModulesList()
+    ml.reconstruct(version, 0)
+    cl = CommObjectsList(ml, name)
+    cl.reconstruct(version, 0)
+
+    # return to outside directory
+    t.goBack()
+
+def releaseApp():
+
+    appname = CheckInAppDir()
+    t = TempCd('..')
+    cvs.release(appname)
+    t.goBack()
+
+def removeObjects(al):
+
+    objects = al['objects+'].split()
+
+    # take care we are not removing
+    while objects.count('CVS'):
+            objects.remove('CVS')
+
+    # physically remove the stuff
+    for i in objects:
+        try:
+
+            # if it is a single file, this works
+            os.remove(i)
+        except OSError:
+
+            # this should be a directory, and it should only contain a CVS
+            # dir, nothing else
+            entries = os.listdir(i)
+            if len(entries) == 1 and entries[0] == 'CVS':
+                ok = 1
+            elif len(entries) == 0:
+                ok = 1
+            else:
+                raise 'Cannot remove object '+i
+
+        # now do the cvs remove for this object
+        cvs.remove(i)
+
+def removeModuleFromFile(file, module):
+
+    fs = open(file)
+    lines = fs.readlines()
+    fs.close()
+    fs = open(file, 'w')
+    for i in lines:
+        if i.find(module) == -1 or \
+           (i.find('#') != -1 and \
+            (i.find('#') < i.find(module))):
+            fs.write(i)
+    fs.close()
+
+def removeModule(al):
+
+    module = al['module']
+    if module[-1] == '/': module = module[0:-1]
+    appname = CheckInAppDir()
+
+    # this should be a directory with only a CVS dir in it
+    entries = os.listdir(module)
+    if len(entries) == 1 and entries[0] == 'CVS':
+
+        # do a commit in that directory, any removed stuff will be
+        # pushed to the attic
+        t = TempCd(module)
+        cvs.commit('removal')
+        t.goBack();
+
+        cvs.remove(module)
+        os.system('rm -rf ' + module)
+
+        # remove from the modules.machine files
+        for i in os.listdir('.'):
+            if i[0:len('modules.')] == 'modules.':
+                removeModuleFromFile(i, appname + os.sep + module)
+
+    else:
+        print('First enter "', module,
+              '" and use "dueca-project remove" on the files there')
+
+def newPlatform(al):
+
+    platform = al['platform']
+    appname = CheckInAppDir()
+
+    # check the platform does not exist yet
+    may_not_exist('run/'+platform)
+
+    # make and populate
+    os.mkdir('run/'+platform)
+    populate_envdir('run/'+platform)
+    cvs.add('run/'+platform)
+    cvs.add('run/'+platform+'/report')
+
+def newMachine(al):
+
+    platform = al['platform']
+    machine = al['machine']
+    appname = CheckInAppDir()
+    t = TempCd('run')
+
+    if not os.path.exists(platform):
+        print("First create the platform/run environment")
+        sys.exit(1)
+
+    may_not_exist(platform+os.sep+machine)
+    os.mkdir(platform+os.sep+machine)
+    populate_rundir(platform+os.sep+machine, al)
+    cvs.add(platform+os.sep+machine)
+    os.chdir(platform+os.sep+machine)
+    sources = ['links.script', 'clean.script']
+    if al['scriptlang'] == 's':
+        sources.append('dueca.cnf')
+        if al['node'] == 0:
+            sources.append('dueca.mod')
+    if al['scriptlang'] == 'p':
+        sources.append('dueca_cnf.py')
+        if al['node'] == 0:
+            sources.append('dueca_mod.py')
+    cvs.add(' '.join(sources))
+    t.goBack()
+
+    if not os.path.exists('modules.'+machine):
+        os.system('sed -e "s/@AppName@/' + appname +
+                  '/" `dueca-config --path-datafiles`' +
+                  '/data/default/modules.lst >modules.' + machine)
+        cvs.add('modules.'+machine)
+        print("Edit the modules." + machine,
+              "file to include the proper modules")
+
+def extendReport(al):
+
+    # run a CVS status to check that things are in sync
+    appname = CheckInAppDir()
+    platform = al['platform']
+    affirm = al['affirm']
+
+    if affirm != 'yes':
+        print("First update the source on all nodes, then come back!")
+        sys.exit(1)
+
+    reportfile = 'run/'+platform+'/report'
+    if not os.path.exists(reportfile):
+        print('Cannot find the report file', reportfile)
+        sys.exit(1)
+
+    result = al['result']
+    if not len(result):
+        print('If you do not have a result, no sense in making a report')
+        sys.exit(1)
+
+    # this directory is up to date, have to assume that the user rightly
+    # says same about all others. now get all version numbers
+    tags = cvs.showtags()
+
+    # get all version numbers of type report#### and get the max number
+    maxtag = 0
+    for t in tags:
+        if len(t) > 6 and t[0:6] == 'report' and int(t[6:]) > maxtag:
+            maxtag = int(t[6:])
+
+    newtag = 'report' + str(maxtag + 1)
+
+    # find out what the dueca version is
+    fdd = os.popen('dueca-config --version')
+    dversion = fdd.readline()
+    fdd.close()
+
+    # first write the report
+    fd = open(reportfile, 'a')
+    fd.write('\n\nApplication run/test report for: ' + appname)
+    fd.write('\nTest performed on platform     : ' + platform)
+    fd.write('\nDate                           : ' + \
+             time.asctime(time.localtime(time.time())))
+    fd.write('\nDueca version                  : ' + dversion)
+    fd.write('\nApplication revision tag       : ' + newtag)
+
+    # write all borrowed modules. This is not yet correct, because
+    # some other machine might borrow a module. Have to write something
+    # on the basis of the platform, all node names in there, and their
+    # corresponding modules.node lists
+    plf = Platform(platform)
+    plf.reportWriteExternal(fd)
+
+    # write the result
+    fd.write('\nThe result, claimed by user ' + os.environ['USER']+ \
+             ', is: ' + result + '\n\n')
+    fd.close()
+
+    # commit the file
+    cvs.commit('new report', reportfile)
+
+    # now tag the repository with this number
+    cvs.rtag(newtag, appname);
+
+# list available versions of a module
+def listVersions(al):
+
+    module = al['module']
+
+    if not len(module):
+        print("No module name supplied")
+        return
+    elif len(module.split(os.sep)) == 1 :
+        appname = CheckInAppDir()
+        tags = cvs.findTags(appname + os.sep + module + os.sep + \
+                            'comm-objects.lst')
+    else:
+        tags = cvs.findTags(module + os.sep + 'comm-objects.lst')
+    print("Available", tags)
+
+# main argument processing switch
+if len(sys.argv) < 2:
+    Usage()
+    sys.exit(1)
+
+if sys.argv[1] == 'new':
+    al=getUserInput(['name', 'scriptlang'],
+                    ["Give a name for this project: ",
+                     "Select a scripting language s=scheme, p=python: "])
+    if al:
+        newProject(al)
+    else:
+        print("Not making any new projects")
+    sys.exit(0)
+
+elif sys.argv[1] == 'new-module':
+    al=getUserInput(['name'],['Give a name for the new module: '])
+    if al:
+        newModule(al)
+    else:
+        print("Not making a new module")
+    sys.exit(0)
+
+elif sys.argv[1] =='borrow-module':
+    al=getUserInput(['name', 'version'],
+                      ['Give a (full) name for the module: ', \
+                       'Give a version number (empty for latest): '])
+    if al:
+        borrowModule(al)
+    else:
+        print("Not importing borrowed module")
+    sys.exit(0)
+
+elif sys.argv[1] == 'copy-module':
+    al=getUserInput(['name', 'version'],
+                      ['Give a (full) name for the module: ', \
+                       'Give a version number (empty for latest): '])
+    if al:
+        copyModule(al)
+    else:
+        print("Not copying module")
+    sys.exit(0)
+
+elif sys.argv[1] == 'checkout':
+    al=getUserInput(['name', 'version', 'machine'], \
+                      ['Give a (full) name for the application', \
+                       'Give a version number (empty for latest)', \
+                       'Give a node name (empty for "solo")'])
+    if al:
+        checkoutApp(al)
+    else:
+        print("Not checking out an app")
+    sys.exit(0)
+
+elif sys.argv[1] == 'update':
+    updateApp()
+    sys.exit(0)
+
+elif sys.argv[1] == 'commit':
+    al=getUserInput(['message'],['Supply a log message (enter for editor)'])
+    commitApp(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'add-source':
+    al=getUserInput(['object+'],['Enter the source file'])
+    addSource(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'tag-version':
+    if not cvs.isUpToDate():
+        print("First commit and-or update")
+        sys.exit(1)
+
+    showAppVersions()
+    al=getUserInput(['version'],['Enter a new version number (none=abort)'])
+    tagAppVersion(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'show-version':
+    al=getUserInput(['app'],
+                    ['For which application do you want the versions (empty=current):'])
+    showAppVersions(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'export':
+    al=getUserInput(['name', 'version', 'machine'], \
+                    ['Give a (full) name for the application: ', \
+                     'Give a version number (empty for latest): ', \
+                     'Give a node name (empty for "solo"): '])
+    exportApp(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'release':
+    releaseApp()
+    sys.exit(0)
+
+elif sys.argv[1] == 'remove':
+    al=getUserInput(['objects+'], \
+                    ['Give the names of the files to be removed'])
+    removeObjects(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'remove-module':
+    al=getUserInput(['module'], \
+                    ['Give the names of the module to be removed'])
+    removeModule(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'new-platform':
+    al=getUserInput(['platform'], \
+                    ['Name for the new platform'])
+    newPlatform(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'new-node':
+    al=getUserInput(['machine', 'platform','no-nodes', \
+                     'node','send-order', 'graphic', 'scriptlang'], \
+                    ['Name for the computer the node runs on',
+                     'Name for the platform (e.g. SRS, HMIlab)',
+                     'Number of nodes in this platform',
+                     'Node number for this machine',
+                     'Send/communication order number',
+                     'Graphic interface, "none", "gtk2", "gtk3" or "glut"',
+                     'Scripting language (s=Scheme, p=Python)'])
+
+    # convert to integers
+    al['no-nodes']=int(al['no-nodes'])
+    al['node']=int(al['node'])
+    al['send-order']=int(al['send-order'])
+    al['scriptlang']=al['scriptlang'].lower()
+    al['highest-manager']=4
+    newMachine(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'report':
+    if not cvs.isUpToDate():
+        print("you may only give a report when the software is in line with",
+              "the repository\n", "first do update and commit")
+        sys.exit(0)
+    al=getUserInput(['platform', 'affirm', 'result'],
+                    ['On what platform did you run the test',
+                     'Do you solemny declare that all nodes were\n'+\
+                     'up-to-date with respect to the repository (yes/no)', \
+                     'What were the results of the test'])
+    extendReport(al)
+    sys.exit(0)
+
+elif sys.argv[1] == 'list-versions':
+    al=getUserInput(['module'],
+                    ['Enter a module name'])
+    listVersions(al)
+    sys.exit(0)
+
+# catch all stuff
+Usage()

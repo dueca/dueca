@@ -1,0 +1,35 @@
+;; -*-scheme-*-
+(Header "
+        item            : IncoSpec.dco
+        made by         : Rene' van Paassen
+        date            : 130104
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type NameSet "#include <NameSet.hxx>")
+(IterableType std::vector<IncoVariable>
+"#include <vector>
+#include <IncoVariable.hxx>")
+
+;; This is a class that specifies the initial condition calculation
+;; requested by a Module. It contains a list of IncoVariable
+;; objects. Each IncoVariable stands for a (state) variable in a
+;; SimulationModule that joins in the calculation of a trim condition,
+;; either as a target (it should attain a certain value) or as a control
+;; (it is manipulated so the targets attain a certain value.)
+(Event
+ IncoSpec
+ (IncludeFile IncoSpecExtra)
+ (AddToHeader
+"DUECA_NS_START;
+struct IncoTable;
+DUECA_NS_END;")
+
+ ;; The module cooperating in the inco service
+ (NameSet module)
+ ;; A table of initial condition variables
+ (std::vector<IncoVariable> table (DefaultSize 0))
+ )
+

@@ -1,0 +1,8 @@
+(Type int32_t)
+(Type string32 "#include <stringoptions.h>")
+
+(EventAndStream Objectx
+  (Option msgpack)
+  (int32_t i 10 (Default 0))
+  (string32 t (Default "sometext"))
+)

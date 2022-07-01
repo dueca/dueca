@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/cmake.mk
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+PYTHON_MAMI= $(shell python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+
+DEB_CMAKE_EXTRA_FLAGS += -DALSO_INIT_GLUT=ON \
+			-DCMAKE_BUILD_TYPE=Release \
+			-DSYSCONF_INSTALL_DIR=/etc \
+			-DDUECA_BUILD_STATIC=ON \
+			-DDUECA_BUILD_SHARED=OFF \
+			-DDUECA_INIT_STATIC=ON \
+			-DDUECA_DOC_PATH:PATH=/opt/dueca-@versioned@/share/doc \
+			-DBUILD_GLUTGUI=ON \
+			-DBUILD_GLUT=ON \
+			-DBUILD_GTK2=ON \
+			-DBUILD_GTKMM=ON \
+			-DBUILD_GTK3=ON \
+			-DBUILD_GTKMM3=ON \
+			-DBUILD_HDF5=ON \
+			-DBUILD_UDP=ON \
+			-DBUILD_WEBSOCK=ON \
+			-DSCRIPT_PYTHON=ON \
+			-DFORCE_PYTHON_MALLOC=ON \
+			-DSCRIPT_SCHEME=ON \
+			-DBUILD_DDFF=ON \
+			-DDUECA_INSTALL_ENVIRONMENT=ON \
+			-DTRY_INSTALL_PYTHON_BUILD=ON \
+			-DPYSITEDIR:PATH=/opt/dueca-@versioned@/lib/python$(PYTHON_MAMI)/site-packages \
+			-DCMAKE_INSTALL_PREFIX=/opt/dueca-@versioned@

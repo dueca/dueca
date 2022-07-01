@@ -1,0 +1,68 @@
+#ifndef StatesOutputs_hh
+#define StatesOutputs_hh
+
+enum state_vec {
+  X_dlg,
+  X_P,
+  X_Q,
+  X_R,
+  X_U,
+  X_V,
+  X_W,
+  X_PHI,
+  X_THETA,
+  X_PSI,
+  X_X,
+  X_Y,
+  X_Z,
+  X_int_act_r1,
+  X_int_act_r2,
+  X_initial_de,
+  X_int_act_long,
+  X_initial_dfplus,
+  X_initial_dfmin,
+  X_initial_pfend,
+  X_integrator_p,
+  X_Pre_filter,
+  X_integrator_q,
+  X_initial_controller,
+  X_pre_filter1,
+  X_unknown,
+  X_extra,
+  X_no_states
+};
+
+enum output_vec {
+  Y_p,
+  Y_q,
+  Y_r,
+  Y_phi,
+  Y_theta,
+  Y_psi,
+  Y_x,
+  Y_y,
+  Y_z,
+  Y_V,
+  Y_alpha,
+  Y_beta,
+  Y_gamma,
+  Y_chi,
+  Y_mu,
+  Y_gammadot,
+  Y_alphadot,
+  Y_betadot,
+  Y_n,
+  Y_M,
+  Y_h,
+  Y_sink_rate,
+  Y_u,
+  Y_v,
+  Y_w,
+  Y_udot,
+  Y_vdot,
+  Y_wdot,
+  Y_gamma_c,
+  Y_no_outputs
+};
+
+#endif

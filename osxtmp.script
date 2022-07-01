@@ -1,0 +1,61 @@
+# -*-shell-script-*-
+
+echo "This script configures an un-optimized version, with debugging"
+echo "information. This is the configuration for development and testing."
+
+BUILDDIR=build-osx
+if [ -d $BUILDDIR ]; then
+   echo "Build directory $BUILDDIR already present"
+else
+   if mkdir $BUILDDIR; then
+      echo "Created build directory $BUILDDIR"
+   else
+      echo "Failed to make build directory $BUILDDIR"
+      exit 1
+   fi
+fi
+
+cd $BUILDDIR
+rm -f CMakeCache.txt
+# rm -rf CMakeFiles
+
+cmake -G Ninja \
+      -DCMAKE_CXX_FLAGS="-Wno-cast-align" \
+      -DCMAKE_PREFIX_PATH=/opt/local \
+      -DCMAKE_INSTALL_PREFIX=/tmp \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DBUILD_DOC=OFF \
+      -DDUECA_BUILD_SHARED=ON \
+      -DDUECA_BUILD_STATIC=OFF \
+      -DBUILD_UDP=ON \
+      -DBUILD_WEBSOCK=ON \
+      -DBUILD_DEBPRINT=ON \
+      -DSCRIPT_PYTHON=ON \
+      -DUSE_ATOMIC=ON \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DCMAKE_INSTALL_BINDIR=bin \
+      -DBUILD_GTK2=ON -DBUILD_GTKMM=ON \
+      -DBUILD_GTKGLEXT=OFF \
+      -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON \
+      -DBUILD_GLUT=OFF -DBUILD_GLUTGUI=OFF \
+      -DBUILD_FLTK=OFF -DBUILD_SHM=ON \
+      -DBUILD_X11GL=ON \
+      -DNEW_LOGGING=ON -DBUILD_MOREWARN=ON\
+      -DBUILD_ASSERT=ON \
+      -DBUILD_DEBPRINT=ON \
+      -DRUN_TESTS=ON \
+      -DBUILD_HDF5=ON \
+      -DBUILD_TESTOPT=ON \
+      -DACTIV_NOCATCH=ON \
+      -DLOG_COMMUNICATIONS=ON \
+      -DALSO_INIT_GLUT=OFF \
+      -DBUILD_WEBSOCK=ON \
+      -DBUILD_HDF5=ON \
+      -DPYSITEDIR:PATH=/tmp/lib/python${PYVERSION}/site-packages \
+      -DDUECA_INSTALL_ENVIRONMENT=ON \
+      -DFILLPACKER_SEND_ID=ON \
+      ..
+
+cd ..
+
+#      -DGLUT_INCLUDE_DIR=/opt/local/include/GL \

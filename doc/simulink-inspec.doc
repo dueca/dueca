@@ -1,0 +1,103 @@
+/** \page i_simulink Notes on Simulink/Real-Time Workshop generated code
+
+\section i_simulink_purpose Purpose of this document
+
+Simulink models, converted with real-time workshop, are a quick means
+of creation of c-code for real-time simulation. This document
+describes some of the work and considerations for use of these codes
+in a DUECA/DUSIME environment.
+
+\section i_simulink_multitasking Multitasking RTW
+
+Dueca has its own mechanisms for splitting work over several threads,
+and crossing this with the Real-Time Workshop mechanisms is not a good
+idea. If it happens, the following code should be a starting point:
+
+\code
+     // determine which is the first task id
+# if TID01EQ == 1
+#  define FIRST_TID 1
+# else
+#  define FIRST_TID 0
+# endif
+
+    // calculate time of next time step, and pass it to the solver
+    real_T tnext = rt_UpdateDiscreteEvents(S);
+    ssSetSolverStopTime(S, tnext);
+
+    // calculate outputs and do update for base sample time
+    sfcnOutputs(S, FIRST_TID);
+    sfcnUpdate(S, FIRST_TID);
+
+    // do either a numerical integration, or discrete time update
+    if (ssGetSampleTime(S, 0) == CONTINUOUS_SAMPLE_TIME) {
+      rt_UpdateContinuousStates(S);
+    }
+    else {
+      rt_UpdateDiscreteTaskTime(S, 0);
+    }
+
+#if FIRST_TID == 1
+    rt_UpdateDiscreteTaskTime(S, 1);
+#endif
+
+    // update for the other sample times
+    for (int it = FIRST_TID+1; it < NUMST; it++) {
+      if (ssGetSampleHitPtr(S)[it]) {
+        sfcnOutputs(S,it);
+        sfcnUpdate(S,it);
+        rt_UpdateDiscreteTaskTime(S, it);
+      }
+    }
+\endcode
+
+For the RTW 4 version, the following:
+
+\code
+    // determine which is the first task id
+# if TID01EQ == 1
+#  define FIRST_TID 1
+# else
+#  define FIRST_TID 0
+# endif
+
+    // calculate time of next time step, and pass it to the solver
+    real_T tnext = rt_SimUpdateDiscreteEvents(rtmGetNumSampleTimes(S),
+                                              rtmGetTimingData(S),
+                                              rtmGetSampleHitPtr(S),
+                                              rtmGetPerTaskSampleHitsPtr(S));
+    rtsiSetSolverStopTime(rtmGetRTWSolverInfo(S), tnext);
+
+    // calculate outputs and do update for base sample time
+    rtmiOutputs(rtmGetRTWRTModelMethodsInfo(S), FIRST_TID);
+    rtmiUpdate(rtmGetRTWRTModelMethodsInfo(S), FIRST_TID);
+
+    // do either a numerical integration, or discrete time update
+    if (rtmGetSampleTime(S,0) == CONTINUOUS_SAMPLE_TIME) {
+      rt_ODEUpdateContinuousStates(rtmGetRTWSolverInfo(S));
+    }
+    else {
+      rt_SimUpdateDiscreteTaskTime(rtmGetTPtr(S),
+                                   rtmGetTimingData(S), 0);
+    }
+
+#if FIRST_TID == 1
+    // do the discrete time update for the no 1 task
+    rt_SimUpdateDiscreteTaskTime(rtmGetTPtr(S),
+                                 rtmGetTimingData(S), 1);
+#endif
+
+    // do the updates for other sample times
+    for (i=FIRST_TID+1; i<NUMST; i++) {
+      if (rtmGetSampleHitPtr(S)[it]) {
+        rtmiOutputs(rtmGetRTWRTModelMethodsInfo(S), i);
+        rtmiUpdate(rtmGetRTWRTModelMethodsInfo(S), i);
+        rt_SimUpdateDiscreteTaskTime(rtmGetTPtr(S),
+                                     rtmGetTimingData(S), i);
+      }
+    }
+#endif
+\endcode
+
+
+*/

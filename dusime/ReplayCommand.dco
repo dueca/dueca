@@ -1,0 +1,53 @@
+;; -*-scheme-*-
+(Header "
+        item            : ReplayCommand.dco
+        made by         : Rene' van Paassen
+        date            : 220110
+        description     : Command to control data replay
+        copyright       : (c) 2022-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(EnumClass Command uint8_t
+           ;; Send the current configuration/information
+           SendConfiguration
+           ;; Rewind replay to the indicated position
+           SpoolReplay
+	   ;; Start replaying at the given time
+	   StartReplay
+           ;; Complete the recording at the given time
+           CompleteRecording
+           ;; Provide a name for the upcoming recording
+           NameRecording
+           ;; Set the tick time for the start of the next
+           ;; recording
+           StartRecording
+           ;; Check whether recording is complete, flush to file
+           ;; and if so report on the new stretch
+           FlushAndCollect
+           ;; periodic flush to file
+           FlushToDisk
+           ;; load buffers from file
+           FillReplayBuffers
+           )
+
+(Type TimeTickType "#include <dueca/DataTimeSpec.hxx>")
+(Type uint32_t "#include <inttypes.h>")
+(Type std::string "#include <string>")
+
+;; This command controls the data replay preparation
+(Event
+ ReplayCommand
+
+ ;; The command (currently only one option)
+ (Command command (Default Command::SpoolReplay))
+ ;; Run generation to select for the data
+ (uint32_t run_cycle (Default 0))
+ ;; Tick value to reset to
+ (TimeTickType tick (Default 0))
+ ;; String value
+ (std::string sdata (Default ""))
+ ;; String value 2
+ (std::string sdata2 (Default ""))
+ )
+

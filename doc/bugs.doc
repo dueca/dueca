@@ -1,0 +1,20 @@
+// -*-c++-*-
+
+/** \page bugs Open bugs
+
+<table>
+<caption> Known bugs </caption>
+<tr>
+  <th>Date</th>
+  <th>Description</th>
+  <th>Workaround</th>
+</tr>
+
+<tr>
+<td>April 2018 </td>
+<td>SIGALRM signal not caught on SLED 12.1, program ends when using
+   sync mode 0</td>
+<td>Use sync mode 2</td>
+</tr>
+
+*/

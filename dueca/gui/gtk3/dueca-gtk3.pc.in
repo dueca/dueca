@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-gtk3
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca-gtk3${staticsuffix} @dueca_glut_util_libs@ @X11_libs@
+Cflags: -DDUECA_CONFIG_GTK3 -I${dueca_includedir}/dueca/gui/gtk3
+Requires: dueca = ${version}, gtk+-3.0 @dueca_glut_util_pkgs@

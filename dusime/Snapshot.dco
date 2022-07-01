@@ -1,0 +1,134 @@
+;; -*-scheme-*-
+(Header "
+        item            : Snapshot.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+        documentation   : DUECA_API
+")
+
+(Type NameSet "#include <NameSet.hxx>")
+(Type dueca::smartstring "#include <smartstring.hxx>
+#include <toml.hpp>")
+
+(Enum SnapCoding uint8_t
+      ;; old-style, no indication about coding. Treated as Base64
+      UnSpecified
+      ;; probably AmorphStore coded binary, stored in Base64 in toml
+      Base64
+      ;; data directly encoded and stored as JSON string in inco toml
+      JSON
+      ;; data directly encoded and stored as XML string in inco toml
+      XML
+      ;; data encoded in AmorphStore, all floats, stored in toml
+      Floats
+      ;; data encoded in AmorphStore, all doubles, stored in toml
+      Doubles
+      ;; External binary file, binary storage
+      BinaryFile
+      ;; External ASCII formatted file, data AmorphStore packed as floats
+      FloatFile
+      ;; External ASCII formatted file, data AmorphStore packed as double
+      DoubleFile
+      ;; data directly encoded and stored as JSON string in external file
+      JSONFile
+      ;; data directly encoded and stored as XML string in external file
+      XMLFile
+      )
+
+;;  A Snapshot object can be used to send the data from a state
+;;  snapshot, i.e. the data describing a (piece of) your model state
+;;  in time, to a repository for snapshot, and conversely, for sending
+;;  this data back to a SimulationModule, for restoration of an old
+;;  state.
+;;
+;;  The Snapshot object allocates a data buffer for you. It is possible
+;;  to use an AmorphStore object to pack the data in this buffer, like:
+;;
+;;  @code
+;;    // make a snapshot to send later
+;;    // note that "DoubleFile" is just one of the options for storage,
+;;    // Binary and Base64 would also work here
+;;    Snapshot *snap = new Snapshot(5 * sizeof(double), getNameSet(),
+;;                                  Snapshot::DoubleFile);
+;;    // and an AmorphStore to pack the data in there
+;;    AmorphStore s(snap->accessData(), snap->getDataSize());
+;;
+;;    // pack the state
+;;    for (int ii = 5; ii--; ) {
+;;      packData(s, my_x_copy[ii]);
+;;    }
+;;
+;;    // done, can now send off the snapshot.
+;;  @endcode
+;;
+;;  Alternatively, the snapshot can be packed with JSON or XML data.
+;;  The "data" member in the snapshot is a smart string that can be
+;;  easily fed with data, first a JSON example, using rapidjson:
+;;
+;;  @code
+;;    // somewhere appropriate, include json
+;;    #include "rapidjson/writer.h"
+;;    using namespace rapidjson;
+;;
+;;    // make a snapshot, initially empty string
+;;    Snapshot *snap = new Snapshot("", getNameSet(), Snapshot::JSON);
+;;    // the data object in the snapshot can be used in combination with
+;;    // a json writer, the following gives an appropriate standard writer:
+;;    smartstring::json_string_writer writer(snap->data);
+;;
+;;    // now code the data; using an array here. Of course you can use
+;;    // other formats as well, e.g., Object. See the rapidjson documentation
+;;    writer.StartArray()
+;;    for (int ii = 5; ii--; ) {
+;;      writer.Double(my_x_copy[ii]);
+;;    }
+;;    writer.EndArray();
+;;
+;;    // done, can now send off the snapshot.
+;;  @endcode
+;;
+;;  The same can be done with XML, using pugixml. Of course, you might
+;;  encounter code with the "old" XMLSnapshot approach, that produces
+;;  equally valid XML
+;;
+;;  @code
+;;    // somewhere appropriate, include pugixml
+;;    #include <pugixml.hpp>
+;;    using namespace pugi;   // or prefix your calls with pugi
+;;
+;;    // make a snapshot, initially empty string
+;;    Snapshot *snap = new Snapshot("", getNameSet(), Snapshot::XML);
+;;    // the data object in the snapshot can be used in combination with
+;;    // a json writer, the following gives an appropriate standard writer:
+;;    smartstring::xml_string_writer writer(snap->data);
+;;
+;;    // now code the data; using an array here. Of course you can use
+;;    // other formats as well, e.g., Object. See the rapidjson documentation
+;;    writer.StartArray()
+;;    for (int ii = 5; ii--; ) {
+;;      writer.Double(my_x_copy[ii]);
+;;    }
+;;    writer.EndArray();
+;;
+;;    // done, can now send off the snapshot.
+;;  @endcode
+
+(Event
+ Snapshot
+ (IncludeFile SnapshotExtra)
+ ;; A place for the data, variable size. Use this with ASCII converted
+ ;; data, or use an AmorphStore to pack.
+ ;; The intention for the future developments is to use snapshots that
+ ;; derive from a base type, allowing more freedom for the user's code
+ (dueca::smartstring data)
+ ;; Identifies the object that sent the snapshot
+ (NameSet originator)
+ ;; Snapshot encoding, if specified
+ (SnapCoding coding (Default UnSpecified))
+ )
+
+;; -*-scheme-*-

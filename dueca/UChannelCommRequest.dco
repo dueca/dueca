@@ -1,0 +1,95 @@
+;; -*-scheme-*-
+(Header "
+        original item   : UChannelCommRequest.dco
+        made by         : Rene' van Paassen
+        date            : 131230
+        description     : Communication/coordination for UnifiedChannel
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Basic types
+(Type uint16_t )
+(Type uint8_t )
+(Type uint32_t )
+(Type std::string "#include <string>")
+(Type GlobalId "#include <GlobalId.hxx>")
+
+;; Enumerated value that signifies the message type in the packed data.
+;; TODO: maybe merge the conf and req variants, anything going out from
+;;       master seen as command, anything coming in as request
+(Enum UChannelMessageType uint8_t
+      ;; Rest of the message contains differential data wrt the
+      ;; previously communicated data.
+      DiffData
+      ;; Rest of the message contains a full set of data.
+      FullData
+      ;; Control message, indicates a request for a full data set
+      ;; for a specific entry
+      FullDataReq
+      ;; Message to remove the saveup
+      RemoveSaveupCmd
+      ;; Create a jump in contiguous time
+      TimeJump
+
+      ;; Command to clean entry
+      CleanEntryCmd
+      ;; Command to invalidate an entry
+      InvalidateEntryCmd
+      ;; Control message, indicating that the new entry has an entry
+      ;; number and can be used. Indicates also to other ends that
+      ;; room has to be reserved for data entering here.
+      NewEntryConf
+      ;; Response by the master to a new end joining, telling the
+      ;; number of entries currently in use
+      NewEndWelcome
+      ;; Command to delete entry
+      DeleteEntryCmd
+
+      ;; Control message, indicating a specific node has a new entry
+      ;; lined up. Will be replied to with a NewEntryConf by the
+      ;; master, giving the entry id.
+      NewEntryReq
+      ;; Request to delete and clean an entry
+      DeleteEntryReq
+      ;; Confirmation that entry is clean
+      CleanEntryConf
+      ;; Notification that a new reading client is present. The
+      ;; master does not confirm this, but uses the notifications too
+      ;; keep inventory of the number of clients and issue a
+      ;; RemoveSaveUpCmd when all reservations have been used
+      NewClientNotif
+      ;; Notification of a reading client leaving
+      LeaveClientNotif
+      ;; Control message, indicates that an entry is being used in a
+      ;; certain node. Entry use is being counted.
+      NewEndJoins
+      ;; Dummy message, for just in case. Do not react to.
+      DummyMessage
+      )
+
+;; Class that defines the interpretation by MultiStreamChannel objects
+;; for the following data
+(Event UChannelCommRequest
+       (IncludeFile UChannelCommRequestExtra)
+       ;; Enumerated value that gives the type
+       (UChannelMessageType type (DefaultArg DummyMessage))
+       ;; extra flags?
+       (uint8_t  extra (DefaultArg 0U))
+       ;; Unsigned integer value that sometimes is needed for
+       ;; further interpretation
+       (uint16_t data0 (DefaultArg 0U))
+       ;; If needed, an identification
+       (uint32_t data1 (DefaultArg 0U))
+       ;; Origin/writer of the data, only relevant for
+       ;; NewEntryReq and EntryConf
+       (GlobalId origin)
+       ;; name of the data class type, only relevant for
+       ;; NewEntryReq and EntryConf
+       (std::string dataclassname (DefaultArg std::string()))
+       ;; label for this entry, only relevant for
+       ;; NewEntryReq and EntryConf
+       (std::string entrylabel (DefaultArg std::string()))
+       )
+
+

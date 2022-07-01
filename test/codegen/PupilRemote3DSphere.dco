@@ -1,0 +1,24 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemote3DSphere.dco
+        made by         : René van Paassen
+        date            : 210912
+        description     : 2d model ellipse data")
+
+;; default type
+(Type float)
+
+;; 3-element vector
+(IterableType dueca::fixvector<3,float>
+	      "#include <dueca/fixvector.hxx>")
+
+;; 2D model ellipse data for PupilRemote
+;; or projected data from the 3D model
+(Object PupilRemote3DSphere
+	(Option hdf5nest)
+        (Option msgpack)
+	;; eye sphere radius, mm
+	(float radius (Default 0.0f))
+	;; center of the sphere
+	(dueca::fixvector<3,float> center (Default 0.0f))
+	)

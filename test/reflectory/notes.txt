@@ -1,0 +1,97 @@
+Special development notes for the reflectory.
+
+Reflectory design is illustrated in the reflectory-inheritance.dia graph
+
+classes:
+
+ReflectoryBase<TICK>
+
+  Base class for nodes in the reflectory tree. Each node knows its parent
+  (except for the root node) and the id within this parent (unsigned int16)
+
+  The base class keeps state information for the nodes.
+
+ReflectoryLocal<TICK>
+
+  Locally created node.
+
+Reflectory<DATA,TICK>
+
+  Interface to local node creation
+
+ReflectoryRemote<TICK>
+
+  Representation for a locally created node.
+  This includes a reference tot the converter
+
+ReflectoryViewBase<TICK>
+
+  Base class for accessing nodes
+
+ReflectoryView<DATA,TICK>
+
+  Interface to node reading.
+
+Interaction story
+
+  1 create a root node, with a no arguments Reflectory<DATA,TICK>
+    constructor. The chosen data load may be anything.
+    * no actions in constructor, creates parent ReflectoryLocal<TICK>
+    * ReflectoryLocal<TICK>, no actions in constructor, create parent
+      ReflectoryBase<TICK>
+    * ReflectoryBase<TICK>, initialise refcount, set state to implicit
+      Active, set its self id to zero, name to "" and the path to "/"
+
+  2 pass the root node to a ReflectoryCopier as master node.
+
+  3 create a slave root node, with a no arguments ReflectoryRemote<TICK>
+    * creates base class ReflectoryBase<TICK>, without arguments
+    * overrides the state to be Created, not Active
+
+  4 pass the root node to a ReflectoryCopier as slave node.
+
+  5 the ReflectoryCopier now calls the update method on the root slave
+    node
+
+  6 update
+    * checks state to be Created
+    * sends a JoinRequest message
+    * sets state to WaitConfirm
+
+  7 the ReflectoryCopier sends the JoinRequest message
+
+  8 master ReflectoryCopier receives the JoinRequest message
+
+  9 master ReflectoryCopier unpacks the message, pumps it to the root
+    ReflectoryBase planned_config asynclist
+
+  10 master ReflectoryCopier calls update on the root ReflectoryBase
+
+  11 the ReflectoryLocal update flags that there is one more slave,
+     sets a flag to send a full data copy,
+     and answers with a JoinConfirm message, which includes the information
+     on the datatype.
+
+     Then all children with a local representation receive a
+     JoinRequest directly from this parent, and for all children with a remote
+     representation a JoinRequest is transmitted. A virtual function
+     extendJoinRequest implements this.
+
+     After all configuration updates, the children are recursively requested
+     to update
+
+     After children update returns, any data changes; or in the case of a
+     slave addition the full data copy are packed. Creation changes are
+     thus performed top-first, ensuring slave nodes are present before data
+     arrives. Data is sent after configuration changes.
+
+  12 the update function recursively continues, and the local nodes process
+     the JoinRequest in a similar manner.
+
+  13 JoinConfirm messages are distributed by the receiving ReflectoryCopier.
+     Upon receipt of a message, the idpath is travelled. The only node that
+     will process the Confirm is the root node. If there is no leaf
+     node, and the message is of type JoinConfirm, the parent will create
+     the associated ReflectoryRemote node.
+
+

@@ -1,0 +1,48 @@
+;; -*-scheme-*-
+(Header "
+        item            : ReplayReport.dco
+        made by         : Rene' van Paassen
+        date            : 220110
+        description     : Report to control data replay
+        copyright       : (c) 2022-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(EnumClass Status uint8_t
+           ;; Information on logged tags
+           TagInformation
+           ;; Performed an init of the filers
+           InitFiler
+           ;; Error occurred
+           Error
+           )
+(Type TimeTickType "#include <dueca/DataTimeSpec.hxx>")
+(Type uint32_t "#include <inttypes.h>")
+(Type std::string "#include <string>")
+
+;; This command controls the data replay preparation
+;;
+;; These are sent by the ReplayFiler objects (one per node where the
+;; associated entity stores replay data). After opening a channel, the
+;; existing recording information is sent. Then an InitFiler message
+;; indicates all initial information is complete.
+;; When a new recording is made, more TagInformation messages are sent
+(Event
+ ReplayReport
+
+ ;; The command (currently only one option)
+ (Status status (Default Status::Error))
+ ;; Numeric for the tag info
+ (uint32_t number (Default 0U))
+ ;; Run generation to select for the data
+ (std::string label)
+ ;; Additional data
+ (std::string time)
+ ;; If applicable, start of the recording
+ (TimeTickType tick0)
+ ;; If applicable, end of the recording
+ (TimeTickType tick1)
+ ;; And inco information if available
+ (std::string inco_name)
+ )
+

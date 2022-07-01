@@ -1,0 +1,41 @@
+/* ------------------------------------------------------------------   */
+/*      item            : oddoptions.h.in
+        made by         : Rene' van Paassen
+        date            : 20010308
+        category        : header file (in)
+        description     : Defines the string types to be used in DUECA
+                          This file is processed by autoheader to make
+                          stringoptions.h
+        language        : C++
+        documentation   : not in API
+*/
+
+/** \file
+    Assorted options for DUECA. Don't want to install the dueca-conf.h
+    file, since that has VERSION defined.
+*/
+
+#ifndef oddoptions_h
+#define oddoptions_h
+
+/** Rate at which the Linux real-time clock will be programmed and used. */
+#define RTC_RATE @RTC_RATE@
+
+/** time for license expiry. */
+#define EXPIREAT @EXPIREAT@
+
+/** license text */
+#define LICENSETEXT "@LICENSE_TEXT@"
+
+/** contact text */
+#define CONTACTTEXT "@CONTACT_TEXT@"
+
+#define COPYRIGHT "Copyright (c) 1998 - 2022 Delft University of Technology - AE - C&S\nCopyright (c) 2022 - @VERSION_YEAR@ DUECA authors"
+
+#define VERSION_DATE "@VERSION_DATE@"
+
+#cmakedefine LOG_PACKING
+
+#cmakedefine LOG_COMMUNICATIONS
+
+#endif

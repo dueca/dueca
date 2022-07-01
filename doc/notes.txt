@@ -1,0 +1,2199 @@
+# $Id: notes.txt 4851 2020-06-03 16:22:29Z rvanpaassen $
+
+memory watching, RT Linux stuff:
+       make a new "new", as in Effective C++. Allocate necessary memory in
+       one block. In debug mode use objectid of allocating object to count
+       allocated mem total.
+
+RT Linux: check whether it is possible to use multiple routines/large
+   programs in RT linux
+   => no; use KURT
+
+memory speed-up
+       make pools for 4, 8, 16, 32, 64 bytes sized events
+
+Event/Channel inheritance model
+
+       Let the access tokens, instead of making the channel
+       themselves, use a factory method to make a new channel. The
+       channel may use a descendant type of data. Is a little
+       complicated when channel has not yet been published.
+
+registry repair
+         current version (set based) gives problems by giving back a
+         const iterator.
+         => solved
+
+event channel kickstart
+
+      currently the event channels do no accept events when the access
+      token has not been validated. This gives a problem for
+      kick-starting some applications; the environment has to be
+      updated (and requested channels connected) before further work
+      can be done.
+      => kick starting done
+
+unrelated stuff
+
+          using an strstream without a user-supplied buffer produces a
+          memory leak
+
+sheduling plans
+
+          - time-driven scheduling for periodic input and output
+          - data-driven scheduling for calculations on the basis of input data
+          - checks on the timeliness of data for output; output routines
+            are conscious of data freshness, and act correctly when data
+            not available
+          - stream and event data are marked with the "finest" time stamp
+            in the current host.
+          - what to do with hosts on different update rates? what time
+            stamp to use/time stamp conversion?
+          - Activities are scheduled with the time stamp of the scheduling
+            process? may be used to get the data updated at that time, so
+            a slow process may acquire consistent access to data from a
+            faster process
+
+            => obsolete
+
+Multi-threading / scheduling
+
+                For each thread, make a Despatcher object that handles
+                a number of schedule priorities. Limit the stuff to
+                three or four threads!
+                => ActivityManager; solved
+
+
+More on scheduling.
+
+     Change the accesstoken creation to accept a this pointer from the
+     object requesting the access token. Each object can have its own
+     update rate, and its own time frame.
+
+            - Each invocation of a callback/module/object lives in its
+              frozen time frame. Before invocation this time frame is set.
+            - Assertions (writing on channels) made in that time frame are
+              assumed to have taken place at the beginning of the time frame
+              and time-stamped accordingly.
+
+     This means that a process at 1/4 the base update rate of the
+     DUSIME cluster gets invoked at 0, 4, 8, 12. Its execution may
+     take place (because of its lower priority) at 2-3, 5-6, 8-9,
+     13. All data written will be time stamped 0, 4, 8 (n*4) etc. The
+     process lives in local time n*4, and can only access data that
+     became available -- before -- it was scheduled. In principle, it
+     can access data available at n*4. There is still a possibility of
+     a race condition, namely that data that was not part of the
+     Activity condition is written at n*4, after scheduling but before
+     invocation. Maybe this should be avoided by assigning each
+     writing with a cycle sequence number, and passing the "current"
+     number, along with the schedule frame to the object. On the other
+     hand it should be possible to prevent this by conservative
+     programming, making sure that data that is not part of a schedule
+     condition is only acessed "in the past" and not in the present.
+
+     Up-grading to higher priorities is a problem. One cannot assume
+     that a process at low priority completes in the 1st, 2nd or n-th
+     time step of a high-priority process. When a division of n is
+     used, the data must be present before a new cycle of n is at hand.
+     The solution principle seems to be:
+
+     - As you go to a lower-priority process, data must be used from
+       the time the Activity is scheduled. Activity deadline is at the
+       next integer cycle / n.
+
+     - When data is used by a same-priority process, data must again
+       be used from the time the Activity is scheduled. Normally this
+       is automatic, no new data should be generated within the same
+       thread cycle.
+
+     - When data is used in a higher-prioriy process, data may only be
+       used from the deadline onwards (to prevent race conditions). We
+       get a pseudo-hold delay. In order not to complicate the
+       start-stop capacity and repeatability of the process, transfer
+       of data to higher-priority users is only allowed after the next
+       integer cycle/n
+
+     - There is one other subtlety. Input data, e.g. events, that were
+       not part of the Activity schedule condition, can also
+       constitute a race condition, for any (divide n or divide
+       1) Activity. These data must be accepted from the previous whole
+       cycle only, otherwise a replay could generate different results..
+
+     Now the practical solution still needs a little work. One of the
+     things that is necessary is an inventory of who is at what
+     frequency. Non-periodic processes need not participate in this
+     game. In principle, there is no guarantee through the access
+     tokens. Three elements are part of the final solution:
+
+     - Rate promise. When an Activity intends to regularly write data
+       on a channel in real-time mode, it should make a promise about
+       the intended write frequency.
+
+     - Rate require. An Activity can require a data channel to provide
+       data every n steps. The require is checked against the promise.
+
+     - Consistent world view. An Activity can be given a consistent
+       world view, namely the view of the world (data on the channels)
+       at the time of scheduling, i.e. at the time the condition for
+       the Activity became true. For this the timestamp of the
+       schedule time will be part of the Activity. Later the time
+       stamp, in combination with the rate specified for channel and
+       module, will be used to return access to the right-time data.
+
+       => obsolete
+
+
+A choice for the rate promise and rate require
+
+     It is not yet clear how rate promise and rate require should
+     work. Should this go into the code that creates the access tokens
+     etc? Should this be in a separate file?
+
+     Rate promise and rate require should go on file. The file should
+     be copied and local to all machines, since creation of a channel
+     end should instantaneously return the timing type of a channel
+     end, so the correct types of ActivityCondition can be installed.
+
+     The only thing that goes into code is the fact whether an
+     access is periodic or aperiodic.
+
+     => irrelevant/obsolete
+
+Treating time
+
+     There are several different kinds of time in DUSIME:
+
+     - Wall clock time, with time depending on the precision of the
+       real-time clock used in this system. Wall clock time is of
+       relatively little use to actual modules.
+
+     - Real frame time. Actual time frame, counting from 0, in which
+       the simulation currently is. A base frame rate, e.g. 120 Hz, is
+       determined for the DUSIME master. Other computers may be
+       synchronised to this master, they will have a frame rate
+       derived from the base rate (e.g. 60 Hz, 30 Hz, 15 Hz, 10 Hz),
+       and an offset in starting time relative to the master.
+       Non-synchronised computers may have different frame rates. Note
+       that the simulation will be non-deterministic across the
+       boundaries of two non-synchronised computers.
+
+     - Logical frame time. This is the time frame in which the model
+       runs.  The rates correspond to the real frame rate, or
+       divisions of the real frame rate. All data in the DUSIME system
+       will be marked with its logical frame time.
+
+       => model time
+
+Principles of activation and communication.
+
+     Data is generated at, or converted to real frame time. For
+     example a control loading simulation works at 3000 Hz, and by
+     selecting the position of the controls at 120Hz (approx), control
+     loading data is generated at the real frame time, and earmarked
+     with the logical frame time equal to the real frame time.
+
+     A PeriodicActivity can be installed to react on the availability
+     of data. It can for example generate a callback on a method, and
+     request the calculation of the model for logical time "l".  The
+     method accesses the data at logical time l (if any data is
+     ahead/the method call is behind, the "older" version of the data
+     is used!). A PeriodicActivity can only be installed when all its
+     sources ChannelEnds also are periodic.
+
+     A PeriodicClockActivity can be installed to react on the flipping
+     of real time, in general for input and output routines. The
+     output routines can (try to) access the logical time data of
+     certain logical time (0, 1, 2 etc. cycles before the real frame
+     time)
+     => irrelevant; using Ticker and Activity / Trigger concepts
+
+Initialisation.
+
+     Simulation may require an inco-calculation method, in which the
+     inputs and state corresponding to certain desired outputs
+     (e.g. speed, altitude, heading, rate of descent, position on
+     runway etc.) are calculated. The most generic manner in which
+     this can be done is by calculating the output of the simulation,
+     application of a norm, and cyclic application of a
+     search/minimization strategy (either generic or specific).
+
+     Inco calculation should use the normal communication channels.
+
+     The model should therefore not be running in hold or run
+
+     doInco() requires calculating the end state for a certain set of inputs.
+
+     doInco() runs in S_Spare, not real-time.
+
+     The simulation should provide an Inco module. This module
+     subscribes to the output, and sends events with "input" data to the
+     (hardware) modules.
+
+     After an inco has been calculated, the model goes to hold, and a
+     snapshot can be made.
+
+     Re-initialisation for the modules is always via a doInco
+     procedure.
+
+     => still to be done
+
+
+990721 Current status; have made a code generator for Event/Stream
+types; have forgotten what I started it for
+
+       To do 001: complete the TCPIPMulticastAccessor, it still lacks the
+       actual input and output routines.
+
+       To do 002: A simpler and standard way to interface with
+       Scheme. Something like a static table with variable, type (scheme
+       id?), default value? There must be some easy way to work with
+       providing values to a system, e.g. using scheme literals
+       (make-citation ('mass 4500) ('cg 0.38)) ?
+
+       To do 003: Translation service for channel names. Suppose we
+       have "SRS" "throttle" "left"|"right". How should we connect the
+       "PHLAB" "throttle" "left"|"right" transparently to that source?
+
+990723 Scheme connectivity.
+
+can test for an unbound literal with the following:
+  SCM_ASSERT(SCM_NIMP(s) && SCM_SYMBOLP(s), s, SCM_ARG1, myname);
+
+The name of the literal is obtained with:
+  SCM_CHARS(s)
+
+This enables the specification of a scheme-callable routine as follows:
+
+(make-my-module part-name                   ; "part" name of the module
+                pos-par1 pos-par2 pos-par3  ; 3 fixed-position parameters
+                'ip-number "100.1.50.3"     ; as optional parameters; in list
+                'port 1024
+                'update-rate 2)             ; etc. etc.
+
+and an associate module
+(modify-my-module my-module 'update-rate 5) ; etc. etc.
+
+To automate implementation of the module-scheme connection, the following
+information is needed
+        The scheme name of the module. This name is used for
+            1) smob name
+            2) modify-name
+            3) make-name
+
+        Access to the constructor. The three fixed-position parameters
+        are passed with the constructor. In addition the entity name
+        and part name are given. Therefore the constructor's type must
+        be known, as well as the types of the fixed-position
+        parameters. This is a problem?
+
+        Access to functions that accept the optional parameters. A
+        table of literal names + type (double / int / char / smob) +
+        method to be called; with double / int / char* / void*
+        argument.
+
+        Function called creationComplete();
+
+990726 guile connectivity
+    Guile in its standard form offers only 256 new gsubr routines. If
+    all modules require a new sceme procedure for their creation, this
+    may lead to a big problem. The solution is a generic make-module
+    and a modify-module scheme subroutine. Syntax:
+
+    (make-module 'module-name "part-name" optional-parameters)
+    (modify-module 'module-name optional-parameters)
+
+    for the optional parameters see the above section
+
+------ entity creation with guile
+    The modules can then be used in the creation of an entity
+
+    (make-entity 'entity-name
+      (dusime-node 0
+        (make-module 'simulation-entity-command ......)
+        (make-module ..........  )
+        (make-module ........... )
+        previously-made-module )
+      (dusime-node 1
+        (make-module ........... )
+        (make-module ............)))
+
+990728 => MODIFICATION to the above proposal. Have taken away the
+organisation task from the entity object itself. Cooperation with
+other hardware, coordination etc. can be done by a module in the
+entity (entitymanager?). Also the requests to other entities can be
+done by this module.
+
+
+------ time specifications.
+    Marco is right. Flexible timing specification needs a time for the
+    "until" validity. Say I write fresh data on a channel at time
+    point 5, and then again at time point 10. The only way to tell a
+    routine that is running faster (interval 1) that it can use the
+    data 5, 6, 7, 8, 9, is by specifying that the data written at five
+    is valid until nine, inclusive. Usually (for cyclic processes with
+    a fixed cyle) this can be specified at creation of the channel
+
+------ time specifications / guile connectivity
+    It seems best to create a guile smob for such time
+    specification. For example
+    (make-timing-spec 'cyclic 'offset 0 'cycle 2)
+       requires cyclic activation every 2 cycles, 0, 2, 4 etc. Data
+       written is valid for 2 cycles.
+
+    (make-timing-spec 'immediate)
+       requires activation when anything changes. Data written is
+       valid until changed.
+
+------ Translation service
+    Translation of channel names may be offered invisibly to modules
+    creating an access token, while not being the initiator of the
+    channel. In guile
+    (channel-name-translate 'from "PHLAB" "*" "*"
+                            'to "SRS" "*" "*"
+                            'only-existing)
+    translate all requests for PHLAB channels with matching class and part
+    names to corresponding SRS channels if the class and part names
+    exist.
+
+    Translation services are checked in the order of creation. If
+    first a translation service:
+    (channel-name-translate 'from "PHLAB" "EngineControls" "left"
+                            'to "SRS" "EngineControls" "right")
+    (channel-name-translate 'from "PHLAB" "EngineControls" "right"
+                            'to "SRS" "EngineControls" "left")
+
+    was requested, the PHLAB stuff would still be connected to the SRS
+    hardware, but the left and right engine controls would all be
+    switched.
+
+------ Simulation states; specifically starting and inco
+    Something to think about: How should we kick-start a simulation;
+    Initial condition calculation? Remember that the hardware clock is
+    ticking on. We would like to use the same Activity for initial
+    condition calculation and for real running; only in that manner a
+    consistent treatment of inco and running can be obtained.
+
+    We can invent a hardware mode in which we stop time advance (or
+    discreetly control time advance) by the ticker.  This would give a
+    problem with the triggers; they normally only activate at regular
+    times and require steady time advance.
+
+    Another option is letting the hardware time run on. The hardware
+    modules cooperate in generating the desired inco. The number of
+    invocations (since the activities will often be cyclic) has to
+    keep up with the hardware pace. This might require running a
+    number of hold cycles (as little computation as possible) in order
+    for the system to catch up with real time. Seems like the better
+    option.
+
+------ Entities
+    Am inclined to do a generic make-entity, which makes an entity
+    object (one in each dusime node, with the modules listed
+    for that dusime node). Application class specific behaviour, such
+    as for a simulation with control of the simulated entity, is
+    controlled by one of the modules in the entity. This avoids
+    generation of specific entity types.
+
+------ Where does this stop?
+    Have now created Entity class. Must check in with an
+    EntityManager, one for each DUSIME node. The EntityManagers
+    communicate and check when an entity is prepared.
+
+990728 Old ideas on events via reflector:
+      /** Pointer to the copy areas. These areas may be used for placing
+      temporary data. The area is written in a fifo fashion, each
+      participating CSE is responsible for checking its area, copying
+      or ignoring the data, and increasing its read pointer.
+      This design might change. For now each CSE has a copy area in
+      which it RECEIVES data. Alternative approaches are:
+      \begin{itemize}
+      \item Each CSE has a copy area to send data. Drawback is that
+      multiple areas have to be checked for new data.
+      \item One copy area is used. Drawback is that concurrent access
+      cannot be allowed, so semafores or tokens are needed.
+      \item The individual receive areas have as a drawback that data
+      might have to be copied more often. Concurrency is no problem.
+      \end{itemize}
+      Any ideas?
+
+      YES: concurrent reading, token pass writing. Each item is
+      preceded with size and a bit pattern reflecting the
+      clients. Each client regularly checks the copy area, and
+      reads+updates its offset pointer into the copy area. One CSE
+      compares the offset pointers and uses the lowest to calculate
+      free space.
+
+      There is a token index in the global area, updated by the
+      central CSE. Requesting the token is done in an allocated place
+      for all CSE, the token is updated by the central, and has to be
+      returned after work.
+
+990730 Some progress
+      Have converted the program to a single-thread capable version,
+      one can now pop up from scheme and in that thread continue
+      work. Saves threads and gives debugging/platform flexibility.
+
+      EntityManager and Entity basically works. Entities can be
+      created from Scheme.
+
+      Module works. Need to write an SimEntityController for the
+      control (start, stop, snapshot, state change) of simulation
+      entities. Still have to derive a HardwareModule from the module,
+      similar to SimulationModule, some extra possibilities and
+      states.
+
+      To do list;
+        - timingspec
+        - nodemanager; waiting for completion of the system, control
+          wait before reading dusime.mod
+        - process-id based pipes
+        - dusime.cnf reading, dusime.mod copying
+        - line-oriented reading of conf files
+        - completion and checking of the multicast accessor
+        - completion and checking of the transport manager
+        - synchronisation of tickers
+        - SimulationEntityControl
+        - HardwareModule
+        - HardwareEntityControl
+
+      990805
+        - clean up the pass-by-reference of a newly constructed object
+          in Trigger.cc. Problem is that a copy involves the updating of
+          triggertarget and triggerpuller links.
+        - make a priority scheme object, with order/prio, to be passed
+          to entities and modules
+
+990809 channel name translations are normally done for read access
+       tokens. The writer (e.g. hardware server) publishes an SRS --
+       whatever -- whatever channel, and the reader sees it as its
+       own. Provide a separate specification for translation of write
+       access token names. The writer then thinks to publish its own
+       channel, but is connected to a hardware one. There's a catch
+       here. Readers that request an output copy must also be
+       translated, the hardware channel must not be translated.
+       A no-translate flag? Or just first create the SRS entity, then
+       introduce translations, and then create model entities?
+       => there is no catch here. Translation should be one-way, so
+       any (DUM - foo - bar) is mapped to (SRS - foo - bar),
+
+990823 The scheduling after release of a stream token, or after
+       writing an event on an event channel is not atomic, it is done
+       multiple times during an activity. This may start activities in
+       higher priority threads that suspend the current activity until
+       completion. A priority inversion is possible, when two
+       activities in higher priority threads result, one of which has
+       a higher order. Remedy: scheduling activities should somehow be
+       saved up, and done after completion of the current activity.
+
+990825 Creation sequence
+       0 - SchemeInterpret singleton. Created from C++, activates guile
+       1 - ObjectManager. This enables named objects to be created,
+           and allows query of the node id and number of nodes
+       2 - Transporters, and a transporter manager. These are passive
+           objects, accessed directly, and provide the configuration
+           data for remote communication
+       3 - the environment. The environment will create the necessary
+           number of activity managers, so activities may now be
+           scheduled.
+       4 - The channel manager. From now on channel-using objects can
+           be created.
+       5 - The ticker. A channel-using object! From now on
+           ticker-using objects can be created
+       6 - communication hardware accessors. These may use the ticker
+           or channels to trigger activity.
+       7 - Give control to the environment again, with (pass-control 0)
+           It will now invoke a completeCreation method
+           from the previously created singletons (0, 1, 3, 4, 5) to
+           give these the opportunity to do additional initialisation
+           Then it creates the EntityManager for this node and the
+           NodeManager.
+
+       After this sequence a (pass-control 1) call in scheme will
+       return the main thread to the environment. The environment will
+       call ticker and activitymanagers in a non-real time mode, to
+       clear all current activities, and ask the schemeinterpret
+       object to continue with the model construction.
+
+990825 Still some problems in the destination stuff of
+       TransportNotification.
+
+990826 The GenericChannel and the EventChannel classes are not yet
+       completely correct with respect to locking/unlocking. Must
+       support locked and unlocked versions of a few methods,
+       e.g. addAccessToken, since the channel is kept locked until the
+       id has arrived, to prevent problems with validity.
+
+990827 The TCPIP error checking is not yet complete, choices have to be
+       made; option 1: data sending cycle + reception confirmation cycle,
+       if both cycles complete without error then we can proceed, otherwise
+       re-sending of data is necessary. Data sending must be done with
+       a send cycle number and unpacking only when cycle larger than
+       previous one, to prevent double unpacking.
+
+       option 2: reception confirmation and error recovery integrated
+       with next cycle. Possibility 1: cycle does not complete,
+       i.e. get back to the initiator, then the one or more senders
+       have to re-send data. Possiblity 2: Some part of a cycle (10) was
+       missed by a node, but the cycle completed. The node sends error
+       information in the next cycle. At this point it may receive cycle
+       11 from the node where cycle 10 was missed. In the next cycle
+       10 and 12 are sent, and 10, 11 and 12 are unpacked. This is
+       definitely the more complicated approach, and therefore the
+       first approach will be followed first.
+
+990831 The join-master event channels are not correctly implemented
+       yet? => have now re-arranged things, so that data is first sent
+       to the join-master, and from there re-sent. (What a waste). The
+       ChannelEndUpdate and ChannelOrganiser have been updated, as
+       well as the GenericChannel and EventChannel. StreamChannel does
+       not use this yet, as this type of channel is always solo-send.
+
+990902 Have to do something about lagging of the TCPIP multicasters
+       Try a lock channel/unlock channel channelendupdate pair. In
+       locked state channel access is invalid, writing and reading
+       blocks. => irrelevant, was associated with an error in the
+       synchronisation code
+
+990915 SimulationModule, HardwareModule and cooperation
+
+       States:
+       will introduce the following states.
+
+       SimulationModule:
+
+       HoldCurrent        Keep the current output.
+
+       CalculateInco        calculate the steady-state output with the
+                        current input
+
+       Advance                advance the simulation state, provide new output
+
+       HardwareModule:
+
+       Down: move the hardware to the down/get in/get out state. Do
+                        not provide output. If asked, cooperate with
+                        inco calculation, by providing one output with
+                        the time mentioned in the request, and (if
+                        applicable) the value(s) mentioned in request
+
+       Safe: move the hardware to a safe neutral position Do not
+                        provide output. If asked, cooperate with inco
+                        calculation as above.
+
+       Active: move the hardware according to the model input, provide
+                        output according to activity timing
+                        specification. There may be a transition
+                        period before full model input is accepted,
+                        and autonomous decision to switch to Down.
+
+
+State transitions:
+
+      Down <-> safe <-> active
+        ^                 |
+        |                 |
+        -------------------
+
+
+        HoldCurrent <-> Advance
+            ^
+            |
+            v
+        CalculateInco
+
+Linked state restrictions / admissible combinations:
+
+       Down        with        HoldCurrent CalculateInco
+       Safe        with        HoldCurrent CalculateInco
+       Active        with        HoldCurrent Advance
+
+When in Advance, selection of Down / Save makes automated transition
+to HoldCurrent. I.e. hardware modes can always be selected, simulation
+modes will be greyed out (Advance resp. CalculateInco)
+
+990921 DUECA and KURT
+
+       KURT is a firm real-time scheduler implemented in Linux. It
+       adds an rt_suspend call that can be used to suspend until the
+       next clock tick. Microsecond resolution can be programmed,
+       without jiffy rounding.
+
+       Only planned schedules can be followed with KURT. In its
+       present form it cannot be used to wait up to a variable time
+       span on each suspend. A KURT schedule could thus only be used
+       for the ticker of the #0 node. For best performance it might
+       be necessary to combine the ticker and the highest-priority
+       activities in one thread / ActivityManager.
+
+       The UTIME timer supplied with KURT can however offer variable
+       timing to SCHED_FIFO processes. So just the addition of
+       KURT/UTIME can solve the jiffy boundary problems for the number
+       1 to n nodes, these could easily adjust their timing to number
+       0, on microsecond granularity. The latency for such SCHED_FIFO
+       processes is 10 - 40 usec, in principle quite acceptable for a
+       process running at a rate of 180 Hz (And much better than the
+       old real-time machine!)
+
+991011 SimulationModule. Decision for now: make a single state machine
+       for the whole simulation. Problems with various state machines
+       for the different entities are still too difficult; having one
+       entity calculate INCO while others do not is still too
+       complicated, other entities will have to actively ignore the
+       INCO calculations going on.
+
+       Required functionality 1: a SimEntityAgent. An Entity in DUECA
+       is largely stateless; it tries to assemble and check itself,
+       and when done it runs (period).  A SimEntityAgent is a Module
+       that adds state control to an Entity. All modules in that
+       Entity must be derived from SimulationModule and follow state
+       commands from the SimEntityAgent.
+
+       Creation, startup.
+       The SimEntityAgent starts on the startModule() message from the
+       Entity. The startModule() message contains information about
+       the total number of modules in the entity. (=>modifications
+       needed!). The SimEntityAgent then requests check in from all
+       modules in the entity (should all have connected to the
+       channel), and allocates data structures to hold the confirmed
+       state of all.
+
+       Connection. The entity might need cooperation from hardware
+       entities or other entities in DUECA. Cooperation on entity
+       level is only needed for inco calculation. This might not have
+       to be done by the SimEntityAgent. What is needed is an inco
+       calculation facility (must be something simulation
+       specific). If I use ("SRS", "throttle", "left") in the
+       simulation, might have to write something like ("SRS",
+       "throttle", "left-inco"). We make this an event channel, since
+       data will not always be written?
+
+       Might get into trouble here, considering regular
+       activation. Should we do inco calculation with a separate
+       communication structure? Probably, yes. Use stuff with
+       -inco-try suffix to send to the hardware channels, and stuff
+       with -inco suffix to send through the simulation.
+
+991118 Agreed with Olaf on a new trigger TimeWarp
+       Creation TimeWarp(original-trigger, time-change)
+
+0001xx Defined a new CallbackWithID. This is a templated method, one can
+       add a parameter to a callback object. The method that is called back
+       gets this parameter returned, so that one can implement servicing
+       modules, without overhead for determining who called what.
+
+000209 More on KURT. It now seems perfectly possible to create a
+       variable wait period, to sync with another node. The
+       _call_rt_schedule syscall takes the following parameters:
+       1 time_spec, a baseline start time for the following schedule
+       2 int type, nonsense parameter. Make type RT_FROM_MEM
+       3 int repeat, number of repetitions of the following schedule,
+                     1 -- n. For type == RT_FROM_FILE repeat is not used
+       4 timer_list* buf, the specification of activation times
+       5 unsigned long nevents, no of events in buffer
+
+       the 4th parameter is a pointer to struct, the struct contains
+       void* prev;       make NULL
+       void* next;         make NULL
+       unsigned long expires;        jiffy of time offset from baseline start time
+       unsigned long data;        must contain the real-time process id
+                                get with get_rt_id_from_name
+       void (*function)(unsigned long); function in kernel, not mine
+       unsigned long usec;        usec offset in the jiffy
+
+       Insertion of the rt event in the buffer takes in the order of
+       microseconds. A small offset *before* the planned time, the
+       utime timer expires and by spinning in the kernel a wait is
+       implemented. This might take some 20 - 50 usecs. The smallest
+       possible period seems (on a fast machine) in the order of 250
+       usecs (4000Hz).
+
+       Activation of lower priority threads that communicate via
+       condition variables is not possible in this manner. A context
+       switch time of 20 - 30 usecs is to be expected. These threads
+       can be made SCHED_FIFO, the thread with the ticker can be made
+       SCHED_KURT.
+
+       timing functions can be implemented by specification of a KURT
+       schedule, and use of the rt_suspend call. It would be best to
+       "plan ahead" and always leave a few points in the schedule.
+
+       One problem that might occur is that KURT does not like
+       additions to the schedule while the real-time schedule is
+       running. We will have to wait and see.
+
+000209 States and such (the organisation of simulation entities)
+       At first instance, it seems best to synchronise the state
+       transitions for all entities. We need communication for entity
+       commands (state changes and confirmation of those changes).
+
+       Snapshots need a snapshot thingy that stores snapshots, and
+       also can recover and re-send snapshots.
+
+       Use a channel translation service to translate entity-bound
+       names to generic names, so that one channel for commands, and
+       one channel for confirms is sufficient.
+
+       Add a channel for sign-on, sign-off. Use the entity's ID as a
+       key to check confirmations.
+
+       Had an idea about passing state with the TimeSpec. Would
+       probably work. From the TimeSpec you can see whether a hold, an
+       inco calc or a simulation step is necessary. Compatibility with
+       older stuff is maintained. Could drive the Tickers to specify
+       the initial time specs changes.
+
+       This leads to a significantly simpler design, but possible
+       problems in the construction of a TimeSpec from from multiple
+       channel availability. This problem can be eradicated by
+       specifying an end-inco mode in the timespec.
+
+       Inco calculation generalised. Inco calculation has controls,
+       the inputs that can be varied to achieve the inco, it has
+
+       Fix: A variable that can be fixed by a certain module.
+            variable name, fix-min, fix-max, valid inco modes
+
+       Require: A variable that has a target value.
+            variable name, target-max, target-min, target-tolerance,
+            valid inco modes. target-max and target-min may be the
+            same, in that case the user gets no control over the require
+
+       Control: A variable that can be used to achieve the target.
+            variable name, control-min, control-max, valid inco modes
+
+       A SimulationIncoFinder module can be added to an entity. One or
+       more inco modes can be specified, these must correspond with
+       the inco modes programmed in the simulation-specific
+       modules. Upon an inco calculation, the SimulationIncoFinder
+       sends user-defined values for the Fixes to the modules (event
+       channels, one for each module), and it sends initial values for
+       the Controls to the hardware modules (via individual event
+       channels?). As soon as an inco calculation has taken place, the
+       modules send their Require values back to the
+       SimulationIncoFinder (have to simplify this, for example some
+       method in SimulationModule to specify Requires and Fixes, and
+       handling all communication in SimulationModule).
+       An inco calculation consists of:
+            - taking the normal control inputs
+            - using the supplied fixes for the inco mode
+              (can be done (almost) transparently?)
+            - do almost normal calculation
+            - if a module uses "internal integration", try to
+              1 - calculate the final, resting value
+              2 - (more problematic option) enter the state variables
+                  (result of integration) as a Control, and the
+                  derivatives as a require, with value 0.
+            - send the resulting requires
+
+000211 Prevention of priority inversion.
+       Priority inversion can currently occur in DUECA when a low-prio
+       thread holds a lock on a channel, a higher-prio thread preempts
+       this low-prio thread, and the highest-prio thread attempts to
+       lock the same channel. This can be avoided by giving all
+       channels a shared lock. It seems a no-no, but access to
+       critical sections of a channel is very short, basically only
+       for getAccess, getEvent and sendEvent actions, and these
+       involve little computation. If all channels share the same
+       mutex, a middle-prio thread will always "push" a low-prio
+       thread holding a lock on the channel acces, assuming the middle
+       prio thread needs data, which it almost always does (exceptions
+       are input operations). Any high-prio thread that attempts to
+       lock the mutex will block, effectively pushing the low and
+       middle prio thread through the critical section.
+
+       Soft (same thread) priority inversion is still in. Scheduling
+       of activities in an activitymanager, due to the writing by one
+       activity, should be done atomically, to ensure that activity
+       priority is ordering activities that are scheduled for a
+       higher-prio thread.
+
+KURT-related, from the hdparm manual page
+
+       -u     Get/set interrupt-unmask flag  for  the  drive.   A
+              setting  of  1  permits  the driver to unmask other
+              interrupts during processing of a  disk  interrupt,
+              which  greatly  improves Linux's responsiveness and
+              eliminates "serial port overrun" errors.  Use  this
+              feature  with caution: some drive/controller combi-
+              nations do not tolerate the increased I/O latencies
+              possible when this feature is enabled, resulting in
+              massive  filesystem  corruption.   In   particular,
+              CMD-640B  and RZ1000 (E)IDE interfaces can be unre-
+              liable (due to a hardware flaw) when this option is
+              used  with  kernel  versions  earlier  than 2.0.13.
+              Disabling the IDE prefetch feature of these  inter-
+              faces (usually a BIOS/CMOS setting) provides a safe
+              fix for the problem for use with earlier kernels.
+
+ActivityView
+      ActivityManagers store information about
+          - start times of activities
+          - scheduling of activities (done in receiving ActivityManager?)
+          - interruption of activities, for example a suspend/wait of an
+            activity with blocking IO, such as the ip communicator.
+
+      Sent in the form of an ActivityLog, containing ActivityBits, being
+      a start of something, a block wait start, a block wait resume, a
+      thread suspend, or a schedule
+
+001023 Sleeping bug: destination information is not sent by packer.
+       This has been solved
+
+001102 Work to do. Adding an IPTwoWay accessor, currently as a slave
+       for the IPAccessor. Set it up as a full accessor, with a packer
+       and unpacker. For now, special packer, that provides a
+       special-purpose packet for Windows display machines.
+       In future this can be generalised, with a class distributing
+       access of the net, and client classes doing the transmission?
+       Have to add relay code to the unpackers, so relaying will
+       become possible.
+
+010618 Problems with start-up of complex graphicx windows (notably GTk
+with GL code) on distributed dueca processes. Exact cause has not been
+determined yet. Strategy:
+
+- Make a thread for graphics, separate from the guile (main)
+  thread. Creation then runs in the following stages:
+
+  1. entering guile and reading configuration.
+
+  2. from pass-control to proceed. (i.e.with guile on the stack) start
+     slow running until communication is established.
+
+  3. copy the model configuration to all nodes, still in slow running.
+
+  4. return from the proceed call, and let guile do additional
+     creation. At this phase the entities will not (they used to)
+     create the modules in their constructors.
+
+  5. from pass-control to proceed again. The guile thread will suspend
+     on a signal now. A new thread is started for Gtk (or other
+     gui).
+
+  6. *IN THIS THREAD*, the graphics toolkit is initialised. The
+      entities are called to perform their completion (i.e. create the
+      modules. At this time there is no communication.
+
+  7. When all entities are complete (have created their modules),
+     thread-of control enters the graphics toolkit handler loop.
+
+  9. at a specified time after the start of 4 (e.g. 10 seconds), the
+     slow loop stops running, and separate threads for all high-prio
+     activity managers are started. Ticker is started, from then on
+     the graphics thread continues to handle the prio 0 manager.
+
+010709 The above strategy has been implemented as follows:
+  stages 1, 2, 3 are implemented as above. The only difference is that
+  all schemeinterpret objects now send a confirmation to node 0 that
+  they received the full scheme text.
+
+  4. return from the proceed call. If running multithread, a new
+     thread is created for the graphics main loop. This thread will
+     synchronise with the guile thread by means of a condition, making
+     later additional creation/modification possible. In case of
+     single thread running, the graphics code runs within the guile
+     code, making a return (nearly) impossible.
+
+  5. the graphics thread initialises graphics, and passes control to
+     the gui.
+
+  6. the (new) callback from the gui thread runs single thread, in
+     slow running mode, until a specific time after returning into the
+     guile code for the model. The first loops will be to start up the
+     entities. The entities use the modulecreators to create the
+     modules, i.e. single thread, non-real-time, in a "clean" thread.
+
+  7. when the time is right, additional (rt) threads are started, rt
+     running starts
+
+  An extra method, complete(), has been added to the Module class. The
+  complete method is called after creation and after all (initial)
+  parameters are set. By opening the window in the complete method,
+  the graphics windows can be opened at an early stage, not in a rt
+  loaded condition.
+
+010709 Format specification for reflective communication
+
+1. Capabilities needed for communication.
+   =====================================
+
+   Reflective communication needs an area of shared memory between
+   different processes PLUS a mechanism for triggering activity of the
+   other process.
+
+   One example is scramnet reflective memory. certain locations of
+   this memory may be made sensitive to writes from other nodes, and
+   any write with also triggering enabled then generates a signal to
+   the receiving node. The signal carries information about the
+   location of the write.
+
+2. Generic set-up
+   ==============
+
+   What we use is a control area, circular buffer areas and stream
+   channel communication areas.
+
+   The control area is used to synchronise communication between the
+   nodes.
+
+   The circular buffer areas are used to transmit event data, and to
+   transmit the triggering of stream channels. Each node will have its
+   own circular buffer area, other nodes read from this area.
+
+   The stream channel communication areas are created on demand from
+   the stream channels. Each stream channel can have memory to place
+   its data.
+
+3. Control area
+   ============
+   To be determined
+
+4. Circular buffer
+   ===============
+   Each node has a circular buffer to write in to. Messages written
+   into this buffer are either:
+   a - a stream channel update notification. Consists of an index
+       indicating the stream channel id (16 bits) + an index giving
+       the written dataset (16 bits)
+   b - an event channel message. Consists of an index indicating the
+       channel id (15 bits), a bit indicating to
+       master or from master, 16 bits to indicate message length,
+       the time of the event, the event.
+   c - a fill message. Consists of a word FFFF indicating fill message
+       (so max no of channels is FFFE), 16 bits to indicate message
+       length, message. The fill message is reconstructed into an
+       unpack buffer by the fill unpacker, and unpacked when complete
+       messages are found. Same mechanism as TCP/IP stuff
+
+   writing to/reading from the circular buffer is controlled by the
+   circular buffer header. This header contains a word-sized field for
+   each of the participating nodes. The field corresponding to the
+   writing node indicates the level to which the buffer is filled, and
+   in general the other nodes declare to be sensitive to this field,
+   so that updates to the buffer size trigger signals. The other
+   fields indicate the level to which this buffer has been read. The
+   writing node collects this information and to update the no of free
+   words in the buffer.
+
+5. Stream channel communication areas.
+   ==================================
+
+   These are managed by the node 0 channel manager, and written into
+   directly by the stream channel ends.
+
+010709 Type checking for channels.
+   Have added an unsigned int hash number to all the automatically
+   generated types. Will use this number to check for a match between
+   declared types sent over channels across different nodes.
+   ---> done 010731
+
+010712 Rationalisation of communication.
+   Have to store the data on reception end/distribution statically,
+   not send it over tcp/ip. Can modify unPackData routine from
+   channel, to have incoming/outgoing flag, instead of sender
+   globalid.
+
+010723 Finally things work a little
+   The lab works OK. Communication seems quite dependable, now and then
+   the QNX machine has a small problem with clock waiting times not
+   being fully correct? Need higher prio?
+
+   Things to do, off the top of my head:
+
+   - The getAccess/releaseAccess mechanism is a regular source of
+     problems. Deprecate and substitute by StreamReader/StreamWriter,
+     add StreamReaderLatest
+     ---> done 010731
+
+   - Reflective memory communication.
+     ---> shared mem comm works, tested with 3 nodes, 010731
+
+   - Channel translation, define a NamePattern object. The NamePattern
+     can match, and wildcard matches can substitute into a
+     NameSubstitution? object, to get the new name?
+
+   - definition of HardwareModule, extension of the state control.
+
+   - Change of the naming scheme.
+
+   - Completion of the trim calculation facility.
+
+   - Running ActivityManager 0 without delays, use same mechanism as
+     other manager. Make administrative work low-prio, so that it is
+     done after any drawing calls. Option to give rt prio to no 0?
+
+   - re-organise the (event) channels, so copying of to-be transported
+     events is no longer necessary; separate deletion of the chains
+     and the event data.
+
+   This should do for version 1. Version 2 should work towards better
+   real-time behaviour, avoiding locks, etc.
+
+010726
+   Have found a nice way to represent enum values that have to be
+   shared among different classes, and be transported as well. Look at
+   code in ChannelDataType. Have to add this to the codegenerator, and
+   convert some old oddities.
+
+010802 HardwareModule
+   Have converted the SimulationModule to be a descendant of the newly
+   designed DusimeModule. The DusimeModule implements some small
+   changes in the trim and snapshot handling, to make things more
+   robust for application programmers.
+
+   Now HardwareModule work. From a hardware point of view, there are
+   three steady modes:
+   - down. The hardware is held in a position for switching
+     off/breaking up the sim. If the simulation stops, everything is
+     safe.
+   - holdcurrent. The hardware is held in a position that enables
+     transition to participation in the simulation.
+   - advance. The hardware is participating in the simulation.
+
+   The hardwaremodule knows the following transition modes. When
+   brought in a transition mode, the transition mode is kept until the
+   transition is over, or another transition mode is selected.
+   - calibrate. The hardware is tested/calibrated, possibly
+     dynamically, transition is to the holdcurrent state.
+   - godown. The transition to the down position.
+   - goholdcurrent. The transition to the holdcurrent position.
+
+   The transition from neutral and active is supposed to be
+   instantaneous, and if a transition is necessary, DUECA is not
+   interested in this.
+
+   The implementation is split up in two parts. A HardwareModule
+   should use a CriticalActivity to implement its strategy. The
+   CriticalActivity accepts two callbacks.
+
+   - One is the "safety" callback, which implements the down and
+     go_down modes. This must run autonomously, without DUECA channel
+     IO. The function of this callback reports mode transitions from
+     go_down to down
+
+   - Second is the "action" callback, which implements the calibrate,
+     goneutral, active neutral and down modes.
+
+   The CriticalActivity has some autonomy to force mode changes. It
+   will invoke the safety callback on:
+   1 - Errors from the action callback, such as an uncaught exception
+   2 - A state command from the HardwareModule base class
+   3 - A node wide error state
+
+010802 Master logic.
+
+   Interlocks: - Modules start not before HardwareModules start
+               - HardwareModules stop not before Modules stop
+               - HardwareModules always start in locked-down
+               - Exit from locked-down only when simulation in
+                 holdcurrent
+               - linked (common) transition for all modules:
+                 Calibrate HoldCurrent Advance
+               - dragged transition: HardwareModules stop forces:
+                 Holdcurrent
+                 SoftwareModules stop
+                 down
+                 and a stop after hardwaremodules down achieved.
+               - dragged transition: SoftwareModules stop forces
+                 HoldCurrent
+
+   and probably a lot more.
+
+010816 Stupid stuff with the fill packing unpacking! messages are sent
+   in fragments, and I forgot to keep the fragments for each node
+   together in a separate buffer!
+
+010816 What to do before holidays?
+   Finalise the interface for the DUSIME control, i.e. buttons that
+   grey out and are blocked, feedback of overall state, "Emergency"
+   button that brings down all hardware, possibly trim
+   calculation. Re-organise running of level 0 thread (lose the
+   sleep!).
+
+010822 Found a really nasty one in the Citation code for Alex
+   yesterday. Problem was overwriting an array in an output
+   channel. Resulted in strange problems with GTK. Might be a good
+   idea to add a check to the generated code; a check value as
+   additional element in the array, and at set times the value can be
+   checked, and message written.
+
+010825 Status update: have nice mode-changing/indicating buttons in
+   the interface. The status logic is still in testing phase. Todo:
+   Check and merge the status logic, complete/test the DirectUnPacker.
+
+010830 When compiling 0.8.1 on qnx today, found an internal compiler error,
+   triggered by an inline function that returned the size of a list, in
+   EntityManager.hxx. removed the inline aspect, and things compile.
+   Found another of these problems in StatusKeeper. Removed the auto_ptr
+   there, and that also solved the problem ........
+
+011218 At 0.8.17 currently. Want to re-introduce condition wait and
+   wake-up on data or time for thread 0 again. Looping psuedocode:
+
+   graphics update
+   call to idle function (= to dueca code)
+        call the activitymanager "0" loop
+             check jobs to do, if there are jobs
+                   do the jobs (with a max of ...)
+                   return
+             if no jobs
+                   wait for condition. Condition triggered on
+                   incoming stuff, or time
+                   do the jobs
+                   return
+
+020116 Softgenlock and RTAI. This is a possible way to do precise
+   synchronisation for dueca, that is why these notes go here. Tried
+   compiling RTAI in combination with the 2.4.14 kernel. No problems
+   there. Up to now it did not crash, even with RTAI loaded, however,
+   no extensive testing (NVIDIA 2314 kernel module).
+
+   softgenlock 0.2 has code to do quad buffering, using RTAI or
+   RTLinux. The latter failed utterly on my machine. Had to adjust the
+   Makefile.rtai, and the sgen_main_rtai.c. One problem with the 14
+   kernel is that there is no __divdi3 symbol. divdi3 is emitted by
+   gcc when confronted with a long long division. Some of these were
+   in the logging code of sgen_main_rtai.c, some others were in the
+   code of sgen_graph_vga.c. Expect truncation to int not to be a
+   problem there.
+
+020826 Dusime control buttons
+   State checking for dusime/dueca control buttons is not yet
+   perfect. A source of some problems is that timing of the state
+   reports is not kept. Should extend the status objects with timing
+   information; it is being sent, and insert checks/code to handle
+   cases in which the time of a confirmation is too old. Mode
+   transition are then only complete when all status reports have a
+   time from after the mode transition.
+
+021203 Addition of Matlab stuff
+   Matlab files needed from simulink/src simulink/libsrc and include
+   directorie. In addition need tmwtypes.h from Matlab main include dir.
+   The Matlab 6.5 simulink version adds a large number of standard
+   s-functions in simulink/src. Not all that stuff is equally
+   useful. Loads of these files cannot be used in real-time workshop,
+   and some are just examples.
+
+021209 More Matlab woes
+   Have now worked out a new method for getting the Matlab stuff for
+   6.5 working. This does not include the rt_InitTimingEngine nor the
+   rt_UpdateDiscreteTaskSampleHits(S) stuff that was needed to get the
+   SpacePlane model working. Have not found any evidence that the
+   models link into the code in the src/rt_sim.c file, where this
+   stuff is updated. There are still macros to determine sample hits,
+   no clue about their use from a model, until we see more models with
+   this stuff.
+
+   There appears to be a new call, rt_SimInitTimingEngine, taking a
+   load of parameters, and new calls
+   rt_SimUpdateDiscreteTaskSampleHits and rt_SimGetNextSampleHit
+   Links to generated code still extremely fuzzy.
+
+030108 Matlab working?
+   Used the grt_malloc_main code as a guideline to get the Matlab code
+   working.
+
+030108 new-module
+   The new-module script, to replace newModule and newHardwareModule,
+   is in place. Have to add hardware modules to this script, and
+   remove the two old scripts
+
+030716 Softgenlock and RTAI revisited
+   New set-up for softgenlock and RTAI:
+   Redhat 9, updated
+   source code for linux-2.4.20
+   RTAI 24.1.11,
+   patch the linux tree with the rthal5 patch
+   also added Andrew Morton low-latency patch for 2.4.20, no rejects.
+   configure and build Linux
+   one of the empty directories (usposix) in rtai failed, no problem,
+   can just install
+   the softgenlock 1.0 code had to be adjusted slightly, add
+     #include <linux/kernel.h>
+     #include <linux/module.h>
+     #include <rtai.h>
+   as first includes in sgen_time and sgen_sched
+   then softgenlock works out of the box
+
+   1st application; variable time sleeping, using the following rtai
+   modules:
+     rtai_lxrt_new          16104   0 (unused)
+     rtai_sched             62865   0 [rtai_lxrt_new]
+     rtai_fifos             16264   0 (unused)
+     rtai                   39712   1 [rtai_lxrt_new rtai_sched rtai_fifos]
+   is a variable time wait. Test application LxrtWait is successfull,
+   approximate mismatch in timing is some 8/9 us. Only strange
+   behaviour is an influence on the gettimeofday clock, some 10 ms (a
+   single tick maybe?) after transferring to oneshot mode and starting
+   the rt timer. This does very fine-grained timing and waiting.
+
+   2nd application needs
+
+041014 Long time no real advances next step => multi channel
+                                               =============
+
+   Multi-channel support is needed to provide tools for multi-entity
+   simulations. Currently most of this stuff is done with fixed-size
+   arrays (stationkeeping simulation), or with subscription to
+   multiple channels (last 2 sim practicals). Will leave inheritance
+   to later, first create a multiple entity stream channel (event
+   channels can be done with join_master facility). Functionality
+   needed:
+
+   Channel, as a concept, access point
+
+   possibility to create an "image" in the channel.
+
+   possibility to delete an image from the channel.
+
+   images must have a unique identity.
+
+   possibility to subscribe to individual images and unsubscribe
+
+   possibility to express interest in creation and deletion (with callback?)
+
+   possibility to query the channel for all present images
+
+   possibility to obtain data from any present image
+
+   obtaining data is by default latest data not exceeding supplied
+   time spec. Modifiers could be supplied that can extrapolate data
+   (note: this is application dependent)
+
+   possibility to obtain latest common valid data for two or more
+   images (e.g. for judging collisions).
+
+   possibility to express interest in change of images (with callback,
+   callback valid for multiple images, supply in callback which images
+   are to trigger call)
+
+   perceived capabilities::::::::::::::::::::::::
+
+   The channel must be able to have a local copy of data, replicate
+   via communication to other copies.
+
+   Need a communication protocol that queries for a new data package;
+   sends discoveries and full data to the requester by bulk.
+
+   Need partial updating; only send over those variables of the image
+   that changed.
+
+   Uniqueness can be in identifying data in the image itself
+
+   Uniqueness is also in an integer identifier. Will be determined
+   through a coordination message.
+
+   Creational interface, create representation objects for written
+   images. representation object for the channel itself keeps
+   reference to these, deletion should work as expected.
+
+   writers and readers as only change access interface.
+
+   possibility to skip over or recognize "own" images?
+
+   image numbering protocol; proposal, and numbering on confirm
+   initiating node? Yes, initiation once only, numbering
+   common. Provides best re-use.
+
+   contest for initiating node? First come, first serve at the channel
+   manager.
+
+041103 Multi-channel implications
+
+   Needed change: Untie transportNotification from TriggerTarget. Does
+   not seem necessary to connect the two
+   concepts. TransportNotification needs to carry an (integer) extra
+   message, can be used to select what has to be packed. This also
+   affects the design of the packers. This has some implications ....
+
+   Also, the design of the packers could be re-thought. Maybe working
+   with (thread-specific) arrays of notifications and packing
+   afterwards can eliminate significant number of locks.
+
+051201 Reflective memory problems and more
+
+  Since the multi-channel implementation, DUECA has not run reliably
+  on SRS. Olaf has kept the old version (10.21) running. Latest
+  attempt to install new failed. Suspected cause is scramnet
+  failures. If in the writing of a piece of the scramnet buffer a
+  failure occurs, and the subsequent writing of the index for the
+  buffer succeeds, *and* the dueca implementation is efficient and
+  fast enough, unpacking may be based on old buffer data. In a debug
+  session, the unpacked data and a copy of the buffer made just a few
+  cycles later differed.
+
+  Possible remedy: write-me-last set-up, and a check of the buffer
+  status before writing the index. This still needs an efficient means
+  of waiting, current test version uses busy waiting.
+
+  On another topic, discovered that the FC3 version has not been
+  running real-time since its inception. FC3 has the
+  pthread_attr_setinheritsched call implemented. This call was only
+  used on QNX, should have been used on all platforms that have it
+  implemented, as now tested.
+
+  Another addition, with freeglut it is possible to call the glut
+  update routines from the current thread, not entering glut
+  loop. Have used this in a new module, GlutSweeper, that can do the
+  necessary glut initialization and updating in any thread. Window
+  creation, etc, is limited to that thread or chaos occurs.
+
+  Added the possibility to select the scheduling mode and priority
+  per-thread. can now select normal scheduler with nice level,
+  round-robin or fifo.
+
+051201 Plans for efficiency.
+
+  Remove the locks on the triggering. Instead, perform all initial
+  triggering (by the channel and possibly directly from an activity)
+  by writes on an AsyncList belonging to the ActivityManager. Find the
+  list or manager by means of thread-specific storage. After
+  completion of the activity a global triggering lock is accessed by
+  the activitymanager and all triggering + channel transport actions
+  are processed. Activities that don't release control to the
+  ActivityManager (and only I have written those), need to call an
+  activitymanager function at appropriate times.
+
+  Even more spectacular, remove most locks from the memory arenas,
+  again use thread-specific storage, and re-distribute memory between
+  threads as needed, best in the first thread with rt priority.
+
+051203 Design for new reflective communication
+
+  SCRAMNet reflective memory does its own correction, but there are
+  instances where the memory contents are not consistent. Due to a net
+  error part of the data may be old/incorrect, while the index to the
+  data is already flagging that the data is availabe.
+
+  The global plan:
+
+  - All written messages (per channel) also carry a checksum (added to
+    ReflectivePacker, pretty easy)
+
+  - In a first cycle, (distribute) called from the ReflectiveAccessor
+    thread, the ReflectiveUnpacker analyses the buffer, and calculates
+    the checksums. The messages are also checked for destination: if
+    destined for the present node + checksum is ok, an unpacking
+    instruction is left on an AsyncList.
+
+    (Currently, the unpacking end analyses the buffer directly,
+    resulting in unnecessary activation if the data is not intended
+    for the node.)
+
+    If the checksum fails, the ReflectiveAccessor is
+    informed. Unpacking is left for later.
+
+    Several cases need attention:
+    * the messages in the buffer may not be for this node. Have to
+    remember up to where the buffer has been cleared by default
+    * buffer may be re-used when messages have been unpacked, have to
+    remember index of what is to be unpacked,
+    * have to remember until where the buffer was found to be
+    valid. This is the starting point for further reading and unpack
+    assignments.
+
+  - The unpacking back-end (despatch) processes the messages in the
+    AsyncList, notifying stream channels or unpacking data. A second
+    AsyncList serves to indicate up to where in the buffer the
+    unpacking has been done. From the data in this AsyncList, the
+    distribute method determines up to where the buffer can be freed.
+
+060601 GUI overhaul.
+
+  Have started overhaul of the GUI. Needed to incorporate GTK2. First
+  changes were to move all interfaces to libglade. This now works,
+  although GTK2 is still problematic (GL code does not run well).
+
+  Then moved files around. For the Handler (starting of specific gui
+  updates), converted to a base class (GuiHandler), which handles the
+  no-gui case, and a set of derived classes (Gtk, Glut, etc) that call
+  in with the base class, establishing a dictionary of available gui
+  toolkit handlers. These can then be selected via the environment
+  configuration in the dueca.cnf file.
+
+  Did something similar for GL capability.
+
+  Still have to re-work the basic DuecaView / DusimeController
+  interface. There is currently no stub for a situation where a
+  non-gtk toolkit is selected.
+
+  The strategy will be that the selection of the basic toolkit at link
+  time will control the options for selecting a toolkit at run time
+  (obviously). gtk and gtk2 are mutually exclusive at link
+  time. Selection at run time determines the toolkit that runs (or
+  not, if no interfaces available) the DUECA node 0 interfaces, and
+  the opengl windows. Addition of the glutsweeper (given that
+  glut was selected at load time) enables running GL interfaces under
+  the sweeper. Other mixing forms (notably gtk+fltk-gl) should be
+  deprecated.
+
+061030 Towards CoreCreator
+
+  Branched off a version  file:///home/repa/SVN/branches/p1,
+  In this version, the IPAccessor and ScramnetAccessor etc. are
+  converted to CoreCreator structure. Still has to be tested.
+
+  Second improvement targeted for this branch is dynamic logging
+  options. Be able to send log to both file/output, and send to a
+  central location. Be able to control logging based on selected file
+  and level. Be able to dynamically change the logging level for a
+  file. Menu with only module files, and optionally all dueca files
+  with logging. Safety mechanism in logging, if too far behind, skip
+  logging.
+
+061109 Branching etc
+
+  Merged the branch with corecreator stuff. Dynamic logging in a
+  separate branch.
+
+  Work on the main branch to make the code generator merge the
+  "packed size" of objects into the checksum? Problems are occurring
+  with 64 bit platforms. E.g. packing a long int on a 32 bit platform,
+  and unpacking it on a 64 bit platform, packs 4 bytes and unpacks
+  8. Have for now implemented a simple check in the code generator,
+  but people might get around this.
+
+061128 Created a branch for implementing a new message/error
+  logging system. The idea is:
+  1 Logs get assembled and then printed in low-prio thread only; when
+    an excessive number of the same messages is generated, logging is
+    skipped for that message and a count is given
+  2 Logs can optionally be forwarded for central viewing.
+  3 Logging is extended: additional items to be logged are
+    a) the file name and line number;
+    b) the activitymanager number (and so name/owner of the activity)
+    c) a log count, for the number of times this log item has been hit
+
+  Some consequences are that the information on activities is now
+  needed by multiple agents, not only the activity view. So this must
+  be split off and centralised.
+
+070110 Replay, snapshot and storage
+
+  FP: recordable and replayable simulation
+
+  AF: storage of "seed data", replay of "seed data", storage/replay of
+      state snapshot (state information). Seed data is the information
+      that comes into a simulation, control inputs, events,
+      etc. Together with state information + determinism (lack of
+      determinism = missing seed data) a simulation can be replayed.
+
+  GF: long term file storage seed. Long term file storage state. Meta
+  information for matching the two, control window for selection of
+  start points, recording of snapshots.
+
+  PF:
+  - Programmable storage/retrieval class. Needs to store and
+    retrieve both stream and event type data. Storage should double as
+    logging. Extension of the generated code with reflection-type
+    information, which makes the storage double as logging. The logging
+    of the reflection information enables retrieval of streams from
+    binary data.
+  - Display of a timeline + control to retrieve past points. Note that
+    storage and retrieval are separate activities. Storage should take
+    place always?? Also in replay, so a replay + take-over can be
+    replayed? Or allow control manual control of storage.
+  - (python) program for reading data files, reads index/info file
+    with meta information + raw data
+  - centralised generation of file name extension.
+  - versioning/naming of logged data? Needs name on basis of module
+    class (or extra name for additional logging objects in module) and
+    entity/part sections, so multiple instances may be run.
+
+  FORM:
+  - Allocation of single logging module, but initialisation with types of
+    information to be logged. Logtokens, templated, create and allocate.
+  - Simple cycle tagging with activity time, + time tagging each logged item?
+  - Stream items may need to be looked up from previous time steps if
+    not logged each time step?
+  - Replayer is an additional component, created on the logger.
+
+070116 RTW version 6.4
+  Summary files needed/edits
+  - files from simulink/include   -> simulink
+  - files from simulink/
+  - files from rtw/c/src          -> src
+  - files from rtw/c/libsrc       -> libsrc
+  Add my own fixvars.c            -> src
+  Add rtwtypes.h                  -> simulink
+  Add tmwtypes.h                  -> simulink
+  My own rtw_prototypes.h         -> .
+  search for all utMalloc utFree, and make sure these are defined to
+  malloc and free
+  edit dueca-config.in, new-module, configure.in
+
+081211 RTAI again
+
+  Serious about incorporating RTAI this time. Have built rpms for
+  openSUSE, with kernel, RTAI and comedi. Using rtai lxrt, with wrap
+  link options. rtai 3.6.2 (go figure that numbering)
+
+  rtai does not yet work. Problem is creation and use of resources.
+  Somehow the additional threads are not created when mutexes have
+  already been used. It also seems to be that a large number of rtai
+  resources is being consumed, possibly the number of resources to be
+  reserved for lxrt needs to be increased
+
+  Thread_specific pointers use a mutex under the hood, found that with
+  ltrace. RTAI's substitution mechanism works, but locking the mutex
+  before initialising rtai kills the process. initialising rtai in the
+  main thread, using resources (like this hidden mutex) and then
+  trying to create new threads fails.
+
+  There are several questions to be asked.
+  - rtai example programs start with initialising rtai in main
+    thread. Then create resources like mutexes etc. Then
+    create new threads and start running and using the resources.
+
+  - dueca currently creates and uses (locks etc.) posix resources in
+    the main thread, then it starts additional threads, and may continue
+    to create additional posix resources (mutexes).
+
+    * Creating seems to do no harm, but rtai task for the thread needs
+    to be started first.
+
+    * Using posix calls and then starting threads seems to be not
+    possible, the started new thread does not run
+
+    * Creating when the system is already running multithread (DUECA
+    will initially create from the script/#0 thread, and then continue
+    creating normally from the graphics/#1 thread), has not been
+    tested, effect is not known
+
+  DUECA has several instances where posix resources are accessed as
+  part of the initialisation code, i.e. before running the main
+  function. Luckily, all posix resources are concentrated and
+  abstracted in a limited number of DUECA classes
+
+  ThreadSpecific
+  StateGuard
+  ActivityManager
+  Condition
+  Environment
+
+  Two approaches to rtai-ifying DUECA are planned. Both should start
+  with the creation of a test program for testing the basis of their
+  assumption
+
+  Approach 1: extending the posix-resource using classes, to delay the
+  actual resource usage until the start of multi-threading. Might need
+  to re-design the thread creation a bit, since now the higher
+  activity manager threads are started from the graphics (#1) thread?
+
+  Approach 2: resource stretch early in the start-up. This would
+  require creating the (a number of) threads early in the start-up of
+  the program, for example when the first StateGuard is created, and
+  "grabbing" and using those threads when the system goes
+  multi-threading. This looks more like a kluge (and the problem is
+  also that a fixed number of threads must be assumed).
+
+  Both need a test program for the possibilities of RTAI. Test program
+  includes:
+
+  * creation of posix resources before thread creation; mutex,
+    condition and pthread_{set,get}specific
+
+  * continued creation of posix resources after thread creation,
+    specifically mutex
+
+  * testing mutex types
+
+100222 RTAI is a royal PITA
+
+  Unmodified dueca works like a charm on preept_rt patched Linux
+  kernels, so that is what the future looks like
+
+100222 Case for more channel information
+
+  In very large projects (DATES), it gets difficult figuring out which
+  channels don't connect. Need a read-out of the channelmanager on
+  node 0, showing channel names, nodes with read/write tokens
+  (+clients?), and incomplete channels.
+
+100329 Unified channel
+
+  Currently three channel types in use, no channel inheritance.
+  Unified channel type:
+
+  * Inheritance, all transportable objects are derived from a base
+    transportable type. A virtual destructor and a virtual pack method
+    make the handling from a channel uniform.
+
+  * Multi-entity. The channel supports multiple entities, like the
+    multistreamchannel.
+
+  * Multi-entry. A channel supports multiple
+    entries. These should be name-separated? These entries matrixed
+    with the entities.
+
+  * Type coding in transport. Transport coding specification includes:
+    Channel. Entity in channel, entry in entity, class of object.
+
+  * Time policy. Data can be event-like and stream-like (contiguous
+    times).
+
+  * Master access token on the channel. Iterator over entities. For
+    event data, an entry-dependent token for getting all events,
+    regardless of entity, for stream data, a sub-token can be
+    created. The sub-token needs an entity iterator to get to data.
+
+  * In the creation, the channel can be limited to one entry only?
+    Yes, to prevent undebuggable problems.
+
+  * A trigger can be provided by a sub-token with entry, the default
+    sub-token (=the one on the first entry), or the all-entry token
+    for event type data.
+
+  * There is no master channel. A rotating lock is used for the
+    creation of new entries/entities. Numbering for both entries and
+    entities is unique in the channel.
+
+  * Inheritance of transportable objects must somehow be tracked.
+
+100401 Control panel menus
+
+  It would be cool if applications could add menu items to the dueca
+  control panel. So instead of opening all application windows, add an
+  application menu item to the control panel, and let applications
+  link gtk menus to this.
+
+131217 status and todo
+  * re-vamped dco generation, and added infrastructure for type-agnostic
+    channel access
+
+  + add the type-agnostic channel access
+
+  + implement a renewed asynclist with
+    __sync_bool_compare_and_swap (type *ptr, type oldval, type newval, ....)
+
+  + transfer to new asynclist for scheduling actions.
+
+  see also
+    http://stackoverflow.com/questions/11111720/difference-between-pthread-spinlock-and-boostsmart-ptrspinlock
+
+  + on the other hand, the action with compare_and_swap with only
+    a pointer change will only fail if two threads on two processors
+    have identical timing?
+
+140116 maybe something for memory arenas?
+    http://www.linuxjournal.com/content/lock-free-multi-producer-multi-consumer-queue-ring-buffer?page=0,0
+  - this one definitely
+    http://nedko.arnaudov.name/soft/L17_Fober.pdf
+
+  - FIFO buffer for scheduling/triggering, with trigger actions simply
+    feeding into the FIFO buffer of an activity. The activity then
+    consumes all trigger actions in the FIFO buffer, performs the triggering
+    calculations (lock-free, in the assumption/check that a triggering
+    action only leads to a single activity with a single priority). For this,
+    the activity's priority has to "trickle down" to all its triggers, and the
+    initial pull will generate a FIFO message, which in turn can
+    be used to follow up with subsequent combines. Can remove all locks
+    currently there. Additional requirement is indexing which ActivityManager
+    needs to be started -- after completion of triggering activity -- if not
+    running already.
+
+  - Memory arenas, using a LIFO stack and allocation on failure. The index
+    to the allocated areas can likewise be added to a LIFO stack.
+
+  - FIFO buffer for transport work, with indices to the to-be-packed data
+
+  - Logging infrastructure -- verify current lock free implementation.
+
+140923 Channel data and timing
+  - The new unified channel data access looks at a request time tick, and
+    returns data with the tick being >= the validity start and the tick <
+    validity end.
+    For event type data, the event time <= the request tick
+    When only older data is available, the latest of that data is returned
+
+    An alternative reading mode is also possible, with serial reading
+    of the data in the channel.
+
+  - Am re-writing the DataReader Access to modify behaviour, depending
+    on the supplied "extrapolator/interpreter". The current mode for
+    stream channels is greedy, and provides data as soon as the end
+    time specified is after the begin time of the data point in the
+    channel. Relevant modes are:
+
+    FrontSide: equivalent to current behaviour,
+    data_validity_end > calc_validity_start &&
+    data_validity_start <= calc_validity_start
+
+    BackSide: take the latest point before invalidity of the interval
+    data_validity_end >= calc_validity_end &&
+    data_validity_start < calc_validity_end
+
+    Center: take data which has validity in the center of the interval
+    data_validity_end > (calc_validity_start + calc_validity_end)/2
+    data_validity_start <= (calc_validity_start + calc_validity_end)/2
+
+    Average: numerically average data. Note that for this addition and
+       multiplication with a scalar must be defined for the dco object!
+
+  - What to do with event type data? For this the validity end is not
+    relevant. Since events will typically be written with the start of
+    the validity in the previous step, and it seems illogical to use
+    events that become valid halfway in a calculation
+    interval. Typical reading would require events of time stamps <=
+    validity_start
+
+    event_stamp <= calc_validity_start
+
+    event_stamp <  calc_validity_end
+
+    the dataAccess calls currently perform the following (have to verify):
+    - given an access time, and stream data, and time-based access, the
+      call returns data with
+      data_validity_start <= access_time
+      data_validity_end > access_time
+
+    - given an access time, and event data, and time-based access, the
+      call returns the newest event with
+      event_stamp <= access_time
+
+    - given an access time, and stream data, and sequential access, the
+      call returns data with
+      data_validity_start <= access_time
+      all data points in the channel are returned once
+
+    - given an access time, and event data, and sequential access, the
+      call returns data with
+      event_stamp <= access_time
+      all data points in the channel are returned once
+
+    Sequential access makes sense with event data, since otherwise one
+    risks the chance of missing a potentially important event
+
+    Sequential access is also the method by which data is transmitted
+    over channels, regardless of data nature
+
+141114 status and todo
+    + unified channel idea implemented. There is only one channel type
+      now, that supports:
+      * time-spec-based reading and automatic cleanout, much like stream
+        and multi-stream channels. Depth is now supplied as a time in seconds.
+      * sequential reading, like event channels
+      * multiple data classes in the channel, multiple entries in the channel,
+        but also options to specify that only one entry may be present
+      * inheritance for the data, so that a reader can access the data
+        or any of its parents
+      * triggering can be provided on any reader, also when the reader is
+        attached to multiple entries. This does not always make sense though
+      * the old JOIN_MASTER option for event channels is emulated by having
+        multiple entries, attaching the read token to these multiple entries
+        and using a special DataReader template that iterates over these
+        entries until it finds data.
+      * there is a lock on deletion for data that still needs to be
+        transported, data-lost for pack should be over now.
+      * a token can be used to access a specific entry in the channel, either
+        specified by entry id or by label and classname, or access can be
+        obtained to all entries of a specified class together, and either
+        iteration or a joining DataReader template can be used to read them
+      * the DataReader (substitute for EventReader, StreamReader,
+        MultiStreamReader, StreamReaderLatest) class is templated with
+        data type and with an "accessor" template that determines how
+        data is accessed; either match the time exactly, match any earlier,
+        join data from multiple entries, etc.
+      * the new python-based code generator is used to generate the channel
+        object code
+
+    + Implemented a lock-free (in the sense of using atomic check-and-set
+      instructions) memory arena
+
+    + Implemented largely lock-free channel access, for both reading
+      and writing, also with the CAS instructions. Mutex locking is
+      only done when the channel configuration has changed and tokens
+      need to update their local information
+
+    + Implemented new triggering scheme, with insertion of
+      TriggerAtom(s) into a lock-free queue to initiate triggering
+      calculations, and then re-starting affected threads as
+      needed. The threads then work out the actual schedule by
+      processing the TriggerAtoms and creating the schedule steps.
+
+    + Re-wired the route from channel writing to packing, using again
+      the lock-free queue, and pointers to the channel entries. Needs
+      some testing and debugging.
+
+    - Need to create a ChannelExplorer, which can iterate over entries
+      in a channel, providing the data for flexible access and creation of
+      specific access tokens.
+
+    - Need to create a datareader that exploits the class-agnostic
+      exploration of channel data
+
+    - Implement a planning sieve in the ticker for AperiodicAlarm and
+      PeriodicAlarm trigger targets, to enable efficient scheduling of
+      large numbers of triggered activities. Currently each alarm is
+      checked in every tick, making ticker-based activities scheduling
+      wasteful; a thousand clock-triggered activities would require
+      checking a thousand triggeratoms in each clock tick. Since the
+      number of alarm triggered activities in our simulations is
+      typically between 10 and 20, the problem is not that urgent, but
+      it is still one of DUECA's (few?) weak areas. Maybe I can simply
+      re-use the triggeratoms, the alarms enter these in the Ticker
+      for their future activation, they pass a planning sieve and the
+      ticker feeds them to the ActivityManager(s) whenever their time
+      is up.
+
+    - fix the priority of the data writing in the reflective accessor
+
+
+150218 new plans already
+  Add https://github.com/Loki-Astari/ThorsSerializer
+  to the code generator, to get JSON serialisation of DCO objects.
+  This can easily build a server for the DUECA control over the web,
+  and add hooks for getting data out/sending events in.
+  mongoose web server code (c library?)
+  http://www.codeproject.com/Articles/29290/A-C-Embedded-Web-Server
+
+  or directly boost:asio
+  http://www.boost.org/doc/libs/1_57_0/doc/html/boost_asio/examples/cpp11_examples.html
+
+150911 gtk3 stuff
+  For the 2.0 version, working on adding gtk3. Glade changes:
+  - buttons with multiple sub-pixmaps need to be made "empty", with the
+    add custom content checkbox
+
+  - stores and tree/list views can be specified in glade. edit the
+    treestore/liststore models in glade by adding appropriate
+    columns. Edit the treeview widgets and add colums with renderers.
+
+150914 Crazy idea about distributed configuration
+
+  One of the most tricky things in DUECA is the need to keep run-time
+  configuration aligned across nodes. Currently it is not possible for
+  example to add nodes to a simulation, simply because configuration
+  (communication scheme, node coordination) is fixed and needs to be
+  specified in files. What if it were possible to start a DUECA node
+  and add additional nodes?
+
+  The tool to use would be a versioned configuration database for a
+  real-time distributed process. Data in the database would be "owned"
+  by controlling processes/entities, and offer slots for expansion of
+  the database; slots may be for single, vector or map entries.
+
+  Possible scenario:
+
+  0 - database start, version 0, with a root object. It offers one
+  slot with a map interface.
+
+  * node manager, clock manager, channel manager and object manager
+    register with the root. All registration is with a callback object!
+
+  * node manager requests new slot through the root object.
+
+  1 - The root object manager is notified about the node manager object
+      request through a callback it requests a new revision from the
+      database, and issues a slot number 0
+
+  * The node manager receives the validity and slot number through its
+    callback. The node manager object has slots for the different nodes
+
+
+  Concepts:
+
+  - Object. The database is hierarchical. Objects can contain data and have
+    one or more slots. Each slot contains an array or a dictionary of other
+    objects.
+
+  - Manager. An entity that controls an object. For control, the entity
+    needs to register a callback function.
+
+  - Slot. Means to make a hierarchical database. At creation of an
+    object, the manager must specify how many slots it offers, and how
+    these slots are named.
+
+  - Version. Each state of the information in the database is
+    associated with a version. To save time, a version counter is
+    kept per object.
+
+  - Timed release. Versions may be timed. E.g. node may be added or removed
+    at a specific time.
+
+  The callback function:
+
+  When creating an object, the manager must supply a slot (in the form
+  of a path), possibly a map name -- if not supplying a map name, an
+  array is assumed), the callback function and possibly a time for the
+  change. The callback is called for the following:
+
+  - Creation is successful. A slot number and a version number are returned.
+
+  - Creation fails. A reason for the failure is returned
+
+  - A request for object data update is made.
+
+  - A request for a new slot entry has been made; the requested entry
+    name - if applicable - is given, and the object data are presented
+
+  - A request for a slot data update is made
+    * confirm the request, needs new version number
+
+  - A request for a slot deletion is made
+    * confirm the request, needs new version number
+
+  - A request for the object deletion is made
+    * any slot objects must be deleted; make requests for this, and wait for
+      confirmation
+    * confirm the object deletion
+
+
+  Design decisions to be made:
+  - implement the manager as a templated class (templates with object type
+    and slot type), with a lot of default actions?
+
+  - have a "single revision number" versioning system? Any requests
+    for data change are streamed upwards to the root?
+
+  - limit a manager to one object and one slot type? If you need more, simply
+    use multiple managers in a class?
+
+  Possible uses:
+  - communication manager object (timed), with information on how to
+    send and receive information in the real-time cycle?
+
+  - channel manager object with slots for each channel?
+
+  - channel objects with slots for the local ends
+
+  - entity manager, with slots for entities
+
+  - entities, with slots for objects -> need a mechanism to propagate
+    changes down from entity manager, through entities to objects!
+
+  - central clock information, with data on rate, tick and wall clock time
+    relation (sporadically updated)
+
+  - node manager with node status objects
+
+  Lifetime:
+
+  Distributed configuration provides a match between 2 service
+  aspects, on the one hand the configuration information, and on the
+  other hand the actual service. To make sure that clients are not
+  accessing services that do not yet or no longer exist, the actual
+  service must be created before the configuration information is
+  supplied. After deletion of the configuration information has been
+  requested, the callback with the confirmation will be (time)
+  delayed, so that the actual service is kept alive somewhat longer.
+
+  How to find the service:
+
+  A singleton on the root node, and a deferral strategy for child nodes?
+  Use boost::any on the data; Configuration data should be packable and
+  unpackable, and is in principle immutable; new data requires a new revision.
+
+
+160922 Issue with legacy glut-using code
+
+  Currently, have a lot of legacy code that uses glut convenience calls
+  (glutCylinder, glutStroke). For this, a glutInit is run with gtk_init etc.
+
+  This no longer works reliably on Fedora (&possibly related recent versions)
+
+  Possible fix, initialising glut in the context/thread that runs gtk,
+  so later?
+
+  The tricky part is the use of threads / library initialisation
+  * a thread with guile, which reads the model and is then parked
+  * a thread which enters gtk2, gtk3, glut, fltk (as needed) and
+    continues to the real-time cycle for prio 0
+
+  Currently the complete methods are called right after construction &
+  parameter feeding, which means these are from the guile thread. Just
+  before this the gtk + glut init is called; there is no protest from
+  glut on using glut calls without glut init, but apparently the context
+  + accelerated rendering is not yet correctly set up or not shared with
+  the gtk thread which is started after.
+
+  A cleaner method would be guile construction+calls for all objects in
+  the guile thread (where guile objects and data are accessible) and then
+  the complete in the gtk thread?
+  This fails on communication?
+
+  *Solved*.
+
+  Have implemented this. Did need to move the entity manager
+  query start to a point after the creation of the DUECA window.
+
+179011 Status report
+
+  - Modified channel organisation to determine transport class on the
+    basis of the 1st end that implements a write. The assignment of the
+    master end of a channel is delayed until a writing end is found; now
+    to deprecate the constructors with transport class in the
+    ChannelReadToken
+
+  - Added hdf5 and intercommunication with servicefunctor concept
+
+  - Works on updated SRS, with IP communication. Dueca0 series
+    decommissioned
+
+  Plans/todos:
+
+  - better example project, working on an IceSailer overhaul as example and
+    documentation project:
+    + with inter communication
+    + with hdf5 logging
+    + with new FlexiStick input
+    + good testcase for timing / refresh lock / ObjectMotion extrapolation
+
+    * shows combining existing and new modules
+    * shows off inter, hdf5, WorldView
+
+  - Convert / new IPAccessor, to use inter's structure for communication
+    * extract IP comm code from inter, move and re-use
+    * add fill packing to this code
+
+  - Add a comm use overview,
+    * histogram of message regular fill level (10 levels? over past second, +
+      fraction of messages with delays)
+    * history of comm use, per node, split over bulk and regular
+
+  - Continue with the reflectory
+
+  - Add a channel overview,
+    * List of all channels
+    * Per channel, selectable, list of entries
+      (#, data class, event/stream, label)
+    * Per entry:
+      # information on writer (objectid), time written
+      # information on readers (objectid), time read,
+        single/multiple, time/readall
+      # option to get data print
+    * Will need indexing of clients per entry; currently only triggered
+      clients are indexed.
+    * Have to get channel config lock while reading specific information
+
+
+180320 Status report
+
+  - feb: converted guile argument reading, to process all in first
+    call to a set of boost::any variable, enabling guile 2.0, 2.2
+
+  - jan: using <atomic> for osx and modern relevant linuxes
+
+  - dec 17: removed old race condition from ipaccessor, created a new
+    udpcomm component, with the techniques used by inter to connect
+    DUECA communication. Seems to work.
+
+  - mar: added python scripting option. Used a further streamlining of
+    the scripting interface to condense the script-dependent parts;
+    now have TypeCreator for modules, and CoreCreator for all other
+    objects. Entity is still separate (could possibly be made
+    CoreCreator).
+
+  Response to 170911 plans/todos:
+
+  - new IPAccessor (DuecaNetMaster/DuecaNetPeer) created, also produces
+    data for the message size and cycle time use.
+
+  - there is now information on read entries opened (ChannelReadInfo)
+
+  - remaining:
+    * collect, present and log channel read info, add entry create
+      info
+    * collect, present and log net use
+    * example project
+    * reflectory
+
+  New plans/todos:
+
+  - Create a closer interface with Python, so modules can call Python
+    code, and data can be exchanged between modules and script (e.g.,
+    use matplotlib to plot data from python)
+
+180403 status report
+
+  - further updated python scripting; needed to more explicitly separate
+    generic, script-independent code and python/scheme script interfacing
+    code
+    * scheme gc handling is now done completely by an encapsulating
+      object (SchemeObject), and no longer by code in the ScriptCreatable
+      parent class
+    * added an option to put all Init* code separately in static libs,
+      needed to circumvent linking problems on Ubuntu and newer SUSE
+    * extensive re-write of library system and pkgconfig files, needed
+      also some modification of hmitoolkit code to handle the different
+      scripting languages
+    * further improvements to the cmake scripts
+    * Python code can now be called from scripts, data can be exposed, see
+      example in TestMultiStream/test-plink
+
+  - started work on a test project, using CMake scripting, configuration in
+    a cnf sub-directory
+
+  - remaining:
+    * collect, present and log channel read info, add entry create
+      info
+    * collect, present and log net use
+    * example project
+    * reflectory
+
+  New plans/todos:
+
+  - finish the test project, have it run after builds
+  - adapt dueca-project to handle the new test project structure
+  - add git version control to dueca-project, using git "sparse checkout"
+
+    https://gist.github.com/sumardi/5559896
+    git init
+    git remote add -f origin <url>
+    git config core.sparseCheckout true
+    echo / >> .git/info/sparse-checkout
+    echo run >> .git/info/sparse-checkout
+    echo cnf >> .git/info/sparse-checkout
+    echo comm-objects >> .git/info/sparse-checkout
+    git pull origin master
+
+    then read the modules in cnf/machine/modules, and extend the
+    sparse-checkout file.
+
+    git read-tree -mu HEAD
+    https://git-scm.com/docs/git-read-tree
+
+190207 status
+
+  - error in the handling of saveup channels (example ActivityDescription)
+    somehow the data is not always packed & transported.
+
+210222 cmake transition for projects
+
+  CMakeLists.txt in project folder:
+
+  - Defines the cmake project
+  - Sets a variable DUECA_COMPONENTS, with components common to all
+    machine classes in the project (script language, extra, dusime,
+    communication and the like)
+  - Reads DUECA's parts/components
+  - Run a dueca_setup_machine in (DuecaSetupProject), which
+    * reads the machine class
+    * sets the DUECA components var to given components
+    * includes the machine class's makefile additions
+    * reads the list of modules in the class' "modules" file
+    * sets MODULES_PROPERTY, DCODIR_LIST_PROPERTY and
+      DUECA_COMPONENTS_PROPERTY as global properties
+    * runs dueca_get_config, which
+      . sets the COMPILEOPTIONS to cflags
+      . sets the LIBRARIES
+      . determines the scripting language
+      . sets the result in supplied COMPILEOPTIONS, LIBRARIES,
+        SCRIPTLANG variables
+    * runs through all listed modules, to use add_subdirectory
+      . to add the module
+      . to determine which comm-objects to add
+    * runs through all comm-objects folders, using add_subdirectory
+
+210228 CMAKE issues
+
+  - needed to add a symbolic link to comm-objects.h in the source folder;
+    because comm-objects.h typically included locally
+
+  - some trouble with including generated code; not always dep is clear
+
+220404 gtk4
+
+  - The glade ui tool is no longer available for gtk4, but cambalache will
+    probably work. Need to get to work on a gtk4 port.

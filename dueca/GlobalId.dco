@@ -1,0 +1,31 @@
+; -*-scheme-*-
+(Header "
+        item            : GlobalId.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        documentation   : DUECA_API
+        description     : ID for channels or objects
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type LocationId "#include <inttypes.h>
+typedef uint8_t LocationId;")
+(Type ObjectId "typedef uint16_t ObjectId;")
+
+;; This class defines an ID pair, consisting of a location id, identifying
+;; a participating dueca node, and an object id, identifying an
+;; object (or channel) created in that node.
+;;
+;; The ObjectManager maintains a list of references to local objects, indexed
+;; on the object id, the ChannelManager does the same for channels.
+;;
+;; Local and remote queries for an object, defined by its name
+;; and the entity in which it participates, are returned with a GlobalId
+(EventAndStream GlobalId
+                (IncludeFile GlobalIdExtra)
+                ;; ID part pointing to the dueca node
+                (LocationId location (Default invalid_location_id))
+                ;; Unique ID within the dueca node
+                (ObjectId object (Default invalid_object_id))
+)

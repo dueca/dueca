@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   targetNamespace="https://dueca.tudelft.nl"
+	   xmlns="https://dueca.tudelft.nl"
+	   elementFormDefault="qualified">
+
+  <xs:element name="configuration">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="machineclasses" type="machineclasses_t"/>
+	<xs:element name="platform" type="platform_t"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="machineclasses_t">
+    <xs:sequence>
+      <xs:element name="machineclass"
+		  type="machineclass_t"
+		  maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="machineclass_t">
+    <xs:all>
+      <xs:element name="config" minOccurs="0" type="xs:string"/>
+      <xs:element name="modules" minOccurs="0" type="modules_t"/>
+    </xs:all>
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="gui" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="modules_t">
+    <xs:sequence>
+      <xs:element name="module" type="module_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="module_t">
+    <xs:all>
+      <xs:element name="url" type="xs:string"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="version" type="xs:string" minOccurs="0"/>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="platform_t">
+    <xs:sequence>
+      <xs:element name="node"
+		  type="node_t"
+		  maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="comm-master" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="node_t">
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="machineclass" type="xs:string" use="required" />
+    <xs:attribute name="node-number" type="xs:integer" />
+    <xs:attribute name="if-address" type="xs:string" />
+    <xs:attribute name="comm-master" type="xs:boolean"/>
+    <xs:attribute name="highest-prio" type="xs:integer"/>
+  </xs:complexType>
+</xs:schema>

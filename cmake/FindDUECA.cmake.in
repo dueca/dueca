@@ -1,0 +1,46 @@
+if (NOT Dueca_FIND_VERSION)
+  if (NOT Dueca_FIND_VERSION_MAJOR)
+    set (Dueca_FIND_VERSION_MAJOR @VERMAJOR@)
+  endif()
+  if (NOT Dueca_FIND_VERSION_MINOR)
+    set (Dueca_FIND_VERSION_MINOR @VERMINOR@)
+  endif()
+  if (NOT Dueca_FIND_VERSION_PATCH)
+    set (Dueca_FIND_VERSION_PATCH @REVISION@)
+  endif()
+  set(Dueca_FIND_VERSION
+    "${Dueca_FIND_VERSION_MAJOR}.${Dueca_FIND_VERSION_MINOR}.${Dueca_FIND_VERSION_PATCH}")
+endif()
+
+macro(_dueca_check_version)
+  execute_process(COMMAND dueca-config --version
+    OUTPUT_VARIABLE DUECA_VERSION)
+  if (${DUECA_VERSION} VERSION_LESS ${Dueca_FIND_VERSION})
+    set(DUECA_VERSION_OK FALSE)
+  else()
+    set(DUECA_VERSION_OK TRUE)
+  endif()
+
+  if (NOT DUECA_VERSION_OK)
+    message(STATUS
+      "DUECA version ${DUECA_VERSION} found, ${Dueca_FIND_VERSION} requested")
+  endif()
+endmacro()
+
+get_filename_component(PACKAGE_PREFIX_DIR
+  "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+
+if (DUECA_INCLUDE_DIR)
+
+  # in cache already, check
+  _dueca_check_version()
+  set(DUECA_FOUND ${DUECA_VERSION_OK})
+
+else()
+
+  set(DUECA_INCLUDE_DIR "@CMAKE_INSTALL_INCLUDEDIR}@/dueca")
+
+endif()
+
+message(STATUS "LOADING?")
+include(DuecaAdaptMachine)

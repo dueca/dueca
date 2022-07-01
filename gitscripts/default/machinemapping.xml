@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This file defines the mapping between DUECA nodes and their
+     machine class (type of checkout, libraries, modules) -->
+<nodes
+    xmlns="https://dueca.tudelft.nl"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://dueca.tudelft.nl machinemapping.xsd">
+  <!-- default development set-up -->
+  <node name="solo" machineclass="solo" sparse-checkout="false"/>
+</nodes>

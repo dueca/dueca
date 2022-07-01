@@ -1,0 +1,150 @@
+/** \page rtw Including code from Simulink (old, until Matlab 2012b)
+
+Many computer-aided control engineering packages have an option to
+export a model to C or C++ code. Often this option is used to solve a
+calculation-intensive problem in a quicker way, because the exported
+model does not suffer from the overhead from the package, but this
+code can also be ported to other environments. DUECA currently offers
+the possibility to include Simulink models converted with Real-Time
+Workshop.
+
+Here is an older description is based on Matlab 2012b, with Simulink
+8.3.  When in your model, select "Simulation" - "Model Configuration
+Parameters", then change the following options:
+
+<ol>
+
+<li> Under "Solver", select "Fixed-step", and "ode4". Set the proper
+step size and select "SingleTasking" for the tasking mode.
+
+<li> Under "Optimization", "Signals and Parameters", if you uncheck
+the "inline Parameters" flag, you can modify the parameters of the
+built code, otherwise these are fixed.
+
+<li> To ensure better compatibility, when your target platform is (as
+in most cases) a 64 bit Intel compatible, under "Hardware
+Implementation", select Intel for the vendor, and x86-64 for the
+device type.
+
+<li> Model Referencing, as far as I can determine, does not work for
+R2012b code generation with our options, so include any sub models in
+your present model.
+
+<li> Under "Code generation", select "grt_malloc.tlc" (the generic
+one, not the one for Visual C++) as your system target file. You can
+uncheck the "Generate makefile" flag. For the code generation, select
+either the debugging or execution efficiency objective. Finally select
+the "Fenerate code only" flag.
+
+<li> Under "Code generation" / "Interface", uncheck MAT-file logging.
+
+</ol>
+
+The script new-module offers the possibility to prepare a file for
+inclusion of a Real-Time Workshop generated model. Check with
+"new-module", without arguments, to see which versions are currently
+available.
+
+
+
+\section simulink_versions Different versions of real-time workshop code
+
+One thing you need to be aware of is that all RTW code you put into a
+dueca executable must have the same version. When using RTW code, you
+should edit the main Makefile (the one in the "application directory")
+and specify that you are going to use one of the rtw modules with the
+DCOMPONENTS variables.
+
+\section simulink_call Calling Simulink/RTW code version 3
+
+Generate a skeleton for your module by invoking the new-module script:
+\code
+new-module rtw??   <fill in the rtw version here>
+\endcode
+
+The step size of the model can be adjusted. This code is added by
+default to the setTimeSpec model. Note that some generated models
+don't function well when the time step is changed, so I recommend
+generating the model with the proper step size, and not messing with
+this.
+
+For calculation of the model response, you first need to set the input
+vector values. Look in in doCalculation for the template code.
+\skip copy
+\until ssGetU
+
+\section xml_import Communicating state and parameters between MATLAB/Simulink and DUECA
+As from RTWv5.0 and up, DUECA includes the option to generate xml parser
+scripts that you can use to communicate states and model parameters
+between DUECA and simulink. When invoking
+\code
+new-module rtw[x]
+\endcode
+You are prompted if you want this functionality. \see XmlSnapshot
+
+Note that you need to select the C interfacing option in the real-time
+workshop code generation for this; the parameters of your model will
+then be accessible to the DUECA code.
+
+\section simulink_sense Making sense of what the Simulink code produces
+
+Of course, you do this Simulink stuff for some purpose. The rest of
+your simulation needs to know what it can do with the output of the
+Simulink code. My advice is to write a file that defines the states
+and outputs of the Simulink model with enumerated types. Here is a
+piece of my StatesOutputs.hxx file:
+
+\dontinclude StatesOutputs.hxx
+\skip output_vec
+\until gamma
+
+Using these enumerated values it is easy to see what type of output you
+are looking at. There is a check possible on (at least) the number of
+outputs in the Simulink model and the ones listed in your
+StatesOutputs.hxx file. As last output (state), define:
+\skip gamma_c
+\until }
+
+The value of Y_no_outputs is equal to the number of outputs in the
+Simulink model, given by the define "OUTPUTS" in the include file of
+your model. Use this to check the sanity of your code.
+
+\section simulink_callfour Calling Simulink/RTW code version 4
+
+Generate a skeleton for your module by invoking the new-module script:
+\code
+new-module rtw4
+\endcode
+
+So, with the advent of Matlab 6.5, also the real-time workshop got a
+work-over. This makes things so much harder again. The code generated
+by the new-module script is more or less comparable to the previous
+code, with frequent substitutions of "ss" to "rtw" or something
+similar.
+
+\section simulink_whatfiles What files to keep and include in your project?
+
+Simulink generates a large number of files. Some of these are common to all models, and have been included in the rtw libraries packed with dueca. What files do you keep, and what do you throw away?
+
+Suppose you created a model called MyModel. When generating the code with above options, Simulink creates a directory MyModel_grt_malloc_rtw. From that directory, keep:
+
+<ol>
+<li>MyModel.c
+<li>MyModel.c
+<li>MyModel_private.h
+<li>MyModel_types.h
+<li>rtmodel.h
+<li>rtwtypes.h
+</ol>
+
+Simulink also generated defines.txt and modelsource.txt. Keep these
+for reference. If you can, also store the model file (MyModel.slx),
+any sub-models you might have included alongside the code (i.e., on
+the repository), and the Matlab file that contains the initial
+parameters (and state?) for your model, e.g., MyModel_init.m.
+
+If you initialise the parameters and state of the model before doing
+the code generation, these parameters and state will be built into
+your model.
+
+ */

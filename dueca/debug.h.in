@@ -1,0 +1,95 @@
+/* ------------------------------------------------------------------   */
+/*      item            : debug.h
+        made by         : Rene' van Paassen
+        date            : long ago
+        category        : header file
+        description     :
+        changes         : 20010801 Rvp update
+        language        : C++
+        documentation   : DUECA_API
+        copyright       : (c) 2001 TUDelft-AE-C&S
+        copyright       : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+*/
+
+/** \file debug.h
+
+    Here macros for debugging/messaging are defined. The macros consist
+    of a one-letter prefix indicating the logging level, and a three
+    letter suffix indicating the logging class, e.g., `D_MOD`, for
+    logging debug messages for user modules.
+
+    Four different classes of debug messages are defined:
+    <ol>
+    <li> Simple debugging messages, macros prefixed with D_ . If you
+         throw this in, then in general a lot of garbage is
+         generated.
+    <li> Informational messages, macros prefixed with I_ . These are
+         for "important" messages, not general "every cycle"
+         messages.
+    <li> Warning messages, macros prefixed with W_ . These are for
+         minor errors, on which the system will try to continue, but
+         functionality may be affected.
+    <li> Error messages, macros prefixed with E_ . Serious stuff, if
+         you have a safety-critical system, you should safely stop. It
+         may also be that there is an abrupt stop of the system.
+    </ol>
+
+    By default, logging with the `D_` and `I_` macros is switched off,
+    logging with the `W_` and `E_` prefixes is switched on. The
+    logging interface accessible from the DUECA application window can
+    be used to adjust the different logging levels at runtime.
+
+    Before including this file, you can pre-define the macros, to
+    influence the defauls, like:
+
+    @code
+    #define D_MOD
+    #define I_MOD
+    #include <dueca/debug.h>
+    @endcode
+
+    This will have the initial debug and information messages in this
+    file be on. During development, this might be preferable to
+    switching all logging with the interface.
+
+    If using this in a header, include the file `undebug.h` at the end
+    of the header to clear the macros again.
+*/
+
+#if defined(debug_h) && defined(newlog_macros_hxx)
+#define debug_h_double
+#warning "Avoid double inclusion of debug.h, if needed, use \"undebug.h\""
+#else
+/// \cond DO_NOT_DOCUMENT
+#define debug_h
+/// \endcond
+
+#include "ClockTime.hxx"
+#include <iostream>
+
+#ifndef NEW_LOGGING
+/** If defined, using the new logging scheme, with Logger objects and
+    a LogConcentrator. */
+#cmakedefine NEW_LOGGING
+#endif
+
+#ifndef SOURCE_PATH_SIZE
+/** Default value for source path trimming, needed for clean
+    error messages that do not show build location */
+#define SOURCE_PATH_SIZE 0
+#endif
+
+#ifdef NEW_LOGGING
+#include <newlog.hxx>
+
+#else
+
+#include <debug-direct.h>
+
+#endif
+#endif
+
+#ifdef NEW_LOGGING
+#include <newlog-macros.hxx>
+#endif

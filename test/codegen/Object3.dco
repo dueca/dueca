@@ -1,0 +1,7 @@
+(Type double)
+(IterableType std::vector<double> "#include <vector>")
+
+(Stream Object3
+  (Option msgpack)
+  (std::vector<double> a (Default 1.0) (DefaultSize 0))
+)

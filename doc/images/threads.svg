@@ -1,0 +1,122 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: fig2dev Version 3.2 Patchlevel 5d -->
+<!-- CreationDate: Tue Nov 18 23:26:27 2014 -->
+<!-- Magnification: 1.050 -->
+<svg        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        width="5.4in" height="1.8in"
+        viewBox="932 692 6471 2214">
+<g style="stroke-width:.025in; fill:none">
+<!-- Line -->
+<polyline points="944,944
+6614,944
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="944,1889
+6614,1889
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="944,2834
+6614,2834
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="4629" y="803" width="708" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#f2f2f2;
+"/>
+<!-- Line: box -->
+<rect x="1889" y="803" width="708" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#f2f2f2;
+"/>
+<!-- Line: box -->
+<rect x="1606" y="1748" width="283" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#d8d8d8;
+"/>
+<!-- Line: box -->
+<rect x="2598" y="1748" width="425" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#d8d8d8;
+"/>
+<!-- Line -->
+<polyline points="1889,1748
+2598,1748
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+stroke-dasharray:41 41;fill:#d8d8d8;
+"/>
+<!-- Line: box -->
+<rect x="3968" y="2692" width="661" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#d8d8d8;
+"/>
+<!-- Line: box -->
+<rect x="944" y="2692" width="472" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#d8d8d8;
+"/>
+<!-- Line -->
+<polyline points="4629,2692
+5338,2692
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+stroke-dasharray:41 41;fill:#d8d8d8;
+"/>
+<!-- Line: box -->
+<rect x="5622" y="1748" width="330" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#d8d8d8;
+"/>
+<!-- Line: box -->
+<rect x="5338" y="2692" width="283" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#d8d8d8;
+"/>
+<!-- Line: box -->
+<rect x="5952" y="2692" width="661" height="141" rx="0"
+style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+fill:#d8d8d8;
+"/>
+<!-- Line -->
+<polyline points="5622,2692
+5952,2692
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+stroke-dasharray:41 41;fill:#d8d8d8;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="6661" y="944" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">priority 2</text>
+<!-- Text -->
+<text xml:space="preserve" x="6661" y="1889" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">priority 1</text>
+<!-- Text -->
+<text xml:space="preserve" x="6661" y="2834" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">priority 0</text>
+<!-- Text -->
+<text xml:space="preserve" x="4440" y="850" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">A</text>
+<!-- Text -->
+<text xml:space="preserve" x="5433" y="1795" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">D</text>
+<!-- Text -->
+<text xml:space="preserve" x="1417" y="1795" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">B</text>
+<!-- Text -->
+<text xml:space="preserve" x="1700" y="850" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">A</text>
+<!-- Text -->
+<text xml:space="preserve" x="3779" y="2740" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">C</text>
+</g>
+</svg>

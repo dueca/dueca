@@ -1,0 +1,30 @@
+;; -*-scheme-*-
+(Type float)
+(Type string64 "#include <stringoptions.h>")
+(Type vstring "#include <stringoptions.h>")
+(Type uint32_t "#include <inttypes.h>")
+
+(Enum Mode uint8_t On Off)
+
+;; Example object for testing the MultiStreamChannel. 
+;; Could be thought of as a blip for a 2d moving vehicle. The 
+;; identification will normally not change, test for the differential
+;; sending of data.
+(Stream TestObject
+	(Option hdf5nest)
+	(IncludeFile TestObjectMethods)
+	;; identification of the vehicle. String of max 63 characters
+	(string64 identification (Default "unidentified"))
+	;; position in x direction of a carthesian system
+	(float x (Default 0.0f))
+	;; position in y direction of a carthesian system
+	(float y (Default 0.0f))
+	;; velocity in x direction. Can be used to extrapolate?
+	(float dx (Default 0.0f))
+	;; velocity in y direction. Can be used to extrapolate?
+	(float dy (Default 0.0f))
+	;; mode, enum generated
+	(Mode mode (Default On))
+	;; counter
+	(uint32_t counter)
+	)

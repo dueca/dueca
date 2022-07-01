@@ -1,0 +1,69 @@
+;; -*-scheme-*-
+(Header "
+        item            : ReflectoryData.dco
+        made by         : Rene' van Paassen
+        date            : 160427
+        description     : Communication on distributed database
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+")
+
+(Type vstring "#include <stringoptions.h>")
+(IterableType idpath "typedef uint16_t reflectory_id;
+#include <list>
+typedef std::list<reflectory_id> idpath;")
+(Type TimeTickType "#include <TimeSpec.hxx>")
+(Type uint16_t "#include <inttypes.h>")
+
+;; modes of reflectory items
+(Enum ItemState uint8_t
+
+      ;; Request to join as an additional copy/slave
+      JoinRequest
+
+      ;; Confirmation to join as an additional copy/slave
+      JoinConfirm
+
+      ;; Initial state of any item in the
+      ;; reflectory, with exception of the root;
+      ;; addition of an item is requested
+      Requested
+
+      ;; If for some reason the item cannot be
+      ;; created, the item will enter state
+      ;; rejected
+      Rejected
+
+      ;; Creation successful, and the item can be
+      ;; filled with data
+      Accepted
+
+      ;; From above, deletion has been
+      ;; ordered. After ordering and deleting all
+      ;; children, request deletion
+      DeletionOrdered
+
+      ;; From below, deletion from the Reflectory
+      ;; is requested
+      DeletionRequested
+
+      ;; Deletion request has been honored, item is
+      ;; released and can be deleted
+      Released)
+
+;; communicate the state changes of reflectory
+(Event ReflectoryData
+       ;; target time for the config change
+       (TimeTickType target_time)
+       ;; new state
+       (ItemState itemstate)
+       ;; path, if applicable, list of indices towards the node
+       (idpath issued_path)
+       ;; string node identification
+       (uint16_t nodeid)
+       ;; string pathname
+       (vstring pathname)
+       ;; string dataclass
+       (vstring dataclass (Default ""))
+       )

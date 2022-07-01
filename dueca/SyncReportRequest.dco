@@ -1,0 +1,16 @@
+;; -*-scheme-*-
+(Header "
+        item            : SyncReportRequest.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Report on synchronisation state
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type bool )
+
+;; Request for a synchronization report
+(Event SyncReportRequest
+       ;; if true, synchronization counters are reset
+       (bool flag))

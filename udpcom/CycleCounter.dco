@@ -1,0 +1,18 @@
+;; -*-scheme-*-
+(Header "
+        original item   : CycleCounter.dco
+        made by         : Rene' van Paassen
+        date            : 200612
+        description     : Repeating, possibly overflowing counter
+                          for message cycles
+        copyright       : (c) 2020-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type uint32_t "#include <inttypes.h>")
+
+(Event CycleCounter
+       (IncludeFile CycleCounterExtra)
+       ;; implementation of the counter
+       (uint32_t cycle_counter (Default 0U))
+       )

@@ -1,0 +1,43 @@
+;; -*-scheme-*-
+(Header "
+        item            : ModuleState.dco
+        made by         : Rene' van Paassen
+        date            : 130928
+        category        : comm object specification
+        description     : distributed state machine
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2
+        documentation   : DUECA_API")
+
+(Type dummy)
+
+;; Enum type for the different modulestate types
+(Enum Type uint8_t
+;; Existing, but cannot yet start.
+  UnPrepared
+;; Prepared to come to safe mode
+  InitialPrep
+;; Activities in safe mode, but not
+;; prepared to go on yet.
+  Safe
+;; Prepared to be started further. If there
+;; are critical activities, these are
+;; running in safe mode at least. Doubles
+;; as a command for going to this state.
+  Prepared
+;; Activities in operating mode. Doubles as
+;; a command.
+  On
+;; Not a real state, for comparison/state
+;; joining purposes.
+  Neutral
+;; Not a valid state
+  Undefined)
+
+;; Describes the state a module may be in.
+(EventAndStream ModuleState
+  (IncludeFile ModuleStateExtra)
+  (Type t (Default Undefined))
+)
+

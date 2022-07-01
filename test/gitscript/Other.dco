@@ -1,0 +1,5 @@
+(Type std::string "#include <string>")
+(Event Other
+       (Option hdf5)
+       (std::string message)
+       )

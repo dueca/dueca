@@ -1,0 +1,31 @@
+;; -*-scheme-*-
+(Header "
+        item            : IncoNotice.dco
+        made by         : Rene' van Paassen
+        date            : 1301004
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type string32 "#include <stringoptions.h>")
+(Enum IncoMode uint8_t "#include <IncoMode.hxx>")
+(IterableType std::list<IndexValuePair> "#include <list>
+#include <IndexValuePair.hxx>" )
+(Type uint32_t)
+
+;; Object to send initial condition data between modules and the trim
+;; condition calculation machine
+(Event
+ IncoNotice
+ (IncludeFile IncoNoticeExtra)
+
+ ;; List of index and value pairs
+ (std::list<IndexValuePair> ivlist)
+
+ ;; Mode that is currently requested
+ (IncoMode mode (DefaultArg FlightPath))
+
+ ;; Cycle in the communication
+ (uint32_t cycle (DefaultArg 0U))
+)

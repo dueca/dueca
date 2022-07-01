@@ -1,0 +1,28 @@
+# Note that there is a dedicated .gitignore in the build folder
+
+# by default, all patterns ignored in the run folders
+run/*/*/**
+
+# Only these patterns should be allowed in the run folders
+!run/*/*/dueca.cnf
+!run/*/*/dueca.mod
+!run/*/*/dueca_cnf.py
+!run/*/*/dueca_mod.py
+!run/*/*/links.script
+!run/*/*/clean.script
+
+# and all files/folders in the run-data folder
+!run/run-data/**
+
+# ignore emacs backup files
+*~
+
+# ignore generated/linked comm-objects.h
+*/comm-objects.h
+
+# and .orig files from patches
+*.orig
+*.rej
+
+# the machine file should never be in the repository
+.config/machine

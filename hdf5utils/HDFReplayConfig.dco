@@ -1,0 +1,39 @@
+;; -*-scheme-*-
+(Header "
+        original item   : HDFReplayConfig.dco
+        made by         : Rene' van Paassen
+        date            : 210224
+        api             : DUECA_API
+        description     : Configuration/Coordination hdf replay
+        copyright       : (c) 2021-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type vstring "#include <stringoptions.h>")
+(Type dueca::TimeTickType "#include <SimTime.hxx>")
+
+;; Configuration message for HDF5 logging.
+;;
+;; When configured to listen to config messages, the HDF5Replayer can
+;; switch files or re-use files when in HoldCurrent mode.
+;;
+;; Possible modes of operation:
+;;
+;; - Spool back in the currently used file; send a HDFReplayConfig event
+;;   with empty filename.
+;;
+;; - Close the current file and open an new one, send the appropriate
+;;   file name.
+;;
+;; - Replay can also start at a later point in the file; send a non-zero
+;;   replay_skip, to start the data at the offset tick values specified in the
+;;   replay skip.
+(Event HDFReplayConfig
+       ;; File name pattern for reading an HDF log, if empty, use previous
+       ;; file.
+       (vstring filename)
+       ;; Data point to start reading in the data file, defined in DUECA
+       ;; granules. A value of 0 implies starting from the first detected
+       ;; stream data point
+       (dueca::TimeTickType replay_start (Default MAX_TIMETICK))
+       )

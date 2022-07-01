@@ -1,0 +1,39 @@
+;; -*-scheme-*-
+(Header "
+        item            : TimingResults.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Report on synchronisation state
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Basic types
+(Type uint16_t )
+(Type int32_t )
+(Type GlobalId "#include <dueca/GlobalId.hxx>")
+
+;; Report on the real-time behaviour of an Activity
+(Event TimingResults
+       ;; id of the module that is being timed
+       (GlobalId owner_id)
+       ;; identification of the activity
+       (uint16_t activity_no)
+       ;; minimum time to complete activity
+       (int32_t min_complete)
+       ;; maximum time to complete activity
+       (int32_t max_complete)
+       ;; average time to complete activity
+       (int32_t avg_complete)
+       ;; minimum time to start activity
+       (int32_t min_start)
+       ;; maximum time to start activity
+       (int32_t max_start)
+       ;; average time to start activity
+       (int32_t avg_start)
+       ;; number of times the completion was later than the first warning limit
+       (uint16_t n_warning)
+       ;; number of times completion is later than second limit
+       (uint16_t n_critical)
+       ;; number of user (module) generated warnings
+       (uint16_t n_user))

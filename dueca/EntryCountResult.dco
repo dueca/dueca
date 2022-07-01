@@ -1,0 +1,25 @@
+;; -*-scheme-*-
+(Header "
+        item            : EntryCountResult.dco
+        made by         : Rene' van Paassen
+        date            : 180509
+        description     : Return a count of entry writes/reads
+        copyright       : (c) 2018-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type entryid_type "#include <ChannelDef.hxx>")
+
+(IterableType count_list
+"#include <TokenCountResult.hxx>
+#include <varvector.hxx>
+typedef dueca::varvector<dueca::TokenCountResult> count_list;")
+
+(Event EntryCountResult
+
+       ;; entry number
+       (entryid_type entryid)
+
+       ;; list of counts, for reading or writing
+       (count_list counts)
+       )

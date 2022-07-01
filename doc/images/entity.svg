@@ -1,0 +1,1482 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: fig2dev Version 3.2 Patchlevel 5d -->
+<!-- CreationDate: Tue Nov 18 23:26:39 2014 -->
+<!-- Magnification: 1.050 -->
+<svg        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        width="6.6in" height="5.7in"
+        viewBox="597 808 7947 6788">
+<g style="stroke-width:.025in; fill:none">
+<!-- Line -->
+<polygon points="5719,5397
+7062,5397
+6752,6224
+5408,6224
+5719,5397
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="6236" y="5858" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">display</text>
+<!-- Line -->
+<polygon points="5719,6531
+7062,6531
+6752,7358
+5408,7358
+5719,6531
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="6236" y="7015" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">motion</text>
+<!-- Ellipse -->
+<ellipse transform="translate(4180,6425) rotate(-0.00000000)" rx="516" ry="258"
+ style="stroke:#000000;stroke-width:8;"/>
+<!-- Text -->
+<text xml:space="preserve" x="4180" y="6472" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">a/c output</text>
+<!-- Ellipse -->
+<ellipse transform="translate(3660,5102) rotate(-0.00000000)" rx="516" ry="258"
+ style="stroke:#000000;stroke-width:8;"/>
+<!-- Text -->
+<text xml:space="preserve" x="3660" y="5149" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">control pos</text>
+<!-- Ellipse -->
+<ellipse transform="translate(3897,1700) rotate(-0.00000000)" rx="516" ry="258"
+ style="stroke:#000000;stroke-width:8;"/>
+<!-- Text -->
+<text xml:space="preserve" x="3897" y="1748" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">control pos</text>
+<!-- Ellipse -->
+<ellipse transform="translate(3802,3118) rotate(-0.00000000)" rx="516" ry="258"
+ style="stroke:#000000;stroke-width:8;"/>
+<!-- Text -->
+<text xml:space="preserve" x="3802" y="3165" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">control pos</text>
+<!-- Ellipse -->
+<ellipse transform="translate(7629,2078) rotate(-0.00000000)" rx="516" ry="258"
+ style="stroke:#000000;stroke-width:8;"/>
+<!-- Text -->
+<text xml:space="preserve" x="7629" y="2125" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">a/c output</text>
+<!-- Line -->
+<polygon points="5011,4216
+6353,4216
+6044,5043
+4700,5043
+5011,4216
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="5527" y="4677" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">logging</text>
+<!-- Text -->
+<text xml:space="preserve" x="2125" y="6141" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">aircraft</text>
+<!-- Text -->
+<text xml:space="preserve" x="2125" y="6377" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">dynamics</text>
+<!-- Text -->
+<text xml:space="preserve" x="1889" y="4440" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">control</text>
+<!-- Text -->
+<text xml:space="preserve" x="1889" y="4677" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">loading</text>
+<!-- Text -->
+<text xml:space="preserve" x="1984" y="2834" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">automatic</text>
+<!-- Text -->
+<text xml:space="preserve" x="1984" y="3070" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">pilot</text>
+<!-- Text -->
+<text xml:space="preserve" x="1984" y="3307" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">PH-ZO</text>
+<!-- Text -->
+<text xml:space="preserve" x="2125" y="1370" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">automatic</text>
+<!-- Text -->
+<text xml:space="preserve" x="2125" y="1606" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">pilot</text>
+<!-- Text -->
+<text xml:space="preserve" x="2125" y="1842" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">PH-ZUS</text>
+<!-- Text -->
+<text xml:space="preserve" x="5811" y="1700" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">aircraft</text>
+<!-- Text -->
+<text xml:space="preserve" x="5811" y="1937" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">dynamics</text>
+<!-- Text -->
+<text xml:space="preserve" x="5716" y="3118" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">aircraft</text>
+<!-- Text -->
+<text xml:space="preserve" x="5716" y="3354" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">dynamics</text>
+<!-- Ellipse -->
+<ellipse transform="translate(7298,3212) rotate(-0.00000000)" rx="516" ry="258"
+ style="stroke:#000000;stroke-width:8;"/>
+<!-- Text -->
+<text xml:space="preserve" x="7298" y="3259" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="middle">a/c output</text>
+<!-- Line -->
+<polyline points="4440,1700
+4902,1793
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 4440 1700 - 5180 1847-->
+<polygon points="4886 1854
+5146 1841
+4911 1730
+4886 1854
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="6472,1842
+6891,1962
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 6472 1842 - 7163 2039-->
+<polygon points="6870 2020
+7130 2030
+6904 1900
+6870 2020
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="6425,3212
+6503,3212
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 6425 3212 - 6787 3212-->
+<polygon points="6501 3275
+6753 3212
+6501 3149
+6501 3275
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="2598,4582
+2979,4932
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 2598 4582 - 3188 5123-->
+<polygon points="2934 4976
+3163 5100
+3019 4882
+2934 4976
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="3590,5385
+3590,5622
+1275,5622
+1039,6236
+1212,6236
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 1039 6236 - 1496 6236-->
+<polygon points="1210 6299
+1462 6236
+1210 6173
+1210 6299
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="2787,6283
+3436,6386
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 2787 6283 - 3715 6429-->
+<polygon points="3422 6446
+3681 6424
+3442 6322
+3422 6446
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="4677,6519
+5346,6836
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 4677 6519 - 5603 6957-->
+<polygon points="5317 6891
+5572 6942
+5371 6777
+5317 6891
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="4677,6377
+5366,5905
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 4677 6377 - 5600 5745-->
+<polygon points="5398 5959
+5571 5764
+5328 5855
+5398 5959
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="4440,6188
+4440,5055
+4580,4934
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 4440 5055 - 4794 4750-->
+<polygon points="4618 4984
+4768 4772
+4535 4889
+4618 4984
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="4110,4960
+4696,4615
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 4110 4960 - 4939 4471-->
+<polygon points="4724 4669
+4910 4488
+4660 4561
+4724 4669
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="2314,4015
+6425,4062
+" style="stroke:#ffffff;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polygon points="1609,1145
+2952,1145
+2642,1972
+1298,1972
+1609,1145
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polygon points="1514,2562
+2857,2562
+2548,3390
+1204,3390
+1514,2562
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="7322,3496
+6472,5055
+6472,5133
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 6472 5055 - 6472 5417-->
+<polygon points="6409 5131
+6472 5383
+6535 5131
+6409 5131
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polygon points="1609,5869
+2952,5869
+2642,6697
+1298,6697
+1609,5869
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polygon points="1373,4216
+2716,4216
+2406,5043
+1062,5043
+1373,4216
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polygon points="5200,2846
+6542,2846
+6233,3673
+4889,3673
+5200,2846
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polygon points="5294,1428
+6637,1428
+6327,2256
+4983,2256
+5294,1428
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="2834,1511
+3162,1620
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 2834 1511 - 3430 1710-->
+<polygon points="3139 1679
+3398 1699
+3179 1560
+3139 1679
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="2692,3023
+3058,3080
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 2692 3023 - 3337 3122-->
+<polygon points="3044 3140
+3303 3117
+3063 3016
+3044 3140
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="4346,3118
+4808,3210
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 4346 3118 - 5085 3265-->
+<polygon points="4791 3271
+5051 3258
+4816 3147
+4791 3271
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polyline points="7984,2314
+8078,3354
+6803,5055
+6803,5133
+" style="stroke:#000000;stroke-width:16;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Arrowhead on XXXpoint 6803 5055 - 6803 5417-->
+<polygon points="6740 5131
+6803 5383
+6866 5131
+6740 5131
+
+" style="stroke:#000000;stroke-width:16;stroke-miterlimit:8;
+fill:#000000;"/>
+<!-- Line -->
+<polygon points="645,1457
+638,1481
+633,1506
+626,1531
+622,1558
+618,1585
+615,1612
+613,1640
+611,1670
+609,1699
+611,1729
+611,1758
+613,1787
+616,1816
+620,1845
+624,1872
+629,1900
+636,1926
+643,1951
+650,1975
+659,1998
+668,2019
+679,2040
+689,2059
+701,2078
+708,2090
+717,2101
+726,2113
+737,2123
+747,2134
+760,2144
+772,2155
+788,2165
+804,2175
+823,2184
+843,2194
+865,2203
+889,2213
+915,2221
+944,2230
+976,2239
+1009,2247
+1045,2256
+1084,2263
+1126,2270
+1170,2279
+1217,2285
+1267,2292
+1319,2300
+1375,2306
+1433,2312
+1492,2319
+1555,2325
+1622,2331
+1690,2337
+1761,2343
+1836,2348
+1912,2353
+1993,2359
+2077,2364
+2165,2370
+2216,2372
+2268,2375
+2322,2379
+2377,2382
+2433,2385
+2492,2388
+2551,2391
+2612,2394
+2674,2397
+2737,2401
+2802,2404
+2869,2407
+2936,2410
+3005,2413
+3076,2416
+3147,2419
+3220,2423
+3294,2426
+3370,2429
+3446,2432
+3524,2435
+3602,2438
+3681,2441
+3761,2445
+3843,2448
+3924,2451
+4007,2454
+4089,2457
+4173,2459
+4256,2462
+4340,2466
+4424,2468
+4508,2471
+4591,2473
+4675,2475
+4759,2478
+4841,2480
+4923,2482
+5006,2485
+5087,2487
+5168,2489
+5248,2490
+5328,2492
+5405,2494
+5483,2495
+5560,2497
+5634,2498
+5709,2499
+5781,2500
+5853,2501
+5923,2502
+5992,2503
+6060,2503
+6127,2504
+6192,2504
+6256,2506
+6318,2506
+6379,2506
+6438,2506
+6496,2506
+6553,2504
+6608,2504
+6663,2504
+6717,2503
+6798,2502
+6878,2500
+6955,2499
+7029,2496
+7101,2494
+7171,2491
+7238,2488
+7304,2485
+7367,2480
+7429,2475
+7488,2471
+7546,2466
+7602,2460
+7655,2454
+7706,2448
+7755,2441
+7802,2434
+7847,2427
+7890,2418
+7931,2411
+7970,2403
+8006,2393
+8040,2385
+8073,2375
+8103,2366
+8133,2356
+8159,2346
+8184,2337
+8207,2326
+8228,2316
+8248,2305
+8267,2295
+8285,2284
+8301,2272
+8316,2262
+8329,2250
+8343,2239
+8354,2227
+8366,2216
+8377,2204
+8393,2185
+8409,2166
+8424,2146
+8437,2125
+8450,2104
+8461,2082
+8473,2059
+8483,2035
+8492,2011
+8500,1986
+8509,1961
+8515,1934
+8520,1908
+8524,1882
+8528,1856
+8531,1829
+8532,1803
+8532,1778
+8532,1753
+8530,1728
+8528,1703
+8524,1679
+8520,1656
+8515,1634
+8510,1612
+8503,1590
+8498,1575
+8493,1561
+8488,1546
+8481,1531
+8474,1517
+8466,1502
+8456,1487
+8445,1472
+8433,1458
+8419,1443
+8404,1427
+8387,1413
+8368,1398
+8347,1382
+8324,1367
+8299,1353
+8270,1338
+8241,1323
+8208,1309
+8175,1294
+8137,1279
+8098,1266
+8056,1252
+8011,1238
+7965,1225
+7914,1212
+7863,1200
+7808,1187
+7752,1174
+7692,1163
+7630,1151
+7565,1140
+7498,1129
+7428,1119
+7355,1108
+7279,1098
+7201,1088
+7118,1079
+7067,1072
+7015,1067
+6961,1061
+6907,1056
+6850,1050
+6792,1044
+6733,1039
+6672,1034
+6611,1028
+6548,1023
+6482,1017
+6416,1012
+6349,1006
+6280,1001
+6209,996
+6138,991
+6065,985
+5991,980
+5916,975
+5839,970
+5761,964
+5683,960
+5604,955
+5524,950
+5443,944
+5361,940
+5279,935
+5196,931
+5113,925
+5029,921
+4946,917
+4862,913
+4779,908
+4695,903
+4612,899
+4529,896
+4446,892
+4363,888
+4281,885
+4200,880
+4119,877
+4039,874
+3961,870
+3883,867
+3806,864
+3731,861
+3656,858
+3583,855
+3510,853
+3439,850
+3370,848
+3301,846
+3234,844
+3169,841
+3105,839
+3042,837
+2980,836
+2920,834
+2862,832
+2805,831
+2749,830
+2695,829
+2642,828
+2591,827
+2506,825
+2425,824
+2347,823
+2272,822
+2200,820
+2130,820
+2062,820
+1998,822
+1935,822
+1876,823
+1818,824
+1763,826
+1710,827
+1659,829
+1610,832
+1565,834
+1521,837
+1479,841
+1440,845
+1402,849
+1367,853
+1335,857
+1303,862
+1275,868
+1248,873
+1224,878
+1201,885
+1179,890
+1159,896
+1140,902
+1122,909
+1106,916
+1090,922
+1076,930
+1062,937
+1048,944
+1036,953
+1023,960
+1003,973
+984,986
+964,1001
+945,1017
+925,1033
+907,1049
+887,1068
+868,1087
+849,1107
+830,1127
+812,1149
+794,1171
+777,1194
+761,1217
+745,1240
+730,1265
+717,1289
+704,1312
+691,1336
+681,1360
+670,1384
+661,1408
+653,1432
+645,1457
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:bevel; stroke-linecap:butt;
+stroke-dasharray:10 31;"/>
+<!-- Line -->
+<polygon points="787,2803
+776,2820
+766,2840
+755,2860
+746,2880
+737,2902
+727,2924
+719,2948
+711,2972
+704,2996
+698,3021
+691,3046
+687,3071
+684,3097
+681,3123
+680,3148
+680,3172
+681,3196
+683,3220
+687,3243
+691,3265
+698,3287
+705,3307
+713,3327
+724,3346
+731,3358
+739,3370
+748,3381
+758,3393
+768,3404
+780,3416
+793,3426
+808,3438
+825,3449
+843,3460
+862,3471
+885,3482
+909,3493
+935,3504
+962,3514
+994,3525
+1026,3535
+1062,3546
+1100,3556
+1140,3567
+1183,3576
+1228,3587
+1275,3596
+1325,3606
+1377,3615
+1433,3624
+1489,3632
+1549,3641
+1611,3649
+1675,3657
+1742,3666
+1812,3673
+1883,3680
+1958,3688
+2034,3695
+2114,3702
+2197,3709
+2283,3716
+2335,3720
+2390,3724
+2445,3729
+2501,3732
+2560,3736
+2619,3740
+2680,3744
+2742,3748
+2806,3752
+2871,3756
+2937,3760
+3004,3763
+3074,3767
+3144,3772
+3215,3775
+3289,3779
+3362,3782
+3438,3786
+3514,3790
+3592,3794
+3670,3797
+3750,3800
+3829,3804
+3910,3807
+3992,3811
+4075,3814
+4158,3817
+4241,3820
+4325,3823
+4409,3826
+4493,3828
+4577,3832
+4661,3834
+4745,3837
+4829,3839
+4912,3841
+4995,3843
+5078,3845
+5160,3847
+5240,3849
+5321,3850
+5401,3853
+5480,3854
+5558,3855
+5634,3856
+5710,3857
+5784,3858
+5858,3858
+5929,3859
+6000,3859
+6070,3860
+6137,3860
+6204,3860
+6269,3860
+6332,3859
+6395,3859
+6456,3858
+6515,3858
+6573,3857
+6629,3856
+6685,3855
+6739,3853
+6791,3851
+6843,3850
+6925,3847
+7005,3843
+7081,3839
+7155,3835
+7226,3830
+7294,3824
+7359,3819
+7422,3813
+7483,3805
+7541,3798
+7596,3791
+7649,3782
+7699,3774
+7748,3764
+7793,3755
+7837,3745
+7877,3735
+7916,3724
+7951,3713
+7985,3702
+8016,3691
+8045,3678
+8072,3667
+8096,3654
+8118,3643
+8139,3630
+8158,3617
+8175,3605
+8190,3592
+8203,3580
+8216,3567
+8227,3554
+8237,3542
+8246,3530
+8255,3518
+8262,3505
+8268,3492
+8276,3480
+8284,3461
+8292,3443
+8300,3424
+8306,3404
+8312,3384
+8318,3364
+8322,3344
+8325,3323
+8327,3302
+8328,3280
+8328,3259
+8327,3237
+8325,3215
+8321,3194
+8316,3172
+8310,3151
+8303,3130
+8293,3110
+8284,3090
+8272,3071
+8260,3053
+8247,3035
+8233,3017
+8216,3000
+8199,2984
+8181,2969
+8167,2958
+8154,2948
+8140,2938
+8124,2928
+8109,2918
+8091,2908
+8072,2898
+8052,2888
+8031,2878
+8008,2869
+7983,2858
+7956,2849
+7928,2839
+7898,2830
+7866,2819
+7833,2810
+7797,2801
+7758,2791
+7718,2783
+7676,2773
+7632,2764
+7587,2755
+7539,2747
+7488,2739
+7437,2730
+7383,2722
+7328,2713
+7270,2706
+7210,2699
+7149,2691
+7086,2684
+7021,2678
+6955,2670
+6887,2664
+6816,2658
+6744,2653
+6669,2646
+6593,2641
+6514,2635
+6433,2629
+6381,2626
+6327,2623
+6272,2619
+6217,2616
+6159,2613
+6101,2609
+6041,2606
+5981,2603
+5919,2600
+5856,2597
+5792,2595
+5725,2592
+5659,2588
+5591,2585
+5522,2582
+5451,2580
+5380,2577
+5308,2574
+5234,2572
+5160,2569
+5085,2566
+5008,2563
+4932,2561
+4854,2558
+4776,2556
+4698,2554
+4619,2552
+4540,2550
+4460,2548
+4381,2545
+4301,2543
+4221,2541
+4141,2539
+4061,2538
+3982,2536
+3903,2535
+3824,2533
+3746,2532
+3669,2530
+3592,2529
+3517,2528
+3441,2527
+3367,2525
+3294,2524
+3222,2524
+3151,2523
+3081,2523
+3013,2522
+2944,2522
+2878,2521
+2814,2521
+2750,2521
+2688,2521
+2627,2521
+2567,2521
+2510,2522
+2453,2522
+2397,2522
+2344,2523
+2291,2523
+2240,2524
+2190,2525
+2141,2527
+2094,2528
+2013,2529
+1935,2532
+1861,2534
+1791,2537
+1722,2540
+1657,2543
+1595,2548
+1535,2552
+1479,2557
+1424,2562
+1373,2567
+1323,2573
+1277,2579
+1233,2586
+1191,2593
+1152,2601
+1116,2608
+1082,2617
+1050,2625
+1021,2634
+994,2643
+970,2653
+946,2662
+927,2671
+908,2682
+891,2691
+875,2702
+861,2712
+849,2723
+838,2734
+828,2745
+818,2756
+810,2768
+802,2780
+794,2791
+787,2803
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:bevel; stroke-linecap:butt;
+stroke-dasharray:10 31;"/>
+<!-- Line -->
+<polygon points="755,4692
+747,4723
+740,4754
+732,4787
+725,4820
+718,4855
+711,4891
+705,4928
+700,4965
+695,5004
+689,5044
+684,5085
+680,5127
+677,5170
+672,5214
+669,5258
+667,5303
+665,5349
+663,5394
+662,5440
+662,5485
+661,5531
+662,5576
+662,5622
+663,5666
+665,5710
+667,5754
+669,5796
+672,5838
+676,5879
+679,5919
+683,5958
+687,5996
+691,6033
+697,6070
+702,6106
+708,6141
+713,6171
+719,6200
+725,6229
+732,6258
+740,6287
+747,6316
+755,6344
+765,6372
+775,6401
+787,6428
+800,6456
+813,6485
+829,6512
+845,6539
+862,6567
+881,6595
+901,6621
+923,6648
+948,6675
+973,6701
+999,6727
+1027,6752
+1058,6777
+1089,6803
+1122,6827
+1158,6851
+1193,6874
+1232,6897
+1272,6919
+1313,6941
+1356,6962
+1401,6983
+1447,7003
+1496,7023
+1545,7042
+1596,7061
+1650,7079
+1704,7097
+1761,7114
+1820,7131
+1881,7148
+1945,7165
+1990,7176
+2037,7188
+2086,7200
+2135,7210
+2185,7222
+2238,7233
+2291,7244
+2346,7255
+2403,7266
+2460,7277
+2519,7288
+2579,7298
+2641,7309
+2704,7320
+2768,7331
+2833,7341
+2899,7352
+2967,7361
+3036,7372
+3106,7382
+3176,7392
+3248,7401
+3320,7412
+3394,7421
+3467,7429
+3542,7439
+3616,7447
+3692,7457
+3767,7465
+3843,7474
+3919,7481
+3994,7489
+4070,7497
+4145,7504
+4221,7510
+4296,7517
+4370,7523
+4444,7529
+4517,7535
+4590,7541
+4662,7546
+4732,7550
+4803,7555
+4872,7560
+4940,7563
+5007,7567
+5074,7570
+5139,7572
+5203,7575
+5265,7577
+5327,7580
+5386,7581
+5445,7582
+5503,7583
+5560,7584
+5615,7584
+5670,7584
+5723,7584
+5775,7583
+5826,7583
+5895,7581
+5961,7579
+6025,7575
+6089,7571
+6150,7567
+6211,7562
+6269,7556
+6328,7550
+6385,7543
+6440,7534
+6495,7526
+6549,7517
+6601,7506
+6653,7495
+6702,7483
+6751,7469
+6798,7456
+6845,7442
+6890,7426
+6934,7409
+6977,7393
+7018,7375
+7058,7356
+7096,7337
+7133,7317
+7168,7296
+7203,7275
+7235,7253
+7267,7230
+7297,7207
+7327,7183
+7354,7159
+7380,7133
+7405,7108
+7429,7082
+7453,7056
+7475,7028
+7496,7001
+7516,6974
+7534,6945
+7553,6916
+7571,6887
+7589,6857
+7606,6827
+7624,6792
+7641,6756
+7659,6720
+7676,6682
+7693,6644
+7709,6604
+7724,6563
+7740,6521
+7755,6478
+7770,6434
+7784,6389
+7798,6343
+7812,6296
+7824,6248
+7837,6200
+7849,6151
+7860,6101
+7871,6051
+7881,6001
+7890,5950
+7900,5900
+7908,5849
+7916,5799
+7922,5749
+7928,5699
+7933,5651
+7939,5603
+7942,5555
+7945,5508
+7948,5463
+7950,5418
+7951,5375
+7951,5332
+7951,5291
+7950,5250
+7949,5210
+7947,5172
+7944,5134
+7941,5098
+7937,5063
+7932,5030
+7927,5000
+7922,4970
+7916,4939
+7909,4910
+7901,4880
+7892,4852
+7882,4824
+7871,4795
+7859,4767
+7845,4740
+7830,4713
+7815,4686
+7797,4660
+7778,4635
+7757,4609
+7735,4584
+7711,4560
+7686,4536
+7658,4512
+7629,4490
+7598,4467
+7566,4446
+7531,4425
+7495,4404
+7457,4384
+7417,4365
+7376,4346
+7333,4328
+7288,4311
+7241,4295
+7193,4279
+7144,4263
+7092,4249
+7039,4235
+6984,4222
+6928,4208
+6869,4197
+6809,4185
+6747,4174
+6684,4163
+6618,4153
+6550,4143
+6480,4134
+6429,4127
+6376,4120
+6322,4114
+6267,4108
+6211,4102
+6153,4096
+6093,4091
+6033,4086
+5971,4079
+5907,4074
+5843,4070
+5777,4065
+5709,4059
+5640,4055
+5570,4050
+5500,4046
+5427,4041
+5354,4037
+5278,4033
+5203,4030
+5126,4026
+5049,4023
+4971,4019
+4892,4016
+4812,4013
+4731,4011
+4651,4008
+4570,4006
+4489,4004
+4407,4002
+4326,4000
+4244,3998
+4162,3996
+4081,3995
+4001,3994
+3920,3993
+3840,3992
+3760,3992
+3681,3992
+3604,3991
+3527,3991
+3450,3992
+3375,3992
+3301,3993
+3228,3993
+3156,3994
+3085,3995
+3016,3996
+2949,3998
+2881,4000
+2816,4002
+2752,4004
+2689,4006
+2628,4008
+2569,4010
+2510,4013
+2453,4015
+2397,4018
+2343,4022
+2290,4025
+2239,4028
+2188,4031
+2117,4036
+2048,4041
+1981,4048
+1916,4054
+1854,4061
+1793,4069
+1734,4077
+1677,4086
+1623,4094
+1570,4103
+1519,4114
+1469,4124
+1422,4136
+1376,4148
+1332,4160
+1290,4173
+1250,4187
+1212,4201
+1175,4216
+1141,4232
+1108,4248
+1077,4264
+1047,4282
+1020,4300
+994,4318
+970,4337
+948,4355
+927,4375
+908,4395
+889,4416
+873,4437
+857,4458
+844,4479
+830,4501
+818,4524
+807,4546
+797,4570
+788,4594
+779,4618
+770,4642
+763,4667
+755,4692
+" style="stroke:#000000;stroke-width:8;
+stroke-linejoin:bevel; stroke-linecap:butt;
+stroke-dasharray:10 31;"/>
+<!-- Text -->
+<text xml:space="preserve" x="3637" y="1275" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">Entity PH-ZUS</text>
+<!-- Text -->
+<text xml:space="preserve" x="3543" y="2787" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">Entity PH-ZO</text>
+<!-- Text -->
+<text xml:space="preserve" x="3118" y="4346" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">Entity PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="5055" y="4960" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="5763" y="6141" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="5811" y="7275" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="1653" y="6614" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="1464" y="4960" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="3307" y="5338" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="3779" y="6661" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-LAB</text>
+<!-- Text -->
+<text xml:space="preserve" x="5291" y="3590" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-ZO</text>
+<!-- Text -->
+<text xml:space="preserve" x="6992" y="3448" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-ZO</text>
+<!-- Text -->
+<text xml:space="preserve" x="3496" y="3354" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-ZO</text>
+<!-- Text -->
+<text xml:space="preserve" x="3543" y="1937" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-ZUS</text>
+<!-- Text -->
+<text xml:space="preserve" x="5338" y="2173" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-ZUS</text>
+<!-- Text -->
+<text xml:space="preserve" x="7275" y="2314" fill="#000000"  font-family="Times" font-style="normal" font-weight="normal" font-size="152" text-anchor="start">PH-ZUS</text>
+</g>
+</svg>

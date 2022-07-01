@@ -1,0 +1,20 @@
+
+CPPSRC =         @Module@Test.cc
+CSRC =                @rtwmodel@_ert_rtw/@rtwmodel@.c
+CPPOBJ =         $(CPPSRC:.cc=.o)
+COBJ =                $(CSRC:.c=.o)
+OBJS =                 $(COBJ) $(CPPOBJ)
+CPPFLAGS =        -g -Wall -I@rtwmodel@_ert_rtw
+CFLAGS =         -g -Wall -I@rtwmodel@_ert_rtw
+
+all:                 @Module@Test.x
+
+
+%.o : %.cc
+        $(CXX) -c $(CPPFLAGS) `dueca-config --cflagsrtw --@rtwversion@` $< -o $@
+
+%.o : %.c
+        $(CC) -c $(CFLAGS) `dueca-config --cflagsrtw --@rtwversion@` $< -o $@
+
+@Module@Test.x : $(OBJS)
+        $(CXX) -o $@ $(OBJS) `dueca-config --libsrtw --@rtwversion@`

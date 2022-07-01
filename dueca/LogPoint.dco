@@ -1,0 +1,46 @@
+;; -*-scheme-*-
+(Header "
+        item            : LogPoint.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Define a logging location
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type GlobalId "#include <GlobalId.hxx>")
+(Type uint32_t)
+(Type int32_t)
+(Type string64 "#include <stringoptions.h>")
+(Type LogLevel "#include <LogLevel.hxx>")
+(Type LogCategory "#include <LogCategory.hxx>")
+
+;; This event describes a log point somewhere in a DUECA executables.
+;; These log points may be coming from the DUECA system, or from user code.
+;; The old D_MOD etc macros still work for these log points. Trimming them
+;; may be useful, since file, line number and reporter/associate
+;; information is added automatically.  the node information is implicit,
+;; keep LogPoints from different nodes apart.
+(Event LogPoint
+
+       ;; logpoint id.
+       (uint32_t logpoint)
+
+       ;; line in the file
+       (uint32_t line)
+
+       ;; log level
+       (LogLevel level)
+
+       ;; log category
+       (uint32_t category)
+
+       ;; file name
+       (string64 fname)
+)
+
+;; define Lisp mode for this file, for emacs
+;; Local Variables: **
+;; mode: lisp **
+;; fill-column: 75 **
+;; End:

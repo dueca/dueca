@@ -1,0 +1,229 @@
+# -*-makefile-*-
+# =========================================================================
+#       item            : Makefile "tail" dueca module
+#       made by         : René van Paassen
+#       date            : 010320
+# =========================================================================
+
+# code generator
+CODEGEN =	dueca-codegen
+
+# local directory name / module
+MODDIR := 	$(shell pwd)
+MODNAME = 	$(notdir $(MODDIR))
+
+# application (probably) name
+APPDIR :=	$(shell cd ../.. && pwd)
+APPNAME = 	$(notdir $(APPDIR))
+
+# project name for this module (may have been borrowed)
+PRODIR := 	$(shell cd .. && pwd)
+PRONAME =	$(notdir $(PRODIR))
+
+# compiler definitions
+CPP =		g++ 
+CC = 		gcc
+FORTRAN =       gfortran
+ifeq ($(DEBUG),y)
+    CPPFLAGS =	-g -Wall -std=c++11
+    CFLAGS =    -g -Wall
+    FFLAGS =    -g -Wall			 
+else
+    CPPFLAGS =	-O -Wall -std=c++11
+    CFLAGS =    -O -Wall
+    FFLAGS =    -O -Wall
+endif
+
+# loader definitions
+LD=		ld
+LDFLAGS =	@prelink_flags@
+
+# include files
+CPPINCL	=	$(EXTRA_INCLUDES) $(DUECAINC)
+CINCL = 	$(CPPINCL)
+FINCL =         $(CPPINCL)
+
+# derived from other file names
+DIFS :=         $(shell ls *.if 2>/dev/null)
+GHDRS =         $(DIFS:.if=.hxx)
+GSRCS =         $(DIFS:.if=.cxx)
+GENERATED = 	$(DUECATYPES:.dco=.cxx)
+GENERATEDH = 	$(GENERATED:.cxx=.hxx)
+GOBJECTS =	$(GENERATED:.cxx=.o)
+CPPOBJ = 	$(patsubst %.cpp, %.o, $(CPPSRC:.cxx=.o)) 
+COBJ =		$(CSRC:.c=.o)
+FOBJ =          $(FSRC:.f=.o)
+OBJS =		$(shell for i in $(CPPOBJ) $(COBJ) $(GOBJECTS) $(FOBJ) $(USEROBJ); do echo $$i; done | sort -u)
+HMIOBJ = 	$(shell ls components/components.o 2>/dev/null)
+
+
+# =========================================================================
+#
+#	targets and rules
+#
+# =========================================================================
+
+.PHONY:	all clean mrproper depend generated \
+	local-all local-clean local-mrproper local-depend local-generated \
+	doc nodepend help top-all \
+	version-check
+
+all :	hmilib-all
+	$(MAKE) -C ../../$(APPNAME) ../$(PRONAME)/$(MODNAME)
+
+top-all: local-all hmilib-all version-check module.o		
+
+.depend:
+	touch .depend
+
+comm-objects.h: comm-objects.lst
+	dueca-gencommh $< > $@
+
+generated: $(GENERATED) $(GHDRS) comm-objects.h local-generated
+local-generated:
+
+%.o : %.cxx
+	$(CPP) -c $(CPPFLAGS) $(CPPINCL) $(@:.o=.cxx) -o $@
+
+%.o : %.cpp
+	$(CPP) -c $(CPPFLAGS) $(CPPINCL) $(@:.o=.cpp) -o $@
+
+%.cxx : %.dco
+	$(CODEGEN) < $<
+
+%.o : %.c 
+	$(CC) -c $(CFLAGS) $(CINCL) $< -o $@
+
+%.o : %.f 
+	$(FORTRAN) -c $(FFLAGS) $(FINCL) $< -o $@
+
+%.hxx : %.if
+	ifparser $<
+
+%XmlLoader.hxx : %.h
+	dueca-rtwparser $<
+%XmlLoader.cxx : %XmlLoader.hxx
+%XmlLoad.m : %XmlLoader.cxx
+%XmlSave.m : %XmlLoad.m
+
+module.o: $(OBJS) $(HMIOBJ)
+	@if [ "x$(OBJS)" = "x" -a "x$(HMIOBJ)" = "x" ]; then \
+	    gcc -c `dueca-config --path-datafiles`/data/dummy.c -o dummy.o; \
+	    $(LD) $(LDFLAGS) dummy.o -o $@;\
+        else \
+	    echo "$(LD) $(LDFLAGS) $(OBJS) $(HMIOBJ) -o $@" ;\
+	    $(LD) $(LDFLAGS) $(OBJS) $(HMIOBJ) -o $@ ;\
+	fi
+
+depend: local-depend hmilib-depend 
+	@if [ "x$(CSRC)$(CPPSRC)$(GENERATED)$(GHDRS)" = "x" ]; then \
+	    echo "No source, no dependencies"; \
+	    touch .depend; \
+        else \
+	    echo "g++ -M $(CPPFLAGS) $(CPPINCL) $(CSRC) $(CPPSRC) $(GENERATED) $(GHDRS) >.depend" ;\
+	    g++ -M $(CPPFLAGS) $(CPPINCL) $(CSRC) $(CPPSRC) $(GENERATED) $(GHDRS) >.depend; \
+	fi
+
+doc:
+	if [ "$(MODNAME)" != "comm-objects" ]; then \
+	    dueca-scriptcommands $(CPPSRC); \
+	fi
+	if [ -f module.oxy ]; then \
+	    doxygen module.oxy; \
+	else \
+	    if [ "$(MODNAME)" == "comm-objects" ]; then \
+	        PRONAME=$(PRONAME) doxygen `dueca-config --path-datafiles`/data/comm-objects.oxy;\
+	    else \
+	        ( cat `dueca-config --path-datafiles`/data/module.oxy & \
+		  echo "PROJECT_NAME=$(PRONAME)/$(MODNAME)" ) | doxygen - ; \
+	    fi \
+	fi
+
+version-check:
+	@if [ "x$(MAKEFILEVERSION)" != "x1" ]; then \
+	    echo "Please update the makefile in $(PRONAME)/$(MODNAME)" ;\
+	    TEMPLATE=`dueca-config --path-datafiles`/data/default/Makefile ;\
+	    if [ "$(MODNAME)" != "comm-objects" ]; then \
+		TEMPLATE=$${TEMPLATE}.mod ; \
+	    else \
+		TEMPLATE=$${TEMPLATE}.dco ; \
+	    fi ; \
+	    echo "See template in $${TEMPLATE}" ; \
+	fi
+
+%.x: %.cxx
+	g++ $< $(CPPFLAGS) $(CPPINCL) -o $@
+
+# =========================================================================
+#
+#	clean up again
+#
+# =========================================================================
+
+clean: local-clean hmilib-clean
+	rm -f $(CPPOBJ) $(COBJ) $(FOBJ) $(GOBJECTS) \
+	      module.o *.x *~ core
+
+mrproper: clean local-mrproper hmilib-mrproper nodepend
+	rm -f *.a $(GENERATED) $(GENERATEDH)
+	rm -rf html
+	rm -f comm-objects.h
+	rm -f *.scm
+
+nodepend:
+	cat /dev/null >.depend
+
+# =========================================================================
+#
+#	help!!
+#
+# =========================================================================
+
+help:
+	@if [  "$(MODNAME)" == "comm-objects" ]; then \
+	    cat `dueca-config --path-datafiles`/data/MakefileTailCom.doc ; \
+	else \
+	    cat `dueca-config --path-datafiles`/data/MakefileTailMod.doc ; \
+	fi
+
+
+# =========================================================================
+#
+#       hmilib-specific. This lives in components.
+#
+# =========================================================================
+
+HAVEHMILIB := $(shell [ -d components ] && echo y)
+
+ifeq ($(HAVEHMILIB),y)
+
+hmilib-all:
+	$(MAKE) -C components all DUECAINC="$(DUECAINC)"
+
+hmilib-depend:
+	$(MAKE) -C components depend
+
+hmilib-clean:
+	$(MAKE) -C components clean
+
+hmilib-mrproper:
+	rm -rf $(GSRCS) $(GHDRS)
+	$(MAKE) -C components mrproper
+
+else
+hmilib-all:
+
+hmilib-depend:
+
+hmilib-clean:
+
+hmilib-mrproper:
+
+endif
+
+# ======================================================================
+#
+#	dependencies
+#
+# ======================================================================
+include .depend

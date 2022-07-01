@@ -1,0 +1,47 @@
+;; -*-scheme-*-
+(Header "
+        item            : SimStateRequest.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; simulation state definition
+(Type SimulationState "#include <SimulationState.hxx>" )
+
+;; For requesting specific state changes of the DUSIME control process.
+;;
+;; The SimStateRequest channel is a channel with event data, and with zero
+;; or more entries. A receiving token is defined by the DUSIME code.
+;;
+;; You can use this channel to request changes in the DUSIME
+;; state machine. In your header file, declare a writing token:
+;; \code
+;; ChannelWriteToken                w_state_request;
+;; \endcode
+;; In your constructor, initialize the token with
+;; \code
+;; w_state_request(getId(), NameSet("dusime", "SimStateRequest", ""),
+;;                 "SimStateRequest", "", Channel::Events,
+;;                 Channel::ZeroOrMoreEntries),
+;; \endcode
+;;
+;; At the appropriate moment, you can request a DUSIME state change
+;; with the desired final state (HoldCurrent, Advance, Replay or Inactive)
+;; as data in the request. Note that state changes, due to the nature of
+;; DUECA's distributed processing, cannot be instantaneous. The effect of
+;; sending the state change would be that of pressing the button at that
+;; moment.
+;;
+;; \code
+;; {
+;;   // switching back to HoldCurrent
+;;   DataWriter<SimStateRequest> wr(w_state_request, ts);
+;;   wr.data().request = SimulationState::HoldCurrent;
+;; }
+;; \endcode
+(Event SimStateRequest
+       ;; requested simulation state
+       (SimulationState request))

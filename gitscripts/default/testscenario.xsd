@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://dueca.tudelft.nl"
+           xmlns="https://dueca.tudelft.nl"
+           elementFormDefault="qualified">
+
+  <xs:element name="scenario">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="project" type="project_t"
+                    minOccurs="1" maxOccurs="1"/>
+        <xs:element name="repository" type="xs:string"
+                   minOccurs="1" maxOccurs="1"/>
+        <xs:element name="execute" type="execute_t"
+                    minOccurs="1" maxOccurs="unbounded"/>
+        <xs:element name="actions" type="actions_t"
+                    minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="project_t">
+    <xs:sequence>
+      <xs:element name="window" type="xs:string"
+		  minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="execute_t">
+    <xs:sequence>
+      <xs:element name="platform" type="xs:string"
+                  minOccurs="1" maxOccurs="1"/>
+      <xs:element name="node" type="xs:string"
+                  minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="actions_t">
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="click" type="click_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="check" type="check_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="snap" type="snap_t" minOccurs="1" maxOccurs="1"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="check_t">
+    <xs:attribute name="window" type="xs:string"/>
+    <xs:attribute name="x" type="xs:integer"/>
+    <xs:attribute name="y" type="xs:integer"/>
+    <xs:attribute name="r" type="xs:integer"/>
+    <xs:attribute name="g" type="xs:integer"/>
+    <xs:attribute name="b" type="xs:integer"/>
+    <xs:attribute name="timeout" type="xs:decimal"/>
+    <xs:attribute name="wait" type="xs:decimal"/>
+  </xs:complexType>
+
+  <xs:complexType name="click_t">
+    <xs:attribute name="window" type="xs:string"/>
+    <xs:attribute name="x" type="xs:integer"/>
+    <xs:attribute name="y" type="xs:integer"/>
+    <xs:attribute name="button" type="xs:string"/>
+    <xs:attribute name="pressed" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="snap_t">
+    <xs:attribute name="name" type="xs:string"/>
+  </xs:complexType>
+
+</xs:schema>

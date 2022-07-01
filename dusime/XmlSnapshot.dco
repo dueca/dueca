@@ -1,0 +1,81 @@
+;; -*-scheme-*-
+(Header "
+        item            : XmlSnapshot.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : XML based snapshot data
+        copyright       : (c) 2013-2022 TUDelft-AE-C&S
+                        : (c) 2022 Joost Ellerbroek / René van Paassen
+        license         : EUPL-1.2
+        documentation   : DUECA_API")
+
+(Type Snapshot "#include <Snapshot.hxx>")
+
+;; \brief An XmlSnapshot can be used to communicate RTW module
+;; settings (inputs, states, and parameters) from and to RTW modules.
+
+;; Common scenarios are for instance loading a MATLAB generated
+;; initial condition for your simulink model into your RTW model,
+;; or retrieving the current state of your model to store in an
+;; xml file (for instance for later use in MATLAB).
+
+;; DUECA's new-module script gives you the option to generate
+;; scripts that you can use to communicate state, input and
+;; parameter settings between simulink and DUECA.
+;; If you choose to use this, new-module generates MATLAB scripts
+;; to export simulink model settings to an xml file, and to
+;; import simulink model settings from an xml file. You can choose
+;; to edit the generated xml files by and. If you want, you can remove
+;; variables from the xml file that you know you will never change.
+
+;; Loading and saving of these xml files in DUECA should be done outside
+;; of the actual RTW module: preferably in your 'ECI' module.
+;; The following example shows how to load and send an xml snapshot:
+;; \code
+;; // READ FROM FILE
+;; ifstream fin("myxmlsnapshot.xml");
+;; string line, strdata;
+;; while(!fin.eof()) {
+;;   getline(fin,line);
+;;   strdata+=line;
+;; }
+;; fin.close();
+
+;; // SEND SNAPSHOT
+;; XmlSnapshot *snap = new XmlSnapshot(strdata, NameSet(getEntity(), "my-rtw-module", ""));
+;; w_xmlsnap_example.sendEvent(snap, ts);
+;; \endcode
+;; You can also use xml snapshots to store the current state in an xml file.
+;; This is done in two steps: first you send a command to the RTW module to
+;; prepare for a snapshot, at a certain time given by you. The RTW module then
+;; stores its states at the chosen time, to be sent in an xml snapshot when a
+;; second command is given: this is when you send the command to actually send
+;; the snapshot. The following three examples show how to retrieve a snapshot from
+;; the module with these two commands, and subsequently how to handle the reply:
+;; \code
+;; // Send the command to the RTW module to prepare the snapshot
+;; XmlSnapshot *snap = new XmlSnapshot(XmlSnapshot::PrepareXmlSnapshot, NameSet(getEntity(), "my-rtw-module", ""));
+;; w_xmlsnap_example.sendEvent(snap, ts);
+;; \endcode
+;; \code
+;; // Send the command to the RTW module to actually send the snapshot
+;; XmlSnapshot *snap = new XmlSnapshot(XmlSnapshot::SendXmlSnapshot, NameSet(getEntity(), "my-rtw-module", ""));
+;; w_xmlsnap_example.sendEvent(snap, ts);
+;; \endcode
+;; \code
+;; // Act on incoming snapshots
+;; if (r_xmlsnap_example.getNumWaitingEvents(ts))
+;; {
+;;   EventReader<XmlSnapshot> in(r_xmlsnap_example, ts);
+;;   ofstream fout("mynewxmlsnapshot.xml");
+;;   fout << in.data().accessData();
+;;   fout.close();
+;; }
+;; \endcode
+(Event
+ XmlSnapshot
+ (Inherits Snapshot)
+ (IncludeFile XmlSnapshotExtra)
+ )
+
+;; -*-scheme-*-

@@ -1,0 +1,48 @@
+;; -*-scheme-*-
+(Header "
+        item            : ChannelEndUpdate.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; Type of update to be performed
+(Enum UpdateType uint8_t
+      ;; Addition of a first consumer in a node
+      ADD_DESTINATION
+      ;; Last consumer in a node is removed, data no longer needs to
+      ;; go here
+      REMOVE_DESTINATION
+      ;; Issuing of an ID, by the administrative node, to a channel
+      ID_ISSUED
+      ;; Specify master
+      SET_MASTER
+      ;; Channel end must be deleted
+      DELETE_END)
+
+(Type NameSet "#include <NameSet.hxx>")
+(Type GlobalId "#include <GlobalId.hxx>")
+(Type uint8_t)
+
+;; Event data for updating channel registries
+(Event ChannelEndUpdate
+       (IncludeFile ChannelEndUpdateExtra)
+
+       ;; Type of update we are talking about
+       (UpdateType update)
+
+       ;; Set of names describing the channel
+       (NameSet name_set)
+
+       ;; Id for this channel end
+       (GlobalId end_id)
+
+       ;; Id for a possible destination that has to be added to the
+       ;; transport stuff
+       (GlobalId destination_id)
+
+       ;; transport class to be used when master known
+       (uint8_t transportclass (DefaultArg 0))
+       )

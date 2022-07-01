@@ -1,0 +1,30 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemoteGaze2.dco
+        made by         : René van Paassen
+        date            : 210912
+        description     : Binocular Gaze for simple PupilRemote use")
+
+(Type PupilRemoteGaze "#include \"PupilRemoteGaze.hxx\"")
+
+(IterableType bincoordinates
+      "// gaze normals and eye center coordinates
+#include <map>
+#include <dueca/fixvector.hxx>
+typedef std::map<std::string,dueca::fixvector<3,float> > bincoordinates;")
+
+(Object PupilRemoteGaze2
+	(Inherits PupilRemoteGaze)
+        (Option hdf5)
+        (Option msgpack)
+	(IncludeFile PupilRemoteGaze2Extra)
+
+	;; gaze normals for all used eyes
+	(bincoordinates gaze_normals_3d)
+
+	;; eye centers for all used eyes
+	(bincoordinates eye_centers_3d)
+	)
+
+
+

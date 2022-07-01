@@ -1,0 +1,125 @@
+// -*-c++-*-
+
+/** @page analysis Run log file analysis
+
+    A DUECA run provides a number of log and information files. These
+    files are intended for use in general debugging and monitoring
+    activities.
+
+    @section analysis_activities Activity overview
+
+    The file dueca.activities lists all activities created in a DUECA
+    process, with the module or object owning the activity.
+
+    @section analysis_objects Object overview
+
+    The file dueca.objects provides a list of object ID's, and the
+    associated object name. The object ID indicates the DUECA node in
+    which the object is created, and a sequence number. Object names
+    are formatted in the following manner
+
+    @code{.cpp}
+    ObjectClass://entity[/part[[/subpart]]]
+    @endcode
+
+    Objects may be either core DUECA objects or modules.
+
+    @section analysis_channels Channel overview
+
+    The file dueca.channels provides a list of channel numbers with
+    the associated channel name. Channel numbering is unique within a
+    DUECA process, and channel names are structured in a similar
+    manner as object names. The channel class name can be freely
+    chosen, but it is commonly the class name for the type of data
+    written in the channel.
+
+    @section analysis_channelwriteinfo Channel writer information
+
+    The file dueca.channelwriteinfo details the writing to specific channels.
+    This file uses the channel numbering from the dueca.channels file, and the
+    object numbering from the dueca.objects file. Channels may have multiple
+    written entries, and the entry number indicates which entry is written.
+    This file also lists the dataclass of the written entry, and a possible
+    entry label.
+
+    Channel entries may also be removed again, in that case the client ID
+    will be invalid (-,-), and the dataclass will be empty. By looking back
+    in the file, and finding the created entry in that channel, one can
+    determine the object that created the entry.
+
+    @section analysis_channelreadinfo Channel reader information
+
+    The file dueca.channelreadinfo details read access to specific
+    channels.  Like the write info, it uses channel numbering and
+    object numbering from the corresponding files. The column "change"
+    indicates how reading was selected, it can be selected on entry ID
+    (byId), as a combination of all entries (Multiple), or on entry
+    label (byLabel). If a reader removes the token, this column will
+    list "Removed". The file also indicates whether reading is
+    sequential, accessing all data in the channel one by one, or not,
+    accessing on the basis of requeted time.
+
+    @section analysis_messages Debug and error messages
+
+    The file dueca.messagelog assembles the messages from the different nodes,
+    Columns in this file are:
+
+    - time tag
+    - message hit count (no of times this message has been sent)
+    - message code, with the first letter (d, i, w, e) indicating urgency,
+      debug, information, warning and error, respectively, and the following
+      three letters a mnemonic for the message class.
+    - file name and line number
+    - node id
+    - activity manager number
+    - originating object or module
+    - activity name
+    - message
+
+    The messagelog combines information from the message proper, and
+    information about the message context. This latter information is
+    not always present at the logging of the message, so for the
+    initial log entries activity manager number and filename and line
+    may be unknown.
+
+    @section analysis_timing Timing log
+
+    Overview timing is given in the dueca.timinglog file. This file
+    lists object id, activity name, minimum, maximum and average start
+    times, and minimum, average and maximum completion time. The final
+    three columns show the counts of warning and critical duration
+    exceedence, and a count of user events.
+
+    @section analysis_activity Activity log
+
+    This log records the results from activity snapshot taking. Note that
+    you need to use the ActivityView to get results in this log. Columns in
+    this log are
+
+    - activity manager number
+    - DUECA tick time, and number of microseconds into this tick
+    - Logical (model) time, with time span
+    - Activity type (Start, Suspend, Graphics)
+    - Activity name
+    - Owning object or module ID
+
+    @section analysis_netuse Network use
+
+    If your project uses the 
+
+    @section analysis_graph Graphing options
+
+    The information from the dueca.channel, dueca.objects,
+    dueca.channelwriteinfo and dueca.channelreadinfo files can be
+    combined in a graph showing an overview of modules and
+    channels. The DUECA channels are not included in this graph. Use the
+
+    @code{.sh}
+    channeldot
+    @endcode
+
+    script to generate such a graph.
+
+    */
+
+

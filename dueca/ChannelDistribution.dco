@@ -1,0 +1,34 @@
+;; -*-scheme-*-
+(Header "
+        item            : ChannelDistribution.dco
+        made by         : Rene' van Paassen
+        date            : 130102
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2013-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Enum Distribution uint8_t
+      ;; only one channel end is SENDING or SENDING_RECEIVING
+      SOLO_SEND
+      ;; Multiple channel ends can send. Only one end is the
+      ;; JOIN_MASTER, and this end receives all events (in such cases
+      ;; only event channels have a useful application) and re-sends
+      ;; these
+      JOIN_MASTER
+      ;; Multiple channel ends can send. Each channel end
+      ;; independently sends its data to all clients. Is disabled for
+      ;; the time being, questionable whether this is practical.
+      MULTI_SEND
+      ;; The organisation of the data distribution is not challenged
+      ;; or changed
+      NO_OPINION
+      ;; This can be the result of a combination of two incompatible
+      ;; distribution types
+      CONFLICT)
+
+(Event ChannelDistribution
+       (IncludeFile ChannelDistributionExtra)
+       ;; The value of the distribution for this object
+       (Distribution distribution (Default NO_OPINION))
+       )

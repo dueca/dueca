@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+# -*-python-*-
+
+#       item            : dueca-tagfiles
+#       made by         : Rene van Paassen
+#       date            : 050203
+#       category        : python script/program
+#       description     : this script figures out where the dueca.conf
+#                          tagfiles in a project are, and gives a TAGFILES
+#                          command back
+#       changes         : 050203 first version
+#       language        : python
+
+import os
+import re
+import sys
+
+# use ls to find them
+pipe = os.popen('ls ../../*/comm-objects/comm-objects*.tag', 'r')
+files = pipe.readlines()
+
+for i in files:
+    pathcomps = i.split(os.sep)
+    print(' ' + i[0:-1] + '=../../../' + pathcomps[2] + '/comm-objects/html')

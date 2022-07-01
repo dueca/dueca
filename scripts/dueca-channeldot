@@ -1,0 +1,256 @@
+#!/usr/bin/python3
+
+import sys
+import os
+import argparse
+
+ap = argparse.ArgumentParser()
+ap.add_argument('-l', '--layout', metavar='layout', nargs=1, type=str,
+                choices = ('dot', 'neato', 'twopi', 'circo', 'fdp', 'nop'),
+                default = 'dot',
+                help="""layout method""")
+ap.add_argument('filename', metavar='filename', type=str,
+                default="channellayout.pdf", nargs="?",
+                help="""the file for writing, the extension determines
+file type, possible extensions are .dia, .dot, .fig, .gif, .svg, .pdf, .png""")
+ap.add_argument('-d', '--duplex', type=bool, default=False, dest='duplex',
+                nargs='?', const=True,
+                help="""assemble duplicate links into one""")
+
+myargs = ap.parse_args()
+duplex = myargs.duplex
+
+"""
+Usage: dueca-channeldot [-h|--help] [-l [method]] [filename]
+
+ Analyse dueca run information (dueca.channels, dueca.objects,
+ dueca.channelwriteinfo, dueca.channelreadinfo) and produce a graph of
+ channel connections in your simulation.
+
+ Options:
+  -h, --help                 Print this message
+  -l                         Use method for graphviz layout, options are
+                             dot, neato, twopi, circo, fdp and nop
+
+ Arguments:
+  filename                   File for writing, default channellayout.pdf
+                             The filename extension determines file type,
+                             possible extensions depend on graphviz; e.g.,
+                             .dia, .dot, .fig, .gif, .svg, .pdf, .png
+"""
+
+try:
+    import pygraphviz as pgv
+except ModuleNotFoundError:
+    print("Please install module PyGraphviz", file=sys.stderr)
+    sys.exit(1)
+
+# read the objects
+class DName:
+    def __init__(self, sname):
+        idxs = sname.find("://")
+        self.klass = sname[:idxs]
+        self.parts = sname[idxs+3:].split('/')
+
+    def __str__(self):
+        return self.klass + "://" + "/".join(self.parts)
+
+    def __repr__(self):
+        return self.__str__()
+
+class DModules(dict):
+    def __init__(self):
+        f = open("dueca.objects", "r")
+        f.readline()
+        for l in f:
+            oid, objectname = map(str.strip, l.split())
+            oid = tuple(map(int,oid.split(',')))
+            self[oid] = DName(objectname)
+            #print(oid, objectname)
+        f.close()
+
+
+class DChannels(dict):
+    def __init__(self):
+        f = open("dueca.channels", "r")
+        f.readline()
+        for l in f:
+            oid, objectname = map(str.strip, l.split())
+            oid = int(oid)
+            self[oid] = DName(objectname)
+            #print(oid, objectname)
+        f.close()
+
+class DWrite:
+    def __init__(self, line):
+        chanid, clientid, entryno, event, dataclass = \
+                line.split('"')[0].split()
+        self.chanid = int(chanid)
+        self.clientid = tuple(map(int,clientid.split(',')))
+        self.entryno = int(entryno)
+        self.isevent = bool(event)
+        self.dataclass = dataclass
+        self.label = line.split('"')[1]
+
+    def __add__(self, other):
+        if not isinstance(self.entryno, list):
+            self.entryno = [self.entryno]
+            self.dataclass = [self.dataclass]
+        if isinstance(other.chanid, list):
+            self.entryno.extend(other.entryno)
+            self.dataclass.extend(other.dataclass)
+        else:
+            self.entryno.append(other.entryno)
+            self.dataclass.append(other.dataclass)
+        return self
+
+    def __str__(self):
+        return str(self.clientid) + " o->c " + str(self.chanid)
+
+class DWrites(list):
+    def __init__(self):
+        f = open("dueca.channelwriteinfo", "r")
+        f.readline()
+        for l in f:
+            if l.split('"')[0].split()[1] != '-,-':
+                nlink = DWrite(l)
+                #print(str(nlink))
+                if duplex:
+                    tryfind = [i for i,l in enumerate(self)
+                               if l.chanid == nlink.chanid and
+                               l.clientid == nlink.clientid]
+                    #print("match #", tryfind)
+                    if tryfind:
+                        i = tryfind[0]
+                        self[i] = self[i] + nlink
+                    else:
+                        self.append(nlink)
+                else:
+                    self.append(nlink)
+        f.close()
+
+class DRead:
+    def __init__(self, line):
+        mode, chanid, clientid, entryno, sequential = line.split()
+        self.mode = mode
+        self.chanid = int(chanid)
+        self.clientid = tuple(map(int,clientid.split(',')))
+        self.entryno = int(entryno)
+        self.sequential = bool(sequential)
+    def __add__(self, other):
+        if not isinstance(self.entryno, list):
+            self.entryno = [self.entryno]
+        if isinstance(other.chanid, list):
+            self.entryno.extend(other.entryno)
+        else:
+            self.entryno.append(other.entryno)
+        return self
+
+    def __str__(self):
+        return str(self.clientid) + " o->c " + str(self.chanid)
+
+class DReads(list):
+    def __init__(self):
+        f = open("dueca.channelreadinfo", "r")
+        f.readline()
+        for l in f:
+            if l.split()[0].strip() != "Deleted":
+                nlink = DRead(l)
+                if duplex:
+                    tryfind = [i for i,l in enumerate(self)
+                               if l.chanid == nlink.chanid and
+                               l.clientid == nlink.clientid]
+                    if tryfind:
+                        i = tryfind[0]
+                        self[i] = self[i] + nlink
+                    else:
+                        self.append(nlink)
+                else:
+                    self.append(nlink)
+
+def strclasses(cl):
+    if isinstance(cl, list):
+        base = cl[0]
+        if [l for l in cl if l != base]:
+            return str(cl)
+        return base
+    return cl
+
+try:
+    act = "parsing dueca.objects"
+    mods = DModules()
+    act = "parsing dueca.channels"
+    chans = DChannels()
+    act = "parsing dueca.channelwriteinfo"
+    writes = DWrites()
+    act = "parsing dueca.channelreadinfo"
+    reads = DReads()
+
+    act = "filtering client modules"
+    filtermodnames = set(("dueca",))
+    filtermodclasses = set(("Entity",))
+    mods = {k:v for k, v in mods.items()
+            if v.parts[0] not in filtermodnames and
+            v.klass not in filtermodclasses }
+
+    act = "filtering client channels"
+    filterchannelnames = set(("dueca", "dusime"))
+    filterchannelklasses = set(("IncoSpec", "IncoNotice", "Snapshot"))
+    chans = {k:v for k, v in chans.items()
+             if v.klass not in filterchannelklasses and
+             v.parts[0] not in filterchannelnames}
+
+    # create the graph
+    act = "creating graph"
+    graph = pgv.AGraph(directed=True, strict=False)
+
+    # square nodes for all the remaining modules
+    for k, v in mods.items():
+        graph.add_node(str(v), shape="box",style="rounded")
+
+    # ellipse nodes for all the channels used
+    for k, v in chans.items():
+        graph.add_node(str(v), shape="ellipse", fillcolor="burlywood1",
+                       style="filled")
+
+    cdict = { True: "red", False: "green"}
+
+    # now create directed, arrowed edges, labeled with entry #, for write links
+    for wkey, w in enumerate(writes):
+        if w.clientid in mods and w.chanid in chans:
+            graph.add_edge(str(mods[w.clientid]), str(chans[w.chanid]),
+                           key=str(wkey),
+                           label="#{}:{}".format(w.entryno,
+                                                 strclasses(w.dataclass)),
+                           color=cdict[w.isevent])
+            #print("edge", wkey, "from", mods[w.clientid],
+            #      "to", chans[w.chanid],
+            #      "label", "#{}:{}".format(w.entryno, w.dataclass))
+        else:
+            #print(w.clientid, "and", w.chanid, "not found")
+            pass
+
+    sdict = { True: "purple", False: "grey" }
+    # and edges for read links
+    for rkey, r in enumerate(reads):
+        if r.clientid in mods and r.chanid in chans:
+            if r.mode == "Multiple":
+                graph.add_edge(str(chans[r.chanid]), v=str(mods[r.clientid]),
+                               key=str(rkey), label="all",
+                               color=sdict[r.sequential])
+            else:
+                graph.add_edge(str(chans[r.chanid]), str(mods[r.clientid]),
+                               key=str(rkey),
+                               label="#{}".format(r.entryno),
+                               color=sdict[r.sequential])
+        else:
+            #print(w.clientid, "and", w.chanid, "not found")
+            pass
+
+    fname = myargs.filename
+    method = myargs.layout
+    act = "writing file " + fname
+    graph.draw(fname, prog="dot")
+    #print(sorted, graph.edges(keys=True))
+except Exception as e:
+    print("Problem in phase '{}',\n {}".format(act, str(e)))

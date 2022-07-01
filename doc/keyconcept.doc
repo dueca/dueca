@@ -1,0 +1,173 @@
+/** \page keyconcept DUECA key concepts
+
+Understanding the basics.
+
+\section key_node Node and process
+
+DUECA is meant for running a real-time program on a set of connected
+computers. In its simplest form there is only one such computer, and
+one DUECA program running on that computer. This is a DUECA \em
+process with only one \em node. If you are using multiple computers,
+then normally each computer runs a DUECA program, and you have as many
+DUECA nodes as there are computers in your set-up. It is also possible
+to run several DUECA programs on the same computer (this is usually
+done by your DUECA developer, me, to test out communication and
+functioning). Then each of these programs is also a DUECA node.
+
+\section key_module Module
+
+A module in DUECA can best be described as a "self-contained object
+that implements a data transformation process". For example a module
+that calculates the dynamic motions of an aircraft. Modules
+communicate with the rest of their simulated world via channels. A
+module must run within one node, it cannot be distributed over
+different nodes.
+
+\section key_entity Entity
+
+If you compose -- for example -- an aircaft model from a number of
+different modules, then that combined model is called an entity. DUECA
+can handle multiple entities, of the same type or of different types,
+in one process. An entity may be distributed over different nodes.
+
+
+\image html entity.png "Example flow diagram with three entities, two controlled by artificial intelligence (PH-ZUS and PH-ZO), and one with simulation controls (PH-LAB)"
+
+\section key_channel Channel
+
+A channel is the means of communication between modules in
+DUECA. A channel is specific for one type of data, but modules can use
+multiple channels to exchange data (and possibly each channel
+transports a different type of data). Two types of channel exist,
+stream channel and event channel. The basic communication of a module
+with a channel is, in a conversation metaphor, of the following kind:
+<ul>
+
+<li> Asking data from a stream channel; what is the value of xxx at time yyy?
+
+<li> Asking data from an event channel; give me the next event that
+occurred at or before time yyy.
+
+<li> Sending data over a stream channel; from time yyy until time
+yyy+step, your data will be xxx.
+
+<li> Sending data over an event channel; at time yyy something
+happened (an event), xxx is the associated data.
+
+</ul>
+
+Note that with the introduction of DUECA 2.0, the two channel types
+are actually implemented by one class, the "UnifiedChannel". By
+constructing a write token (see below) for such a channel, you can
+specify whether the timing of the objects in the channel entry
+represent stream or event data.
+
+\section key_accesstoken Access token
+
+Modules cannot talk directly to a channel, instead, they need to make
+an access token first. Access tokens are for either writing (write
+token) or reading (read token). When the access token is constructed,
+the name of the channel is given as one of its parameters. The access
+token looks up the channel, and keeps a permanent reference to the
+channel. When writing to the channel or reading it, the module uses
+the access token.
+
+\section key_activity Activity
+
+A module in a simulation normally has one main activity, and that
+involves reading the new input data, updating its state and sending
+out its output data. This activity has to take place at regular
+intervals, e.g. at 20 msec intervals for the calculation of aircraft
+dynamics.
+
+If you have a \em conventional single-computer program for your
+simulation, you call a method or function that does the update at the
+appropriate moment, normally after you called the function that
+collected the new input data, and before the function that sends the
+output data to the simulation hardware. As you distribute a program
+over multiple computers, and when parts of the program run at
+different update rates, it becomes more difficult to determine the
+point at which you should start the calculation.
+
+In DUECA there is no "main loop" in which to insert calls to your
+updating code at the proper points. Instead, each module has to make
+sure that it gets called at the proper times by creating an Activity
+object. Then for that activity object, the module specifies:
+<ol>
+
+<li> The conditions under which the activity should be run. For a
+module within the simulation this is normally when all the data it
+needs is available. For a hardware module (one that interfaces with
+the simulation hardware, and should behave safely also when other
+modules in the simulation fail to deliver their data, or deliver
+nonsense data) this is usually on the passing of time.
+
+<li> The update rate for the activity. If the update rate is not
+specified, then the activity is called at the update rate of the
+incoming data, otherwise the specified update rate is forced, taking
+precedence over any rates the incoming data would have.
+
+</ol>
+
+In this way, a DUECA simulation can be assembled by just throwing
+together the proper modules. The allocation of activity by each
+individual module and the specification of the conditions under which
+the activity should be run give  DUECA the necessary information to
+schedule all activities in a node.
+
+\section key_timespec Time specification
+
+Time in DUECA is discrete, it jumps forward in small integer
+steps. The value in seconds represented by a step of one ("1") in the
+integer representation, can be queried from the Ticker object that is
+present in each DUECA node
+
+\code
+  // time increments are of the following size
+  double granule = dueca::Ticker::single()->getTimeGranule();
+
+  // but the increments need not be 1, they can be bigger. The
+  // time step of this node
+  double time_step = dueca::Ticker::single()->getTimeStep();
+\endcode
+
+The integer time increments in a node are not always one. Consider the
+following example of two nodes; on one node a control loading
+simulation is run with an update rate of 2000 Hz. The basic increment
+is 1, i.e. each 500 microsec the integer time value is increased by
+one. The second node has an update rate of 50 Hz, and the basic
+increment in this node is 40. This means that every 20 msec (50 Hz)
+the integer time is increased by 40. The time step in this node is 20
+msec, while the time granule is 500 microsec (0.0005 s), the same as
+for the other nodes. All the nodes in a DUECA process must have the
+same time granule, but they may have different time steps.
+
+%Event data is marked by one (integer) time, of the time cycle in
+which the event occurred. Events are assumed to have happened at a
+discrete moment in time. Stream data is always marked by a "time
+specification", which has two times; the (integer) time of the cycle
+in which the data becomes valid, and the time of the cycle in which
+the data is no longer valid. For example a time spec (10, 12) means
+that the stream data is valid from 10*(time granule) to (but not
+including!) 12*(time granule). Normally the stream data in a channel
+is contiguous, so the next data will have time specification (12, 14),
+or perhaps (12, 20), anyhow, starting with the end of the previous
+time interval. Exceptions to this occur when the simulation has been
+paused for a while. DUECA internally also uses the clock and time
+specification, so the clocks and time always run on, while a
+simulation may be temporarily stopped.
+
+\section key_periodic Periodic time specification
+
+Sometimes, or often, you want that a calculation is periodically
+invoked. For example the simulation of aircraft dynamics has to be
+called every 0.01 s. Now, the input data for this calculation may or
+may not be delivered at this update rate. If you simply connect the
+activity to the input channels, then the activity will be called at
+the rate with which new data comes in on these input channels. By
+creating a \em periodic time specification, and feeding that to the
+activity with the dueca::Activity::setTimeSpec() member function, you can
+specify that the dynamics update has to take place periodically,
+regardless of the rate at which the data comes in. 
+
+*/

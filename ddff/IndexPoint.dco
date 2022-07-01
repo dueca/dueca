@@ -1,0 +1,23 @@
+;; -*-scheme-*-
+(Header "
+        original item   : IndexPoint.dco
+        made by         : Rene' van Paassen
+        date            : 211022
+        description     : Index marking for data log
+        copyright       : (c) 2021-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type uint32_t "#include <inttypes.h>
+#include <ddff_ns.h>")
+(Type uint64_t)
+
+;; Indicate where in the file buffers, a specific recording starts
+(Object IndexPoint
+
+       ;; ID for the data stream
+       (uint32_t dataid (Default 0xffffffff))
+
+       ;; File buffer and offset for this data 
+       (uint64_t offset (Default 0u))
+       )

@@ -1,0 +1,357 @@
+/** \page configure Configuration files (Scheme version)
+
+For running, DUECA uses two configuration files, which are actually
+scheme scripts. The first configuration file, named dueca.cnf,
+describes how a DUECA node is participating with other DUECA nodes in
+a DUECA process. Each of the DUECA nodes needs its own dueca.cnf.
+
+The second configuration file describes the simulation or calculation
+process that will be run by DUECA. It is read when all the nodes have
+established communication with each other, and when they are roughly
+synchronised. Only one model file (dueca.mod) is needed. This file is
+read by DUECA node number 0, and its contents are transmitted to the
+other nodes in the DUECA process.
+
+Note that the information on this page may be partially obsolete
+(sorry!). Many of the DUECA modules and of the core objects in DUECA
+are able to automatically generate documentation on the calls you can
+use in Scheme, see \ref confref Calls from scheme.
+
+\section conf_cnf Dueca.cnf
+
+This is a sample dueca.cnf file
+
+\include dueca.cnf
+
+This script first defines some scheme variables that will be used later
+in the creation of the DUECA objects. It is not strictly necessary to
+do this, but it makes the script easier to configure and read. Here
+are these variables, and a short explanation.
+
+First the node that we live in, and the number of nodes this dueca
+process is made of:
+
+\skip this-node-id
+\until send-order
+
+If there are three nodes, these nodes must be named 0, 1, and 2. Node
+number 0 is special, in that it automatically takes the role of
+administrative node. Some central databases are located in this node,
+and the model script (dueca.mod) is read here. So it is not wise to
+use a computer with a highly critical real-time task for this node, or
+some embedded computer, where access to the script is difficult. In
+the example the computer with the experiment control station (where
+the experimenter is sitting), is used for node 0.
+
+Another important item is the send-order. This defines the order in
+which IP messages are sent. The node with send-order 0 is also
+special, since this node is the reference to which all others sync for
+their timing. In this case you do want to choose a node with real-time
+behaviour. (send-order can also be the order of message blocks in case
+of SCRAMNet use).
+
+Next some variables that define the type of real-time running are defined
+
+\skip highest-manager
+\until 6=rt_sleep
+
+The variable highest-manager refers to the highest ActivityManager in
+the DUECA node. Each ActivityManager in DUECA handles all activities
+for one priority. The ActivityManager number 0 handles administrative
+work (among other jobs, all token creation, activity and module
+creation). In this case, the highest-numbered manager is number 3, so
+there are activity managers for priority 0, 1, 2 and 3 in this
+node. If run-in-multiple-threads is true, each ActivityManager uses
+one thread (i.e. they can run concurrently). This can be set to false
+for debugging purposes, then the activity managers all share one
+thread, and the highest manager gets a first shot at doing all his
+work. The variable rt-sync-mode determines how the program syncs to
+the real-time clock in the computer.
+
+Then some variables are defined that control the tick time in the
+node.
+\skip define tick-base
+\until tick-time-step
+The base increment is the step size with which the Ticker increases
+the (integer) simulation time each time a time tick occurs. In this
+case the base increment is one. The time step is the time between
+ticks, 500 microseconds in the example. This means that every 500
+microseconds, (i.e. 2000 times per second), the integer simulation
+time is incremented by 1. Per second, the integer simulation time
+increments with a value of 2000. Now this number must be the same for
+all nodes, otherwise they can never keep synchronised. For a node that
+runs at 50 Hz (time step of 20000 microseconds), the base increment
+should be 40.
+
+The tick-compatible-increment is used before the nodes are
+connected. Ticking in this phase is slow, and nodes try to wait for
+messages from other nodes to come in. This value has to at least as
+high as the highest base increment used in the DUECA process. It will
+also be the rate at which the nodes communicate with each other.
+
+The following section contains variables for the communication
+driver. In this case IP multicast is used.
+
+\skip if-address
+\until packet-size
+
+if-address is the IP address of the interface used to
+communicate with the other DUECA nodes, mc-address is the broadcast
+address for the communication, mc-port is the port used and
+packet-size is the maximum size of the IP packets that can be sent
+over. The dueca-project script will try to guess the IP address for
+you, but it can guess wrong on computers with multiple network
+interfaces. So verify that you have got the right IP address here,
+otherwise messages don't arrive.
+
+The dueca.cnf file is a scheme program, so it can contain programming
+statements. Many of these programming statements create objects and
+modules in DUECA that will later constitute the real-time program. To
+keep these together, a function "dueca-list" is created:
+\skip assemble
+\until dueca-list
+
+This function is needed to keep all the DUECA objects that are created
+in the script assembled in a list.
+
+Explanation of the use of this function is deferred until later.
+
+Then follow the main actions of the dueca.cnf script, which are calls
+to routines that are added to scheme from the C++ part of dueca. These
+calls have a C++ counterpart that is executed as they occur in scheme.
+Note that the order of this section is always the same, there are 7
+steps in the creation of a DUECA node.
+
+<ol>
+<li>
+It starts with the object manager:
+
+\skip ObjectManager
+\until no-of-nodes
+
+You see that the object manager needs the node id and the total number
+of nodes. The ObjectManager is the DUECA object that issues all ID's
+to the objects in a DUECA node. It starts by issuing an ID to itself,
+and one to the only object that is not created by the scheme script,
+the scheme interpreter that reads this script.
+
+<li>
+
+The next object that is being created is the "Environment". This
+object controls the global flow of the DUECA program, and it also
+creates and controls the activity managers:
+
+\skip environment
+\until graphic-interface
+
+You see that it needs to know whether the node will use multiple
+threads, how many activity managers to make and what interfacing
+library to start.
+
+<li>
+
+At this point some priority specifications are created.
+
+\skip comm-prio
+\until priority-specs
+
+<li> The following step concerns the creation of packers, unpackers
+and the packer manager. Before a channel can send data to another
+node, it needs to know who will handle the data sending. Packers are
+objects that prepare data for sending to other nodes. They do not do
+the actual sending. Unpackers take data that comes in from another
+node, and distribute it over the channels.
+
+\skip Packers
+\until fill-timing
+
+The packers and unpackers must be used as arguments for other scheme
+commands, and therefore they are "bound to" scheme variables. First a
+packer is made, with make-packer. The make-packer routine does not need any
+arguments. Then its corresponding unpacker is made, with
+make-unpacker. The unpacker needs one argument, and that is the
+priority specification (a PrioritySpec object in c++) for its
+activity. Here this activity has priority 1, order 0.
+
+
+The following object that is made is a fill packer. A FillPacker is
+for BIG objects, that may take a while to transmit. The fill packer
+uses spare bandwith on the communication to send its message, the
+message may therefore arrive a bit late. The simulation itself does
+not use any such big objects, but logging of the activities (by DUECA)
+uses the fill packer. The fill packer takes the maximum size of packed
+obects as an argument, in this case 128 kB. Then the fill unpacker is
+made. This takes a priority as argument (the administrative priority
+in this case) and the maximum size of the objects.
+
+The file has been laid out to also work on SCRAMNet set-ups. That is
+what the alternative configuration is for.
+
+
+With the packers made, we now make a packer manager. This packer
+manager maintains an inventory of which packer to use for what
+destination. You may have several ways of transporting data to other
+nodes, but in this case it is pretty simple. All bulk data for other
+nodes is packed by the fill packer, and all normal and high-priority
+data is packed by the normal packer. The packer manager keeps an
+inventory of the packers for each destination:
+
+\skip no-of-nodes
+\until packer-manager))
+
+You see that the make-packer-manager function repeatedly takes a
+packer set as its argument. These are constructed with the function
+make-packer-set, which takes three arguments, the bulk packer, the
+standard packer and the high-priority packer. The element of the
+vector that corresponds with the node itself (node 1, so the second
+element) is ignored, because data to the node itself need not be
+packed and sent. Note that it is OK to add a few extra packer
+sets. This set-up is valid for up to 8 nodes, if you use more add some
+more packer sets.
+
+<li> Next the channel manager is created. The channel manager does not
+need any arguments:
+\skip channel-using
+\until make-channel
+
+<li> When scramnet is being used, the fill unpacker can only be
+created after the ChannelManager has been created, since it will start
+to open a channel.
+
+\skip use-scram-comm
+\until bulk-max-size
+
+<li> Now the "clock" of the DUECA node is created, the ticker:
+\skip ticker
+\until rt-sync-mode
+The make-ticker function needs the base increment, compatible
+increment and the time step as arguments. The Ticker uses an Activity,
+and it needs an ActivityManager for handling this activity. The
+argument highest-manager indicates that the highest activity manager
+is handling the Ticker activity.
+
+<li> The following step is the creation of the objects that do the
+communication to other DUECA nodes. Here there are two options, one
+with ethernet, the other with SCRAMNet
+
+\skip accessors
+\until fill packer, unpacker
+
+Most arguments have comments explaining them.
+
+<li> Step 7 is not a really complicated step. In this step control is
+given to the Environment object, and DUECA starts running its c++
+code.
+\skip environment
+\until EntityManager
+
+</ol>
+
+Details on the different classes and their Scheme interface can be
+found in the \ref confref "Scheme call reference"
+
+\section conf_mod Dueca.mod
+
+Here is the Dueca.mod file for the example:
+
+\include dueca.mod
+
+This file has already been discussed in the
+\ref example_model "section on the model configuration file"
+for the example. In short some guidelines:
+
+<ul>
+<li> Entities are created with the function make-entity. Assign the
+result of the make-entity function to a scheme variable, in the
+future it will be possible to use this scheme variable for
+re-configuration of the entity:
+\verbatim
+(define my-entity (make-entity "my-entity" ...
+\endverbatim
+
+<li> The make-entity function takes as its arguments the name of the
+entity that has to be created, and one or more lists of modules for
+this entity. Use the construction with the "if" function to create
+this list. When the test in the if statement returns true, the
+statement returns the list of your modules. In the other case it
+returns an emtpy list, '(list)', for example:
+
+\skip spaceplane
+\until spaceplane-complete
+
+<li>
+Each make-module call takes the name of the module as a scheme literal
+(i.e. after the quote '), the part name (as a string) and the priority
+specification as its minimum arguments. All additional arguments take
+the form of an argument name and the argument itself, these argument
+names are the same as those specified in the
+\ref quick_further "parameter table"
+and of course the scheme parameters must be convertible to the
+parameters of the parameter table.
+</ul>
+
+One set of models one will usually find in the configuration file are
+the dueca modules. These create a control window on the no 0 node, and
+give the user the opportunity to control the DUECA/DUSIME. The common
+format for these is:
+\dontinclude dueca.mod
+
+\skip dueca-list
+\until )))
+
+Note that these are normal modules. The dusime module provides the
+control logic for all modules that are derived from SimulationModule
+and HardwareModule. It coordinates state transitions between all these
+modules, collects reports about the transition and keeps these in a
+logic tree. The dueca-view module presents this tree, the control
+buttons for the DUECA part (which actually start and stop the module
+activities) and the control buttons for DUSIME, which control the mode
+the simulation is running in. It also presents an overview of the
+status of all nodes, and an overview of the status of all modules in
+DUECA.
+
+Aside from this interface, there is another possibility to control the
+mode of the simulation. The DUSIME module opens a channel to which the
+application can send requests for simulation state changes. If you
+want to control these state changes, create a token to write to this
+channel. In your header file:
+
+\code
+#include <dusime.h>
+#include <SimStateRequest.hxx>
+
+class MyClass: public SimulationModule // or Module, HardwareModule
+{
+  EventChannelWriteToken<SimStateRequest>    requests;
+\endcode
+
+Initialise the channel as follows:
+\code
+  requests(getId(), NameSet("dusime", "SimStateRequest", ""),
+           ChannelDistribution::NO_OPINION),
+\endcode
+
+You can request for a transition to HoldCurrent, which will be granted
+if the system is in either the Advance or Replay mode. You can also
+request a transition to Advance, which will be granted if the system
+is in HoldCurrent. There is no confirmation on the request, other than
+the effects your module can detect (i.e. a different SimulationState
+when the transition is complete).
+
+
+\section advice Some Advice
+
+Making a dueca.cnf and a dueca.mod file for a DUECA application
+running on a single node is usually just a matter of some intelligent
+copying and pasting. Making a configuration for a full-blown
+simulation with multiple nodes can be a tricky job. I know, because it
+often takes me several passes to get the configuration right. Probably
+the best approach to this is to take things one step at a time. Start
+with the single node that runs your application as you developed it,
+add another node to it, but don't assign it any modules yet. If things
+start up all right, move the appropriate modules over. Then add
+another node, move the modules, and so on. If everything goes right,
+it only takes you 2n iterations. And if something does not work, you
+at least know which node is giving you problems.
+
+*/

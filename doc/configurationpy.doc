@@ -1,0 +1,76 @@
+// -*-c++-*-
+
+/** \page confpy Configuration files (Python version)
+
+This version is to be completed. Refer to the Scheme version and code
+in example dueca_cnf.py and dueca_mod.py instead.
+
+\section confpy_param Setting parameters
+
+The Python and Scheme script interfaces share the mechanism with
+ParameterTable tables for defining parameters and calls that can be
+used to define a module (or another script-created object, such as
+DUECA's core objects, or a ScriptCreatable). In a Python script, you
+first create the module object, and then use the .param call to add
+parameters, and finally add the module object to a list that will be
+passed to the Entity. These .param calls can also be chained, like:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.python}
+mymods.append(dueca.Module(
+    "mymodule", "", sim_priority).param(    # set of keyword-value pairs
+        add_view = "view1",
+        view_fov = 40,
+        view_orientation = 0).param(        # next set of keyword-value
+        add_view = "view2",
+        view_fov = 45,
+        view_orientation = -55))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You see here that the "keyword = value" method of specifying data is
+used. Scheme keywords allow the use of hyphens ('-') in your code, and
+consequently there are still a lot of ParameterTables with hyphens in
+there. To make the transition to Python easier, these hyphens are all
+silently translated to underscores for the names of the Python
+keywords.
+
+Note that you cannot combine everything into one .param call here, since
+the Python syntax won't allow repeated keywords.
+
+In addition, the now obsolete Python 2.7 did NOT preserve the order of
+parameters in a named parameter list. In the above example, if
+"add_view" somehow creates a new view structure, which you thereafter
+want to modify with view_fov, etc., there will be no guarantee that
+add_view arrives first at your module class. In that case you need to
+apply only a single keyword per .param call, like:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.python}
+mymods.append(dueca.Module(
+    "mymodule", "", sim_priority).param(    # set of keyword-value pairs
+        add_view = "view1").param(          # close off, and next set
+        view_fov = 40).param(               # etc., etc.
+        view_orientation = 0).param(       
+        add_view = "view2").param(
+        view_fov = 45).param(
+        view_orientation = -55))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+As an alternative to the keyword-value settings, you can also supply
+tuples, with the first element of the tuple being a string with the
+keyword, and the second element being the new value:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.python}
+mymods.append(dueca.Module(
+    "mymodule", "", sim_priority).param( # keyword-value pairs in tuples
+        ("add_view", "view1"),
+        ("view_fov", 40),
+        ("view_orientation", 0),
+        ("add_view", "view2"),           # for the next set, simply continue
+        ("view_fov", 45),
+        ("view_orientation", -55)
+	) # end param call
+   ) # end append
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+*/

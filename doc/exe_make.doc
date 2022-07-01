@@ -1,0 +1,31 @@
+/** \page exe_make Makefile for executable
+
+Here is the template Makefile for creating an executable:
+
+\include Makefile.app
+
+A few things (might) have to be adjusted:
+
+<ul>
+<li> The pieces of DUECA that you are going to use:
+\skip possible
+\until DCOMPONENTS
+
+These are options fed to the dueca-config script. Check dueca-config
+to see what options are possible.
+
+<li> Any additional libraries (outside the standard DUECA libraries),
+that you might have used in your simulation.
+\skip specify
+\until EXTRALIBS
+
+<li> Occasionally, you need to specify libraries to be loaded after
+the dueca libraries:
+\skip second
+\until EXTRALIBS2
+
+</ul>
+
+This makefile has been kept short, and all generic magic is kept in a
+file installed with DUECA.
+*/

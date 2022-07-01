@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# source any local wishes
+if [ -r /etc/dueca/profile ]; then
+    . /etc/dueca/profile
+fi
+
+# step into run directory
+cd "$1"
+
+# keep old logs
+LOGFILES="
+error.log
+normal.log
+dueca.messagelog
+dueca.timinglog
+dueca.channels
+dueca.objects
+dueca.activities
+dueca.activitylog
+dueca.channelreadinfo
+dueca.channelwriteinfo
+dueca.netload
+dueca.nettiming
+"
+
+for f in $LOGFILES; do
+    moveandnumber $f
+done
+
+# remove junk that might be in the way
+rm -f dueca.scratch $LOGFILES
+
+# start up clean, no window manager
+if test -z "$2"; then
+    if [ -x ../../../build/dueca_run.x ]; then
+        DUECA_EXECUTABLE=../../../build/dueca_run.x
+    elif [ -x ../../../dueca_run.x ]; then
+        DUECA_EXECUTABLE=../../../dueca_run.x
+    else
+        cat <<EOF >error.log
+Cannot find ../../../build/dueca_run.x or ../../../dueca_run.x
+from folder `pwd`
+EOF
+        exit 1
+    fi
+    ${DUECA_EXECUTABLE} </dev/null 1>normal.log 2>error.log
+else
+    $2 </dev/null 1>normal.log 2>error.log
+fi

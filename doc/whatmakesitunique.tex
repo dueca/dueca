@@ -1,0 +1,209 @@
+% arara: xelatex
+% arara: bibtex
+% arara: xelatex
+% arara: xelatex
+
+\documentclass[11pt,a4paper,twoside]{scrreprt}
+\usepackage{graphicx}
+%\usepackage{fontspec}
+%\setmainfont[Ligatures=TeX]{XITS}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{tabularx}
+\usepackage[dcu]{harvard}
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = blue, %Colour of internal links
+  citecolor   = red, %Colour of citations
+  pdfauthor={Rene van Paassen},
+  pdftitle={DUECA 2.x - comparison to alternatives},
+  pdfkeywords={Distributed Real-Time Simulation},
+  pdfsubject={}
+}
+\usepackage{fancyhdr}
+\newcommand{\PBS}[1]{\let\temp=\\#1\let\\=\temp}
+
+\begin{document}
+\begin{titlepage}
+\vspace{80pt}
+\begin{center}
+\Huge
+DUECA -- what makes it different?
+\end{center}
+\vfill
+
+\newcommand\docversion{1.0}
+\newcommand\docdate{July 25, 2016}
+
+\begin{tabular}{@{}>{\PBS{\bfseries\raggedleft}}l>{\PBS\raggedleft}l}
+Author: & M. M. (Ren\'e) van Paassen\\
+Version: & \docversion \\
+Date: & \docdate
+\end{tabular}
+\end{titlepage}
+\clearpage
+
+\chapter{Introduction}
+
+DUECA (Delft University Environment for Communication and Activation) is a middleware layer for the implementation and deployment of real-time simulations (or other computational processes) on distributed computing hardware. An application programmer can create ``modules'' in DUECA as self contained elements of a real-time computing process. The modules communicate within the simulation over ``channels'', which can transport user-defined data types. DUECA then provides the following:
+
+\begin{description}
+\item[(E)] in a configuration script, modules are assigned to the appropriate ``nodes'' (computers), creating a simulation environment that may be distributed over the available hardware,
+\item[(C)] the DUECA middleware layer provides the communication between and synchronisation of the different nodes, transporting configuration data and the channel data as appropriate,
+\item[(A)] DUECA activates the modules' activities as specified, either triggering on elapsed clock time or on the arrival of needed channel data, effectively creating the schedule in an automatic fashion.
+\end{description}
+
+This set-up enables an application programmer to develop simulation modules with little consideration of or knowledge on real-time programming aspects; decisions on thread use, distribution and scheduling priorities can be taken later when deploying the simulation. The flexibility of the scripting language also enables testing at the desktop, typically with joystick input and several output windows for visualisation, limiting development time on the deployment hardware. All data communication is time-tagged, enabling debugging of the real-time properties of a simulation.
+
+DUECA with its extensions (DUSIME, which is an interface for simulation control and dueca-extra, which is a library containing several auxiliary classes) was developed at Delft University of Technology, principally by its main author, René van Paassen, with smaller contributions by Joost Ellerbroek and Olaf Stroosma. Its ``ecology'' of modules has been developed by students and employees of the Control and Simulation division, with the more generic modules (motion filters, joystick and control loading hardware IO, generic 3D visualisation, UDP communication to external hardware) all developed by employees.
+
+In over 15 years of testing by MSc. and PhD students in courses and for thesis work, and development and use by expert users, DUECA has matured to a stable code base. It is commonly installed on a variety of different Linux distributions, notably openSUSE, Fedora, Debian, Ubuntu, SUSE Linux Enterprise Desktop, and it is built for different versions of these distributions on the TU Delft's OBS build server. Supporting packages are built on the OpenSUSE build server (\url{https://build.opensuse.org}). Examples of these supporting packages are a kernel with the PREEMPT\_RT real-time patch, and the associated EtherCAT driver for IO with EtherCAT hardware, these are available at \url{https://build.opensuse.org/project/show/home:repabuild:preempt} and \url{https://build.opensuse.org/package/show/home:repabuild:withupdates} respectively. These are of course available to everyone (and a group of robotics researchers are apparently using these kernels), and in combination with DUECA this creates a high-performance platform for implementing distributed simulations.
+
+Applications within the Control and Simulation division include simulation on desktop computers, the SIMONA Research Simulator and a smaller fixed-base simulator in the Human-Machine Systems Laboratory. DUECA is also used for data acquisition applications in the inertial sensor calibration laboratory, and for data acquisition and automatic control experiments in the PH-LAB laboratory aircraft, where it handles the full set of ARINC channels from the aircraft databuses, as well as a number of analog, discrete and synchro inputs, storing all data in a fully time-tagged log and providing real-time data for visualisation and control experiments.
+
+Most of the simulations produced with DUECA combine a mix of existing modules, often for communication with hardware (control input devices, motion system, motion filters, out-of-the-window view generation), user-created modules, and modules that encapsulate Matlab/SIMULINK code.
+
+
+There are 2 main branches of development, DUECA 0.x, which is currently obsolete, and the newer DUECA 2.x, which is currently at version 2.3.5. Compared to DUECA 0.x, DUECA 2 includes a major overhaul of the memory allocation and de-allocation for small objects, of the channel communication system and the activation logic. It is -- with the exception of a few rarely used aspects, such as custom-modified channel object code\footnote{To eliminate the need for custom-modified channel object code, DUECA 2 offers additional flexibility in the code generator.} -- backwards compatible with existing DUECA 0.x code. DUECA 2 is also available for MAC OSX, using macports as its source for dependencies, and installable as a macports package. The main reason for making the step to DUECA 2 was to implement an overhaul of the code base, reducing the growth of three different channel types, and unifying this to one channel type. This provided a way forward to implement a largely lock-free system for communication, and to implement introspection of the channel objects.
+
+\chapter{Alternatives}
+
+DUECA is a middleware layer to facilitate the implementation of real-time simulations or data collection processes, typically with both hardware and humans in the loop. It is written with the purpose of facilitating and speeding up the implementation of these simulations. Depending on a user's needs in this field, and his/her experience and engineering capabilities, there are alternatives to using DUECA.
+
+\section{Local development}
+
+In many cases, especially if a one-off simulation is needed,
+frameworks are developed locally. Usually these frameworks at least include a data-distribution mechanism, the data that is to be communicated is accessed through an API call (or linked to memory locations through an API call). An example of such a framework is NLR's BSE (known to us through a common project with the NLR).
+
+BSE uses configuration files for definition of the type and name of communicable objects (or rather variables). Simulation code must in each cycle call the BSE library to update or read the variables. Communication across the network is through TCP or UDP messages.
+
+Local frameworks can also include scheduling hooks, typically specifying update rates and time offsets from a master update cycle, but more typically the frameworks are used in a library fashion; an application developer needs to create a ``main simulation program'', which initialises the communication library and then enters a single-threaded or multi-threaded communication loop, with calls to the communication library, and calculating processes. The simulation programs are often not synchronized, and free-running, with independent clocks, or synchronized over the communication network, and in that case very dependent on that network.%\footnote{We found out the hard way that BSE (at least its Linux implementation) was not thread-safe.}
+
+The advantage of small scale local development is often its perceived lower cost. Main limitations are the lack of deterministic behaviour and in most cases a significant overhead during the development process of applications. One example is a formerly independent flight simulator company, where ``breaking the application'', often by failing to synchronize the communication configuration files, was a regular occurrence, punished by the obligation to buy treats for the entire team. The need to define the scheduling, maintain the configuration files in sync with the application and all computers, and the fact that a separate program (possibly composed of modular units) has to be developed for each computing node produces significant overhead for application development.
+
+\section{HLA-based systems}
+
+Introduced and promoted by the US DSTO, HLA (High-Level Architecture), is a simulation interoperability technology. The original purpose of HLA is the promotion of simulator interoperability, in that case the communication would transmit the externally visible aspects between different players in a simulation, allowing simulated vehicles (aircraft, land vehicles, ships, foot soldiers) and installations (radar stations, C3I units) to communicate.
+
+HLA was very soon also used for connection of components within a simulation (SIMULTAAN, others). The main disadvantage of HLA in this role (and a major disadvantage in its original role), are the high levels of maintenance and coordination that go into creating a HLA-based simulation. HLA simulations need to define their interoperability (FOM, SOM). The architecture quickly becomes complex, especially in the case HLA is used hierarchically, with multiple ``Federations'', connected by bridging ``Federates'' that participate in two or more federations.
+
+Several commercial implementations that adhere to the HLA standard are available. These ``RTI'' (Run-time Infrastructure) implementations normally do not interconnect, since the wire protocol may be different for each of them, requiring participants to use RTI libraries from the same vendor. Timing services are provided by HLA, but it is up to the application to put these to use in synchronization.
+
+Many HLA-based systems are not actively synchronized, leading to floating delays and non-determinism in the simulations. \cite{mclean_middleware_2004} describe methods to ensure determinism in the scheduling of HLA simulations.
+
+\section{Real-time CORBA}
+
+An older, lighter alternative to HLA is a sub-set of CORBA (Common Object Request Broker Architecture), in the form of real-time CORBA \cite{schmidt_overview_2000}. Real-time CORBA offers a publish-subscribe mechanism, providing a means of one way communication between simulation components. Two-way communication would require two CORBA objects, published by each of two parties in a communication. Synchronisation is by means of callbacks on subscribed elements. This makes the programming work more complex than e.g. a custom framework, but CORBA provides the discovery mechanism.
+
+\section{Quanser Quarc}
+
+Quanser Quarc is a rapid prototyping and production system for real-time control\cite{_quanser_2016}. It can compile and run Matlab/Simulink models on real-time target hardware, and offers tools to monitor and control the execution of the real-time models. For communication and distributed computation, it features communication blocks. These generally work over Ethernet, using TCP/IP or UDP protocols. The communication is set-up by specification of the URL's of the other party. No generic publish-subscribe mechanism is offered.
+
+\section{EUROSIM}
+
+EUROSIM is a simulation framework for implementation of real-time simulations, available for Windows desktops (for development) and a real-time linux distribution for deployment \cite{_eurosim_2016}. It is developed and marketed by the Dutch National Aerospace Laboratory NLR, Airbus Defence and Space and Nspyre B.V. The framework offers scheduling services, and communication through data dictionaries/common blocks, and conversion/embedding of Matlab/Simulink models through a tool called Mosaic.
+
+\section{NASA cFS}
+
+NASA's cFS is a suite of software targeted as embedded flight software
+for spacecraft. It has many facilities for communication over
+lower-bandwidth links, and close-to-the hardware interfaces, e.g., for
+verifying message checksums, are exposed in the API.
+
+\chapter{DUECA differences}
+
+\section{Synchronization, schedule, time tagging}
+
+The main thing that sets DUECA apart from the alternatives is its use of time tags for all communicated data. Time tagging not only provides information on the aga of data, but it is an integral component of DUECA's scheduling system.
+
+The most common sensible approach to distributed real-time simulation is time-stepped execution, in which a step in the simulation cycle is distributed over receiving messages from the network, computation and sending messages back to the network \cite{mclean_middleware_2004}. Time-stepped execution is sensitive to overruns of the cycle time, these lead to non-determinism in the simulation and in the worst case to a breakdown in the distributed simulation as a whole.
+
+An alternative method is ``best effort'', where data is sent at the sending party's rate and timing, and processed as it is available at a receiving party's end. This method is less sensitive to disturbances and delays, but also inferior, since it leads to floating time delays in the simulation, since sender and receiver are normally not synchronized, and it leads to a non-deterministic simulation, because the calculations are based on data with various degrees of ``freshness''.
+
+DUECA's time tagging enables it to avoid the pitfalls of conventional scheduling and communication. The conditions for calculation processes are specified as conditions on the availability of data, essentially permitting the implementation of parallel and individual time stepping cycles without additional effort in designing the schedule. This makes DUECA also robust to occasional overruns (e.g., when extensive initialisation takes place at system start-up), since multiple copies of the time-tagged data are available, and calculating processes receive a time-consistent view of the data; after an occasional overrun the calculation can simply catch up with the time-correct data. Scheduling actions can occur when data is written in channels that double as triggers for activities. The schedule is basically created automatically from the requirements on data availability.
+
+To optimally use the time tagging and time-based activation mechanism, DUECA nodes in a multi-node DUECA process are synchronized, using a Kalman Filtering technique to estimate communication delays between the nodes. Typically, on kernels with the PREEMPT\_RT patch activated, the nodes synchronize to within five to ten microseconds, ensuring that data ages are sufficiently well known across the entire distributed DUECA process. DUECA offers facilities to calculate the number of microseconds since a clock tick, making it easy to determine the age of data that comes in from external sources, e.g. through a serial link.
+
+The following is an overview of the properties of the alternative solutions.
+
+\begin{description}
+\item[DUECA] Synchronized nodes, data-driven schedule, publish-subscribe mechanism, multiple rates.
+\item[Local] Local development varies in the chosen solution. Probably most developments are best effort (NLR's BSE), and use data inventories/dictionaries.
+\item[HLA] Not actively synchronized, best effort, does offer publish-subscribe.
+\item[HLA/McLean] Time-stepped execution (probably at a global single rate only), publish-subscribe.
+\item[Corba] Data-driven schedule, additional implementation effort for reacting to multiple data sources.
+\item[Quarc] Best effort, with un-synchronized external processes, rates can be specified, point-to-point communication, url of communication party must be specified.
+\item[Eurosim] Probably uses time-stepped execution, schedule must be specified, data dictionary.
+\end{description}
+
+\section{Modularity, modules not programs}
+
+DUECA's development model is targeted towards enabling modular development and re-use of existing models. Modular development is an enabler, but can also be a liability when modular code creates additional interface dependencies, or can lead to race conditions and non-deterministic behaviour of the simulation. Typically data dictionaries define the complete simulation's data (Eurosim), or the data in large chunks (BSE). DUECA's modular development relies on defining the objects transmitted over the channels, making for a more fine-grained definition, as do HLA and Corba. To guard for the most common cause of bugs in this case -- mismatch between data definitions -- a magic number is hashed out of the data definition, and verified as communication channels are set-up. DUECA's channels can use single inheritance (as also used in HLA), and offer race-condition free data access in a multi-threaded execution process. Since DUECA provides scheduling, configuration and communication, all other (boiler-plate) code is superfluous, and the only additional information needed can be supplied in DUECA's start-up script. Modules may be present in a DUECA executable, but are only activated through the start-up script. Unless recommendations are not followed during the development of a module (e.g. by using static data), multiple instances of modules can be used.
+
+\begin{description}
+\item[DUECA] Only modules need to be developed, no main program, configuration through script files, multiple instances possible.
+\item[Local] Varies. Typically code is bound in a main program, with initialisation.
+\item[HLA] Both requires a main program with initialisation calls, and configuration files. No explicit modular development model.
+\item[Corba] Main program with initialisation calls.
+\item[Quarc] Matlab/Simulink copy\&paste approach possible.
+\item[Eurosim] Modular, with code accessing a global dictionary. Multi-threading requires observing guards/locks. Multiple instances of the same module are probably only possible through copy and rename.
+\end{description}
+
+\section{Integration with version control}
+
+DUECA development is integrated with a version control system, and can
+use either CVS (an older system) or GIT. The version control system
+covers the module and communication object development, and the
+configuration for different deployment platforms.
+
+Using a script that interfaces to the version control system, customized check-outs and builds can be made for deployment platforms. That ensures that code that cannot compile or build on certain platforms (e.g., code requiring specific interfacing), is excluded on those platforms. The modular configuration and development ensures that development can be done with alternative modules. A typical example of this is using a joystick on a development station, and control loading hardware on a simulation platform.
+
+There is no information on integration with version control systems for the other alternatives.
+
+\section{Integration with modeling software}
+
+DUECA can embed models generated with Simulink Coder. To this end it provides an option to generate template code for a module that embeds the C-code generated by the Simulink Coder, and a library with supporting routines for the generated code, implementing some commonly used blocksets. Interaction with the Simulink model is programmatic, and both parameters and inputs can be specified. Multiple models can be run within one DUECA node. The alternatives offer more or less support in this field:
+
+\begin{description}
+\item[DUECA] Embed one or more Simulink models, code generation for a template module, programmatic interaction.
+\item[Local] NA.
+\item[HLA] NA.
+\item[Corba] NA.
+\item[Quarc] Written to support real-time running of Simulink models, excellent interaction.
+\item[Eurosim] Offers a component called ``Mosaic'' for embedding Simulink models. Details not known.
+\end{description}
+
+\section{Performance monitoring}
+
+Real-time programs are typically difficult to debug, since a human debugger is not fast enough to check the real-time aspects of the running process. Typical solutions are snapshot tools to capture the state of a simulation at a specific time point or span, and simple logging/printing statements, to verify that certain points of the simulation are executed, or to signal problems in real-time running. DUECA offers a number of monitoring and verification tools:
+\begin{itemize}
+\item A timing overview shows the cycle times and relative times of the different DUECA nodes, and keeps an inventory of maximum and minimum response times of waking the highest-priority thread. In addition DUECA modules may be selected to provide timing information, specifying warning and critical levels of timing, and number of cycles to check. This timing information is presented in real time and logged.
+\item The ``activity'' view can be used to take snapshot of the real-time schedule. Each node in the DUECA process is represented by a graph showing the start, end and duration of all activities for the span of the snapshot. Details on the specific activities can be viewed by selecting a part of the timeline, showing timing at the microsecond level, module and activity name for all activities in the selected piece of timeline.
+\item The logging facility in DUECA ensures atomic logging messages, produced in finite time, and tagged with the file location, DUECA process number, priority level,  activity and module id's and a hit count indicating how many times the message was produced. The hit count is also used to throttle messages that are too frequent. Logging messages are both sent to standard error output locally in each computer running a DUECA node, and transmitted to the coordinating DUECA node for presentation on a log view window.
+\item The run status of all DUECA modules is regularly checked and presented in the overview window.
+\item The run status (connected, synchronized) of DUECA nodes is regularly checked and presented in the overview window.
+\end{itemize}
+
+As far as known, the support of the alternatives on this field:
+
+\begin{description}
+\item[DUECA] Optimized, constant time logging, with logpoint identification, threadsafe, not requiring locks. Timing overview node level and module level, activity view.
+\item[Local] Varies.
+\item[HLA] Unknown. Will depend on RTI vendor.
+\item[Corba] NA.
+\item[Quarc] Per-node information on running Simulink models. No information on relative synchronization of nodes.
+\item[Eurosim] Unknown.
+\end{description}
+
+\chapter{Conclusion}
+
+DUECA is a middleware layer targeted at creating integrated distributed simulations, typically on platforms with several to a dozen nodes/computers. Interfacing with models generated from Simulink is possible. It features modular development and configuration, a unique communication and scheduling mechanism that makes it easy to create and modify real-time simulations, and several tools for verifying the performance of the real-time process.
+
+Quanser Quarc would offer better support and an easier path for running Simulink-based models, but offers less support for distributed simulation, effectively being limited to ``best effort'' communication and synchronization. HLA offers a choice of different vendors, and a standardized interface, but offers less support for proper real-time running. Real-time Corba would be an open source solution, but offers little or no support for logging, verification, configuration and re-configuration. Eurosim is a large commercial offering with a backing consortium. Its legacy is principally a monolithic simulation environment, and modular development is still needed to consider that; locks/guards might be needed to prevent race conditions.
+
+\input{bibchain}
+
+\end{document}
+

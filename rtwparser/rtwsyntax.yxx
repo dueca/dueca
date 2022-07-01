@@ -1,0 +1,86 @@
+%{
+#include <string>
+#include <iostream>
+#include "NamedStruct.hxx"
+#include "rtwparser.hxx"
+using namespace std;
+
+typedef string String;
+
+extern "C" {
+  int yylex();
+  int yyerror(const char* e);
+}
+
+%}
+
+%union {
+  char* name;
+  int number;
+  String *str;
+  TypeNameDef* typenamedef;
+  ObjectList* objectlist;
+  ObjectMap* objectmap;
+  NamedStruct* namedstr;
+  BaseObject* baseobj;
+}
+
+%token T_String T_Comment T_Keyword T_Int T_StructName T_ModelName T_Precompiler T_MiscDefine
+
+%type <name> T_String T_Comment T_Keyword T_StructName T_Precompiler T_MiscDefine
+%type <number> T_Int
+%type <str> comments
+%type <objectlist> contents basecontents
+%type <objectmap> statements
+%type <namedstr> namedstruct
+%type <baseobj> a_pair contenttypes basecontent
+
+%%
+input           : statements                                        { printResult( $1 ); }
+                | statements comments                               { printResult( $1 ); }
+;
+
+statements      : basecontent                                       { $$ = new ObjectMap(); if ($1) $$ -> operator[]( $1 ->getName() ) = $1; }
+                | statements basecontent                            { if ($2) $1 -> operator[]( $2 ->getName() ) = $2; }
+;
+
+comments        : T_Comment                                         { $$ = new string( $1 ); }
+                | comments T_Comment                                { *$1 += string($2); $$ = $1; }
+;
+
+keywords        : T_Keyword                                            {  }
+                | keywords T_Keyword                                {  }
+;
+
+contents        : basecontents | basecontents comments
+;
+
+basecontents    : basecontent                                       { $$ = new ObjectList(); if ($1) $$ -> push_back( $1 );}
+                | basecontents basecontent                          { if ($2) $1 -> push_back( $2 );}
+                ;
+
+basecontent     : comments contenttypes                             { $$ = $2; }
+                | contenttypes                                      { $$ = $1; }
+;
+
+contenttypes    : a_define                                          { $$ = NULL; }
+                | a_pair                                            { $$ = $1; }
+                | namedstruct                                       { $$ = $1; }
+;
+
+a_define        : T_Precompiler T_MiscDefine T_String                    {  }
+                | T_Precompiler T_ModelName T_String                { BaseObject::setModelName( $3 ); }
+;
+
+a_pair          : T_String T_String T_Comment                       { $$ = new TypeNameDef($1, $2, $3); }
+                | T_String T_String '[' T_Int ']' T_Comment         { $$ = new TypeNameDef($1, $2, $4, $6); }
+                | keywords T_String T_String T_Comment              { $$ = new TypeNameDef($2, $3, $4); }
+                | keywords T_String keywords T_String T_Comment     { $$ = new TypeNameDef($2, $4, $5); }
+;
+
+namedstruct     : keywords T_StructName '{' contents '}' T_Comment  { $$ = new NamedStruct($2, $4, $6); }
+                | keywords '{' contents '}' T_StructName T_Comment  { $$ = new NamedStruct($5, $3, $6); }
+                | keywords T_StructName T_String T_Comment          { $$ = new NamedStruct($2, NULL, $4); }
+;
+
+%%

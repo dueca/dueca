@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-gtkmm
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca-gtkmm${staticsuffix}
+Cflags: -DDUECA_CONFIG_GTKMM
+Requires: dueca-gtk2 = ${version}, libglade-2.0, gtkmm-2.4

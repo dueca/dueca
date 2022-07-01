@@ -1,0 +1,25 @@
+;; -*-scheme-*-
+(Header "
+        original item   : ConfigFileData.dco
+        made by         : Rene' van Paassen
+        date            : 200617
+        description     : Simple text-based object
+        copyright       : (c) 2020-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(IterableType namelist_t "#include \"NameSizeDate.hxx\"
+#include <list>
+typedef std::list<dueca::NameSizeDate> namelist_t;")
+(Type std::string "#include <string>")
+
+;; simply transmit a single string
+(Event ConfigFileData
+       (Option hdf5)
+       ;; name/label of the requested configuration
+       (std::string name)
+       ;; content
+       (std::string config)
+       ;; list data
+       (namelist_t filenames)
+       )

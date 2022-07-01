@@ -1,0 +1,12 @@
+(Type double)
+(ArraySize VECSIZEE "#include \"vecsizee.hxx\"")
+(Enum TestEnum uint16_t one two three four five)
+(IterableType fixvector<VECSIZEE,double>
+"#include \"vecsizee.hxx\"
+#include <fixvector.hxx>")
+
+(Stream Object7
+  (fixvector<VECSIZEE,double> a (Default 1.0))
+  (TestEnum e1)
+  (TestEnum e2 (Default two))
+)

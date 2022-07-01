@@ -1,0 +1,31 @@
+;; -*-scheme-*-
+(Header "
+        item            : ChannelMonitorResult.dco
+        made by         : Rene' van Paassen
+        date            : 180509
+        description     : Return a monitor of channel entry writes/reads
+        copyright       : (c) 2018-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; string for json result
+(Type std::string "#include <string>")
+(Type entryid_type "#include \"ChannelDef.hxx\"")
+(Type GlobalId "#include \"GlobalId.hxx\"")
+(Type DataTimeSpec "#include \"DataTimeSpec.hxx\"")
+
+;; Useful information about channel readers
+(Event ChannelMonitorResult
+
+       ;; channel number
+       (GlobalId channelid)
+
+       ;; entry in the channel
+       (entryid_type entryid)
+
+       ;; time of the read
+       (DataTimeSpec ts_actual)
+
+       ;; JSON coded data
+       (std::string json)
+       )

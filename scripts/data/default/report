@@ -1,0 +1,4 @@
+# This is a file that will/should (in the future) contain reports of
+# success of running the application @AppName@ on a specific dueca
+# set-up. Use the prepare and report options of the "dueca-project"
+# script

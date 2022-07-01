@@ -1,0 +1,90 @@
+This in response to Andries Muis' question:
+
+- how to create some sort of generic channel viewer, can open and view
+  any channel
+
+Related to this, a question
+
+- how create some sort of generic logging module, without building it
+  specific for some channel
+
+
+Method steps in approaching this:
+
+* The current codegen program is quite cumbersome now, and has reached
+  its final size. Development speed is limited.
+
+* Replace the codegen program by a more agile python version, this
+  greatly simplifies the ease of code generation; easier templating,
+  and easier sorting/writing, etc.
+
+Design goals:
+
+1 All channels can be found, both with their names, and with their channel
+  type
+
+2 An existing channel can be opened without knowing the data type
+
+3 When a new channel end is created, the same mechanisms are used as for 2
+
+4 A found channel without type knowledge can be queried:
+  a-for type name of the type in the channel
+
+5 Once a type name is found, a further query is possible:
+  a-for member names
+  b-for member type sizes (sizeof in a table)
+  c-for member arrayness (yes or no)
+  d-for member type name
+
+6 A simple non-array member can be printed to a stream in a call with as
+  arguments the stream and the member name
+
+7 An simple array member can be printed to a stream in a call with as
+  arguments the stream, the member name and the index of the member
+
+8 Compound members can somehow be accessed so that operations 6 and 7
+  can be recursed with their members.
+
+
+Refactoring.
+
+1 A current limitation is that only node 0 knows all channels. This
+  will be maintained for now. To copy that information, modify
+  ChannelManager and ChannelOrganiser, to have a ChannelOrganiser that
+  does not actually send back configuration events, and probably only
+  do this on a flag set in the dueca.cnf for the ChannelManager
+
+1 Currently, channel type magic is passed on, name of the type is
+  not. This needs to be added to the ChannelOrganiser, and the
+  ChannelChangeNotification event, and the requestid call for the
+  ChannelManager.
+
+1 Need to add a channel traversing call for the ChannelManager, based
+  on index is probably OK, since access to the registry with index is
+  fast
+
+2 This requires the type to be present and associated classes
+  instantiated in the DUECA module. The creation of a stream channel
+  needs a templated instantiation of a DataSetConverter /
+  DataSetSubsidiary. Currently these are created when an access token
+  (with template) is created. Instead, a map of these converters
+  should be created, and since they are stateless, they can be used by
+  a channel when needed.
+
+  Steps
+
+  - set up data set repository
+
+  - modify generated code to insert converter for type at start-up
+
+3 The current channel creation should use new code path as much as
+  possible
+
+  - modify channel creation code in tokens to extract name from
+    datatype and pass that to the cannel creation
+
+  - modify channel constructor to access repository with type name, to
+    obtain the converter
+
+
+

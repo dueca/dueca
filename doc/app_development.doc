@@ -1,0 +1,256 @@
+/** \page app_develop Application Development and Deployment Design
+
+\section app_purpose Purpose of this document
+
+In the "early years" of dueca, and especially with the first
+experiments on the SIMONA Research Simulator (SRS), it became apparent
+that support in version control and deployment of an application over
+several machines, and in different environments, is an essential part
+of the development environment of DUECA.
+
+This document outlines how the use of a version control system (CVS),
+a special purpose script (dueca-work) and adherence to a specific
+directory structure for development of application could assist in the
+re-use of existing code and modules, and in the quick deployment and
+continued development on multi-node environments such as the
+Human-Machine Interaction laboratory (HMI lab) and the SRS. The
+specific goals for this design are:
+<ul>
+<li> Facilitate development of modules and applications.
+<li> Promote re-use of developed modules
+<ul>
+  <li> Unmodified, through the easy and safe inclusion of generically
+  applicable (hardware related or otherwise) modules.
+  <li> Instantiated, through a mechanism for including a template module
+  and the ability to instantiate such a module for one's specific
+  purposes.
+  <li> Branched, through copying and subsequent modification of an
+  existing module.
+</ul>
+<li> Facilitate deployment of an application on multi-node dueca
+environments.
+<li> Facilitate running on a multi-node dueca environment.
+</ul>
+
+Because of the mixed nature of the design, no formal description
+method is used, rather, this description is in text/narrative format.
+
+\section app_mech Applied mechanisms and tools
+
+To enable development on different platforms, CVS will be used as a
+versioning and repository tool. Hovever, CVS typically handles
+complete projects, and a dueca application should be able to use,
+without copying and inclusion, generic parts. Therefore applications
+can be based on the check-out and development of several CVS projects,
+and a script will be used to facilitate this multiple use of CVS.
+
+The top-level objects that are checked into the CVS versioning system
+are then the application itself, including its "own" modules,
+configuration scripts and its proper run environment, a "generic"
+development tree, that contains generic modules (e.g. for a joystick)
+and template instantiatable modules, and possibly site-specific
+generic trees.
+
+The script (or scripts) should be able to
+<ul>
+
+  <li> Support compilation of deployment. The script exports the
+  application, and based on hostname or an explicitly supplied "build
+  name", extracts the necessary components from the application tree
+  itself and the generic or site-specific trees
+
+  <li> Support development on a deployment platform. Works as above,
+  but also checks out the sources.
+
+  <li> Support initial creation and set up of a new application.
+
+  <li> Support the inclusion of test results, including marking
+  versions and documentation of the run environment.
+
+  <li> Support application development
+  <ul>
+    <li> Addition of new modules
+    <li> Addition of source files to a module
+    <li> addition of necessary run data
+    <li> Inclusion/use of generic modules
+    <li> Addition of communication objects
+  </ul>
+</ul>
+
+The script and/or the cvs environment should provide some constraints,
+for example developers should not have read/modification access to all
+modules (possible through the use of commitinfo script). Remote use of
+a cvs repository should also be possible.
+
+The communication objects for a deployment should be tailored to the
+modules used.
+
+\section app_dirstruc Directory structure design
+
+The need for "borrowing" generic modules from other cvs trees dictates
+to some extent the design of the directory structure. Using MyApp as
+an example application name, the directory structure is given as:
+\code
+MyApp                Main directory
+MyApp/MyApp        The directory with application-specific run files
+                and modules
+MyApp/SomeGenericModule
+                A directory with the Makefile/directories that
+                pertain to a generic, re-used module
+MyApp/SomeGenericModule/SomeGenericModule
+                The directory with the source code for the
+                SomeGenericModule
+MyApp/SomeGenericModule/comm-objects
+                The directory with communication objects needed by
+                SomeGenericModule
+MyApp/MyApp/modules.solo
+                A file that lists all modules needed (not including
+                directories with communication objects) needed by an
+                application, in the form:
+                             MyApp/MyModule
+                             SomeGenericModule/SomeGenericModule
+                The extension, .solo, indicates that this list of
+                modules is needed either on a machine named solo
+                (which is seldom the case), or for a run-name "solo"
+                A file modules.dutmms4 would list the modules to be
+                used on the machine dutmms4
+MyApp/MyApp/MyModule
+                Directory for a module specifically developed or
+                adapted for this application. This directory contains
+                source files and a make file for this module. This
+                make file may be a symbolic link to a generic make
+                file.
+MyApp/MyApp/MyModule/comm-objects.lst
+                List with communication objects needed for this
+                module. In the form of:
+                MyApp/comm-objects/MyCommObject.dco
+                SomeGenericModule/comm-objects/SomeCommObject.dco
+MyApp/MyApp/comm-objects
+                Directory for communication objects specifically
+                developed or adapted for this application. When using
+                the code generator, each object is created from a
+                .dco file (dueca communication object)
+MyApp/MyApp/run
+                Run directory for the application. Sub directories of
+                this directory define the dueca environment + machine,
+                so:
+MyApp/MyApp/run/solo/solo
+                Run directory for running development on a single
+                machine
+MyApp/MyApp/run/mmslab/dutmms1
+                Run directory for the files used by the dutmms1 on the
+                HMI laboratory
+MyApp/MyApp/run/datafiles
+                ALL data files needed for running an
+                application. Bitmaps, experiment conditions, etcetera.
+MyApp/MyApp/run/solo/solo/links.lst
+                List with data files you would liked to be linked to
+                this directory. In sh(1) globbing style, so a line
+                with "*.dat" would link all .dat files in the
+                datafiles directory to this directory. This is optional.
+                datafiles directory to the present one
+MyApp/MyApp/run/solo/solo/clean.lst
+                List with types of files you would like cleaned from
+                the present run directory, when mrproper (or
+                realclean) is called. This is optional.
+\endcode
+
+There should always be a modules.solo file, which list the modules
+used when developing (or running) on a single machine.
+
+A default makefile for modules will be supplied with the dueca
+installation. If only c++ and c files are needed, and no additional
+include flags are required, running this makefile will usually
+correctly build a module. To use this makefile, it will be copied by
+the script when making a new module.
+
+The makefile may include (and if it works
+it really should include) a generic makefile "tail" supplied in the
+dueca distribution. Only if you have special requirements on the
+sources, you need to edit this makefile.
+
+For special work, where building on different machines may differ,
+a Makefile with the build name/machine name extension may be used. A
+Makefile.dutmms4 in the cvs sources for example would be checked out,
+and a symbolic link to this file will be made. In the current version,
+this is not yet implemented.
+
+This applies both to the application directory and the module
+directories. The make command should be given from the application
+directory (MyApp/MyApp).
+
+
+\section app_module Module directory
+
+An application normally consists of one to several modules. Modules
+can always be compiled independently of each other, they should only
+depend on the dueca installation, communicated objects (.dco files and
+their generated .hxx/.cxx offspring) and possibly on external
+libraries.
+
+To get a fitting compilation of the modules and the objects that they
+communicate with, each module should specify a list of the
+communication objects that it uses, in the file
+"comm-objects.lst". This file is included in the cvs system, and it
+can be used to determine which communication objects need to be
+checked out for a specific application. The Makefile also creates a
+"comm-objects.h" file for easy inclusion (and exclusion of errors)
+from this file.
+
+If the version system contains a Makefile.machine, where machine is
+the build name or machine name for the module directory, then this
+Makefile is checked out and used. Otherwise, if it contains a
+Makefile, this makefile is checked out, and if it does not contain a
+Makefile, a link to the dueca-supplied Makefile for modules is used.
+
+\section app_rundir Run directory
+
+One of the annoying problems in deploying an application on a certain
+machine is keeping up with all the data files needed for running the
+application. Different modules often read different data files, which
+in general mist be present in the directory where dueca is
+started. Files generated by the application are also left there, and
+when it is time to clean-up the run directory, one has to find out
+which of the many files must be cleaned out, and which contain
+valuable (configuration) data. To solve this problem, the following
+solution is proposed:
+<ul>
+  <li> A directory is created which contains ALL the data files (in
+  itself or in sub-directories) for ALL dueca environments and
+  machines.
+  <li> Each environment (a lab, a simulator, a single development
+  machine) has a sub-directory, within which each machine in an
+  environment has it own sub-directory with machine specific
+  configuration files.
+  <li> For development, a shared machine/build name, namely "solo" is
+  used, So there is always an "environment" directory solo, with a run
+  directory "solo/solo" which contains the single-machine development
+  and test environment.
+  <li> A run directory has the following files committed in cvs:
+  <ol>
+    <li> dueca.cnf: The configuration file for start-up of dueca
+    <li> dueca.mod (optionally): For node 0 only, the file defining
+    the application
+    <li> links.script: A script file that makes links to the files or
+    directories under "datafiles" that are needed for
+    running the application on that specific machine.
+    <li> clean.script: A script file that cleans, all
+    files to be removed at "really really cleaning" time. I suggest
+    this includes the generated data. At that time all links from
+    links.lst are also removed.
+  </ol>
+</ul>
+
+\section app_adhere Enforcing the development model
+
+It is difficult to enforce strict adherence to the directory structure
+and proposed rules given above. I hope that developers will see the
+advantages of sticking to a set of common rules for getting more
+uniform applications. Certainly I (and I assume that later also other
+dueca "cracks") will no longer assist in porting applications that
+have been hacked together, not using CVS nor the supplied scripts, It
+is also likely that as the script(s) evolve, more and more checking
+will be done, and ease of use will go up, meaning that there is no
+longer an argument to not use these.
+
+*/

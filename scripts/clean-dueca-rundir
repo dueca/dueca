@@ -1,0 +1,21 @@
+#!/bin/sh
+
+LOGFILES="
+error.log
+normal.log
+dueca.messagelog
+dueca.timinglog
+dueca.channels
+dueca.objects
+dueca.activities
+dueca.activitylog
+dueca.channelreadinfo
+dueca.channelwriteinfo
+dueca.netload
+dueca.nettiming
+"
+
+for F in ${LOGFILES}; do
+    rm -f ${F} ${F}.*
+done
+rm -f dueca.scratch *~

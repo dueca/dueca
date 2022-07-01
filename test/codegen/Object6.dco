@@ -1,0 +1,10 @@
+(Type double)
+(ArraySize VECSIZE "#include \"vecsize.hxx\"")
+(IterableType fixvector<VECSIZE,double>
+"#include \"vecsize.hxx\"
+#include <fixvector.hxx>")
+
+(Stream Object6
+  (Option msgpack)
+  (fixvector<VECSIZE,double> a (Default 1.0))
+)

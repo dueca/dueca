@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<scenario
+    xmlns="https://dueca.tudelft.nl"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://dueca.tudelft.nl testscenario.xsd">
+  <project name="FlexiStick">
+    <window>DUECA/DUSIME control panel</window>
+    <window>GUI stick</window>
+  </project>
+  <repository>git@gitlab.tudelft.nl:rvanpaassen/</repository>
+  <execute>
+    <platform>solo</platform>
+    <node>solo</node>
+  </execute>
+  <actions>
+    <check window="DUECA/DUSIME control panel"
+	   x="10" y="10"  timeout="1.0"/>
+    <click window="DUECA/DUSIME control panel"
+	   x="400" y="20" button="0" pressed="false"/>
+    <click window="DUECA/DUSIME control panel"
+	   x="400" y="20" button="0" pressed="true"/>
+    <check window="DUECA/DUSIME control panel"
+	   x="10" y="10" r="0" g="255" b="0" timeout="1.0"/>
+  </actions>
+</scenario>

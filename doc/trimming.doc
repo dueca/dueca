@@ -1,0 +1,17 @@
+/** \page trimming Calculating a trimmed state
+
+\subsection trim_intro Trimming your aircraft, calculating initial conditions
+
+One of the nice things about a simulation is that you can start it
+from any imaginable situation. When fed with the appropriate data,
+the aircraft or other thing that you simulate may start on the runway,
+with its engines running, on the platform, with all systems switched
+off, or in mid-air, cruising or in the final phase of a landing. The
+data that describes such a starting point is the state of the model at
+that point. This state is called the "initial condition". Finding an
+initial condition that gives a smooth transition from the frozen
+simulation to the running simulation is the subject of this section.
+
+
+
+*/

@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<configuration
+    xmlns="https://dueca.tudelft.nl"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://dueca.tudelft.nl platform.xsd">
+  <machineclasses>
+    <machineclass name="srs-ecs" gui="gtk3"/>
+    <machineclass name="srs-io" gui="none">
+      <config>
+        set(PROJECT_LIBRARIES -L$ENV{HOME}/apps/srs-ecat-io/build
+            -lsrs-ecat-io -lethercat)
+        set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/apps/srs-ecat-io/build
+            -I$ENV{HOME}/apps/srs-ecat-io)
+      </config>
+      <modules>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>ControlLoading</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>CLConfigurations</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>CLTools</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>cl-analyser</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>IOController</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <name>scripts</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/SRS.git</url>
+	  <name>control-switches</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/SRS.git</url>
+	  <name>gear-lever</name>
+	  <version>master</version>
+	</module>
+      </modules>
+    </machineclass>
+    <machineclass name="srs-ig" gui="none">
+      <modules>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/CitationDemo.git</url>
+	  <name>FGVisual</name>
+	  <version>master</version>
+	</module>
+      </modules>
+    </machineclass>
+    <machineclass name="srs-host" gui="none"/>
+    <machineclass name="srs-efis" gui="none"/>
+    <machineclass name="srs-sound" gui="none">
+      <modules>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <name>OpenALListener</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <name>WorldListener</name>
+	  <version>master</version>
+	</module>
+        <module>
+          <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <name>SpecificationBase</name>
+	  <version>master</version>
+	</module>
+      </modules>
+    </machineclass>
+  </machineclasses>
+  <platform name="SRS" comm-master="srsctrlecat_x">
+    <node name="srsecs" machineclass="srs-ecs" node-number="0"
+          if-address="192.168.2.11" />
+    <node name="srshost" machineclass="srs-host"
+          if-address="192.168.2.4" highest-prio="6" />
+    <node name="srsctrlecat" machineclass="srs-io" comm-master="true"
+          if-address="192.168.2.21" highest-prio="6" />
+    <node name="srsefis1" machineclass="srs-efis" if-address="192.168.2.9" />
+    <node name="srsefis2" machineclass="srs-efis" if-address="192.168.2.23" />
+    <node name="srssound" machineclass="srs-sound" if-address="192.168.2.24" />
+    <node name="srsig1" machineclass="srs-ig" if-address="192.168.2.6" />
+    <node name="srsig2" machineclass="srs-ig" if-address="192.168.2.7" />
+    <node name="srsig3" machineclass="srs-ig" if-address="192.168.2.8" />
+  </platform>
+</configuration>

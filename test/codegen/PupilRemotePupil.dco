@@ -1,0 +1,86 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemotePupil.dco
+        made by         : René van Paassen
+        date            : 210912
+        description     : Pupil for simple PupilRemote use")
+
+;; basic type, measurements
+(Type float)
+
+;; basic type, more precision for timestamp
+(Type double)
+
+;; fixed-length strings
+(Type string8 "#include <dueca/stringoptions.h>")
+
+;; vector for 2d data
+(IterableType dueca::fixvector<2,float>
+              "#include <dueca/fixvector.hxx>")
+
+;; basic type, for the eye id
+(Type int16_t)
+
+;; ellipse data from 2D model or projection from 3D model
+(Type PupilRemote2DEllipse
+      "#include \"PupilRemote2DEllipse.hxx\"")
+
+;; 3D pupil circle orientation
+(Type PupilRemote3DCircle
+      "#include \"PupilRemote3DCircle.hxx\"")
+
+;; 3D eyeball sphere
+(Type PupilRemote3DSphere
+      "#include \"PupilRemote3DSphere.hxx\"")
+
+;; Pupiluration command for PupilRemote
+(Object PupilRemotePupil
+        (Option hdf5nest)
+        (Option msgpack)
+
+        ;; eye id
+        (int16_t id (Default 0))
+
+        ;; reported topic
+        (string8 topic (Default "pupil.0"))
+
+        ;; method used
+        (string8 method (Default "fake"))
+
+        ;; norm space
+        (dueca::fixvector<2,float> norm_pos (Default 0.0f))
+
+        ;; diameter, pixels
+        (float diameter (Default 0.0f))
+
+        ;; timestamp
+        (double timestamp (Default 0.0))
+
+        ;; confidence of gaze
+        (float confidence (Default 0.0f))
+
+        ;; 2d model data
+        (PupilRemote2DEllipse ellipse)
+
+        ;; 3D model conf
+        (float model_confidence (Default 0.0f))
+
+        ;; pupil coordinates 3D
+        (float theta (Default 0.0f))
+
+        ;; pupil coordinates 3D
+        (float phi (Default 0.0f))
+
+        ;; 3d model data
+        (PupilRemote3DCircle circle_3d)
+
+        ;; pupil diameter [mm]
+        (float diameter_3d (Default 0.0f))
+
+        ;; eye ball sphere
+        (PupilRemote3DSphere sphere)
+
+        ;; eye ball projected sphere, as 2D ellipse
+        (PupilRemote2DEllipse projected_sphere)
+        )
+

@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   targetNamespace="https://dueca.tudelft.nl"
+	   xmlns="https://dueca.tudelft.nl"
+	   elementFormDefault="qualified">
+
+  <xs:element name="objects">
+     <xs:complexType>
+       <xs:sequence>
+	 <xs:element name="object" type="object_t"/>
+       </xs:sequence>
+     </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="object" type="object_t"/>
+  
+  <xs:complexType name="object_t">
+    <xs:sequence>
+      <xs:element name="member" type="member_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="class" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="member_t">
+    <xs:choice>
+      <xs:element name="value"
+		  type="xs:string"
+		  minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="object"
+		  type="object_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="pair"
+		  type="pair_t"
+		  minOccurs="0" maxOccurs="unbounded"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="pair_t">
+    <xs:sequence>
+      <xs:element name="key" type="xs:string"/>
+      <xs:choice>
+	<xs:element name="value" type="xs:string"/>
+	<xs:element name="object" type="object_t"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+  
+</xs:schema>

@@ -1,0 +1,39 @@
+;; -*-scheme-*-
+(Header "
+        item            : ChannelChangeNotification.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+;; different notification types
+(Enum NotificationType uint8_t
+      ;; A new end has been created
+      NewChannelEnd
+      ;; End has been removed
+      RemoveEnd
+      ;; End is writing end
+      IsWritingEnd)
+
+(Type NameSet "#include <NameSet.hxx>")
+(Type GlobalId "#include <GlobalId.hxx>")
+(Type uint8_t)
+
+;; Event data for updating channel registries
+(Event ChannelChangeNotification
+       (IncludeFile ChannelChangeNotificationExtra)
+
+       ;; The type of message this is
+       (NotificationType notification_type)
+
+       ;; Defining name of the channel
+       (NameSet name_set)
+
+       ;; ID (if it has been issued) of the channel end
+       (GlobalId global_id (DefaultArg GlobalId()))
+
+       ;; Code for the transport class, to coordinate transport prio
+       (uint8_t transportclass (Default 0))
+       )

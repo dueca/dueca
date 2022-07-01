@@ -1,0 +1,2 @@
+addFilter("dueca.* devel-file-in-non-devel-package")
+setBadness("invalid-license", 0)

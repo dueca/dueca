@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+initfunc=-Wl,@ldundef@InitGtk2
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-gtk2@scriptsuffix@
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} ${initfunc} -ldueca-gtk2@scriptsuffix@
+Cflags: -DDUECA_CONFIG_GTK2 -I${dueca_includedir}/dueca/gui/gtk2
+Requires: dueca-gtk2 = ${version}

@@ -1,0 +1,45 @@
+;; -*-scheme-*-
+
+(Header "
+        item            : IncoVariable.dco
+        made by         : Rene' van Paassen
+        date            : 1301004
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type string32 "#include <stringoptions.h>")
+(Type double)
+(Enum IncoVarType uint8_t "#include <IncoVarType.hxx>")
+(IterableType std::map<IncoMode,IncoRole>
+"#include <map>
+#include <IncoMode.hxx>
+#include <IncoRole.hxx>")
+
+;; This defines a variable that may be involved in trim condition
+;; calculation. For different trim modes, this variable may have
+;; different roles
+(Event
+ IncoVariable
+ (IncludeFile IncoVariableExtra)
+
+ ;; Identifying name, mainly for feedback to the trimmer/experimenter
+ (string32 name)
+
+ ;; The minimum (reasonable) value.
+ (double min_value)
+
+ ;; The maximum (reasonable) value.
+ (double max_value)
+
+ ;; Indicates how close the variable should be to its specified value,
+ ;; if this variable is used as a target
+ (double tolerance (Default 1e-5))
+
+ ;; Type of variable, integer (for switches) or double
+ (IncoVarType vartype (Default IncoFloat))
+
+ ;; A map laying out the role of the variable for each trim mode
+ (std::map<IncoMode,IncoRole> roles)
+)

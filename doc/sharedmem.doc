@@ -1,0 +1,14 @@
+/** \page sharedmem Shared memory communication
+
+The most "economical way to connect two or more dueca nodes usually
+utilises ethernet hardware.  In general this functions very well, and
+small dueca installations, under 10 nodes, can be quickly installed
+and configured. However, for large installations, and when real-time
+demands for (part of) the installation are particularly stringent,
+the use of a shared-memory network may have its advantages:
+
+<ol>
+<li>
+
+
+*/

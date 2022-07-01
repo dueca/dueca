@@ -1,0 +1,26 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemote2DEllipse.dco
+        made by         : René van Paassen
+        date            : 210912
+        description     : 2d model ellipse data")
+
+;; basic type, measurements, angles
+(Type float)
+
+;; 2d vector
+(IterableType dueca::fixvector<2,float>
+      "#include <dueca/fixvector.hxx>")
+
+;; 2D model ellipse data for PupilRemote
+;; or projected data from the 3D model
+(Object PupilRemote2DEllipse
+	(Option hdf5nest)
+        (Option msgpack)
+	;; ellipse angle, [deg]
+	(float angle (Default 0.0f))
+	;; 2D center
+	(dueca::fixvector<2,float> center (Default 0.0f))
+	;; ellipse axes
+	(dueca::fixvector<2,float> axes (Default 0.0f))
+	)

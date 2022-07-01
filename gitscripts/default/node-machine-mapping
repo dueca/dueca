@@ -1,0 +1,10 @@
+# This file defines the mapping between nodes on a specific platform and
+# the machine class (type of checkout, libraries, modules)
+#
+# Format:
+# <platform>/<node>    <machine>
+#
+# e.g.:
+# SRS/srsig1           srsig
+
+solo/solo     solo

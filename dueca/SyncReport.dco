@@ -1,0 +1,31 @@
+;; -*-scheme-*-
+(Header "
+        item            : SyncReport.dco
+        made by         : Rene' van Paassen
+        date            : 1301002
+        description     : Report on synchronisation state
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Type int32_t )
+
+;; Report on synchronization of DUECA processes
+(Event SyncReport
+       ;; current difference between master and node logical clock
+       (int32_t difference)
+       ;; number of times the scheduler woke too early
+       (int32_t        no_early)
+       ;; number of times the scheduler woke too late
+       (int32_t        no_late)
+       ;; number of times a wait had to be cancelled, since the loop was
+       ;; too late
+       (int32_t        no_cancelled_waits)
+       ;; number of time a double wait was needed to sync with the master
+       (int32_t        no_double_waits)
+       ;; earliest waking of scheduler relative to ideal wake time
+       (int32_t earliest_wrt_ideal)
+       ;; latest waking of scheduler relative to ideal wake time
+       (int32_t latest_wrt_ideal)
+       ;; average waking of scheduler relative to ideal wake time
+       (int32_t average_step_size))

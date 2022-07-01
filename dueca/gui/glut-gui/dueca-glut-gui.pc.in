@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+scriptsuffix=
+
+Name: dueca-glut-gui
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca-glut-gui${staticsuffix} @dueca_glut_gui_libs@
+Cflags: @dueca_glut_gui_cflags@
+Requires: dueca = ${version}, glu
