@@ -1,6 +1,6 @@
 Format: 1.0
-Source: dueca2
-Binary: dueca2-dusime, dueca2-doc, dueca2, dueca2-hdf, dueca2-inter, dueca2-udp, dueca2-websock
+Source: dueca
+Binary: dueca-dusime, dueca-doc, dueca, dueca-hdf, dueca-inter, dueca-udp, dueca-websock
 Architecture: any
 Version: @dueca_VERSION@-1
 Maintainer: Rene van Paassen <Rene.vanPaassen@gmail.com>

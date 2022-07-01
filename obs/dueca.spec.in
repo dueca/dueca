@@ -1,6 +1,6 @@
 # -*-rpm-*-
 
-%define name dueca2
+%define name dueca
 %define ver  @dueca_VERSION@
 %define sosuffix @VERMAJOR@_@VERMINOR@
 

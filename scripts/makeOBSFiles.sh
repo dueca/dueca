@@ -17,10 +17,10 @@ function usage()
 # defaults
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TARGETDIR=`pwd`
-NAME=dueca2
+NAME=dueca
 PKGDIR=`mktemp -d /tmp/${NAME}.XXXXXXXX`
 KEEPTMP=
-OSCDIR="${HOME}/rpmbuild/tu/home:repabuild/${NAME}"
+OSCDIR="${HOME}/rpmbuild/home:repabuild/${NAME}"
 OSCDIRV="${HOME}/rpmbuild/tu/home:repabuild/dueca-versioned"
 
 # root of the repository with source
@@ -191,7 +191,7 @@ function create_debfiles()
 
     # add a test project, relies on available gproject
     dueca-gproject clone \
-        --remote git@gitlab.tudelft.nl:rvanpaassen/DuecaTestCommunication.git \
+        --remote git@github.com:dueca/DuecaTestCommunication.git \
         --node solo
     rm -rf DuecaTestCommunication/DuecaTestCommunication/.git
     tar cvfj DuecaTestCommunication.tar.bz2 DuecaTestCommunication
