@@ -95,7 +95,7 @@ location on your computer, let's make a shell variable to have this
 location:
 
 ~~~{.bash}
-[enter]$ PROJECTURL=file:/${HOME}/gitrepos/SimpleSimulation.git
+[enter]$ PROJECTURL=file://${HOME}/gitrepos/SimpleSimulation.git
 ~~~
 
 If you created the repository somewhere else, use that URL. Let's also
@@ -103,10 +103,8 @@ indicate where we later can find the FlexiStick and WorldView projects
 from which we want to borrow the stick and worldview code:
 
 ~~~{.bash}
-[enter]$ export DAPPS_GITROOT_base=git@gitlab.tudelft.nl:ae-cs-dueca-base/
+[enter]$ export DAPPS_GITROOT_base=git@github.com:dueca/
 ~~~
-
-(@TODO: change this to a public URL with the stick and worldview code).
 
 ## Creating the new project
 
@@ -159,6 +157,12 @@ into master to get the final product.
 ~~~~{.bash}
 [enter]$ git checkout -b initial-development
 Switched to a new branch 'initial-development'
+[enter]$ # make sure the branch is also on the 'remote`
+[enter]$ git push --set-upstream origin initial-development
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+To file:///home/you/gitrepos/SimpleSimulation.git
+ * [new branch]      initial-development -> initial-development
+branch 'initial-development' set up to track 'origin/initial-development'.
 ~~~~
 
 We will use that branch from here on.
@@ -249,10 +253,10 @@ a look:
 -->
 <machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
   <project>
-    <url>file://home/you/gitrepos/SimpleSimulation.git</url>
+    <url>file:///home/you/gitrepos/SimpleSimulation.git</url>
   </project>
   <project>
-    <url>git@gitlab.tudelft.nl:ae-cs-dueca-base/FlexiStick.git</url>
+    <url>https://github.com/dueca/FlexiStick.git</url>
     <module>flexi-stick</module>
   </project>
 </machine>
@@ -1722,7 +1726,7 @@ ig  solo
 -->
 <machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
   <project>
-    <url>git@gitlab.tudelft.nl:rvanpaassen/SimpleSimulation.git</url>
+    <url>file://home/you/gitrepos/SimpleSimulation.git</url>
   </project>
 </machine>
 ~~~
@@ -1753,10 +1757,10 @@ modules, so that it looks like:
 -->
 <machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
   <project>
-    <url>git@gitlab.tudelft.nl:rvanpaassen/SimpleSimulation.git</url>
+    <url>file://home/you/gitrepos/SimpleSimulation.git</url>
   </project>
   <project>
-    <url>git@gitlab.tudelft.nl:ae-cs-dueca-base/WorldView.git</url>
+    <url>https://github.com/dueca/WorldView.git</url>
     <version>add-sample</version>
     <module>WorldView</module>
     <module>OSGViewer</module>
