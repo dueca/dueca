@@ -106,11 +106,12 @@ struct dco_nested: public dco_isdirect { };
 
 /* classname function, default for DCO objects */
 template <typename T>
-const char* getclassname() { return const_cast<const char*>(T::classname); }
+const char* getclassname()
+{ return const_cast<const char*>(T::classname); }
 
 /* and when called with an object */
 template<typename T>
-inline const char* getclassname(const T& a)
+constexpr inline const char* getclassname(const T& a)
 { return getclassname<T>(); }
 
 /* specialization for some common types */
