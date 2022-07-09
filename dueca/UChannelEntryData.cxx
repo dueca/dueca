@@ -51,7 +51,7 @@ UChannelEntryData::UChannelEntryData(const TimeTickType& ts,
   // non-NULL current. If current is NULL or a specific sequence id is
   // set, the other constructor is to be used.
   current->newer = this;
-  DEB("seq #" << seq_id << " new");
+  DEB2("seq #" << seq_id << " new");
 }
 
 UChannelEntryData::UChannelEntryData(const TimeTickType& ts,
@@ -66,7 +66,7 @@ UChannelEntryData::UChannelEntryData(const TimeTickType& ts,
   seq_id(seq_id)
 {
   if (current) current->newer = this;
-  DEB("seq #" << seq_id << " new with data");
+  DEB2("seq #" << seq_id << " new with data");
 }
 
 
@@ -83,14 +83,14 @@ UChannelEntryData* UChannelEntryData::tryDeleteData
   if (tick > time_or_time_end &&
       atomic_swap32(&read_accesses, uint32_t(1), uint32_t(0))) {
 
-    DEB("seq #" << seq_id << " trydelete");
+    DEB1("seq #" << seq_id << " trydelete");
     // remove the data and mark this.
     converter->delData(data);
     data = NULL;
     return newer;
   }
   // the read_accesses counter is left at 0
-  DEB("seq #" << seq_id << " trydelete fail " << read_accesses);
+  DEB1("seq #" << seq_id << " trydelete fail " << read_accesses);
   return NULL;
 }
 
@@ -100,7 +100,7 @@ bool UChannelEntryData::finalDeleteData(UChannelEntryDataPtr& pnt,
   if (atomic_swap32(&(pnt->read_accesses),
                     uchan_seq_id_t(1), uchan_seq_id_t(0))) {
 
-    DEB("seq #" << pnt->seq_id << " finaldelete");
+    DEB1("seq #" << pnt->seq_id << " finaldelete");
 
     // remove the data and mark this.
     converter->delData(pnt->data);
@@ -109,6 +109,7 @@ bool UChannelEntryData::finalDeleteData(UChannelEntryDataPtr& pnt,
     pnt = n;
     return (pnt != NULL);
   }
+  DEB("EntryData delete failing, readers " << (pnt->read_accesses));
   return false;
 }
 
@@ -128,7 +129,7 @@ const void* UChannelEntryData::getData(DataTimeSpec& ts_actual,
         ts_actual = DataTimeSpec(time_or_time_end, newer->time_or_time_end);
       }
       client->accessed = this;
-      DEB("seq #" << seq_id << " getData, increment to" << ra+1);
+      DEB1("seq #" << seq_id << " getData, increment to" << ra+1);
       return data;
     }
     ra = read_accesses;
@@ -149,7 +150,7 @@ const void* UChannelEntryData::monitorGetData(DataTimeSpec& ts_actual,
       else {
         ts_actual = DataTimeSpec(time_or_time_end, newer->time_or_time_end);
       }
-      DEB("seq #" << seq_id << " getData, increment to" << ra+1);
+      DEB1("seq #" << seq_id << " getData, increment to" << ra+1);
       return data;
     }
     ra = read_accesses;
@@ -171,7 +172,7 @@ const void* UChannelEntryData::getSequentialData(DataTimeSpec& ts_actual,
     ts_actual = DataTimeSpec(time_or_time_end, newer->time_or_time_end);
   }
   client->accessed = this;
-  DEB("seq #" << seq_id << " getSequentialData, at " << read_accesses);
+  DEB1("seq #" << seq_id << " getSequentialData, at " << read_accesses);
   return data;
 }
 
@@ -180,13 +181,13 @@ void UChannelEntryData::returnData(UCClientHandlePtr client)
   assert(client->accessed == this);
   client->accessed = NULL;
   atomic_decrement32(read_accesses);
-  DEB("seq #" << seq_id << " return data, decrement");
+  DEB1("seq #" << seq_id << " return data, decrement");
 }
 
 void UChannelEntryData::monitorReturnData()
 {
   atomic_decrement32(read_accesses);
-  DEB("seq #" << seq_id << " monitor return data, decrement");
+  DEB1("seq #" << seq_id << " monitor return data, decrement");
 }
 
 void UChannelEntryData::resetDataAccess(UCClientHandlePtr client)
@@ -195,7 +196,7 @@ void UChannelEntryData::resetDataAccess(UCClientHandlePtr client)
   client->accessed = NULL;
   if (!client->entry->isSequential()) {
     atomic_decrement32(read_accesses);
-    DEB("seq #" << seq_id << " reset data access, decrement");
+    DEB1("seq #" << seq_id << " reset data access, decrement");
   }
 }
 
@@ -205,7 +206,7 @@ void UChannelEntryData::assumeData(UCClientHandlePtr client)
   client->accessed = NULL;
   data = NULL;
   atomic_decrement32(read_accesses);
-  DEB("seq #" << seq_id << " assume data, decrement");
+  DEB1("seq #" << seq_id << " assume data, decrement");
 }
 
 DUECA_NS_END

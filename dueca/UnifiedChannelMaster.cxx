@@ -16,7 +16,7 @@
 #include "DataClassRegistry.hxx"
 #include <debug.h>
 
-#define DEBPRINTLEVEL -1
+#define DEBPRINTLEVEL 0
 #include <debprint.h>
 
 DUECA_NS_START
@@ -323,7 +323,7 @@ void UnifiedChannelMaster::process(AsyncQueueMT<UChannelCommRequest>& req,
          * data1: provisional id (same as when created)
 
          Actions:
-         - make the entry invalid
+         - make the entry invalid (InvalidateEntryCmd to all ends)
          - add the entry to the cleaning stack
 
          The provisional id rather than the entry_id is used, because
@@ -370,8 +370,11 @@ void UnifiedChannelMaster::process(AsyncQueueMT<UChannelCommRequest>& req,
       */
     case UChannelCommRequest::CleanEntryConf: {
       entryid_type handle = req.front().data0;
+      DEB("Clean confirmation, #" << handle <<
+          ", round=" << req.front().data1);
       if (to_be_cleaned.front().round == req.front().data1 &&
           to_be_cleaned.front().entry == handle) {
+        DEB("Clean confirmation, matches round");
         if (--to_be_cleaned.front().stilldirty == 0) {
           reusable.push_back(handle);
           to_be_cleaned.pop_front();

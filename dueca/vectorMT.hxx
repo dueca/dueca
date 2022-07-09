@@ -75,8 +75,8 @@ private:
 
 public:
 
-  vectorMT() :
-    N(0), data(new dataset(32U))
+  vectorMT(size_t reserve=32) :
+    N(0), data(new dataset(reserve))
   { }
 
   ~vectorMT()

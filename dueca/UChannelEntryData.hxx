@@ -38,11 +38,12 @@ typedef uint32_t uchan_seq_id_t;
     data is given a writing sequence, starting from 1, keeps a pointer
     to the client data, and keeps the specified time.
 
-    An empty list contains a sentinel UChannelEntryData object. The
-    sentinel object holds a valid sequence number (which start from
-    1), a null pointer to the data, and a zero for the time. For a
-    list with stream data, the sentinel object will contain the
-    validity end of the latest written datapoint.
+    An empty list contains only a sentinel UChannelEntryData
+    object. The sentinel object holds a valid sequence number (which
+    start from 1), a null pointer to the data, and a zero for the
+    time. For a list with stream data, the sentinel object will have a
+    non-null time, being the validity end of the latest written
+    datapoint.
 
     For event type data, the time simply indicates the validity point
     of the data.
@@ -87,11 +88,14 @@ typedef uint32_t uchan_seq_id_t;
     incremented or decremented, if necessary in a lock-free
     manner. When >1, the data point cannot be cleaned away.
 
-    If a channel has one or more sequential reading clients, the
-    oldest datapoint's read_accesses counter is increase with the
-    number of sequential reading clients. As these clients read, they
-    will decrement the oldest datapoint's read_accesses counter and
-    increment the one of the following datapoint.
+    If a channel has one or more sequential reading clients, the very
+    first datapoint written in the channel is initialised with the
+    number of sequential reading clients. As these clients read their
+    data, they will increment the read_accesses counter of the next
+    point to read, and then decrement the oldest datapoint's
+    read_accesses counter. Sequential reading clients thus have their
+    read access always increased on the oldest point they need to
+    read.
  */
 class UChannelEntryData
 {
@@ -120,8 +124,7 @@ class UChannelEntryData
       (sequential) readers. When a non-promising reader accesses a
       data point, this count is increased while access is in
       progress. An atomic test and set is used to increase or decrease
-      the count. For flagging clean-up of data, the count is decreased
-      to 0. */
+      the count. */
   atom_type<uchan_seq_id_t>::type read_accesses;
 
   /** Sequence id. To keep a count of the total written datapoints in
