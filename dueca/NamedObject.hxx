@@ -24,6 +24,7 @@ DUECA_NS_START
 struct NameSet;
 class Destination;
 class GenericChannel;
+template<class Host> class AssociateObject;
 
 /** This class is a common base to all objects with a name. These
     objects will be locatable by the CSE registry.
@@ -57,12 +58,21 @@ class NamedObject
       within the simulation */
   GlobalId my_id;
 
+  /** Remember this is a copy, do not activate delete */
+  bool     is_copy;
+
   /** copy constructor, these objects, nor descendants, are not supposed
       to be copied */
   NamedObject(const NamedObject& no);
   /// Cannot assign, ...
   NamedObject& operator = (const NamedObject&);
+
+  /** Reserve for AssociateObject */
+  // template<class Host> friend class AssociateObject;
 protected:
+
+  /** Only for AssociateObject descendant */
+  NamedObject(const GlobalId& id);
 
   /** Normal constructor, protected, because it has no use to create a
       NamedObject by itself */

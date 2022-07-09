@@ -81,7 +81,7 @@ set(DUECASOURCES
   DataWriterArraySize.hxx msgpack.hxx msgpack.cxx
   PythonCorrectedName.hxx PythonCorrectedName.cxx
   ListElementAllocator.hxx DCOtypeJSON.hxx DCOtypeJSON.cxx
-  ChronoTimePoint.hxx ChronoTimePoint.cxx )
+  ChronoTimePoint.hxx ChronoTimePoint.cxx AssociateObject.hxx)
 
 
 set(SCRAMNETSOURCES
@@ -131,19 +131,19 @@ set(INSTALLHEADERS
   dueca.h dueca_ns.h EventReader.hxx StreamReader.hxx StreamWriter.hxx
   Su.hxx StreamReaderLatest.hxx CriticalActivity.hxx GuileStart.hxx
   AsyncList.hxx MessageBuffer.hxx scriptinterface.h ArgElement.hxx
-  AsyncQueueMT.hxx LockFreeLIFO.hxx
-  EventWriter.hxx SharedPtrTemplates.hxx SchemeObject.hxx
-  ScriptInterpret.hxx ChannelEntryInfo.hxx SchemeData.hxx
-  TimingCheck.hxx Exception.ixx dueca_assert.h StatusT1.hxx
-  StatusKeeper.hxx NodeManager.hxx EntityManager.hxx Summary.hxx
-  ModuleId.hxx TimeWarp.hxx dueca-guile.h ScriptCreatable.hxx
-  MemberCall2Way.hxx CoreCreator.hxx CoreCreator.ixx
-  ArgListProcessor.hxx AperiodicAlarm.hxx PeriodicAlarm.hxx
-  DuecaEnv.hxx MultiStreamReadToken.hxx MultiStreamWriteToken.hxx
-  MultiStreamWriter.hxx MultiStreamReader.hxx Logger.hxx
-  LogCategory.hxx newlog.hxx newlog-macros.hxx LogString.hxx ActivityContext.hxx
-  debug-direct.h ScriptCreatableDataHolder.hxx PackUnpackTemplates.hxx
-  fixvector.hxx varvector.hxx limvector.hxx vectorexceptions.hxx
+  AsyncQueueMT.hxx LockFreeLIFO.hxx EventWriter.hxx
+  SharedPtrTemplates.hxx SchemeObject.hxx ScriptInterpret.hxx
+  ChannelEntryInfo.hxx SchemeData.hxx TimingCheck.hxx Exception.ixx
+  dueca_assert.h StatusT1.hxx StatusKeeper.hxx NodeManager.hxx
+  EntityManager.hxx Summary.hxx ModuleId.hxx TimeWarp.hxx
+  dueca-guile.h ScriptCreatable.hxx MemberCall2Way.hxx CoreCreator.hxx
+  CoreCreator.ixx ArgListProcessor.hxx AperiodicAlarm.hxx
+  PeriodicAlarm.hxx DuecaEnv.hxx MultiStreamReadToken.hxx
+  MultiStreamWriteToken.hxx MultiStreamWriter.hxx
+  MultiStreamReader.hxx Logger.hxx LogCategory.hxx newlog.hxx
+  newlog-macros.hxx LogString.hxx ActivityContext.hxx debug-direct.h
+  ScriptCreatableDataHolder.hxx PackUnpackTemplates.hxx fixvector.hxx
+  varvector.hxx limvector.hxx vectorexceptions.hxx
   DataClassRegistryPredef.hxx DataClassRegistry.hxx
   DataClassRegistrar.hxx CommObjectMemberAccess.hxx NameSetExtra.hxx
   ModuleStateExtra.hxx GlobalIdExtra.hxx SimulationStateExtra.hxx
@@ -161,11 +161,11 @@ set(INSTALLHEADERS
   TriggerRegulatorGreedy.hxx DCOFunctor.hxx DCOMetaFunctor.hxx
   SchemeClassData.hxx CoreCreatorPython.ixx DCOtoJSON.hxx
   JSONtoDCO.hxx CommonCallback.hxx XMLtoDCO.hxx DCOtoXML.hxx
-  smartstring.hxx DataWriterArraySize.hxx msgpack.hxx msgpack-unstream.hxx
-  PythonCorrectedName.hxx  ChronoTimePoint.hxx
-  msgpack-unstream-iter.hxx  msgpack-unstream-iter.ixx
+  smartstring.hxx DataWriterArraySize.hxx msgpack.hxx
+  msgpack-unstream.hxx PythonCorrectedName.hxx ChronoTimePoint.hxx
+  msgpack-unstream-iter.hxx msgpack-unstream-iter.ixx
   ListElementAllocator.hxx DCOtypeJSON.hxx undebug.h
-  EasyId.hxx)
+  AssociateObject.hxx)
 
 DUECACODEGEN_TARGET(OUTPUT DCO INDUECA DCOSOURCE ${DCOSOURCES})
 
