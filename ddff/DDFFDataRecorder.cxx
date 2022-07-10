@@ -149,6 +149,10 @@ bool DDFFDataRecorder::isValid()
 
   // check that entity/key have been specified
   if (entity.size() == 0 || key.size() == 0) {
+    /* DUSIME replay&initial
+
+       A DataRecorder needs both entity and key defined. One or
+       both is empty */
     W_MOD("DataRecorder is not correctly initialized, entity=\"" <<
           entity << "\", key=\"" << key << "\"");
     return false;

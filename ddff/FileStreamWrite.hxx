@@ -85,7 +85,7 @@ public:
   struct Iterator {
 
     /// Output iterator, only writing to stream
-    using iterator_catecgory = std::output_iterator_tag;
+    using iterator_category  = std::output_iterator_tag;
 
     /// Difference
     using difference_type    = std::ptrdiff_t;

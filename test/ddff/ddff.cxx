@@ -114,7 +114,7 @@ int main()
       auto it1 = write1->iterator();
       const char jack[] = "All work and no play makes Jack a dull boy!\n";
       for (unsigned ii = 4; ii--; ) {
-	write0->markItemStart();
+        write0->markItemStart();
         it0 = std::copy(jack, jack + sizeof(jack), it0);
       }
       // intermediate writing
@@ -123,7 +123,7 @@ int main()
 
       const char jill[] = "All work and no play makes Jill a dull gal!\n";
       for (unsigned ii = 3; ii--; ) {
-	write1->markItemStart();
+        write1->markItemStart();
         it1 =  std::copy(jill, jill + sizeof(jill), it1);
       }
     }

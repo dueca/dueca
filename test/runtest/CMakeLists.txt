@@ -1,21 +1,37 @@
+# This test folder tries to check out, compile and run DUECA project
+# DuecaTestCommunication under an Xvfb X server, driven by a Python
+# script
+
+# virtual framebuffer x server
+find_program(XVFB NAMES Xvfb)
+find_program(WINDOWMANAGER NAMES openbox)
+find_program(WMCTRL NAMES wmctrl)
+find_package(LibXml2 REQUIRED)
+
+# variables for running
+set(DISPLAYSIZE 1024x768)
+set(DISPLAY ":88")
+set(TIMELIMIT 120s)
+
 # test some supporting python packages
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import PIL"
   RESULT_VARIABLE PYTHON_HAVE_PIL)
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import wmctrl"
   RESULT_VARIABLE PYTHON_HAVE_WMCTRL)
-execute_process(COMMAND ${Python_EXECUTABLE} -c "import pynput"
+
+# pynput expects access to an X server
+configure_file(testpynput.in testpynput @ONLY)
+# following fails on older CMake!
+#file(CHMOD ${CMAKE_CURRENT_BINARY_DIR}/testpynput
+#    PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
+execute_process(COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/testpynput)
+execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/testpynput
   RESULT_VARIABLE PYTHON_HAVE_PYNPUT)
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import attr"
   RESULT_VARIABLE PYTHON_HAVE_ATTRS)
 set(TESTRUN_BASE "/tmp/tmp.runner" CACHE PATH
                            "Location for running test projects")
 
-# virtual framebuffer x server
-find_program(XVFB NAMES Xvfb)
-find_program(WINDOWMANAGER NAMES openbox)
-find_program(WMCTRL NAMES wmctrl)
-set(DISPLAY ":88")
-find_package(LibXml2 REQUIRED)
 
 set(CONTROLFILES tmssolo tmsudptwo tmswsudpfour)
 
@@ -27,9 +43,6 @@ if (PYTHON_HAVE_PIL EQUAL 0 AND
     NOT XVFB MATCHES ".*-NOTFOUND" AND
     NOT WINDOWMANAGER MATCHES ".*-NOTFOUND")
 
-  set(DISPLAYSIZE 1024x768)
-  set(DISPLAY ":88")
-  set(TIMELIMIT 120s)
 
   foreach (CONTROLFILE ${CONTROLFILES})
 

@@ -38,8 +38,7 @@ find_path(CODEGEN_SOURCE dueca-codegen.py
   PATHS "${CMAKE_SOURCE_DIR}/pycodegen" NO_DEFAULT_PATH)
 
 find_program(DuecaCodegen_EXECUTABLE dueca-codegen
-  PATHS /usr/bin /usr/local/bin /opt/local/bin
-  /tmp/bin NO_DEFAULT_PATH)
+  PATHS /usr/bin /usr/local/bin /opt/local/bin /tmp/bin)
 include(CMakeParseArguments)
 
 
