@@ -36,7 +36,7 @@ struct EntryCountResult;
     either locally, or remotely.
 
     When created locally, the entry id is to be issued by the
-    master/administrative end, and after thate the entry becomes valid.
+    master/administrative end, and after that the entry becomes valid.
 
     When created from remote, entry id and classname are passed in
     creation, and validity is implicit.
@@ -52,7 +52,7 @@ class UChannelEntry
       needs to trigger transport. */
   UnifiedChannel* channel;
 
-  /** Copy of the pointer to the data converter */
+  /** Pointer to the data converter */
   const DataSetConverter* converter;
 
   /** Name of the data class being written */
@@ -62,17 +62,19 @@ class UChannelEntry
   uint32_t creation_id;
 
   /** Id of the entry. Each entry in the multi stream channel is given
-      a unique id. This is also used as temporary id, while the entry
-      is not yet valid. */
+      a unique id. This is also used as a flag (entry_end) when the entry
+      has been created and not yet validated. */
   entryid_type entry_id;
 
-  /** Data span we are trying to maintain. */
+  /** Data span we are trying to maintain, in case of stream-based
+      writing. */
   TimeTickType span;
 
-  /** Minimum channel depth */
+  /** Minimum channel depth, minimum number of copies to maintain. */
   unsigned depth;
 
-  /** Should the next send contain the full data? */
+  /** Flag to remember whether the full content should be sent at the
+      next packing action. */
   bool send_full;
 
   /** A pointer to the clean-up entries. Is maintained at one behind the
@@ -80,13 +82,12 @@ class UChannelEntry
       data point. */
   UChannelEntryData* cleanup;
 
-  /** A pointer to the tail, or oldest data entry. */
+  /** A pointer to the tail, or oldest data entry available for reading. */
   UChannelEntryData* volatile oldest;
 
   /** A pointer to the "head" or latest data entry. In combination
       with the oldest pointer, this points to both ends of the list of
-      entrydata objects. If NULL, the list is empty, i.e. there is no
-      sentinel. */
+      entrydata objects. This is a sentinel, never used by readers. */
   UChannelEntryData* volatile latest;
 
   /** A pointer to a currently monitored data point */
@@ -443,11 +444,13 @@ public:
       @returns       Number of data points eaten */
   unsigned flushOne(UCClientHandlePtr client);
 
-  /** Return a void* pointer to the data. Also give the correct time
-      specification for this data. If sequential reading, the data is
-      returned when the event time (events) or start time
-      (stream) <= t_latest. If time-based reading, the latest data matching
-      the time is returned.
+  /** Return a void* pointer to the data and the correct time
+      specification for this data. 
+
+      If sequential reading, the data is returned when the event time
+      (events) or start time (stream) <= t_latest. If time-based
+      reading, the latest data matching the time is returned.
+
       \param client Client's handle.
       \param t_latest Time for which the access is requested. If not
       available, the newest data available is given.

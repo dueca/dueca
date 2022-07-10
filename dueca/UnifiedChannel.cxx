@@ -926,6 +926,7 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
 
     assert(msg.data0 < entries.size() && entries[msg.data0] != NULL);
     //  if (msg.data0 >= entries.size() || !entries[msg.data0]) break;
+    DEB("cleanup of entry " << msg.data0);
     delete entries[msg.data0]; entries[msg.data0] = NULL;
     break;
 
@@ -1212,9 +1213,12 @@ void UnifiedChannel::serviceLocal2(const LocationId location_id,
   assert(!config_changes.notEmpty());
 }
 
+// called by the timedservicer
 void UnifiedChannel::service()
 {
   if (masterp) {
+
+    // process all config requests here in the master
     if (config_requests.notEmpty()) {
 
       // in case the master end is local, process the requests

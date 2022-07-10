@@ -70,7 +70,7 @@ UChannelEntry::UChannelEntry(UnifiedChannel* channel,
   config_version(0),
   triggers(NULL),
   jumptime(MAX_TIMETICK),
-  pclients(),
+  pclients(4),
   nreservations(nreservations)
 {
   // if saveup is selected, the use count of our only (sentinel) is
@@ -170,13 +170,14 @@ void UChannelEntry::setConfValid()
 void UChannelEntry::resetValid()
 {
   // the lock is on
-
   DEB(channel->getNameSet() << " entry #" << entry_id << " invalid");
-  this->valid = false;
-  if (writer) {
-    for (unsigned ii = pclients.size(); ii--; ) {
-      if (pclients[ii].handle) {
-        pclients[ii].handle->entry->read_index->releaseAccess();
+  if (this->valid) {
+    this->valid = false;
+    if (writer) {
+      for (unsigned ii = pclients.size(); ii--; ) {
+        if (pclients[ii].handle) {
+          pclients[ii].handle->entry->read_index->releaseAccess();
+        }
       }
     }
   }
@@ -783,7 +784,6 @@ unsigned UChannelEntry::spinToLast(UCClientHandlePtr client, TimeTickType t_late
   return nskip;
 }
 
-
 unsigned UChannelEntry::flushAll(UCClientHandlePtr client)
 {
   // only for sequential clients
@@ -1267,7 +1267,12 @@ UChannelEntry::PackerClientData::PackerClientData(const PackerClient& c) :
 UChannelEntry::PackerClient::PackerClient(UCClientHandlePtr handle) :
   PackerClientData(),
   handle(handle)
-{ }
+{
+  // should have access lock
+  if (handle != NULL) {
+    assert(handle->entry->read_index->getReadAccesses() > 1);
+  }
+}
 
 UChannelEntry::PackerClient&
 UChannelEntry::PackerClient::operator= (const PackerClientData& d)
