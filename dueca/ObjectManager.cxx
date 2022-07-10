@@ -383,6 +383,9 @@ void ObjectManager::destructAllButCrew()
       delete (object_registry[ii].getObject());
     }
     if (!object_registry.contains(ii)) {
+      /* DUECA system.
+
+         The requested object is not or no longer in the registry. */
       I_SYS("Missing object " << ii << " from the registry");
     }
   }

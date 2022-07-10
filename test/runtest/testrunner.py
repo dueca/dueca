@@ -22,6 +22,7 @@ from duecautils.xmlutil import XML_comment, XML_tag, XML_interpret_bool
 _loop = asyncio.get_event_loop()
 
 base = '/tmp/tmp.runner'
+x11display = os.environ.get("DISPLAY")
 
 the_mouse = pynput.mouse.Controller()
 the_keyboard = pynput.keyboard.Controller()
@@ -197,7 +198,8 @@ class Check:
             else:
                 _x, _y = x, y
 
-            under_cursor = ImageGrab.grab(bbox=(x-2, y-2, x-1, y-1))
+            under_cursor = ImageGrab.grab(bbox=(x-2, y-2, x-1, y-1),
+                                          xdisplay=x11display)
             col = under_cursor.getcolors(1)[0][1]
             print(f"Found {col} at {x},{y}")
             if window:
@@ -258,7 +260,8 @@ class Check:
                 x, y = self.x, self.y
 
             if self.color is not None:
-                under_cursor = ImageGrab.grab(bbox=(x-2, y-2, x-1, y-1))
+                under_cursor = ImageGrab.grab(bbox=(x-2, y-2, x-1, y-1),
+                                              xdisplay=x11display)
                 col = under_cursor.getcolors(1)[0][1]
                 if col == self.color:
                     return True
@@ -267,7 +270,7 @@ class Check:
 
             await asyncio.sleep(0.05*self.timeout)
 
-        img = ImageGrab.grab()
+        img = ImageGrab.grab(xdisplay=x11display)
         if self.window and w is None:
             print(f"Failed to find window {self.window}")
             img.save(f'error{Check.errcnt:03d}-no-win-{self.window}.png'.replace('/', '_'))
@@ -293,7 +296,7 @@ class Snap:
 
     async def execute(self):
         print(f"Snapshot to {self.name}")
-        img = ImageGrab.grab()
+        img = ImageGrab.grab(xdisplay=x11display)
         img.save(self.name)
 
 
@@ -520,8 +523,13 @@ class DuecaRunner:
         # hackety hack, someone scrubbed my LD_LIBRARY_PATH
         envdict = dict(os.environ)
         # print(envdict)
-        envdict['LD_LIBRARY_PATH'] = '/tmp/lib64:/tmp/lib'
-        if '/tmp/bin' not in envdict['PATH'].split(':'):
+        if envdict.get('LD_LIBRARY_PATH', None) is None:
+            envdict['LD_LIBRARY_PATH'] = '/tmp/lib64:/tmp/lib'
+        for p in envdict['PATH'].split(':'):
+            if os.path.exists(f"{p}/dueca-gproject"):
+                break
+        else:
+            # development version in /tmp?
             envdict['PATH'] = envdict['PATH']+":/tmp/bin"
 
         print(f"using display {envdict.get('DISPLAY')}")

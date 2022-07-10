@@ -85,7 +85,7 @@ add_custom_target(sorttablejs ALL
 set(PNGDATA
 
   metafunctor.png dataflowblock.png dataflowdueca.png entity.png
-  spaceplane.png threads.png)
+  spaceplane.png threads.png bugfound-badge.png)
 
 # find doxygen
 find_package(Doxygen REQUIRED)

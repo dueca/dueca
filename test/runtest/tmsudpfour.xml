@@ -4,7 +4,7 @@
     <window>DUECA/DUSIME control panel</window>
     <window>Are you serious?</window>
   </project>
-  <repository>git@gitlab.tudelft.nl:rvanpaassen/</repository>
+  <repository>https://github.com/dueca/</repository>
   <execute>
     <platform>udpws-four</platform>
     <node>node4</node>
