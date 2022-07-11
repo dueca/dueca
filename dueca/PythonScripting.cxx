@@ -129,8 +129,8 @@ void PythonScripting::initiate()
   try {
 
 
-#if PY_VERSION_HEX >= 0x03070000
-    // trying preconfig, does not work on Python 3.6
+#if PY_VERSION_HEX >= 0x03080000
+    // trying preconfig, does not work on Python 3.7 ?
     PyPreConfig preconfig;
     PyPreConfig_InitIsolatedConfig(&preconfig);
 #if defined(FORCE_PYTHON_MALLOC)
@@ -171,7 +171,7 @@ void PythonScripting::initiate()
     Py_SetProgramName(*p_argv[0]);
 #endif
 
-#if PY_VERSION_HEX >= 0x03070000
+#if PY_VERSION_HEX >= 0x03080000
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
     config.isolated = 1;

@@ -41,12 +41,6 @@ BuildRequires: lsb-release
 BuildRequires: msgpack-devel
 BuildRequires: python3-pip
 
-%if 0%{?run_tests}
-BuildRequires: xorg-x11-server-Xvfb
-BuildRequires: openbox
-BuildRequires: python3-pillow
-%endif
-
 %if 0%{?suse_version}
 BuildRequires: libguile1-devel
 BuildRequires: guile1
@@ -143,9 +137,6 @@ BuildRequires: date-devel
 BuildRequires: toml11-devel
 
 Source0: dueca-%{ver}.tar.bz2
-%if 0%{?run_tests}
-Source1: DuecaTestCommunication.tar.bz2
-%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
 %description
@@ -331,9 +322,8 @@ Documentation for users of the DUSIME and DUECA API
 
 %prep
 %setup -q -n dueca-%{ver}
-%if 0%{?run_tests}
-%setup -T -D -b 1
-%endif
+
+%build
 
 %cmake \
 %if 0%{?suse_version}
@@ -353,13 +343,8 @@ Documentation for users of the DUSIME and DUECA API
        %{?WEBSOCK_CONFIG} \
        %{?SCRIPT_PYTHON_CONFIG} \
        -DTRY_INSTALL_PYTHON_BUILD=ON \
-%if 0%{?run_tests}
-       -DTESTRUN_BASE:PATH=%{_builddir} \
-%endif
        -DBUILD_X11GL=ON \
        -DBUILD_DDFF=ON
-
-%build
 
 if [ -d "%{?__cmake_builddir}" ]; then
     %cmake_build
@@ -380,18 +365,6 @@ elif [ -d build ]; then
     cd build
 fi
 %make_install
-
-%if 0%{?run_tests}
-pip install pynput --user
-pip install wmctrl --user
-
-# add a test run step
-PATH=%{buildroot}%{_bindir}:${PATH} \
-PKG_CONFIG_PATH=%{buildroot}%{_libdir}/pkgconfig:${PKG_CONFIG_PATH} \
-LD_LIBRARY_PATH=%{buildroot}%{_libdir}:${LD_LIBRARY_PATH} \
-PYTHONPATH=%{buildroot}%{python3_sitelib}:${PYTHONPATH} \
-    make test
-%endif
 
 %if 0%{?suse_version}
 %fdupes -s %{buildroot}%{_docdir}
