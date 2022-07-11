@@ -185,7 +185,7 @@ class Check:
     errcnt = 0
 
     def __init__(self, xmlroot=None, xmlnode=None, x=0, y=0,
-                 timeout=5.0, window='', wait=0.5):
+                 timeout=10.0, window='', wait=0.5):
 
         global translation
 
