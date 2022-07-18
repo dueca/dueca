@@ -115,4 +115,5 @@ archive. </td></tr>
 
 </table>
 
-The page on [Policies](@ref policies) describes how policy support in `dueca-gproject` might support automated changes to project code.
+The page on [Policies](@ref policies) describes how policy support in
+`dueca-gproject` might support automated changes to project code.

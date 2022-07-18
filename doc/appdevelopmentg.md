@@ -315,16 +315,45 @@ of `git` and `dueca-gproject` commands to maintain your project.
 
 ## Shortened URL's for multiple base groups {#appdevelg_shorturl}
 
-The `DAPPS_GITROOT` environment variable will indicate which URL
-prefix is the default for borrowing from projects where only the
-project name is given. To organise a set of repositories with
-projects, multiple environment variables can be defined. By defining
-`DAPPS_GITROOT_<prefix>`, project URL's starting with
-`dgr<prefix>:///` will have that tag replaced by the contents of the
-environment variables. At Gontrol and Simulation we commonly define:
+Over the (extended) lifetime of a DUECA project, it might happen that
+the project code lives in different `git` repositories. As a simple
+example, someone attempting to fix or extend the WorldView project
+located at `git@github.com:dueca/WorldView.git` might need to clone
+this project in github to his/her personal repository, then work on
+that, and use a pull request to request a merge of the work with the
+WorldView project. For its housekeeping, the `dueca-gproject` stores
+the location of the repository URL's, and these would need to be
+modified whenever a repository moves.
+
+To fix that, there are a nuber of shortcut URL's that are
+automatically or custom defined. The first of these is `remote://`,
+you will find in `modules.xml` that the location of the project you
+are working on will have been adjusted to `origin:///MyProject.git`
+(assuming that project is called MyProject). When interacting with
+git, the full project URL will be substituted.
+
+A number of other shortcut URL's can be defined through SHELL
+environment variables. These can then be used to represent the
+locations of git repositories from where you might pull borrowed
+modules. These shortcut URL's all start with the string `dgr`.
+
+The `DAPPS_GITROOT` environment variable maps to the shortcut URL
+`dgr:///`, and will indicate which URL prefix is the default for
+borrowing from projects where only the project name is given.
+
+To organise a set of repositories with projects, multiple environment
+variables can be defined. By defining `DAPPS_GITROOT_<prefix>`,
+project URL's starting with `dgr<prefix>:///` will have that tag
+replaced by the contents of the environment variables. At Control and
+Simulation we commonly define:
 
 <table>
 <tr><th>variable</th><th>value</th><th>replaces prefix</th><th>Description</th></tr>
+
+<tr><td>`DAPPS_GITROOT_pub`</td>
+<td>`git@gitlab.tudelft.nl:ae-cs-dueca-base/`</td>
+<td>`dgrpub:///`</td>
+<td>Open-sourced DUECA modules on GitHub</td></td>
 
 <tr><td>`DAPPS_GITROOT_base`</td>
 <td>`git@gitlab.tudelft.nl:ae-cs-dueca-base/`</td>
@@ -350,7 +379,7 @@ etc.</td></tr>
 
 When specifying a repository to the `dueca-gproject` script, the
 shortened URL may then be used. The repository will be stored in the
-`modules.xml` files with the shortened URL; and converted when passed
+`modules.xml` files with the shortened URL and converted when passed
 to `git`. It will therefore be necessary to have the proper
 environment variables defined when you work with the project again
 later.
@@ -422,7 +451,7 @@ project on your computer, a good way to continue working is:
 	git pull
 	# and ensure any changes to borrowed modules and dco's are in
 	dueca-gproject refresh
-	
+
 See also the next section.
 
 ### Using git; daily work; pull, commit, push
@@ -465,7 +494,7 @@ and it will be easy:
   the `-a` option specify all tracked files that have been
   changed. You can use the `-m` option to add a commit message, as an
   example:
-  
+
 	  git commit -a -m "Added an option to configure wind conditions"
 
 - Likewise, after you are done with working on your project for the
@@ -766,14 +795,14 @@ select the proper machine class, example.
     dueca-gproject clone --name MyProject --remote <project url> \
                          --node srsecs
 
-There are a number of common pitfalls when deploying a project on the 
+There are a number of common pitfalls when deploying a project on the
 computers/nodes of a platform:
 
 - Each `modules.xml` file for a specific machine class should contain
   the modules that you borrow, and entries for the projects from which
   you borrow comm-objects folders. You might have to go in and copy
   these from the solo machine `modules.xml` file.
-  
+
 - When you borrow dco files that use other, nested dco files, you need
   to also borrow these nested dco files, and specify these in the
   `comm-objects.lst` files. Code generation and compilation works
@@ -782,7 +811,7 @@ computers/nodes of a platform:
   different nodes, you may find that one of the `comm-objects.lst`
   files was not yet correct; this generally shows up as a failure to
   find the (generated) headers of the included dco objects.
-  
+
 - When the machine class and node are not in the `machinemapping.xml`
   file, the clone/checkout will default to solo.
 
