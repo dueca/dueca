@@ -16,8 +16,28 @@ from .verboseprint import dprint
 from .commobjects import CommObjectsList
 import tempfile
 
+# regex for decoding project URL
 _decodeprj = re.compile(r"^(.+)/(.+)\.git$")
 def projectSplit(url: str):
+    """
+    Split the project URL into a repository/project part
+
+    Parameters
+    ----------
+    url : str
+        Project URL.
+
+    Raises
+    ------
+    e
+        Exception given when URL does not follow the required pattern.
+
+    Returns
+    -------
+    tuple of str
+        Repository URL and project name.
+
+    """
     try:
         match = _decodeprj.fullmatch(url)
         # dprint("splitting url", url, " into ", match.group(1), '/', match.group(2))
@@ -26,54 +46,128 @@ def projectSplit(url: str):
         print(f"Cannot split project url from {url}")
         raise e
 
-# use this variable, DAPPS_GITROOT
-_gitroot = os.environ.get('DAPPS_GITROOT', None)
-if _gitroot and (not _gitroot.endswith('/')):
-    print("DAPPS_GITROOT should end with a '/'", file=sys.stderr)
-    _gitroot = _gitroot + '/'
+# singleton for the mapping of shortened URL's
+class RootMap(dict):
 
-_gitrootmap = {}
+    def __new__(cls):
+        """
+        Create new map linking abbreviation URL prefixes to full URL
 
-for k, v in os.environ.items():
-    if k.startswith('DAPPS_GITROOT_') and len(k) > len('DAPPS_GITROOT_'):
-        if not v.endswith('/'):
-            print(f"{k} should end with a '/'", file=sys.stderr)
-            v = v + '/'
-        _gitrootmap['dgr'+k[len('DAPPS_GITROOT_'):]] = v
+        Given environment keys like 'DAPPS_GITROOT_example', a mapping is
+        realised from abbreviated url drgexample:/// to the contents of the
+        environment variable.
 
-if _gitroot is not None:
-    _gitrootmap['dgr'] = _gitroot
+        Parameters
+        ----------
+        cls : TYPE
+            Class variable.
 
-def urlToAbsolute(url):
-    """
-    Convert a shorthand url to longhand form.
+        Returns
+        -------
+        Singleton instance of RootMap.
 
-    Parameters
-    ----------
-    url : str
-        Shorthand url, starting with 'dgr:///' or 'dgr.*:///'.
+        """
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(RootMap, cls).__new__(cls)
 
-    Returns
-    -------
-    str
-        Complete url.
+            for k, v in os.environ.items():
+                if (k.startswith('DAPPS_GITROOT_') and \
+                    len(k) > len('DAPPS_GITROOT_')) or \
+                    k == 'DAPPS_GITROOT':
+                    if not v.endswith('/'):
+                        print(f"{k} should end with a '/'", file=sys.stderr)
+                        v = v + '/'
+                    key = (k == 'DAPPS_GITROOT' and 'dgr') or \
+                        'dgr'+k[len('DAPPS_GITROOT_'):]
+                    cls.instance[key] = v
+                    dprint(f"adding shortcut {key} for {v}")
 
-    """
-    for u, root in _gitrootmap.items():
-        if url.startswith(f'{u}:///'):
-            return root + url[len(u)+4:]
-    return url
+        return cls.instance
 
-def urlToRelative(url):
-    """Convert a URL using gitroot to relative.
+    def addProjectRemote(self, url: str):
+        """
+        Set the specific url remote:/// to the actual remote upstream
 
-    This is used mainly in development, when a "default" repository root
-    is used.
-    """
-    if _gitroot is not None and \
-        url.startswith(_gitroot):
-        return 'dgr:///' + url[len(_gitroot):]
-    return url
+        Parameters
+        ----------
+        url : str
+            Remote url.
+
+        Returns
+        -------
+        None.
+
+        """
+        urlbase = '/'.join(url.split('/')[:-1]) + '/'
+        dprint(f"adding shortcut remote for {urlbase}")
+        if 'remote' in self and self['remote'] != urlbase:
+            print("Overwriting remote origin with", urlbase)
+        self['remote'] = urlbase
+
+    def urlToAbsolute(self, url):
+        """
+        Convert a shorthand url to longhand form.
+
+        Parameters
+        ----------
+        url : str
+            Shorthand url, starting with 'dgr:///' or 'dgr.*:///'.
+
+        Returns
+        -------
+        str
+            Complete url.
+
+        """
+        for u, root in self.items():
+            if url.startswith(f'{u}:///'):
+                dprint(f"Translating {url} to {root}{url[len(u)+4:]}")
+                return root + url[len(u)+4:]
+        return url
+
+    def urlToRelative(self, url):
+        """
+        Convert a URL using gitroot to relative.
+
+        Parameters
+        ----------
+        url : str
+            Shorthand url, starting with 'dgr:///' or 'dgr.*:///' or
+            'remote:///' .
+
+        Returns
+        -------
+        str
+            Complete url.
+
+        """
+        for u, root in self.items():
+            if url.startswith(root) and \
+                (u != 'origin' or
+                 url[len(root):-4] == ProjectRepo().project):
+                dprint(f"Translating {url} to {u}:///{url[len(root):]}")
+                return f'{u}:///' + url[len(root):]
+        return url
+
+
+
+# singleton for the project folder's git repository
+class ProjectRepo(git.Repo):
+
+    def __new__(cls, initdir=None):
+        if not hasattr(cls, 'instance'):
+            if initdir is None:
+                raise ValueError("Problem with ProjectRepo init")
+            pname, pdir, dum = findProjectDir(initdir)
+            cls.instance = super(ProjectRepo, cls).__new__(cls)
+            cls.instance.projectdir = pdir
+            cls.instance.project = pname
+            cls.instance.repo = git.Repo.init(pdir)
+            RootMap().addProjectRemote(cls.instance.repo.remotes.origin.url)
+
+        return cls.instance
+
+
 
 
 def checkGitUrl(repo: git.Repo = None, url: str='', print=print):
@@ -99,23 +193,23 @@ def checkGitUrl(repo: git.Repo = None, url: str='', print=print):
 
     # first check whether the unchanged url is valid
     try:
-        res = repo.git.ls_remote(url)
+        repo.git.ls_remote(url)
         dprint(f"Verified url {url} as valid")
         return url, False
     except git.GitCommandError as e:
-        dprint(f"Cannot find remote url {url}")
+        dprint(f"Cannot find remote url {url}, git error {e}")
         pass
 
     # now try all roots
     urbase, project = projectSplit(url)
-    for u, root in _gitrootmap.items():
+    for u, root in RootMap().items():
         try:
-            res = repo.git.ls_remote(f'{root}{project}.git')
+            repo.git.ls_remote(f'{root}{project}.git')
             print(f'Automatic re-map of url {url} to '
                   f'{u}:///{project}.git (at {root})')
             return f'{root}{project}.git', True
         except git.GitCommandError as e:
-            dprint(f"No luck finding '{root}/{project}.git'")
+            dprint(f"No luck finding '{root}/{project}.git, git error {e}'")
     print(f"Cannot find url {url}, incomplete refresh, check modules.xml")
     return '', False
 
@@ -189,7 +283,7 @@ class Project:
         elif xmlroot is not None and url is not None:
 
             # newly constructed
-            self.url = urlToAbsolute(url)
+            self.url = RootMap().urlToAbsolute(url)
             self.name = projectSplit(self.url)[1]
             self.version = version
             self.modules = []
@@ -207,7 +301,7 @@ class Project:
             # create a new node and fill it
             self.xmlnode = etree.SubElement(xmlroot, 'project')
             u = etree.SubElement(self.xmlnode, 'url')
-            u.text = urlToRelative(self.url)
+            u.text = RootMap().urlToRelative(self.url)
             if self.version:
                 v = etree.SubElement(self.xmlnode, 'version')
                 v.text = self.version
@@ -230,7 +324,7 @@ class Project:
 
                 if XML_tag(elt, 'url'):
 
-                    self.url = urlToAbsolute(elt.text.strip())
+                    self.url = RootMap().urlToAbsolute(elt.text.strip())
 
                 elif XML_tag(elt, 'version'):
                     self.version = elt.text.strip()
@@ -242,12 +336,12 @@ class Project:
                     raise XML_TagUnknown(elt)
 
             if self.url is None:
-                raise ValueError(f"Need <url> tag in <project>")
+                raise ValueError("Need <url> tag in <project>")
             else:
                 self.name = projectSplit(self.url)[1]
 
         except Exception as e:
-            print(f"Failure in decoding a <project> block")
+            print("Failure in decoding a <project> block")
             raise e
 
     def deleteModule(self, module):
@@ -275,13 +369,14 @@ class Project:
 
 class Modules:
 
-    def __init__(self, projectdir='.', mclass=None):
+    def __init__(self, calldir='.', mclass=None):
 
         # get project folder
         self.clean = None
         self.repo_cycle = 1
-        self.ownproject, self.projectdir, dum = findProjectDir(projectdir)
-
+        self.repo = ProjectRepo(calldir).repo
+        self.ownproject = ProjectRepo(calldir).project
+        self.projectdir = ProjectRepo(calldir).projectdir
         # print("Modules for", self.ownproject, "in", self.projectdir)
 
         # find the machine class
@@ -330,7 +425,7 @@ class Modules:
                 if changes:
                     for e in prj.xmlnode:
                         if XML_tag(e, 'url'):
-                            e.text = urlToRelative(prj.url)
+                            e.text = RootMap().urlToRelative(prj.url)
                 self.clean = False
 
             rrepo.create_remote('origin', prj.url)
@@ -635,7 +730,7 @@ class Modules:
 
             if name == self.ownproject:
                 dprint(f"Refresh own modules {self.ownproject}, not borrowing")
-                rrepo = git.Repo(f'../{name}')
+                rrepo = ProjectRepo().repo
                 # version = (p.version != 'HEAD' and p.version) or 'master'
                 rrepo.remote('origin').pull()
                 #rrepo.git.checkout(version)

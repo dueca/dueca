@@ -28,7 +28,7 @@ from datetime import date
 from lxml import etree
 import duecautils
 from duecautils.modules import Modules, projectSplit, \
-        urlToAbsolute, urlToRelative, checkGitUrl, _gitrootmap
+    checkGitUrl, RootMap
 from duecautils.machinemapping import NodeMachineMapping
 from duecautils.githandler import GitHandler
 from duecautils.verboseprint import dprint
@@ -343,10 +343,11 @@ class NewProject:
             raise Exception(
                 f"Folder {ns.name} already exists, cannot create project")
 
-        # check that there is no remote project
+        # check that the remote project is clean/has not code
         if ns.remote:
-            git_ensure_remote_clean(urlToAbsolute(ns.remote), ns.name)
-            remoteurl = urlToRelative(ns.remote)
+            RootMap().addProjectRemote(ns.remote)
+            git_ensure_remote_clean(RootMap().urlToAbsolute(ns.remote), ns.name)
+            remoteurl = RootMap().urlToRelative(ns.remote)
         else:
             remoteurl = ''
 
@@ -386,7 +387,7 @@ class NewProject:
 
         # add the remote and push results
         if ns.remote:
-            repo.create_remote('origin', urlToAbsolute(remoteurl))
+            repo.create_remote('origin', RootMap().urlToAbsolute(remoteurl))
             repo.git.push('--set-upstream', 'origin', 'master')
 
         print(f"Created new DUECA project {ns.name}")
@@ -432,7 +433,7 @@ class CloneProject:
         os.mkdir(name)
 
         repo = git.Repo.init(f'{name}/{name}')
-        orig = repo.create_remote('origin', urlToAbsolute(ns.remote))
+        orig = repo.create_remote('origin', RootMap().urlToAbsolute(ns.remote))
         os.chdir(f'{name}/{name}')     # now in new project dir
 
         # force full checkout for solo/development
@@ -757,7 +758,7 @@ class CopyModule(OnExistingProject):
 
             g = GitHandler(self.project)
             g.copyModule(project, ns.name, newname, ns.version,
-                         urlToAbsolute(ns.remote))
+                         RootMap().urlToAbsolute(ns.remote))
             m.addModule(self.project, newname, ns.version, g.getUrl())
 
         finally:
@@ -1350,7 +1351,7 @@ class SearchProject:
             print(f"  {newurl}")
         else:
             print(f"Could not find {ns.name} at any of the following URL's")
-            for u in _gitrootmap.values():
+            for u in RootMap().values():
                 print(f"  {u}{ns.name}.git")
 
 SearchProject.args(subparsers)
