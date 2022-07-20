@@ -6,6 +6,12 @@
 #       changes         : 040408 RvP added documentation generation
 # ============================================================================
 
+# restore build environment, needed for variables determined below
+ifneq ("$(wildcard dueca-buildenv-*)", "")
+    $(info using PATH, PKG_CONFIG_PATH, and PYTHONPATH from $(wildcard dueca-buildenv-*))
+    include $(wildcard dueca-buildenv-*)
+    SHELL := env PATH=$(PATH) PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) PYTHONPATH=$(PYTHONPATH) /bin/bash
+endif
 
 MACHINE :=	$(shell cat .machine)
 SUBDIRS :=      $(shell dueca-filtmods modules.$(MACHINE))
@@ -45,13 +51,6 @@ all : dueca_run.x buildenv
 
 cleanenv:
 	rm -f dueca-buildenv-*
-
-# restore build environment
-ifneq ("$(wildcard dueca-buildenv-*)", "")
-    $(info using PATH from $(wildcard dueca-buildenv-*))
-    include $(wildcard dueca-buildenv-*)
-    SHELL := env PATH=$(PATH) /bin/bash
-endif
 
 dueca_run.x : $(SUBDIRS) $(COMMDIRS)
 	$(LD) $(LDFLAGS) $(MODULES) \
