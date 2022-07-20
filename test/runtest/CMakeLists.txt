@@ -11,7 +11,7 @@ find_package(LibXml2 REQUIRED)
 # variables for running
 set(DISPLAYSIZE 1024x768)
 set(DISPLAY ":88")
-set(TIMELIMIT 120s)
+set(TIMELIMIT 180s)
 
 # test some supporting python packages
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import PIL"
