@@ -344,7 +344,11 @@ private:
 };
 
 /**  An example, including subclassing RigidBody and using Runge-Kutta
-    integration to calculate the updates, is given here
-    \example PulsedBody.cxx */
+     integration to calculate the updates, is given here
+
+    \example PulsedBody.hxx
+
+    \example PulsedBody.cxx
+*/
 
 #endif

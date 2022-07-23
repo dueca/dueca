@@ -103,7 +103,15 @@ indicate where we later can find the FlexiStick and WorldView projects
 from which we want to borrow the stick and worldview code:
 
 ~~~{.bash}
-[enter]$ export DAPPS_GITROOT_base=git@github.com:dueca/
+[enter]$ export DAPPS_GITROOT_pub=git@github.com:dueca/
+~~~
+
+This code is available in the public `dueca` repository on github. If
+you don't have an account there, you may access the code through https
+instead:
+
+~~~{.bash}
+[enter]$ export DAPPS_GITROOT_pub=https://github.com/dueca/
 ~~~
 
 ## Creating the new project
@@ -175,7 +183,7 @@ the following:
 
 ~~~~{.bash}
 [enter]$ dueca-gproject borrow-module --name flexi-stick \
-         --remote ${DAPPS_GITROOT_base}FlexiStick.git
+         --remote ${DAPPS_GITROOT_pub}FlexiStick.git
 Borrowing DUECA module flexi-stick from project FlexiStick
 ~~~~
 
@@ -256,7 +264,7 @@ a look:
     <url>file:///home/you/gitrepos/SimpleSimulation.git</url>
   </project>
   <project>
-    <url>https://github.com/dueca/FlexiStick.git</url>
+    <url>dgrpub:///FlexiStick.git</url>
     <module>flexi-stick</module>
   </project>
 </machine>
@@ -264,7 +272,14 @@ a look:
 
 As you can see, it is an XML file. It currently has only one module in
 there, `flexi-stick`, from the project at the `FlexiStick.git`
-URL. When we borrowed the module, the `dueca-gproject` script pulled
+URL. However, the `dueca-gitscript` project entered a URL alias here,
+`dgrpub:///`. This is done on the basis of the environment variable
+set earlier, which ended in `_pub`, in this way the `modules.xml` file
+does not need to be modified if ever the access to the URL from which
+you borrow FlexiStick changes, updating the environment variable will
+fix that.
+
+When we borrowed the module, the `dueca-gproject` script pulled
 the code from the remote repository, and put it in an appropriate
 place. If we later would want to clone our project somewhere else, the
 `dueca-gproject` script will look at the appropriate `modules.xml`
@@ -589,10 +604,10 @@ the world. The following code lists the creation of the two tokens:
 ~~~~~~~~~~{.cxx}
   // initialize the channel access tokens
   r_controls(getId(), NameSet(getEntity(), "ControlInput", part),
-	     "ControlInput", 0, Channel::Continuous, Channel::OnlyOneEntry),
+             "ControlInput", 0, Channel::Continuous, Channel::OnlyOneEntry),
   w_egomotion(getId(), NameSet(getEntity(), "ObjectMotion", part),
-	      "BaseObjectMotion", "ufo movement", Channel::Continuous,
-	      OnlyOneEntry),
+              "BaseObjectMotion", "ufo movement", Channel::Continuous,
+              OnlyOneEntry),
 
   // activity initialization
   // myclock(),
@@ -698,8 +713,8 @@ bool UFODynamics::isPrepared()
 ~~~~~~~~~~
 
 For running our update loop, so once per time step, we use the
-`doCalculation` method. Something to be aware of is that DUECA is
-data-driven, and so if there is no data, there is normally no
+`doCalculation` method. Something you need to be aware of is that
+DUECA is data-driven, and so if there is no data, there is normally no
 simulation. Whether you read the data or not is not critical, but our
 module must always *produce* data when it runs. For our initial
 set-up, we will add the reading of the control input, but not do
@@ -723,7 +738,7 @@ void UFODynamics::doCalculation(const TimeSpec& ts)
     try {
       DataReader<ControlInput> u(r_controls, ts);
 
-	  // printing, for now
+      // printing, for now
       std::cout << u.data() << std::endl;
     }
     catch(std::exception& e) {
@@ -894,7 +909,7 @@ right after the constructor call. When all parameters are set, the
 `UFODynamics::complete()` call is called. For UFODynamics, that call
 is empty, but in many modules this is used for various purposes.
 
-With thod knowledge we can now move to the run folder for our platform,
+With that knowledge we can now move to the run folder for our platform,
 and start to adapt the start scripts for the simulation:
 
 ~~~~{.bash}
@@ -1057,7 +1072,7 @@ if this_node_id == ecs_node:
         dueca.Module(
             "flexi-stick", "", sim_priority).param(
             set_timing = sim_timing,
-			enable_record_replay = True,
+            enable_record_replay = True,
             check_timing = (1000, 2000)).param(
             # logitech stick, first SDL device
             ('add_device', "logi:0"),
@@ -1204,21 +1219,21 @@ we use an OpenSceneGraph backend.
                   0.4, 0.0, 1.0, 0,      # south??
                   0, 0, 0,               # direction not used
                   0.2, 0, 0)),           # no attenuation for sun
-			    # create an object class for the terrain, to be represented
-				# as a static (not position controlled) object, with
-				# terrain.obj as the file defining it
+                # create an object class for the terrain, to be represented
+                # as a static (not position controlled) object, with
+                # terrain.obj as the file defining it
                 ('add-object-class-data',
                  ("static:terrain", "terrain", "static", "terrain.obj")),
-			    # same for skydome
+                # same for skydome
                 ('add-object-class-data',
                  ("centered:skydome", "skydome", "centered", "skydome.obj")),
-			    # move the skydome default position a bit down
+                # move the skydome default position a bit down
                 ('add-object-class-coordinates',
                  (0.0, 0.0, 50.0)),
 
                 # make static objects through the configuration.
-				# These match the creation keys (static:sunlight etc), to
-				# find the right object class.
+                # These match the creation keys (static:sunlight etc), to
+                # find the right object class.
                 ('static-object', ('static:sunlight', 'sunlight')),
                 ('static-object', ('static:terrain', 'terrain')),
                 ('static-object', ('centered:skydome', 'skydome'))
@@ -1294,6 +1309,14 @@ program name /home/you/gdapps/SimpleSimulation/SimpleSimulation/run/solo/solo/du
 11:06:13.610182 iSYS id(0,2) setting ticker to autonomous
 11:06:13.610243 iTIM First schedule for tick PeriodicTimeSpec(4700, 4800 p:100) with ActivityManager 4
 ~~~~
+
+Don't worry too much about the scheduling priority messages. These
+indicate that it is not possible now to run with real-time
+priority. During development, real-time running is seldom needed, in
+most cases the simulations run fine, and DUECA is robust enough to not
+mess up when the timing is a bit off. When running with actual
+simulation hardware the real-time capability is important, see the
+page on [Tuning Linux Workstations](#tunelinux) for how to do that.
 
 You will see that there is also a new window:
 
@@ -1685,7 +1708,7 @@ This only added a folder to the run folder. We will define two nodes in this pla
 
 ~~~{.bash}
 [enter]$ dueca-gproject new-node --name host --platform simlab \
-	     --num-nodes 2 --node-number 0 --if-address 127.0.0.1 --gui gtk3 \
+         --num-nodes 2 --node-number 0 --if-address 127.0.0.1 --gui gtk3 \
          --machine-class solo --cmaster 127.0.0.1
 ~~~
 
@@ -1858,7 +1881,7 @@ if this_node_id == ig_node:
     mymods.append(
         dueca.Module(
             "world-view", "", admin_priority).param(
-	# etc .....
+    # etc .....
 ~~~
 
 There is one final thing we have to change in the `dueca_cnf.py` for
