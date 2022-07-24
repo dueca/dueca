@@ -70,7 +70,7 @@ UChannelEntry::UChannelEntry(UnifiedChannel* channel,
   config_version(0),
   triggers(NULL),
   jumptime(MAX_TIMETICK),
-  pclients(4),
+  pclients(),
   nreservations(nreservations)
 {
   // if saveup is selected, the use count of our only (sentinel) is
