@@ -12,6 +12,11 @@
 
      If you need to check out from a specific branch, version or
      revision, add that in the optional version field.
+
+     The URL for the project information matching the main project
+     should be starting with the URL alias remote:/// . This means that
+     it follows the git clone, run `git remote -v` to find out where
+     it is.
 -->
 <machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
   <project>

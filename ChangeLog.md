@@ -2,6 +2,25 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.1] - 2022-07-24
+
+- Adjust build config files to use dueca as package name (formerly dueca2)
+- Add code of conduct as per github template
+- Add an AssociateObject class, for passing NamedObject / Id capabilities
+  to helper classes
+- Expose EasyId.hxx to user code
+- Correct an issue where a deleted entry is not correctly cleared and
+  re-used in a dueca process with multiple nodes and thus packer
+  clients on the channel
+- Replace damaged png files
+- Correct required version for using Python pre-init
+- Correct the spec files to build on Fedora 36
+- Take a longer timeout on the testrunner, tests failed on slightly slower
+  machines
+- Small correction to the cvs/make build system when using alternate
+  DUECA versions (TU Delft specific)
+- Some fixes in documentation
+
 ## [3.2.0] - 2022-06-12
 
 - Fixes for DCO code generation with messagepack option

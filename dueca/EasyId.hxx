@@ -23,7 +23,13 @@ DUECA_NS_START
 
 /** Some objects need an id, but cannot derive from NamedObject,
     because they could be initialized automatically before the
-    ObjectManager. A pointer to an EasyId can be used. */
+    ObjectManager. A pointer to an EasyId can be used.
+
+    In rare cases, this can also be used in application code, however,
+    for your own sake, avoid mis-using this; to give NamedObject
+    capabilities to helper classes (e.g., for opening a channel,
+    activities, callback), better use dueca::AssociateObject.
+*/
 class EasyId: public NamedObject
 {
 public:

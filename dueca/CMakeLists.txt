@@ -81,7 +81,7 @@ set(DUECASOURCES
   DataWriterArraySize.hxx msgpack.hxx msgpack.cxx
   PythonCorrectedName.hxx PythonCorrectedName.cxx
   ListElementAllocator.hxx DCOtypeJSON.hxx DCOtypeJSON.cxx
-  ChronoTimePoint.hxx ChronoTimePoint.cxx AssociateObject.hxx)
+  ChronoTimePoint.hxx ChronoTimePoint.cxx AssociateObject.hxx EasyId.hxx)
 
 
 set(SCRAMNETSOURCES
