@@ -11,7 +11,7 @@ function usage()
 }
 
 # extended regexp with all packages to hold
-WPACKAGES='^dueca2.*$|^hmilib.*$|^linux-.*-preempt$|^nvidia-.*-[0-9]+$|^libnvidia-.*$|^xserver-xorg-video-nvidia-[0-9]+$'
+WPACKAGES='^dueca.*$|^hmilib.*$|^linux-.*-preempt$|^nvidia-.*-[0-9]+$|^libnvidia-.*$|^xserver-xorg-video-nvidia-[0-9]+$'
 
 if [ "$1" = "hold" ]; then
 
