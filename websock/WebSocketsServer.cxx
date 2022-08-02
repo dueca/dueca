@@ -144,6 +144,12 @@ const ParameterTable* WebSocketsServer::getMyParameterTable()
       "makes reconnection more aggressive; old connections are closed and\n"
       "a new connection is always made."  },
 
+    { "immediate-start",
+      new VarProbe<_ThisModule_,bool>
+      (&_ThisModule_::immediate_start),
+      "Start as soon as possible, i.e., when watched channels are valid\n"
+      "This is normally only needed for specific debugging purposes." },
+
     { "write-and-read",
       new MemberCall<_ThisModule_,std::vector<std::string> >
       (&_ThisModule_::setWriteReadSetup),
@@ -226,6 +232,8 @@ WebSocketsServer::WebSocketsServer(Entity* e, const char* part, const
   http_port(8000),
   document_root(),
   aggressive_reconnect(false),
+  immediate_start(false),
+  auto_started(false),
   thelock("JSON ws(s) server", false),
   read_prio(ps),
   time_spec(0,0),
@@ -1140,7 +1148,11 @@ bool WebSocketsServer::complete()
 // destructor
 WebSocketsServer::~WebSocketsServer()
 {
-  //
+  if (immediate_start) {
+    auto_started = false;
+    TimeSpec now(SimTime::now());
+    stopModule(now);
+  }
 }
 
 // as an example, the setTimeSpec function
@@ -1536,6 +1548,12 @@ bool WebSocketsServer::isPrepared()
     res = res && fl.second->checkToken();
   }
 
+  if (res && immediate_start && !auto_started) {
+    TimeSpec now(SimTime::now());
+    startModule(now);
+    auto_started = true;
+  }
+
   // return result of checks
   return res;
 }
@@ -1543,30 +1561,34 @@ bool WebSocketsServer::isPrepared()
 // start the module
 void WebSocketsServer::startModule(const TimeSpec &time)
 {
-  // start followers
-  for (auto &fl : followers) {
-    fl.second->start(time);
-  }
-  for (auto &fl : autofollowers) {
-    fl.second->start(time);
-  }
+  if (!auto_started) {
+    // start followers
+    for (auto &fl : followers) {
+      fl.second->start(time);
+    }
+    for (auto &fl : autofollowers) {
+      fl.second->start(time);
+    }
 
-  // switch on the activity
-  do_transfer.switchOn(time);
+    // switch on the activity
+    do_transfer.switchOn(time);
+  }
 }
 
 // stop the module
 void WebSocketsServer::stopModule(const TimeSpec &time)
 {
-  for (auto &fl : followers) {
-    fl.second->stop(time);
-  }
-  for (auto &fl : autofollowers) {
-    fl.second->stop(time);
-  }
+  if (!auto_started) {
+    for (auto &fl : followers) {
+      fl.second->stop(time);
+    }
+    for (auto &fl : autofollowers) {
+      fl.second->stop(time);
+    }
 
-  // switch off activity
-  do_transfer.switchOff(time);
+    // switch off activity
+    do_transfer.switchOff(time);
+  }
 }
 
 void WebSocketsServer::doTransfer(const TimeSpec &ts)
@@ -1578,7 +1600,7 @@ void WebSocketsServer::doTransfer(const TimeSpec &ts)
     /* DUECA websockets.
 
        Running/polling the websocket IO took more than the specified
-       interval. 
+       interval.
     */
     I_XTR("WebSocketsServer, running behind at " << ts);
   }

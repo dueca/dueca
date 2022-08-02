@@ -39,7 +39,7 @@
                                        "ConfigFileRequest://dueca",
                                        "ConfigFileData://dueca")),
                    ('http-port', 8000),
-                   ('document-root', '/usr/share/dueca/dplotter/dist')))
+                   ('document-root', '/usr/share/dplotter/dist')))
     @endcode
 
     The 'info' configurations define endpoints that contain your
