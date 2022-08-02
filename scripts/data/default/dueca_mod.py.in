@@ -123,7 +123,9 @@ if this_node_id == ecs_node:
 
 # etc, each node can have modules in its mymods list
 
+    # add a filer in this node for replay support
+    # filer = dueca.ReplayFiler("PLHLAB")
+
 # then combine in an entity (one "copy" per node)
 if mymods:
     myentity = dueca.Entity("PHLAB", mymods)
-
