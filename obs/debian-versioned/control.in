@@ -8,7 +8,7 @@ Homepage:
 
 Package: dueca-@versioned@
 Architecture: any
-Depends: cvs, python3, python3-pyparsing, g++, libeigen3-dev, libfltk1.3-dev, doxygen, guile-2.0-dev, libglade2-dev, graphviz, libgtkmm-2.4-dev, freeglut3-dev, libgtkglext1-dev, libglui-dev, libboost-dev, libboost-python-dev, libboost-filesystem-dev, python3-dev, rapidjson-dev, libgtkmm-3.0-dev, python3-pygraphviz, libhdf5-dev, libssl-dev, python3-git, libpugixml-dev, python3-lxml, libmsgpack-dev
+Depends: cvs, python3, python3-pyparsing, g++, libeigen3-dev, libfltk1.3-dev, doxygen, guile-2.0-dev, libglade2-dev, graphviz, libgtkmm-2.4-dev, freeglut3-dev, libgtkglext1-dev, libglui-dev, libboost-dev, libboost-python-dev, libboost-filesystem-dev, python3-dev, rapidjson-dev, libgtkmm-3.0-dev, python3-pygraphviz, libhdf5-dev, libssl-dev, python3-git, libpugixml-dev, python3-lxml, libmsgpack-dev, libdate-dev, libtoml11-dev
 Description: Middleware for real-time distributed systems
  DUECA is a middleware library for the implementation of real-time data
  flow processes on distributed hardware. It is currently used for the

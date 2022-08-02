@@ -208,6 +208,7 @@ Summary: For simulations in dueca
 Group: Libraries/
 Requires: %{name}-dusime = %{ver}
 Requires: %{name}-ddff-devel
+Requires: toml11-devel
 %description dusime-devel
 DUSIME is an addition to DUECA that provides classes for implementations
 of simulation models in a real-time data flow process.
@@ -224,6 +225,7 @@ DDFF is a custom file format for logging and replay in DUECA
 Summary: File logging facilities
 Group: Libraries/
 Requires: libdueca-ddff%{sosuffix} = %{ver}
+Requires: date-devel
 %description ddff-devel
 DDFF is a custom file format for logging and replay in DUECA
 This package contains development headers, libraries and development scripts
