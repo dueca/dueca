@@ -221,6 +221,12 @@ private: // simulation data
   /** Flag to indicate aggressive reconnection to preset entries */
   bool aggressive_reconnect;
 
+  /** Immediate start, do not wait on DUECA's commands */
+  bool immediate_start;
+
+  /** Start flag for immediate_start */
+  bool auto_started;
+
   /** Access lock for shared data */
   StateGuard thelock;
 

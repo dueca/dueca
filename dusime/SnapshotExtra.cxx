@@ -296,18 +296,6 @@ std::string Snapshot::getSample(unsigned size) const
   }
 }
 
-//#define __CUSTOM_FULL_CONSTRUCTOR
-/* Snapshot::Snapshot(
-    const varvector<char>& data,
-        const NameSet& originator) :
-    data(data),
-    originator(originator),
-    data_size(data.size())
-{
-  DOBS("complete constructor Snapshot");
-}
-*/
-
 #define __CUSTOM_COPY_CONSTRUCTOR
 Snapshot::Snapshot(const Snapshot& other):
     data(other.data),
@@ -320,7 +308,8 @@ Snapshot::Snapshot(const Snapshot& other):
 #define __CUSTOM_AMORPHRESTORE_CONSTRUCTOR
 Snapshot::Snapshot(AmorphReStore& s):
   data(s),
-  originator(s)
+  originator(s),
+  coding(SnapCoding(uint8_t(s)))
 {
   // unpackiterable(s, this->data, pack_traits<varvector<char> >());
   data_size = data.size();
@@ -334,6 +323,7 @@ void Snapshot::unPackData(AmorphReStore& s)
 
   ::unPackData(s, this->data);
   ::unPackData(s, this->originator);
+  ::unPackData(s, this->coding);
 
   //unpackiterable(s, this->data, pack_traits<varvector<char> >());
   data_size = data.size();
@@ -348,6 +338,7 @@ void Snapshot::unPackDataDiff(AmorphReStore& s)
   //                           diffpack_traits<varvector<char> >());
   checkandunpackdiffsingle(this->data, s, im);
   checkandunpackdiffsingle(this->originator, s, im);
+  checkandunpackdiffsingle(this->coding, s, im);
   data_size = data.size();
 }
 
@@ -359,6 +350,7 @@ Snapshot::operator=(const Snapshot& other)
   if (this == &other) return *this;
   this->data = other.data;
   this->originator = other.originator;
+  this->coding = other.coding;
   this->data_size = other.data_size;
   return *this;
 }
