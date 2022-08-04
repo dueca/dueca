@@ -6,6 +6,7 @@
         description     :
         changes         : 061215 first version
         language        : C++
+	api             : DUECA_API
         copyright       : (c) 2016 TUDelft-AE-C&S
         copyright       : (c) 2022 René van Paassen
         license         : EUPL-1.2
