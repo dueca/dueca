@@ -55,7 +55,7 @@ set(DUECASOURCES
   AperiodicAlarm.cxx PeriodicAlarm.cxx DuecaEnv.cxx AsyncList.cxx
   AsyncList.hxx DuecaView.cxx LogCategory.cxx LogConcentrator.cxx
   Logger.cxx newlog.cxx newlog-macros.hxx LogString.cxx
-  ThreadSpecific.cxx ThreadSpecific.hxx ActivityContext.cxx EasyId.cxx
+  ThreadSpecific.cxx ThreadSpecific.hxx ActivityContext.cxx
   PackerManager.cxx PackerManager.hxx ActivityDescriptions.cxx
   ActivityDescriptions.hxx LogPoints.cxx debug-direct.cxx
   WindowingProtocol.cxx DataClassRegistry.cxx DataClassRegistrar.cxx
@@ -81,7 +81,8 @@ set(DUECASOURCES
   DataWriterArraySize.hxx msgpack.hxx msgpack.cxx
   PythonCorrectedName.hxx PythonCorrectedName.cxx
   ListElementAllocator.hxx DCOtypeJSON.hxx DCOtypeJSON.cxx
-  ChronoTimePoint.hxx ChronoTimePoint.cxx AssociateObject.hxx EasyId.hxx)
+  ChronoTimePoint.hxx ChronoTimePoint.cxx AssociateObject.hxx
+  EasyId.cxx EasyId.hxx)
 
 
 set(SCRAMNETSOURCES
@@ -165,7 +166,7 @@ set(INSTALLHEADERS
   msgpack-unstream.hxx PythonCorrectedName.hxx ChronoTimePoint.hxx
   msgpack-unstream-iter.hxx msgpack-unstream-iter.ixx
   ListElementAllocator.hxx DCOtypeJSON.hxx undebug.h
-  AssociateObject.hxx)
+  AssociateObject.hxx EasyId.hxx)
 
 DUECACODEGEN_TARGET(OUTPUT DCO INDUECA DCOSOURCE ${DCOSOURCES})
 
