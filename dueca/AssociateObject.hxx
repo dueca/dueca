@@ -5,9 +5,10 @@
         category        : header file
         description     :
         changes         : 220707 first version
+        api             : DUECA_API
         language        : C++
-	api             : DUECA_API
-        copyright       : (c) 22 TUDelft-AE-C&S
+     	  api             : DUECA_API
+        copyright       : (c) 2022 René van Paassen
 */
 
 #ifndef AssociateObject_hxx
