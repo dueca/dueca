@@ -67,7 +67,7 @@ void InformationStash<T>::initialise(unsigned nreserved, bool install_service)
     w_info = new ChannelWriteToken
       (id->getId(), NameSet("dueca", name, ""), T::classname, "",
        Channel::Events, Channel::OneOrMoreEntries,
-       Channel::OnlyFullPacking, Bulk, NULL, nreserved);
+       Channel::OnlyFullPacking, Channel::Bulk, NULL, nreserved);
   }
 
   if (!service_id && install_service) {

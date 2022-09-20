@@ -270,6 +270,17 @@ public:
     AsyncQueueWriter<T,Alloc> wr(*this);
     wr.data() = data;
   }
+
+  /** Construct an element at the end of the asynchronous list.
+      @param args   Arguments for constructing the element.
+  */
+  template<class... Args>
+  inline void emplace_back(Args&&... args)
+  {
+    element_type *_data = getSpare();
+    ::new (&(_data->data)) T(std::forward<Args>(args)...);
+    writeTail(_data);
+  }
 };
 
 /** Lightweight helper object for writing an async queue
