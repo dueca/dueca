@@ -7,6 +7,7 @@
         changes         : 220707 first version
         api             : DUECA_API
         language        : C++
+     	  api             : DUECA_API
         copyright       : (c) 2022 René van Paassen
 */
 
@@ -21,7 +22,7 @@ DUECA_NS_START
     derived from dueca::NamedObject.
 
     In DUECA, objects that can use DUECA services (accessing channels,
-    creating and using activities) need to have a name and an
+    creating and using activities) need to have a name and a
     GlobalId, commonly by deriving from NamedObject. In addition, the
     convenience macros for checking channels and the like normally use
     the dueca::getclassname<>() templated function to access the
