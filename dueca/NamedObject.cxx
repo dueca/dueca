@@ -15,6 +15,7 @@
 #include "NameSet.hxx"
 #include "ObjectManager.hxx"
 #include <debug.h>
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START

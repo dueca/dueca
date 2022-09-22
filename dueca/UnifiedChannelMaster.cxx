@@ -16,7 +16,7 @@
 #include "DataClassRegistry.hxx"
 #include <debug.h>
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START
