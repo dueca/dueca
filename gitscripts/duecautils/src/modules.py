@@ -480,7 +480,10 @@ class Modules:
                       f" changing to {version} based on modules.xml")
 
         # get tags and the items in sparse checkout
-        rrepo.remote().fetch()
+        try:
+            rrepo.remote().fetch()
+        except git.GitCommandError as e:
+            print(f'failing to get code for project {prj.name}: {e}')
 
         # create a branch if needed
         if version not in rrepo.heads:
@@ -729,11 +732,11 @@ class Modules:
         for (name, p) in self.projects.items():
 
             if name == self.ownproject:
-                dprint(f"Refresh own modules {self.ownproject}, not borrowing")
-                rrepo = ProjectRepo().repo
+                # dprint(f"Refresh own modules {self.ownproject}, not borrowing")
+                # rrepo = ProjectRepo().repo
                 # version = (p.version != 'HEAD' and p.version) or 'master'
-                rrepo.remote('origin').pull()
-                #rrepo.git.checkout(version)
+                # rrepo.remote('origin').pull()
+                # rrepo.git.checkout(version)
                 continue
 
             if not p.modules:

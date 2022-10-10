@@ -130,15 +130,19 @@ patchdir = os.environ.get('DUECA_CVSTOGITPATCHES',
 startdir = os.getcwd()
 
 # already git-converted projects
-gitgroups = [ 'ae-cs-dueca-base', 'ae-cs-dueca-active', 
-             'ae-cs-dueca-archive', 'ae-cs-dueca-ftis', 'ae-cs-dueca-yard']
+gitgroups = [ ('ae-cs-dueca-base', 'git@gitlab.tudelft.nl'),
+              ('ae-cs-dueca-active', 'git@gitlab.tudelft.nl'), 
+              ('ae-cs-dueca-archive', 'git@gitlab.tudelft.nl'),
+              ('ae-cs-dueca-ftis', 'git@gitlab.tudelft.nl'),
+              ('ae-cs-dueca-yard', 'git@gitlab.tudelft.nl'),
+              ('dueca', 'git@github.com') ]
 
 def constructUrl(prj):
     global rundir, gitgroups
-    for gg in gitgroups:
+    for gg, grepo in gitgroups:
         if os.path.isdir(f'{rundir}/{gg}/{prj}'):
             print(f"Borrow from already converted {gg}/{prj}")
-            return f'git@gitlab.tudelft.nl:{gg}/{prj}.git'
+            return f'{grepo}:{gg}/{prj}.git'
         
     # assuming we are borrowing from a recent convert
     print(f"Borrow from now-converted project {prj}")
@@ -510,7 +514,7 @@ for project in projects:
     #%% patch file available?
     allok = True
     for patchfile in findPatchFiles(project):
-        print(f'running patch file {patchfile} from {patchdir}')
+        print(f'running patch file {patchdir}/{patchfile}')
         runres = subprocess.run(('patch', '-p1'), stdin=open(
                 f'{patchdir}/{patchfile}', 'r'))
         if runres.returncode != 0:
