@@ -30,16 +30,12 @@ function(DUECA_ADD_DCO)
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.h
     ${CMAKE_CURRENT_SOURCE_DIR}/comm-objects.h
     COMMAND ${Python_EXECUTABLE}
-    ${DUECA_DATA_DIR}/process-comm-objects.py ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.lst ${CMAKE_BINARY_DIR}
-    && ln -sf ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.h ${CMAKE_CURRENT_SOURCE_DIR}/comm-objects.h
+    ${DUECA_DATA_DIR}/process-comm-objects.py
+    ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.lst ${CMAKE_BINARY_DIR}
+    && ln -sf ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/comm-objects.h
     MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.lst
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  #add_custom_command(
-  #  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.h
-  #  COMMAND ${Python_EXECUTABLE}
-  #  ${DUECA_DATA_DIR}/process-comm-objects.py ${CMAKE_CURRENT_BINARY_DIR}/comm-objects.lst ${CMAKE_BINARY_DIR}
-  #  MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/comm-objects.lst
-  #  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
   # when from COMMOBJECTS folder, figure out which project not to add
   # as a dependency
