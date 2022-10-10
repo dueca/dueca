@@ -476,15 +476,19 @@ class Modules:
             # for all others, listen to the version in the modules.xml file
             version = (prj.version != 'HEAD' and prj.version) or 'master'
             if version != branch:
-                print(f"Borrowed code from {prj.name} was on {branch}"
-                      f" changing to {version} based on modules.xml")
+                print(
+                    f"Borrowed code from {prj.name} was on branch:{branch}"
+                    f" changing to {version} based on modules.xml")
 
         # get tags and the items in sparse checkout
         try:
             rrepo.remote().fetch()
         except git.GitCommandError as e:
-            print(f'failing to get code for project {prj.name}: {e}')
-
+            print(
+                f'Failing to get code for borrowed project {prj.name}'
+                f' from url {prj.url},\ncheck modules.xml')
+            dprint(f"Git error message {e}")
+            
         # create a branch if needed
         if version not in rrepo.heads:
             dprint(f"In {prj.name}, creating branch {version}, adding to {rrepo.heads}")
