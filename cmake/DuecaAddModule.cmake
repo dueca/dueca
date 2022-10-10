@@ -20,9 +20,18 @@
 #
 #   Compile flags for this module, e.g., option defines
 #
+# * ``COMPILEOPTIONS_PUBLIC`` (list)
+#
+#   Public compile flags, visible to other modules using this module
+#
 # * ``INCLUDEDIRS``(list)
 #
 #   Header include directories to add
+#
+# * ``INCLUDEDIRS_PUBLIC``(list)
+#
+#   Public header include directories to add, affect other modules
+#   using this module
 #
 # * ``SOURCES``(list)
 #
@@ -46,7 +55,7 @@ function(DUECA_ADD_MODULE)
 
   # decode the arguments
   cmake_parse_arguments(ADDMODULE "" ""
-    "DUECA_COMPONENTS;LIBRARIES;COMPILEOPTIONS;INCLUDEDIRS;SOURCES;USEMODULES" ${ARGN})
+    "DUECA_COMPONENTS;LIBRARIES;COMPILEOPTIONS;COMPILEOPTIONS_PUBLIC;INCLUDEDIRS;INCLUDEDIRS_PUBLIC;SOURCES;USEMODULES" ${ARGN})
 
   # create module name on basis of current source dir name
   if (CMAKE_CURRENT_SOURCE_DIR MATCHES ".*/\([^/]+\)/\([^/]+\)$")
@@ -118,7 +127,8 @@ function(DUECA_ADD_MODULE)
   target_compile_options(${MODULETARGET} PUBLIC
     ${DUECA_COMPILEOPTIONS}
     ${PROJECT_COMPILE_FLAGS}
-    ${ADDMODULE_COMPILEOPTIONS})
+    ${ADDMODULE_COMPILEOPTIONS_PUBLIC}
+    PRIVATE ${ADDMODULE_COMPILEOPTIONS})
 
   # direct dependencies on modules
   set(OTHERMODULE_INCLUDES)
@@ -158,8 +168,10 @@ function(DUECA_ADD_MODULE)
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${PROJECT_INCLUDE_DIRS}
-    ${ADDMODULE_INCLUDEDIRS}
-    ${OTHERMODULE_INCLUDES})
+    ${ADDMODULE_INCLUDEDIRS_PUBLIC}
+    ${OTHERMODULE_INCLUDES}
+    PRIVATE ${ADDMODULE_INCLUDEDIRS}
+    )
 
   # all module targets in parent scope
   set(CURRENT_MODULE ${MODULETARGET} PARENT_SCOPE)

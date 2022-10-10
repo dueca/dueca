@@ -488,7 +488,7 @@ class Modules:
                 f'Failing to get code for borrowed project {prj.name}'
                 f' from url {prj.url},\ncheck modules.xml')
             dprint(f"Git error message {e}")
-            
+
         # create a branch if needed
         if version not in rrepo.heads:
             dprint(f"In {prj.name}, creating branch {version}, adding to {rrepo.heads}")
