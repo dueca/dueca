@@ -162,7 +162,7 @@ Module* ModuleCreator::createModule(Entity* e)
          module is not created. Check the error message and offending
          code.
       */
-      E_CNF("error creating module " << e->getEntity() << ','
+      E_CNF("error creating module for " << e->getEntity() << " ;"
             << father->getType() << "://" << e->getEntity() << '/' << part
             << ", problem " << endl << ex.what());
       delete object;

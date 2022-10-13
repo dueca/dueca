@@ -109,20 +109,24 @@ def readModules(project, machineclass):
 
     res = []
 
-    # decode the old modules list and add to the modules file
-    with open(f'{project}/modules.{machineclass}', 'r') as f:
-        for l in f:
-            if not l.strip() or l.strip()[0] == '#':
-                pass
-            else:
-                prj, mod = l.strip().split()[0].split('/')
-                if (prj, mod) in res:
-                    print(f"Duplicate module listing {prj}/{mod} in file"
-                          f" '{project}/modules.{machineclass}'")
+    try: 
+        # decode the old modules list and add to the modules file
+        with open(f'{project}/modules.{machineclass}', 'r') as f:
+            for l in f:
+                if not l.strip() or l.strip()[0] == '#':
+                    pass
                 else:
-                    res.append((prj, mod))
-    return res
-
+                    prj, mod = l.strip().split()[0].split('/')
+                    if (prj, mod) in res:
+                        print(f"Duplicate module listing {prj}/{mod} in file"
+                              f" '{project}/modules.{machineclass}'")
+                    else:
+                        res.append((prj, mod))
+        return res
+    except ValueError as e:
+        print(
+            f"Failure parsing modules file '{project}/modules.{machineclass}'")
+        print(f"Error {e}")
 
 cvsroot = os.environ.get('DAPPS_CVSROOT', None)
 patchdir = os.environ.get('DUECA_CVSTOGITPATCHES',
@@ -524,9 +528,13 @@ for project in projects:
     #%% check further changed files
     changed_files = [ item.a_path for item in repo.index.diff(None) ]
     if allok:
-        repo.index.add(changed_files)
-        repo.index.commit('after applying working patches')
-        repo.remote().push()
+        try:
+            repo.index.add(changed_files)
+            repo.index.commit('after applying working patches')
+            repo.remote().push()
+        except FileNotFoundError as e:
+            print("File not found, was it removed by the patch?\n"
+                  f"file:{str(e).split(':')[-1]}")
     else:
         print("Encountered errors in patch application, correct and commit")
 print(rundir)
