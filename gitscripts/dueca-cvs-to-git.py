@@ -253,7 +253,7 @@ if runargs.clean:
 if runargs.savediff:
 
     # should be from within a project
-    mods = Modules(None)
+    mods = Modules()
     project = mods.ownproject
     tosave = findFreePatchFile(project)
     with open(f'{patchdir}/{tosave}', 'w') as pf:
@@ -262,7 +262,7 @@ if runargs.savediff:
     sys.exit(0)
 
 if runargs.save_gitdiff:
-    mods = Modules(None)
+    mods = Modules()
     project = mods.ownproject
     tosave = findTotalPatchFile(project)
     with open(f'{patchdir}/{tosave}', 'w') as pf:
