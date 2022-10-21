@@ -308,15 +308,28 @@ void HDF5Logger::TargetedLog::createFunctor(boost::weak_ptr<H5::H5File> nfile,
 {
   // find the meta information
   ChannelEntryInfo ei = r_token.getChannelEntryInfo();
+  
+  try {
+    
+    // metafunctor can create the logging functor
+    boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor
+      (r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
+    
+    functor.reset(metafunctor.lock()->getWriteFunctor
+		  (nfile, prefix + logpath, chunksize,
+		   ei.entry_label, master->getOpTime(always_logging),
+		   compress));
+  }
+  catch (const std::exception& e) {
+    /* DUECA hdf5.
 
-  // metafunctor can create the logging functor
-  boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor
-    (r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
-
-  functor.reset(metafunctor.lock()->getWriteFunctor
-                (nfile, prefix + logpath, chunksize,
-                 ei.entry_label, master->getOpTime(always_logging),
-                 compress));
+       Failure creating a functor for writing channel data in hdf5 log.
+       Check the hdf5 option on the datatype. */
+    W_XTR("Failing to create hdf5 functor for logging channel " <<
+	  r_token.getName() << " entry " << ei.entry_id <<
+	  " datatype " << ei.data_class);
+    throw(e);
+  }
 }
 
 void HDF5Logger::TargetedLog::accessAndLog(const TimeSpec& ts)
