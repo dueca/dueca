@@ -110,47 +110,45 @@ function create_debfiles()
     # rpm-based distros
     cp $NAME.spec ../../..
     cp $NAME-versioned.spec ../../..
+    cp $NAME-rpmlintrc ../..
 
+    # first the versioned packages
     # default deb-based, currently focused on Ubuntu 20.04
-    cp $NAME.dsc ../../../$NAME.dsc
-    cp dueca-versioned.dsc ../../../dueca-versioned.dsc
     tar cvf ../../../debian-versioned.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
+    cp dueca-versioned.dsc ../../../dueca-versioned.dsc
+    cp $NAME.dsc ../../../$NAME.dsc
 
     # hack/adapt for xUbuntu_22.04
-    # modify: dsc, versioned dsc, control, versioned control
-    #    	    s/python3-venv/python3-venv, python3-build/
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-xUbuntu_22\.04.tar/' ${NAME}.dsc > \
-                ../../../$NAME-xUbuntu_22.04.dsc
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-xUbuntu_22\.04.tar/' dueca-versioned.dsc > \
-                ../../../dueca-versioned-xUbuntu_22.04.dsc
     sed -e 's/guile-2\.0-dev/guile-2\.2-dev/' -i.bak \
         debian-versioned/control
-
-    # tar the versioned and normal debian folders
     tar cvf ../../../debian-versioned-xUbuntu_22.04.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
-
+    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
+            s/debian\.tar/debian-xUbuntu_22\.04.tar/' dueca-versioned.dsc > \
+                ../../../dueca-versioned-xUbuntu_22.04.dsc
+    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
+            s/debian\.tar/debian-xUbuntu_22\.04.tar/' ${NAME}.dsc > \
+         ../../../$NAME-xUbuntu_22.04.dsc
+    
     # now hack/adapt for xUbuntu_18.04
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
-            s/debian\.tar/debian-xUbuntu_18\.04.tar/
-            s/python3-xlwt/python-xlwt/' ${NAME}.dsc > \
-                ../../../${NAME}-xUbuntu_18.04.dsc
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
-            s/debian\.tar/debian-xUbuntu_18\.04.tar/
-            s/python3-xlwt/python-xlwt/' dueca-versioned.dsc > \
-                ../../../dueca-versioned-xUbuntu_18.04.dsc
     sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
             s/python3-xlwt/python-xlwt/' debian-versioned/control.bak > \
             debian-versioned/control
     tar cvf ../../../debian-versioned-xUbuntu_18.04.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
-
+    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+            s/debian\.tar/debian-xUbuntu_18\.04.tar/
+            s/python3-xlwt/python-xlwt/' dueca-versioned.dsc > \
+                ../../../dueca-versioned-xUbuntu_18.04.dsc
+    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+            s/debian\.tar/debian-xUbuntu_18\.04.tar/
+            s/python3-xlwt/python-xlwt/' ${NAME}.dsc > \
+                ../../../${NAME}-xUbuntu_18.04.dsc
+    
     # Portfile for mac osx builds
     cp Portfile ../../..
 
@@ -161,9 +159,8 @@ function create_debfiles()
 
     # now to obs source folder
     pushd obs
-
-    # original, for xUbuntu_20.04
-    cp $NAME-rpmlintrc ../..
+    
+    # default deb-based, currently focused on Ubuntu 20.04
     sed -e "s/@dueca_VERSION@/${VERSION}/" \
         debian/changelog.in >debian/changelog
     tar cvf ../../debian.tar debian
@@ -188,6 +185,12 @@ function create_debfiles()
 
     # create source file here
     tar cfj dueca-${VERSION}.tar.bz2 dueca-${VERSION}
+
+    # these are like Ubuntu 22.04
+    for sfx in Debian_11 Raspbian_11; do
+	cp $NAME-xUbuntu_22.04.dsc $NAME-${sfx}.dsc
+	cp debian-versioned-xUbuntu_22.04.tar debian-${sfx}.tar
+    done
 
     # add a test project, relies on available gproject
     dueca-gproject clone \
