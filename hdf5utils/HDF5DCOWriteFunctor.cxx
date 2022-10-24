@@ -277,10 +277,11 @@ void HDF5DCOWriteFunctor::LogDataSet::finalize(unsigned finalsize)
 {
   try {
     H5::Exception::dontPrint();
-
-    hsize_t newsize[2] = {finalsize, ncols};
-    dset.extend(newsize);
-    dset.flush(H5F_SCOPE_LOCAL);
+    if (finalsize > 0) {
+      hsize_t newsize[2] = {finalsize, ncols};
+      dset.extend(newsize);
+      dset.flush(H5F_SCOPE_LOCAL);
+    }
   }
   catch(const H5::Exception& e) {
     std::cerr << "Trying to finalize to " << finalsize

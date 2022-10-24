@@ -18,6 +18,7 @@
 #include <boost/format.hpp>
 #include <sstream>
 #include <iomanip>
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START

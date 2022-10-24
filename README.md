@@ -60,6 +60,11 @@ It is implemented as:
   distributions. Currently building for Debian, Ubuntu, Fedora and
   OpenSUSE.
 
+- the `ddff` folder contains the code for yet another logging format,
+  custom-created for efficiently saving and re-loading streaming
+  data. This logging format is used by the `dusime` modules to
+  implement record and replay within simulations.
+
 ## Building and running
 
 DUECA can use, depending on how you configure it, a considerable

@@ -129,15 +129,15 @@ class AddOn(object):
         res = []
         eclasses = set()
         for m in self.members:
-            
+
             # only for enum, once per type, and only for enums that
             # have not been defined elsewhere
             if not m.isEnum() or m.getType() in eclasses or \
                 len(m.getMembers()) == 0:
                 continue
-                    
+
             eclasses.add(m.getType())
-            
+
             # declare the template specializations
             res.append("""
 #if defined(DUECA_CONFIG_HDF5)
@@ -444,7 +444,7 @@ namespace dueca {
             for name, barename in zip(m.getMembers(), m.getMembers(bare=True)):
                 hdf5body.append("""
       v = %(name)s;
-      data_type.insert("%(barename)s", &v);""" % { 'name' : name, 
+      data_type.insert("%(barename)s", &v);""" % { 'name' : name,
                                                    'barename': barename})
             hdf5body.append("""
       once = false;
@@ -464,6 +464,9 @@ namespace dueca {
   const H5::DataType*
     get_hdf5_type(%(klassname)s &o)
   {
+    const %(klassname)s &co = o;
+    return get_hdf5_type(co);
+#if 0
     static H5::EnumType data_type(sizeof(%(ctype)s));
     static bool once = true;
     if (once) {
@@ -479,6 +482,7 @@ namespace dueca {
       once = false;
     }
     return &data_type;
+#endif
   }
 
   template<>
@@ -506,7 +510,7 @@ namespace dueca {
         res = []
         for m in self.members:
             if m.isEnum() and len(m.getMembers()) > 0 and \
-                m.getType() not in eclasses: 
+                m.getType() not in eclasses:
                 res.append('__CUSTOM_HDF5_ENUM_' + m.getType(bare=True))
         if self.nest:
             res.append('__CUSTOM_GETHDF5DATATYPE')

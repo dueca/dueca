@@ -351,7 +351,7 @@ Simulation we commonly define:
 <tr><th>variable</th><th>value</th><th>replaces prefix</th><th>Description</th></tr>
 
 <tr><td>`DAPPS_GITROOT_pub`</td>
-<td>`git@gitlab.tudelft.nl:ae-cs-dueca-base/`</td>
+<td>`git@github.tudelft.nl:dueca/`</td>
 <td>`dgrpub:///`</td>
 <td>Open-sourced DUECA modules on GitHub</td></td>
 

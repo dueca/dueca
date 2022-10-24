@@ -63,6 +63,7 @@ Snapshot::Snapshot(DataWriterArraySize data_size, SnapCoding coding):
   data_size(data.size())
 {
   DOBS("default constructor Snapshot");
+  assert(this->data_size == data_size.size);
 }
 
 Snapshot::Snapshot(size_t data_size, SnapCoding coding):

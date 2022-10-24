@@ -115,5 +115,11 @@ archive. </td></tr>
 
 </table>
 
+In addition, a number of dueca projects are open source and published
+on GitHub. These can be found at `git@github.tudelft.nl:dueca/`, the
+section 
+[Shortened URL's for multiple base groups](@ref appdevelg_shorturl)
+describes how to set-up your environment variables for quick access.
+
 The page on [Policies](@ref policies) describes how policy support in
 `dueca-gproject` might support automated changes to project code.

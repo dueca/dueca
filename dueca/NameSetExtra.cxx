@@ -11,6 +11,7 @@
 // code originally written for this codegen version
 #define __CUSTOM_COMPATLEVEL_110
 #include <dueca/visibility.h>
+#include <sstream>
 
 NameSet::NameSet(const std::string& e, const std::string& c,
                  const std::string& p) :
@@ -31,10 +32,16 @@ NameSet::NameSet(const std::string& e, const std::string& c, int p) :
 
 class LNK_PUBLIC improper_nameset: public std::exception
 {
+  std::stringstream message;
   public:
+  improper_nameset(const std::string& ns) {
+    message << "Name '" << ns
+	    << "' is not a proper nameset; need form of class://path";
+  }
+
   /** Re-implementation of std:exception what. */
   const char* what() const throw()
-  {return "improper nameset, need class:// and then path";}
+  {return message.str().c_str();}
 };
 
 
@@ -43,7 +50,7 @@ void NameSet::validate_set()
   size_t idxc = name.find("://");
   if (idxc == string::npos) {
     // no class specifier
-    throw(improper_nameset());
+    throw(improper_nameset(name));
   }
 
 #if 0

@@ -31,6 +31,7 @@
 #include <debug.h>
 
 // include additional files needed for your calculation here
+#include <dueca-conf.h>
 
 // the standard package for DUSIME, including template source
 #define DO_INSTANTIATE
@@ -309,14 +310,27 @@ void HDF5Logger::TargetedLog::createFunctor(boost::weak_ptr<H5::H5File> nfile,
   // find the meta information
   ChannelEntryInfo ei = r_token.getChannelEntryInfo();
 
-  // metafunctor can create the logging functor
-  boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor
-    (r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
+  try {
 
-  functor.reset(metafunctor.lock()->getWriteFunctor
-                (nfile, prefix + logpath, chunksize,
-                 ei.entry_label, master->getOpTime(always_logging),
-                 compress));
+    // metafunctor can create the logging functor
+    boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor
+      (r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
+
+    functor.reset(metafunctor.lock()->getWriteFunctor
+                  (nfile, prefix + logpath, chunksize,
+                   ei.entry_label, master->getOpTime(always_logging),
+                   compress));
+  }
+  catch (const std::exception& e) {
+    /* DUECA hdf5.
+
+       Failure creating a functor for writing channel data in hdf5 log.
+       Check the hdf5 option on the datatype. */
+    W_XTR("Failing to create hdf5 functor for logging channel " <<
+          r_token.getName() << " entry " << ei.entry_id <<
+          " datatype " << ei.data_class);
+    throw(e);
+  }
 }
 
 void HDF5Logger::TargetedLog::accessAndLog(const TimeSpec& ts)
@@ -657,19 +671,23 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
       }
     }
 
-    try {
-      H5::Exception::dontPrint();
-      // create or re-create all functors
-      for (targeted_list_t::iterator ii = targeted.begin();
-           ii != targeted.end(); ii++) {
-        (*ii)->createFunctor(nfile, this, cnf.data().prefix);
-      }
+#ifndef HDF5_NOCATCH
+    try
+#endif
+      {
+        H5::Exception::dontPrint();
+        // create or re-create all functors
+        for (targeted_list_t::iterator ii = targeted.begin();
+             ii != targeted.end(); ii++) {
+          (*ii)->createFunctor(nfile, this, cnf.data().prefix);
+        }
 
-      for (watcher_list_t::iterator ww = watched.begin();
-           ww != watched.end(); ww++) {
-        (*ww)->createFunctors(nfile, cnf.data().prefix);
+        for (watcher_list_t::iterator ww = watched.begin();
+             ww != watched.end(); ww++) {
+          (*ww)->createFunctors(nfile, cnf.data().prefix);
+        }
       }
-    }
+#ifndef HDF5_NOCATCH
     catch(const H5::Exception &e) {
       /* DUECA hdf5.
 
@@ -681,6 +699,7 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
       setLoggingActive(false);
       return;
     }
+#endif
 
     // set the new file current, this may also call destructor &
     // closing of any previous file
@@ -738,4 +757,3 @@ void HDF5Logger::sendStatus(const std::string& msg, bool error,
 // creation of modules of this type
 //static TypeCreator<HDF5Logger> a(HDF5Logger::getMyParameterTable());
 ENDHDF5LOG;
-

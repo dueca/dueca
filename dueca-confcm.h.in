@@ -251,6 +251,10 @@
    activity/start/stop. Useful for debugging only. */
 #cmakedefine ACTIV_NOCATCH
 
+/* Define if you want to disable catching mechanism for
+   hdf5 modules. Useful for debugging only. */
+#cmakedefine HDF5_NOCATCH
+
 /* Name of package */
 #cmakedefine PACKAGE
 

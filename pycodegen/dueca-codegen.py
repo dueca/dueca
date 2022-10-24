@@ -490,6 +490,13 @@ def cnize(pref):
         return pref + '::'
     return ''
 
+@catchguard
+def appendNameSpace(upto, line, c):
+    global objectnamespace
+    debugprint("addnamespace", c)
+    objectnamespace.append(c[-1])
+
+
 class MemberInfo:
 
     def __init__(self, name, klass, master, namespace):
@@ -2389,7 +2396,7 @@ streamkw = Literal('(') + Literal('Stream').addParseAction(startEventAndStream)
 eventstreamkw = Literal('(') + \
     Literal('EventAndStream').addParseAction(startEventAndStream)
 objectkw = Literal('(') + Literal('Object').addParseAction(startEventAndStream)
-
+    
 # Only enumerator code
 enumeratorkw = Literal('(') + \
     Literal('Enumerator').addParseAction(startEnumerator)
@@ -2404,6 +2411,8 @@ inumber = Regex(r'0x[0-9a-fA-F]+|[-+]?[0-9]+').setName('inumber')
 identifier = Regex('[a-zA-Z_][a-zA-Z0-9_<>,:]*').setName('identifier')
 stringvar = QuotedString(quoteChar='"', escChar='\\', unquoteResults=False,
                          multiline=True).setName('stringvar')
+namespace = (Literal('(') + Literal('Namespace') +
+             identifier + Literal(')')).addParseAction(appendNameSpace)
 
 # the unquoteResults flag also removes backslashes elswhere in the string
 # (i.e., not
@@ -2529,7 +2538,7 @@ arraysizeenum = arraysizeenumkw + White() + \
 
 
 # event | stream | enum |
-content = ZeroOrMore(comment | ctype | eventandstream | enum |
+content = ZeroOrMore(comment | ctype | namespace | eventandstream | enum |
                      headercomments | enum | clenum | enumcode |
                      arraysize | arraysizeenum )
 

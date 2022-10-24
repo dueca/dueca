@@ -109,20 +109,24 @@ def readModules(project, machineclass):
 
     res = []
 
-    # decode the old modules list and add to the modules file
-    with open(f'{project}/modules.{machineclass}', 'r') as f:
-        for l in f:
-            if not l.strip() or l.strip()[0] == '#':
-                pass
-            else:
-                prj, mod = l.strip().split()[0].split('/')
-                if (prj, mod) in res:
-                    print(f"Duplicate module listing {prj}/{mod} in file"
-                          f" '{project}/modules.{machineclass}'")
+    try: 
+        # decode the old modules list and add to the modules file
+        with open(f'{project}/modules.{machineclass}', 'r') as f:
+            for l in f:
+                if not l.strip() or l.strip()[0] == '#':
+                    pass
                 else:
-                    res.append((prj, mod))
-    return res
-
+                    prj, mod = l.strip().split()[0].split('/')
+                    if (prj, mod) in res:
+                        print(f"Duplicate module listing {prj}/{mod} in file"
+                              f" '{project}/modules.{machineclass}'")
+                    else:
+                        res.append((prj, mod))
+        return res
+    except ValueError as e:
+        print(
+            f"Failure parsing modules file '{project}/modules.{machineclass}'")
+        print(f"Error {e}")
 
 cvsroot = os.environ.get('DAPPS_CVSROOT', None)
 patchdir = os.environ.get('DUECA_CVSTOGITPATCHES',
@@ -130,15 +134,19 @@ patchdir = os.environ.get('DUECA_CVSTOGITPATCHES',
 startdir = os.getcwd()
 
 # already git-converted projects
-gitgroups = [ 'ae-cs-dueca-base', 'ae-cs-dueca-active', 
-             'ae-cs-dueca-archive', 'ae-cs-dueca-ftis', 'ae-cs-dueca-yard']
+gitgroups = [ ('ae-cs-dueca-base', 'git@gitlab.tudelft.nl'),
+              ('ae-cs-dueca-active', 'git@gitlab.tudelft.nl'), 
+              ('ae-cs-dueca-archive', 'git@gitlab.tudelft.nl'),
+              ('ae-cs-dueca-ftis', 'git@gitlab.tudelft.nl'),
+              ('ae-cs-dueca-yard', 'git@gitlab.tudelft.nl'),
+              ('dueca', 'git@github.com') ]
 
 def constructUrl(prj):
     global rundir, gitgroups
-    for gg in gitgroups:
+    for gg, grepo in gitgroups:
         if os.path.isdir(f'{rundir}/{gg}/{prj}'):
             print(f"Borrow from already converted {gg}/{prj}")
-            return f'git@gitlab.tudelft.nl:{gg}/{prj}.git'
+            return f'{grepo}:{gg}/{prj}.git'
         
     # assuming we are borrowing from a recent convert
     print(f"Borrow from now-converted project {prj}")
@@ -245,7 +253,7 @@ if runargs.clean:
 if runargs.savediff:
 
     # should be from within a project
-    mods = Modules(None)
+    mods = Modules()
     project = mods.ownproject
     tosave = findFreePatchFile(project)
     with open(f'{patchdir}/{tosave}', 'w') as pf:
@@ -254,7 +262,7 @@ if runargs.savediff:
     sys.exit(0)
 
 if runargs.save_gitdiff:
-    mods = Modules(None)
+    mods = Modules()
     project = mods.ownproject
     tosave = findTotalPatchFile(project)
     with open(f'{patchdir}/{tosave}', 'w') as pf:
@@ -510,7 +518,7 @@ for project in projects:
     #%% patch file available?
     allok = True
     for patchfile in findPatchFiles(project):
-        print(f'running patch file {patchfile} from {patchdir}')
+        print(f'running patch file {patchdir}/{patchfile}')
         runres = subprocess.run(('patch', '-p1'), stdin=open(
                 f'{patchdir}/{patchfile}', 'r'))
         if runres.returncode != 0:
@@ -520,9 +528,13 @@ for project in projects:
     #%% check further changed files
     changed_files = [ item.a_path for item in repo.index.diff(None) ]
     if allok:
-        repo.index.add(changed_files)
-        repo.index.commit('after applying working patches')
-        repo.remote().push()
+        try:
+            repo.index.add(changed_files)
+            repo.index.commit('after applying working patches')
+            repo.remote().push()
+        except FileNotFoundError as e:
+            print("File not found, was it removed by the patch?\n"
+                  f"file:{str(e).split(':')[-1]}")
     else:
         print("Encountered errors in patch application, correct and commit")
 print(rundir)

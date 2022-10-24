@@ -2,6 +2,17 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.2] - 2022-10-24
+
+- Add depenency on toml11 for initial state saving
+- Fix snapshot unpacking code
+- Add an option to the websocket server for immediate start
+- Make the EasyId helper accessible to client code
+- Complete AsyncQueueMT with an emplace_back method
+- Fixes to cvs to git conversion
+- Various minor doc and error message improvements
+- Fixes to HDF5 logging, notably with enum handling
+
 ## [3.2.1] - 2022-07-24
 
 - Adjust build config files to use dueca as package name (formerly dueca2)

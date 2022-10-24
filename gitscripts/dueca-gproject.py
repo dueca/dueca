@@ -495,6 +495,9 @@ class CloneProject:
         os.chdir('../..')
 
         print(f"Cloned project to {here} for machine class {machine}")
+        if ns.version in ('master', 'main'):
+            print("\nYou checked out a master or main branch. When starting\n"
+                  "developing, use git to switch to a development branch")
 
 CloneProject.args(subparsers)
 
