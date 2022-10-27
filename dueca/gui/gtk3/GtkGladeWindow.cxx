@@ -278,6 +278,7 @@ bool GtkGladeWindow::_setValue(const char* wname, bool value, bool warn)
   if (warn) {
     W_MOD("Setting state for gtk object \"" << wname << "\" not implemented");
   }
+  return false;
 }
 
 bool GtkGladeWindow::_setValue(const char* wname, const char* mname,
@@ -307,9 +308,6 @@ bool GtkGladeWindow::_setValue(const char* wname, const char* mname,
   else if (b.type() == typeid(bool)) {
     return _setValue(wname, boost::any_cast<bool>(b), warn);
   }
-  else if (b.type() == typeid(char*)) {
-    return _setValue(wname, boost::any_cast<char*>(b), warn);
-  }
   else if (b.type() == typeid(std::string)) {
     return _setValue(wname, boost::any_cast<std::string>(b).c_str(), warn);
   }
@@ -331,36 +329,29 @@ bool GtkGladeWindow::__getValue(const char* wname, boost::any& b, bool warn)
   }
 
   // try 1, adjustment
-  {
-    if (GTK_IS_ADJUSTMENT(o)) {
-      b = T(gtk_adjustment_get_value(GTK_ADJUSTMENT(o)));
-      return true;
-    }
+  if (GTK_IS_ADJUSTMENT(o)) {
+    b = T(gtk_adjustment_get_value(GTK_ADJUSTMENT(o)));
+    return true;
   }
 
   // try 2, range
-  {
-    if (GTK_IS_RANGE(o)) {
-      b = T(gtk_range_get_value(GTK_RANGE(o)));
-      return true;
-    }
+  if (GTK_IS_RANGE(o)) {
+    b = T(gtk_range_get_value(GTK_RANGE(o)));
+    return true;
   }
 
   // try 3, spinbutton
-  {
-    if (GTK_IS_SPIN_BUTTON(o)) {
-      b = T(gtk_spin_button_get_value(GTK_SPIN_BUTTON(o)));
-      return true;
-    }
+  if (GTK_IS_SPIN_BUTTON(o)) {
+    b = T(gtk_spin_button_get_value(GTK_SPIN_BUTTON(o)));
+    return true;
   }
 
   // try 3, entry, after spinbutton, bc that inherits from entry
-  {
-    if (GTK_IS_ENTRY(o)) {
-      b = boost::lexical_cast<T>(gtk_entry_get_text(GTK_ENTRY(o)));
-      return true;
-    }
+  if (GTK_IS_ENTRY(o)) {
+    b = boost::lexical_cast<T>(gtk_entry_get_text(GTK_ENTRY(o)));
+    return true;
   }
+
   if (warn) {
     W_MOD("Setting double/float for gtk object \"" << wname <<
           "\" not implemented");
@@ -380,15 +371,15 @@ bool GtkGladeWindow::__getValue<bool>(const char* wname,
     return false;
   }
 
-  {
-    GtkToggleButton *t = GTK_TOGGLE_BUTTON(o);
-    b = bool(gtk_toggle_button_get_active(t));
+  if (GTK_IS_TOGGLE_BUTTON(o)) {
+    b = bool(gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(o)));
     return true;
   }
 
   if (warn) {
     W_MOD("Getting state for gtk object \"" << wname << "\" not implemented");
   }
+  return false;
 }
 
 template<>
