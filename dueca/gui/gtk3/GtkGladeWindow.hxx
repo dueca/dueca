@@ -214,15 +214,15 @@ class GtkGladeWindow
 
   /** Helper, set any value on a widget */
   bool _setValue(const char* wname, const char* mname,
-		 boost::any& b, bool warn);
+                 boost::any& b, bool warn);
 
   /** Helper, get a state from a widget */
   template<class T>
   bool __getValue(const char* wname, boost::any& alue, bool warn);
 
   /** Helper, get any value from a widget */
-  bool _getValue(const char* wname, const char* klass, const char* mname,
-		 boost::any& b, bool warn);
+  bool _getValue(const char* wname, const char* mname, const char* klass,
+                 boost::any& b, bool warn);
 
 public:
   /** Constructor. */
@@ -317,7 +317,7 @@ public:
       @param dco       Reader object
       @param format    Format string, to be written with sprintf,
                        use "%s" to insert the element name, e.g.,
-		       "mywidgets_%s"
+                       "mywidgets_%s"
       @param arrformat Format string to be used when connecting to
                        an array element, e.g. "mywidgets_%s_%02d"
       @param warn      Warn if either an element is not found, or
@@ -325,8 +325,8 @@ public:
       @returns         The number of successfully set values
    */
   unsigned setValues(CommObjectReader& dco,
-		     const char* format, const char* arrformat = NULL,
-		     bool warn=false);
+                     const char* format, const char* arrformat = NULL,
+                     bool warn=false);
 
   /** Find the current state of the interface and push into a DCO object.
 
@@ -338,7 +338,7 @@ public:
       @param dco       Writer object
       @param format    Format string, to be written with sprintf,
                        use "%s" to insert the element name, e.g.,
-		       "mywidgets_%s"
+                       "mywidgets_%s"
       @param arrformat Format string to be used when connecting to
                        an array element, e.g. "mywidgets_%s_%02d"
       @param warn      Warn if either an element is not found, or
@@ -346,8 +346,8 @@ public:
       @returns         The number of successfully read values
    */
   unsigned getValues(CommObjectWriter& dco,
-		     const char* format, const char* arrformat = NULL,
-		     bool warn=false);
+                     const char* format, const char* arrformat = NULL,
+                     bool warn=false);
 
 #if GTK_MAJOR_VERSION >= 2
   /** \brief Obtain gtk widget with name 'name' as a C++ object

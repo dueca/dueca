@@ -206,43 +206,32 @@ bool GtkGladeWindow::_setValue(const char* wname, double value, bool warn)
   }
 
   // try 1, adjustment
-  {
-    GtkAdjustment *a = GTK_ADJUSTMENT(o);
-    if (a != NULL) {
-      gtk_adjustment_set_value(a, value);
-      return true;
-    }
+  if (GTK_IS_ADJUSTMENT(o)) {
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(o), value);
+    return true;
   }
 
   // try 2, range
-  {
-    GtkRange *r = GTK_RANGE(o);
-    if (r != NULL) {
-      gtk_range_set_value(r, value);
-      return true;
-    }
+  if (GTK_IS_RANGE(o)) {
+    gtk_range_set_value(GTK_RANGE(o), value);
+    return true;
   }
 
   // try 3, spinbutton
-  {
-    GtkSpinButton *s = GTK_SPIN_BUTTON(o);
-    if (s != NULL) {
-      gtk_spin_button_set_value(s, value);
-      return true;
-    }
+  if (GTK_IS_SPIN_BUTTON(o)) {
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(o), value);
+    return true;
   }
 
   // try 3, entry, after spinbutton, bc that inherits from entry
-  {
-    GtkEntry *e = GTK_ENTRY(o);
-    if (e != NULL) {
-      gtk_entry_set_text(e, boost::lexical_cast<std::string>(value).c_str());
-      return true;
-    }
+  if (GTK_IS_ENTRY(o)) {
+    gtk_entry_set_text(GTK_ENTRY(o),
+                       boost::lexical_cast<std::string>(value).c_str());
+    return true;
   }
   if (warn) {
     W_MOD("Setting double/float for gtk object \"" << wname <<
-	  "\" not implemented");
+          "\" not implemented");
   }
   return false;
 }
@@ -292,7 +281,7 @@ bool GtkGladeWindow::_setValue(const char* wname, bool value, bool warn)
 }
 
 bool GtkGladeWindow::_setValue(const char* wname, const char* mname,
-			      boost::any& b, bool warn)
+                              boost::any& b, bool warn)
 {
   if (b.type() == typeid(double)) {
     return _setValue(wname, boost::any_cast<double>(b), warn);
@@ -343,49 +332,45 @@ bool GtkGladeWindow::__getValue(const char* wname, boost::any& b, bool warn)
 
   // try 1, adjustment
   {
-    GtkAdjustment *a = GTK_ADJUSTMENT(o);
-    if (a != NULL) {
-      b = T(gtk_adjustment_get_value(a));
+    if (GTK_IS_ADJUSTMENT(o)) {
+      b = T(gtk_adjustment_get_value(GTK_ADJUSTMENT(o)));
       return true;
     }
   }
 
   // try 2, range
   {
-    GtkRange *r = GTK_RANGE(o);
-    if (r != NULL) {
-      b = T(gtk_range_get_value(r));
+    if (GTK_IS_RANGE(o)) {
+      b = T(gtk_range_get_value(GTK_RANGE(o)));
       return true;
     }
   }
 
   // try 3, spinbutton
   {
-    GtkSpinButton *s = GTK_SPIN_BUTTON(o);
-    if (s != NULL) {
-      b = T(gtk_spin_button_get_value(s));
+    if (GTK_IS_SPIN_BUTTON(o)) {
+      b = T(gtk_spin_button_get_value(GTK_SPIN_BUTTON(o)));
       return true;
     }
   }
 
   // try 3, entry, after spinbutton, bc that inherits from entry
   {
-    GtkEntry *e = GTK_ENTRY(o);
-    if (e != NULL) {
-      b = boost::lexical_cast<T>(gtk_entry_get_text(e));
+    if (GTK_IS_ENTRY(o)) {
+      b = boost::lexical_cast<T>(gtk_entry_get_text(GTK_ENTRY(o)));
       return true;
     }
   }
   if (warn) {
     W_MOD("Setting double/float for gtk object \"" << wname <<
-	  "\" not implemented");
+          "\" not implemented");
   }
   return false;
 }
 
 template<>
 bool GtkGladeWindow::__getValue<bool>(const char* wname,
-				      boost::any& b, bool warn)
+                                      boost::any& b, bool warn)
 {
   GObject *o = getObject(wname);
   if (o == NULL) {
@@ -408,7 +393,7 @@ bool GtkGladeWindow::__getValue<bool>(const char* wname,
 
 template<>
 bool GtkGladeWindow::__getValue<std::string>(const char* wname,
-					     boost::any& b, bool warn)
+                                             boost::any& b, bool warn)
 {
   GObject *o = getObject(wname);
   if (o == NULL) {
@@ -432,8 +417,8 @@ bool GtkGladeWindow::__getValue<std::string>(const char* wname,
 
 }
 
-bool GtkGladeWindow::_getValue(const char* wname, const char* klass,
-			       const char* mname, boost::any& value, bool warn)
+bool GtkGladeWindow::_getValue(const char* wname, const char* mname,
+                               const char* klass, boost::any& value, bool warn)
 {
   if (!strcmp(klass, "double")) {
     return __getValue<double>(wname, value, warn);
@@ -461,15 +446,15 @@ bool GtkGladeWindow::_getValue(const char* wname, const char* klass,
   }
   if (warn) {
     W_MOD("Could not interpret type of member \"" << mname
-	  << "\" with class \"" << klass << '"');
+          << "\" with class \"" << klass << '"');
   }
   return false;
 }
 
 unsigned GtkGladeWindow::setValues(CommObjectReader& dco,
-				   const char* format,
-				   const char* arrformat,
-				   bool warn)
+                                   const char* format,
+                                   const char* arrformat,
+                                   bool warn)
 {
   unsigned nset = 0;
   char gtkid[128];
@@ -480,32 +465,32 @@ unsigned GtkGladeWindow::setValues(CommObjectReader& dco,
       if (_setValue(gtkid, dco.getMemberName(ii), b, warn)) { nset++; }
     }
     else if (dco.getMemberArity(ii) == Iterable ||
-	     dco.getMemberArity(ii) == FixedIterable) {
+             dco.getMemberArity(ii) == FixedIterable) {
       if (arrformat != NULL) {
-	auto ereader = dco[ii]; unsigned idx = 0;
-	while (!ereader.isEnd()) {
-	  snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx);
-	  boost::any b; ereader.read(b);
-	  if (_setValue(gtkid, dco.getMemberName(ii), b, warn)) { nset++; }
-	}
+        auto ereader = dco[ii]; unsigned idx = 0;
+        while (!ereader.isEnd()) {
+          snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx);
+          boost::any b; ereader.read(b);
+          if (_setValue(gtkid, dco.getMemberName(ii), b, warn)) { nset++; }
+        }
       }
       else {
-	W_MOD("No format specified for array member "
-	      << dco.getMemberName(ii));
+        W_MOD("No format specified for array member "
+              << dco.getMemberName(ii));
       }
     }
     else {
       W_MOD("Could not interpret organisation of member "
-	    << dco.getMemberName(ii));
+            << dco.getMemberName(ii));
     }
   }
   return nset;
 }
 
 unsigned GtkGladeWindow::getValues(CommObjectWriter& dco,
-				   const char* format,
-				   const char* arrformat,
-				   bool warn)
+                                   const char* format,
+                                   const char* arrformat,
+                                   bool warn)
 {
   unsigned nset = 0;
   char gtkid[128];
@@ -514,55 +499,55 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter& dco,
       snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii));
       boost::any b;
       if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii),
-		    b, warn)) {
-	nset++;
-	dco[ii].write(b);
+                    b, warn)) {
+        nset++;
+        dco[ii].write(b);
       }
     }
     else if (dco.getMemberArity(ii) == FixedIterable) {
       if (arrformat != NULL) {
-	auto ewriter = dco[ii]; unsigned idx = 0;
-	while (!ewriter.isEnd()) {
-	  snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
-	  boost::any b;
-	  if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii),
-			b, warn)) {
-	    nset++;
-	    ewriter.write(b);
-	  }
-	  else {
-	    ewriter.skip();
-	  }
-	}
+        auto ewriter = dco[ii]; unsigned idx = 0;
+        while (!ewriter.isEnd()) {
+          snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
+          boost::any b;
+          if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii),
+                        b, warn)) {
+            nset++;
+            ewriter.write(b);
+          }
+          else {
+            ewriter.skip();
+          }
+        }
       }
       else {
-	W_MOD("No format specified for array member "
-	      << dco.getMemberName(ii));
+        W_MOD("No format specified for array member "
+              << dco.getMemberName(ii));
       }
     }
     else if (dco.getMemberArity(ii) == Iterable) {
       if (arrformat != NULL) {
-	auto ewriter = dco[ii]; unsigned idx = 0;
-	while (true) {
-	  snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
-	  boost::any b;
-	  if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii),
-			b, warn)) {
-	     ewriter.write(b);
-	  }
-	  else {
-	    break;
-	  }
-	}
+        auto ewriter = dco[ii]; unsigned idx = 0;
+        while (true) {
+          snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
+          boost::any b;
+          if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii),
+                        b, warn)) {
+             ewriter.write(b);
+          }
+          else {
+            break;
+          }
+        }
       }
       else {
-	W_MOD("No format specified for array member "
-	      << dco.getMemberName(ii));
+        W_MOD("No format specified for array member "
+              << dco.getMemberName(ii));
       }
     }
     else {
       W_MOD("Could not interpret organisation of member "
-	    << dco.getMemberName(ii));
+            << dco.getMemberName(ii));
     }
   }
   return nset;
