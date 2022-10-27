@@ -23,6 +23,7 @@
 #include <iostream>
 #include "GtkCaller.hxx"
 #include "GladeException.hxx"
+#include <boost/any.hpp>
 
 // Forward declaration
 namespace Gtk {
@@ -33,6 +34,9 @@ namespace Gtk {
     Gtk GUI facilities. */
 
 DUECA_NS_START
+
+class CommObjectReader;
+class CommObjectWriter;
 
 /** creation of a caller, 1 parameter and the gpointer parameter. */
 template<class T, typename RET, typename P1>
@@ -199,6 +203,27 @@ class GtkGladeWindow
   /** A map of already initialized C++ widget objects, gtkmm interface */
   std::map<std::string, Gtk::Widget*> widgets;
 
+  /** Helper, set a double value on a widget */
+  bool _setValue(const char* wname, double value, bool warn);
+
+  /** Helper, set a string value on a widget */
+  bool _setValue(const char* wname, const char* value, bool warn);
+
+  /** Helper, set a state on a widget */
+  bool _setValue(const char* wname, bool value, bool warn);
+
+  /** Helper, set any value on a widget */
+  bool _setValue(const char* wname, const char* mname,
+		 boost::any& b, bool warn);
+
+  /** Helper, get a state from a widget */
+  template<class T>
+  bool __getValue(const char* wname, boost::any& alue, bool warn);
+
+  /** Helper, get any value from a widget */
+  bool _getValue(const char* wname, const char* klass, const char* mname,
+		 boost::any& b, bool warn);
+
 public:
   /** Constructor. */
   GtkGladeWindow();
@@ -270,7 +295,7 @@ public:
       By default, this uses the main window/widget.
 
       @param widget  Optional, widget name to show other widget or window
-*/
+  */
   void show(const char* widget=NULL);
 
   /** Close the window.
@@ -279,8 +304,50 @@ public:
 
       @param widget  Optional, widget name to hide other widget or
                      window.
-*/
+  */
   void hide(const char* widget=NULL);
+
+  /** Use a DCO object to set the state of the interface.
+
+      Parses the DCO object, create an ID based on the name and
+      possibly an element number and tries to find matching elements
+      in the interface based on the format, then pushes the DCO values
+      in the corresponding widgets, if possible.
+
+      @param dco       Reader object
+      @param format    Format string, to be written with sprintf,
+                       use "%s" to insert the element name, e.g.,
+		       "mywidgets_%s"
+      @param arrformat Format string to be used when connecting to
+                       an array element, e.g. "mywidgets_%s_%02d"
+      @param warn      Warn if either an element is not found, or
+                       widget and datatype do not match.
+      @returns         The number of successfully set values
+   */
+  unsigned setValues(CommObjectReader& dco,
+		     const char* format, const char* arrformat = NULL,
+		     bool warn=false);
+
+  /** Find the current state of the interface and push into a DCO object.
+
+      Parses the DCO object, create an ID based on the name and
+      possibly an element number and tries to find matching elements
+      in the interface based on the format, then reads the interface state and
+      sets the values in the DCO.
+
+      @param dco       Writer object
+      @param format    Format string, to be written with sprintf,
+                       use "%s" to insert the element name, e.g.,
+		       "mywidgets_%s"
+      @param arrformat Format string to be used when connecting to
+                       an array element, e.g. "mywidgets_%s_%02d"
+      @param warn      Warn if either an element is not found, or
+                       widget and datatype do not match.
+      @returns         The number of successfully read values
+   */
+  unsigned getValues(CommObjectWriter& dco,
+		     const char* format, const char* arrformat = NULL,
+		     bool warn=false);
 
 #if GTK_MAJOR_VERSION >= 2
   /** \brief Obtain gtk widget with name 'name' as a C++ object

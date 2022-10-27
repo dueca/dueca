@@ -110,6 +110,11 @@ public:
   inline void write(const boost::any& a, const boost::any& key=boost::any())
   { base()->write(a, key); }
 
+  /** Skip writing, only relevant for fixed-length iterables, counts to
+      the next element */
+  inline void skip()
+  { base()->skip(); }
+
   /** Recursively access a nested object. k provides the key if
       needed.  If the object is iterable (list, vector-like), repeated
       calls write the next element.
@@ -130,6 +135,9 @@ public:
    */
   inline CommObjectWriter recurse(unsigned idx)
   { return base()->recurse(idx); }
+
+  /** returns true if the last value has been written. */
+  inline bool isEnd() { return base()->isEnd(); }
 
   /** Whether the object can be recursed or not.
 

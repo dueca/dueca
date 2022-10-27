@@ -44,6 +44,9 @@ public:
                      unsigned idx)
   { throw ConversionNotDefined(); };
 
+  virtual void skip()
+  { throw ConversionNotDefined(); };
+
   virtual CommObjectWriter recurse(const boost::any& key)
   { throw TypeIsNotNested(); }
 
@@ -51,6 +54,8 @@ public:
   { throw TypeIsNotNested(); }
 
   virtual MemberArity getArity() const { return Single; }
+
+  virtual bool isEnd() const { return true; }
 
   virtual bool isNested() const { return false; }
 
@@ -340,6 +345,30 @@ private:
   void write(const dco_isnested&, const Dum&,
              const boost::any& val, const boost::any& key)
   { throw(ConversionNotDefined()); }
+
+public:
+  inline void skip()
+  { skip(typename dco_traits<T>::wtype()); }
+
+private:
+  void skip(const dco_write_fixed_it&)
+  { if (par::ii == par::object->end()) throw IndexExceeded();
+    par::ii++; }
+  template<typename Dum>
+  void skip(const Dum&)
+  { throw(ConversionNotDefined()); }
+
+public:
+  inline bool isEnd()
+  { return isEnd(typename dco_traits<T>::wtype()); }
+private:
+  bool isEnd(const dco_write_fixed_it&)
+  { return par::ii == par::object->end(); }
+  bool isEnd(const dco_write_single&)
+  { throw(ConversionNotDefined()); }
+  template<typename Dum>
+  bool isEnd(const Dum&)
+  { return false; }
 };
 
 DUECA_NS_END;
