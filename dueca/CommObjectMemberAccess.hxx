@@ -197,7 +197,8 @@ public:
     return a;
   }
 
-  inline bool isEnum() const { return isEnum(dco_nested<T>()); }
+  bool isEnum() const final { return isEnum(dco_nested<T>()); }
+
 private:
   inline bool isNested(const dco_isdirect&) const { return false; }
   inline bool isNested(const dco_isnested&) const { return true; }

@@ -115,6 +115,14 @@ public:
   inline void skip()
   { base()->skip(); }
 
+  /** Select the first value, for enum(-like) objects */
+  inline void setFirstValue()
+  { base()->setFirstValue(); }
+
+  /** Select the next value, for enum(-like) objects */
+  inline bool setNextValue()
+  { return base()->setNextValue(); }
+
   /** Recursively access a nested object. k provides the key if
       needed.  If the object is iterable (list, vector-like), repeated
       calls write the next element.

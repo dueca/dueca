@@ -38,14 +38,20 @@ public:
 
   virtual void write(const boost::any& res,
                      const boost::any& key)
-  { throw ConversionNotDefined(); };
+  { throw ConversionNotDefined(); }
 
   virtual void write(const boost::any& res,
                      unsigned idx)
-  { throw ConversionNotDefined(); };
+  { throw ConversionNotDefined(); }
+
+  virtual void setFirstValue()
+  { throw ConversionNotDefined(); }
+
+  virtual bool setNextValue()
+  { throw ConversionNotDefined(); }
 
   virtual void skip()
-  { throw ConversionNotDefined(); };
+  { throw ConversionNotDefined(); }
 
   virtual CommObjectWriter recurse(const boost::any& key)
   { throw TypeIsNotNested(); }
@@ -251,10 +257,12 @@ private:
 
 public:
   inline void write(const boost::any& val, const boost::any& key=boost::any())
-  { write(dco_nested<typename par::elt_value_type>(), typename dco_traits<T>::wtype(), val, key); }
+  { write(dco_nested<typename par::elt_value_type>(),
+	  typename dco_traits<T>::wtype(), val, key); }
 
   inline void write(const boost::any& val, unsigned idx)
-  { write(dco_nested<typename par::elt_value_type>(), typename dco_traits<T>::wtype(), val, idx); }
+  { write(dco_nested<typename par::elt_value_type>(),
+	  typename dco_traits<T>::wtype(), val, idx); }
 
 private:
   void write(const dco_isenum&, const dco_write_single&,
@@ -344,6 +352,44 @@ private:
   template<typename Dum>
   void write(const dco_isnested&, const Dum&,
              const boost::any& val, const boost::any& key)
+  { throw(ConversionNotDefined()); }
+
+public:
+  inline void setFirstValue() final
+  { setFirstValue(dco_nested<typename par::elt_value_type>(),
+	     typename dco_traits<T>::wtype()); }
+
+  inline bool setNextValue() final
+  { return setNextValue(dco_nested<typename par::elt_value_type>(),
+		   typename dco_traits<T>::wtype()); }
+
+private:
+  void setFirstValue(const dco_isenum&, const dco_write_single&)
+  { getFirst(*par::object); }
+
+  void setFirstValue(const dco_isenum&, const dco_write_iterable&)
+  { const typename par::elt_value_type newval; getFirst(newval);
+    par::object->push_back(newval); }
+
+  void setFirstValue(const dco_isenum&, const dco_write_fixed_it&)
+  { if (par::ii == par::object->end()) throw IndexExceeded();
+    getFirst(*par::ii++); }
+
+  template<typename D1, typename D2>
+  void setFirstValue(const D1&, const D2&)
+  { throw(ConversionNotDefined()); }
+
+  bool setNextValue(const dco_isenum&, const dco_write_single&)
+  { return getNext(*par::object); }
+
+  bool setNextValue(const dco_isenum&, const dco_write_iterable&)
+  { return getNext(par::object->back()); }
+
+  bool setNextValue(const dco_isenum&, const dco_write_fixed_it&)
+  { return getNext(*par::ii); }
+
+  template<typename D1, typename D2>
+  bool setNextValue(const D1&, const D2&)
   { throw(ConversionNotDefined()); }
 
 public:

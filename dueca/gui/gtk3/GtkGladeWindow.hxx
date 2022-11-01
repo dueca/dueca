@@ -37,6 +37,8 @@ DUECA_NS_START
 
 class CommObjectReader;
 class CommObjectWriter;
+class ElementWriter;
+class ElementReader;
 
 /** creation of a caller, 1 parameter and the gpointer parameter. */
 template<class T, typename RET, typename P1>
@@ -306,6 +308,43 @@ public:
                      window.
   */
   void hide(const char* widget=NULL);
+
+  /** Struct for mapping enum name to representation string */
+  struct OptionMapping {
+    const char* ename;
+    const char* representation;
+  };
+
+  /** Struct for describing mappings */
+  struct OptionMappings {
+    const char* dcomember;
+    OptionMapping mappings[];
+  };
+
+private:
+  /** Helper for option insertion */
+  bool _fillOptions(const char* wname,
+		    ElementWriter& writer, ElementReader& reader,
+		    OptionMapping* mapping, bool warn);
+public:
+
+
+  /** Use the enum items in a DCO object to fill combobox tree models
+      in the interface
+
+      @param dcoclass  Object class
+      @param format    Format string, to be written with sprintf,
+                       use "%s" to insert the element name, e.g.,
+                       "mywidgets_%s"
+      @param arrformat Format string to be used when connecting to
+                       an array element, e.g. "mywidgets_%s_%02d"
+      @param mapping   Optional mapping table, defining sets of
+                       member name + enum string, to representation,
+		       NULL-terminated.
+  */
+  bool fillOptions(const char* dcoclass,
+		   const char* format, const char* arrformat = NULL,
+		   const OptionMappings* mapping=NULL, bool warn=false);
 
   /** Use a DCO object to set the state of the interface.
 
