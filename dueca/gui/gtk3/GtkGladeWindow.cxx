@@ -25,6 +25,7 @@
 #include <dueca/CommObjectElementWriter.hxx>
 #include <dueca/DataClassRegistry.hxx>
 #include <dueca/CommObjectMemberAccess.hxx>
+#include <dueca/DataSetConverter.hxx>
 #define E_CNF
 #define W_CNF
 #include "debug.h"
@@ -269,7 +270,7 @@ bool GtkGladeWindow::_setValue(const char* wname, const char* value, bool warn)
     gtk_combo_box_set_active_iter(GTK_COMBO_BOX(o), NULL);
     if (warn) {
       W_MOD("No matching item for gtk combo \"" << wname <<
-	    "\", missing \"" << value << '"');
+            "\", missing \"" << value << '"');
     }
     return false;
   }
@@ -573,16 +574,16 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter& dco,
   return nset;
 }
 
-static const char* _searchInMap(GtkGladeWindow::OptionMapping* mapping,
-				const char* key, bool warn)
+static const char* _searchInMap(const GtkGladeWindow::OptionMapping* mapping,
+                                const char* key, bool warn)
 {
   for (auto m = mapping; m->ename != NULL; m++) {
     if (!strcmp(m->ename, key)) {
       if (m->representation != NULL) {
-	return m->representation;
+        return m->representation;
       }
       else {
-	return key;
+        return key;
       }
     }
   }
@@ -600,10 +601,10 @@ static const char* _searchInMap(GtkGladeWindow::OptionMapping* mapping,
 
 
 bool GtkGladeWindow::_fillOptions(const char* wname,
-				  ElementWriter& writer,
-				  ElementReader& reader,
-				  OptionMapping* mapping,
-				  bool warn)
+                                  ElementWriter& writer,
+                                  ElementReader& reader,
+                                  const OptionMapping* mapping,
+                                  bool warn)
 {
   GObject *o = getObject(wname);
   if (o == NULL) {
@@ -642,11 +643,11 @@ bool GtkGladeWindow::_fillOptions(const char* wname,
   writer.setFirstValue(); GtkTreeIter it;
   do {
     std::string value;
-    reader.read(value);
+    reader.peek(value);
     gtk_list_store_insert(store, &it, -1);
     if (mapping) {
       gtk_list_store_set(store, &it, 0, value.c_str(), 1,
-			 _searchInMap(mapping, value.c_str(), warn), -1);
+                         _searchInMap(mapping, value.c_str(), warn), -1);
     }
     else {
       gtk_list_store_set(store, &it, 0, value.c_str(), -1);
@@ -655,18 +656,39 @@ bool GtkGladeWindow::_fillOptions(const char* wname,
   return true;
 }
 
+static const GtkGladeWindow::OptionMapping*
+_searchMapping(const GtkGladeWindow::OptionMappings *mappings,
+               const char* key, bool warn)
+{
+  for (auto m = mappings; m->dcomember != NULL; m++) {
+    if (!strcmp(m->dcomember, key)) {
+      return m->mapping;
+    }
+  }
+  if (warn) {
+    /* DUECA graphics.
+
+       In the given key is missing from the option string mapping for
+       selecting an Enum with a ComboBox. Check the mapping against
+       the DCO definition for the enum.
+    */
+    W_XTR("Mapping for member \"" << key << "\" not given in options mapping");
+  }
+  return NULL;
+}
+
 bool GtkGladeWindow::fillOptions(const char* dcoclass,
-				 const char* format, const char* arrformat,
-				 const OptionMappings* mappings, bool warn)
+                                 const char* format, const char* arrformat,
+                                 const OptionMappings* mappings, bool warn)
 {
   auto eclass = DataClassRegistry::single().getEntryShared(dcoclass);
   if (!eclass.get()) {
     /** DUECA Graphics.
 
-	When trying to fill selections for combobox entries in a GUI,
-	(GtkGladeWindow::fillOptions), the specified dco data class is
-	not available. Check spelling, or add the class to the
-	executable.
+        When trying to fill selections for combobox entries in a GUI,
+        (GtkGladeWindow::fillOptions), the specified dco data class is
+        not available. Check spelling, or add the class to the
+        executable.
     */
     E_XTR("GtkGladeWindow cannot access data class " << dcoclass);
     return false;
@@ -674,37 +696,48 @@ bool GtkGladeWindow::fillOptions(const char* dcoclass,
 
   // work variable
   char gtkid[128];
+  auto converter = DataClassRegistry::single().getConverter(dcoclass);
+  void* object = converter->clone(NULL);
 
   /** Run through all members. */
   for (size_t im = 0; im < DataClassRegistry::single().
-	 getNumMembers(eclass.get()); im++) {
+         getNumMembers(eclass.get()); im++) {
     auto access = DataClassRegistry::single().
       getMemberAccessor(eclass.get(), im);
 
     // only the enums
     if (access->isEnum()) {
+      // reader and writer are used to find enum names
+      auto eltreader = access->getReader(object);
+      auto eltwriter = access->getWriter(object);
+
+      // iterable, run through the 
       if (access->getArity() == FixedIterable) {
-	if (arrformat != NULL) {
-	  for (unsigned idx = access->getSize(); idx--; ) {
-	    snprintf(gtkid, sizeof(gtkid), arrformat, access->getName(), idx);
-	    // now need to get the enum values?
+        if (arrformat != NULL) {
+          for (unsigned idx = access->getSize(); idx--; ) {
+            snprintf(gtkid, sizeof(gtkid), arrformat, access->getName(), idx);
+            // now need to get the enum values?
+            _fillOptions
+              (gtkid, eltwriter, eltreader,
+               _searchMapping(mappings, access->getName(), warn), warn);
+          }
+        }
+        else {
+          /** DUECA Graphics.
 
-	  }
-	}
-	else {
-	  /** DUECA Graphics.
-
-	      There is an enum array specified, but no array format
-	      available for finding it in the interface.
-	  */
-	  W_XTR("GtkGladeWindow::fillOptions missing array format");
-	}
+              There is an enum array specified, but no array format
+              available for finding it in the interface.
+          */
+          W_XTR("GtkGladeWindow::fillOptions missing array format");
+        }
       }
       else if (access->getArity() == Single) {
 
-	snprintf(gtkid, sizeof(gtkid), format, access->getName());
-	// again, enum values
-
+        snprintf(gtkid, sizeof(gtkid), format, access->getName());
+        // again, enum values
+        _fillOptions
+          (gtkid, eltwriter, eltreader,
+           _searchMapping(mappings, access->getName(), warn), warn);
       }
     }
   }
