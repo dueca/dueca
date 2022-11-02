@@ -10,7 +10,7 @@ find_package(DuecaCodegen)
 
 set(DCOSOURCES Snapshot.dco XmlSnapshot.dco IncoNotice.dco
   IncoSpec.dco IncoVariable.dco IndexValuePair.dco
-  ReplayCommand.dco ReplayReport.dco)
+  ReplayCommand.dco ReplayReport.dco IncoVarType.dco)
 
 set(SOURCES SimulationModule.cxx SimulationModule.hxx
   HardwareModule.cxx HardwareModule.hxx DusimeModule.cxx
@@ -18,14 +18,10 @@ set(SOURCES SimulationModule.cxx SimulationModule.hxx
   IncoCalculator.cxx Interval.cxx IntervalCalculation.cxx
   IncoCollaborator.cxx TrimId.cxx TrimId.hxx TrimLink.hxx TrimLink.cxx
   TrimView.cxx TrimView.hxx TrimSummary.cxx IncoVariableWork.cxx
-  IncoVariableWork.hxx
-  DusimeController.cxx DusimeController.hxx IncoVarType.hxx
-  IncoVarType.cxx IncoRole.hxx IncoRole.cxx
-  ReplayFiler.hxx ReplayFiler.cxx
-  DUSIMEExceptions.hxx DUSIMEExceptions.cxx
-  ReplayMaster.hxx ReplayMaster.cxx
-  SnapshotInventory.hxx SnapshotInventory.cxx
-  )
+  IncoVariableWork.hxx DusimeController.cxx DusimeController.hxx
+  IncoRole.hxx IncoRole.cxx ReplayFiler.hxx ReplayFiler.cxx
+  DUSIMEExceptions.hxx DUSIMEExceptions.cxx ReplayMaster.hxx
+  ReplayMaster.cxx SnapshotInventory.hxx SnapshotInventory.cxx )
 
 set(HEADERS SimulationModule.hxx RTWModule.hxx HardwareModule.hxx
   DusimeModule.hxx dusime.h IncoMode.hxx IncoTable.hxx

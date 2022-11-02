@@ -874,7 +874,7 @@ class Enum(Type):
         self.ctype = c
         pass
 
-    def complete(self, depth='  '):
+    def complete(self, depth=''):
         debugprint("adding type", self, self.name)
         types[self.name] = self
         self.comments = "{depth}/**{comments} */".format(
@@ -883,7 +883,7 @@ class Enum(Type):
              ' Enumerated type for an automatically generated object class')
         self.members.pop()
         for m in self.members:
-            m.complete(depth)
+            m.complete(depth+'  ')
         pass
 
     def __str__(self):
@@ -941,7 +941,9 @@ enum {name} {{
             return None
         res = [ """
 %(namespacecmd0)sconst char* const getString(const %(objprefix)s%(masterprefix)s%(name)s &o);
-void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s);%(namespacecmd1)s
+void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s);
+void getFirst(%(objprefix)s%(masterprefix)s%(name)s &o);
+bool getNext(%(objprefix)s%(masterprefix)s%(name)s &o);%(namespacecmd1)s
 #if !defined(__DCO_NOPACK)
 void packData(::dueca::AmorphStore& s,
               const %(objprefix)s%(masterprefix)s%(name)s &o);
@@ -2352,11 +2354,12 @@ class StandaloneEnum(BuildObject):
         # complete myself as type?
         #self.name = ''
         if objectnamespace:
-            self.namespace = objectnamespace
-            self.namespacecmd0 = 'namespace %s {\n' % objectnamespace
-            self.namespacecmd1 = '\n};'
-            self.objprefix = "%s::" % objectnamespace
-            self.inclassprefix = ""
+            self.namespace = '::'.join(objectnamespace)
+            self.namespacecmd0 = ''.join(
+                [f'namespace {ns} {{\n' for ns in objectnamespace])
+            self.namespacecmd1 = '\n' + '} '*len(objectnamespace) + '\n'
+            self.objprefix = self.namespace + "::"
+            self.inclassprefix = "::dueca::"
         else:
             self.namespace = ''
             self.namespacecmd0 = ''

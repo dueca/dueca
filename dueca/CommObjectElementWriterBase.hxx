@@ -357,11 +357,11 @@ private:
 public:
   inline void setFirstValue() final
   { setFirstValue(dco_nested<typename par::elt_value_type>(),
-	     typename dco_traits<T>::wtype()); }
+		  typename dco_traits<T>::wtype()); }
 
   inline bool setNextValue() final
   { return setNextValue(dco_nested<typename par::elt_value_type>(),
-		   typename dco_traits<T>::wtype()); }
+			typename dco_traits<T>::wtype()); }
 
 private:
   void setFirstValue(const dco_isenum&, const dco_write_single&)
@@ -375,8 +375,12 @@ private:
   { if (par::ii == par::object->end()) throw IndexExceeded();
     getFirst(*par::ii++); }
 
-  template<typename D1, typename D2>
-  void setFirstValue(const D1&, const D2&)
+  template<typename Dum>
+  void setFirstValue(const dco_isdirect&, const Dum&)
+  { throw(ConversionNotDefined()); }
+
+  template<typename Dum>
+  void setFirstValue(const dco_isnested&, const Dum&)
   { throw(ConversionNotDefined()); }
 
   bool setNextValue(const dco_isenum&, const dco_write_single&)
@@ -388,8 +392,12 @@ private:
   bool setNextValue(const dco_isenum&, const dco_write_fixed_it&)
   { return getNext(*par::ii); }
 
-  template<typename D1, typename D2>
-  bool setNextValue(const D1&, const D2&)
+  template<typename Dum>
+  bool setNextValue(const dco_isdirect&, const Dum&)
+  { throw(ConversionNotDefined()); }
+
+  template<typename Dum>
+  bool setNextValue(const dco_isnested&, const Dum&)
   { throw(ConversionNotDefined()); }
 
 public:

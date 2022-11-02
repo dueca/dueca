@@ -205,21 +205,26 @@ struct GladeCallbackTable {
     // define a mapping between the enum values, and interface strings
     // note that whithout mappings (use NULL), the enum values are used
     // directly in the interface
-    OptionMappings mappings[] = {
-      { "command", {
-        { "On", "Device on" },
-        { "Off", "Device off" }
-      } },
-      { NULL }
-      };
 
-    // apply the mapping to the opened window
+    // each enum gets a mapping to label strings
+    static const GtkGladeWindow::OptionMapping mapping_command[] = {
+      { "On", "Device on" },
+      { "Off", "Device off" },
+      { NULL, NULL }
+    };
+    // all mappings together, linked to the member name
+    static const OptionMappings mappings[] = {
+      { "command", mapping_command },
+      { NULL, NULL }
+    };
+
+    // apply the mappings to the opened window
     mywindow.fillOptions("TestObject", "mywidgets_%s", NULL,
                          mappings, true);
 
     // set the default values of a TestObject on the interface
-    TestObject default;
-    CommObjectReader reader("TestObject", reinterpret_cast<void*>(&default));
+    TestObject deflt;
+    CommObjectReader reader("TestObject", reinterpret_cast<void*>(&deflt));
     mywindow.setValues(reader, "mywidgets_%s", NULL, true);
 
     // .... later, after changes, read the values from the interface
@@ -234,6 +239,11 @@ struct GladeCallbackTable {
     You can also use (fixed-size) arrays with values in the DCO objects,
     and have the interface fill these; the second format string "arrformat",
     describes how these are labeled.
+
+    In your glade gui, ensure that:
+    - Each ComboBox that you want to use has a text entry
+    - Use column 0 for the entry if you don't want a mapping (directly
+      uses the enum names), column 1 if you do want a mapping.
  */
 class GtkGladeWindow
 {
@@ -377,7 +387,7 @@ public:
   /** Struct for describing mappings */
   struct OptionMappings {
     const char* dcomember;
-    OptionMapping mapping[];
+    const OptionMapping *mapping;
   };
 
 private:
@@ -396,7 +406,7 @@ public:
                        use "%s" to insert the element name, e.g.,
                        "mywidgets_%s"
       @param arrformat Format string to be used when connecting to
-                       an array element, e.g. "mywidgets_%s_%02d"
+                       an array element, e.g., "mywidgets_%s_%02d"
       @param mapping   Optional mapping table, defining sets of
                        member name + enum string, to representation,
                        NULL-terminated.
