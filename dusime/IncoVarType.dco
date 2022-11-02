@@ -1,0 +1,22 @@
+;; -*-scheme-*-
+
+(Header "
+        item            : IncoVarType.dco
+        made by         : Rene' van Paassen
+        date            : 221102
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2016-2022 TUDelft-AE-C&S
+                        : (c) 2022 René van Paassen
+        license         : EUPL-1.2")
+
+(Enum IncoVarType uint8_t
+      ;; Floating point
+      IncoFloat
+      ;; Integer
+      IncoInt
+      ;; Number of types defined
+      NumIncoVarTypes)
+
+;; Type of variable, for initial condition calculation, only floats
+;; and ints are used.
+(Enumerator IncoVarType)

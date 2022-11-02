@@ -25,7 +25,7 @@ set(SOURCES SimulationModule.cxx SimulationModule.hxx
 
 set(HEADERS SimulationModule.hxx RTWModule.hxx HardwareModule.hxx
   DusimeModule.hxx dusime.h IncoMode.hxx IncoTable.hxx
-  DusimeController.hxx IncoVarType.hxx SnapshotExtra.hxx
+  DusimeController.hxx SnapshotExtra.hxx
   XmlSnapshotExtra.hxx IncoNoticeExtra.hxx IncoRole.hxx
   IncoVariableExtra.hxx ReplayFiler.hxx
   DUSIMEExceptions.hxx DataRecorder.hxx)
