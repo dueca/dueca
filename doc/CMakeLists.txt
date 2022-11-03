@@ -93,7 +93,8 @@ find_package(Doxygen REQUIRED)
 # search for all source header files, exclude Extra.hxx ones which are part
 # of generated source classes
 execute_process(COMMAND find ${CMAKE_SOURCE_DIR}
-  \( -name "*.hxx" -o -name "*.h" \) -a ! -name "*Extra.hxx"
+  -name gtk2 -prune -o
+  \( \( -name "*.hxx" -o -name "*.h" \) -a ! -name "*Extra.hxx" \)
   -exec grep -q DUECA_API {} \; -print
   OUTPUT_VARIABLE apifiles1)
 
