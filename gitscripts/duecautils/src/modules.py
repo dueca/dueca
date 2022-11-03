@@ -486,8 +486,14 @@ class Modules:
         except git.GitCommandError as e:
             print(
                 f'Failing to get code for borrowed project {prj.name}'
-                f' from url {prj.url},\ncheck modules.xml')
-            dprint(f"Git error message {e}")
+                f'from url {prj.url}, fixes / to check:\n'
+                '- Is this url valid, if not, maybe set a DAPPS_GITROOT_xxx\n'
+                '  variable.\n'
+                '- Is the entry in .config/class/<class>/modules.xml valid?\n'
+                '- Check that you have access to the url\n'
+                '- If you changed the url, remove the borrowed project\n'
+                f'  (rm -rf ../{prj.name})\n')
+            # dprint(f"Git error message {e}")
 
         # create a branch if needed
         if version not in rrepo.heads:
