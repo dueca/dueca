@@ -26,7 +26,11 @@
 
 DUECA_NS_START;
 
-/** Base class for introspection reading a single element from a DCO object */
+/** Base class for introspection reading a single element from a DCO
+    object.
+
+    This is used "internally" by the ElementReader class.
+ */
 class ReadElementBase
 {
 public:
@@ -37,6 +41,11 @@ public:
   virtual void read(std::string& res,
                     std::string& key) = 0;
   virtual void read(boost::any& res,
+                    boost::any& key) = 0;
+
+  virtual void peek(std::string& res,
+                    std::string& key) = 0;
+  virtual void peek(boost::any& res,
                     boost::any& key) = 0;
 
   virtual CommObjectReader recurse(std::string& key) = 0;
@@ -181,6 +190,16 @@ private:
   { const typename par::elt_value_type *tmp = &(par::ii->second);
     step(x); return *tmp; }
 
+  const typename par::elt_value_type& peek_object(const dco_read_single& x)
+  { const typename par::elt_value_type *tmp = par::object;
+    return *tmp; }
+  const typename par::elt_value_type& peek_object(const dco_read_iterable& x)
+  { const typename par::elt_value_type *tmp = &(*par::ii);
+    return *tmp; }
+  const typename par::elt_value_type& peek_object(const dco_read_map& x)
+  { const typename par::elt_value_type *tmp = &(par::ii->second);
+    return *tmp; }
+
   void get_key(std::string&, const dco_read_single&) { }
   void get_key(std::string&, const dco_read_iterable&) { }
   void get_key(std::string& key, const dco_read_map&)
@@ -212,6 +231,29 @@ private:
   { get_key(key, typename dco_traits<T>::rtype());
     val = boost::any
       (std::string(getString(get_object(typename dco_traits<T>::rtype()))));}
+
+public:
+  void peek(std::string& res, std::string& key)
+  { peek_as(res, key, dco_nested<typename par::elt_value_type>()); }
+  void peek(boost::any& res, boost::any& key)
+  { peek_any(res, key, dco_nested<typename par::elt_value_type>()); }
+
+private:
+  void peek_as(std::string& val, std::string& key, const dco_isnested&)
+  { throw ConversionNotDefined() ;}
+  void peek_as(std::string&val, std::string&key, const dco_isdirect&)
+  { get_key(key, typename dco_traits<T>::rtype());
+    val = boost::lexical_cast<std::string>
+      (peek_object(typename dco_traits<T>::rtype())); }
+  void peek_any(boost::any& val, boost::any& key, const dco_isnested&)
+  { throw ConversionNotDefined() ;}
+  void peek_any(boost::any& val, boost::any& key, const dco_isdirect&)
+  { get_key(key, typename dco_traits<T>::rtype());
+    val = boost::any(peek_object(typename dco_traits<T>::rtype()));}
+  void peek_any(boost::any& val, boost::any& key, const dco_isenum&)
+  { get_key(key, typename dco_traits<T>::rtype());
+    val = boost::any
+      (std::string(getString(peek_object(typename dco_traits<T>::rtype()))));}
 };
 
 DUECA_NS_END;

@@ -59,7 +59,7 @@ public:
   /** Delete an object of said data type. */
   // virtual void delData(void* data) const = 0;
 
-  /** Delete an const object of said data type. */
+  /** Delete an object of said data type. */
   virtual void delData(const void* data) const = 0;
 
   /** Get the length of the data in unpacked format. */

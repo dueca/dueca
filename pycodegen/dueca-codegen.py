@@ -874,7 +874,7 @@ class Enum(Type):
         self.ctype = c
         pass
 
-    def complete(self, depth='  '):
+    def complete(self, depth=''):
         debugprint("adding type", self, self.name)
         types[self.name] = self
         self.comments = "{depth}/**{comments} */".format(
@@ -883,7 +883,7 @@ class Enum(Type):
              ' Enumerated type for an automatically generated object class')
         self.members.pop()
         for m in self.members:
-            m.complete(depth)
+            m.complete(depth+'  ')
         pass
 
     def __str__(self):
@@ -941,7 +941,9 @@ enum {name} {{
             return None
         res = [ """
 %(namespacecmd0)sconst char* const getString(const %(objprefix)s%(masterprefix)s%(name)s &o);
-void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s);%(namespacecmd1)s
+void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s);
+void getFirst(%(objprefix)s%(masterprefix)s%(name)s &o);
+bool getNext(%(objprefix)s%(masterprefix)s%(name)s &o);%(namespacecmd1)s
 #if !defined(__DCO_NOPACK)
 void packData(::dueca::AmorphStore& s,
               const %(objprefix)s%(masterprefix)s%(name)s &o);
@@ -979,8 +981,7 @@ PRINT_NS_END;
         anyval = [ 1 for i in self.members if i.value is not None]
         if anyval:
             res = [ """
-{namespacecmd0}
-#if !defined(__CUSTOM_GETSTRING_{name}) || !defined(__CUSTOM_READFROMSTRING_{name})
+{namespacecmd0}#if !defined(__CUSTOM_ENUMNAMES_{name})
 struct NameMatch_{name} {{
   const char* mname;
   {objprefix}{masterprefix}{name}      enumval;
@@ -1028,6 +1029,26 @@ void readFromString({objprefix}{masterprefix}{name} &o, const std::string& s)
   }}
   throw({inclassprefix}ConversionNotDefined());
 }}
+#endif
+
+#ifndef __CUSTOM_ITERATE_{name}
+void getFirst({objprefix}{masterprefix}{name} &o)
+{{
+  o = __{name}_names[0].enumval;
+}}
+
+bool getNext({objprefix}{masterprefix}{name} &o)
+{{
+  bool next = false;
+  for (const auto &pair: __{name}_names) {{
+    if (pair.mname == NULL) {{ return false; }}
+    if (next) {{
+      o = pair.enumval; return true;
+    }}
+    if (pair.enumval == o) {{ next = true; }}
+  }}
+  return false;
+}}
 #endif{namespacecmd1}
 
 #if !defined(__CUSTOM_PACKDATA_{name}) && !defined(__DCO_NOPACK)
@@ -1054,58 +1075,101 @@ const char* getclassname<{masterprefix}{name}>()
            ctype=self.ctype))
         else:
             res = ["""
-            %(namespacecmd0)s#ifndef __CUSTOM_GETSTRING_%(name)s
-const char* const getString(const %(objprefix)s%(masterprefix)s%(name)s &o)
-{
-  static const char* %(name)s_names[] = {
-    %(allnames)s};
+#include <map>
+{namespacecmd0}#ifndef __CUSTOM_ENUMNAMES_{name}
+struct NameMatch_{name} {{
+  const char* mname;
+  {objprefix}{masterprefix}{name}      enumval;
+}};
 
-  return %(name)s_names[int(o)];
-}
+static const NameMatch_{name} __{name}_names [] = {{""".format(
+    name=self.name, namespacecmd0=master.namespacecmd0,
+    objprefix=master.objprefix,
+    masterprefix=(master.name and f'{master.name}::') or ''
+)]
+            for m in self.members:
+                res.append('''
+  {{ "{m.name}", {objprefix}{masterprefix}{prefix}{m.name} }},'''.format(
+                    m=m,
+                    prefix=(self.classenum and f'{self.name}::') or '',
+                    objprefix=master.objprefix,
+                    masterprefix=(master.name and f'{master.name}::') or ''))
+
+            res.append('''
+  {{ NULL }}
+}};
 #endif
 
-#ifndef __CUSTOM_READFROMSTRING_%(name)s
-void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s)
-{
-  for (int ii = %(nmember)i; ii--; ) {
-    if (std::string(getString(%(objprefix)s%(masterprefix)s%(name)s(ii))) == s) {
-      o = %(objprefix)s%(masterprefix)s%(name)s(ii);
+#ifndef __CUSTOM_GETSTRING_{name}
+const char* const getString(const {objprefix}{masterprefix}{name} &o)
+{{
+  for (auto ii = __{name}_names; ii->mname; ii++) {{
+    if (o == ii->enumval) {{
+      return ii->mname;
+    }}
+  }}
+  throw({inclassprefix}ConversionNotDefined());
+}}
+#endif
+
+#ifndef __CUSTOM_READFROMSTRING_{name}
+void readFromString({objprefix}{masterprefix}{name} &o, const std::string& s)
+{{
+  for (auto ii = __{name}_names; ii->mname; ii++) {{
+    if (std::string(ii->mname) == s) {{
+      o = ii->enumval;
       return;
-    }
-  }
-  throw(%(inclassprefix)sConversionNotDefined());
-}
-#endif%(namespacecmd1)s
+    }}
+  }}
+  throw({inclassprefix}ConversionNotDefined());
+}}
+#endif
 
-#if !defined(__CUSTOM_PACKDATA_%(name)s) && !defined(__DCO_NOPACK)
+#ifndef __CUSTOM_ITERATE_{name}
+void getFirst({objprefix}{masterprefix}{name} &o)
+{{
+  o = __{name}_names[0].enumval;
+}}
+
+bool getNext({objprefix}{masterprefix}{name} &o)
+{{
+  bool next = false;
+  for (const auto &pair: __{name}_names) {{
+    if (pair.mname == NULL) {{ return false; }}
+    if (next) {{
+      o = pair.enumval; return true;
+    }}
+    if (pair.enumval == o) {{ next = true; }}
+  }}
+  return false;
+}}
+#endif{namespacecmd1}
+
+#if !defined(__CUSTOM_PACKDATA_{name}) && !defined(__DCO_NOPACK)
 void packData(::dueca::AmorphStore& s,
-              const %(objprefix)s%(masterprefix)s%(name)s &o)
-{ packData(s, %(ctype)s(o));}
+              const {objprefix}{masterprefix}{name} &o)
+{{ packData(s, {ctype}(o)); }}
 #endif
 
-#if !defined(__CUSTOM_UNPACKDATA_%(name)s) && !defined(__DCO_NOPACK)
+#if !defined(__CUSTOM_UNPACKDATA_{name}) && !defined(__DCO_NOPACK)
 void unPackData(::dueca::AmorphReStore& s,
-                %(objprefix)s%(masterprefix)s%(name)s &o)
-{ %(ctype)s tmp(s); o = %(objprefix)s%(masterprefix)s%(name)s(tmp); }
+                {objprefix}{masterprefix}{name} &o)
+{{ {ctype} tmp(s); o = {objprefix}{masterprefix}{name}(tmp); }}
 #endif
 
-namespace dueca {;
+namespace dueca {{
 template <>
-const char* getclassname<%(masterprefix)s%(name)s>()
-{ return "%(masterprefix)s%(name)s"; }
-};
-""" % joindict(
-            self.__dict__,
-            { 'mastername' : master.name,
-              'masterprefix' :
-              (master.name and f'{master.name}::') or '',
-              'objprefix' : master.objprefix,
-              'namespacecmd0' : master.namespacecmd0,
-              'namespacecmd1' : master.namespacecmd1,
-              'inclassprefix' : master.inclassprefix,
-              'allnames' : ',\n    '.join(
-            [ r.quoted() for r in self.members ]),
-              'nmember' : len(self.members) }) ]
+const char* getclassname<{masterprefix}{name}>()
+{{ return "{masterprefix}{name}"; }}
+}};
+'''.format(name=self.name,
+           mastername = master.name,
+           masterprefix = (master.name and f'{master.name}::') or '',
+           objprefix = master.objprefix,
+           namespacecmd0=master.namespacecmd0,
+           namespacecmd1=master.namespacecmd1,
+           inclassprefix=master.inclassprefix,
+           ctype=self.ctype))
         return ''.join(res)
 
     def enumTraits(self, mastername):
@@ -2290,11 +2354,12 @@ class StandaloneEnum(BuildObject):
         # complete myself as type?
         #self.name = ''
         if objectnamespace:
-            self.namespace = objectnamespace
-            self.namespacecmd0 = 'namespace %s {\n' % objectnamespace
-            self.namespacecmd1 = '\n};'
-            self.objprefix = "%s::" % objectnamespace
-            self.inclassprefix = ""
+            self.namespace = '::'.join(objectnamespace)
+            self.namespacecmd0 = ''.join(
+                [f'namespace {ns} {{\n' for ns in objectnamespace])
+            self.namespacecmd1 = '\n' + '} '*len(objectnamespace) + '\n'
+            self.objprefix = self.namespace + "::"
+            self.inclassprefix = "::dueca::"
         else:
             self.namespace = ''
             self.namespacecmd0 = ''
@@ -2588,8 +2653,7 @@ struct CommObjectDataTable;
 #include <iostream>
 %(extraheader)s
 %(typeincludes)s%(plug_header_include)s
-%(namespacecmd0)s
-%(packpragma)s
+%(namespacecmd0)s%(packpragma)s
 %(classcomment)s
 struct %(name)s%(inherits)s
 {

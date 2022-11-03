@@ -21,10 +21,11 @@ DUECA_NS_START;
 
 /** ElementReader  an object to read a member of a DCO object
 
-    The ElementReader enables a generic level (based on string or
+    The ElementReader enables a generic level (based on std::string or
     boost::any) interaction with a member of a DCO object. Generally,
-    the ElementReader will be provided by a CommObjectReader, which in
-    turn may be supplied by a channel.
+    the ElementReader will be provided by a dueca::CommObjectReader,
+    which in turn may be supplied by a channel through its descendant
+    dueca::DCOReader.
 
     If the member is iterable, it may be read multiple times by read
     calls, each read call will set an iterator to point to the next
@@ -32,12 +33,14 @@ DUECA_NS_START;
     whether the iteration has ended. If a type is not iterable, there
     will be only one read until isEnd() returns true.
 
-    Single members may be read in string or boost::any form, compound
-    members (themselves DCO objects) may be recursively inspected
-    using the recurse() call. When attempting to read a single member,
-    but the object is compound, a ConversionNotDefined exception will
-    be thrown. When attempting to recurse into a compound member, but
-    the member is single, a TypeIsNotNested exception will be thrown.
+    Single members may be read in std::string or boost::any form,
+    compound members (themselves DCO objects) may be recursively
+    inspected using the recurse() call, producing new ElementReader
+    objects. When attempting to read a single member, but the object
+    is compound, a dueca::ConversionNotDefined exception will be
+    thrown. When attempting to recurse into a compound member, but the
+    member is single, a dueca::TypeIsNotNested exception will be
+    thrown.
 
     The isEnd() call indicates whether all elements of a member have
     been read.
@@ -92,6 +95,14 @@ public:
   /** read a value, no provision for returning a key if it exists. */
   inline void read(boost::any& a)
   { static boost::any dum; base()->read(a, dum); }
+
+  /** read a value, but do not step/iterate/invalidate. */
+  inline void peek(std::string& s)
+  { static std::string dum; base()->peek(s, dum); }
+
+  /** read a value, but do not step/iterate/invalidate. */
+  inline void peek(boost::any& a)
+  { static boost::any dum; base()->peek(a, dum); }
 
   /** recursively access a nested object. k returns the key if it exists */
   inline CommObjectReader recurse(std::string& k)

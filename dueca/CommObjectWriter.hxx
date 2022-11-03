@@ -18,6 +18,7 @@
 #include <dueca_ns.h>
 #include <CommObjectReaderWriter.hxx>
 #include <TimeSpec.hxx>
+#include <SimTime.hxx>
 
 DUECA_NS_START;
 
@@ -110,12 +111,23 @@ public:
 
   /** Constructor. Note that these objects are light-weight, and meant to be
       constructed (on the stack) and discarded. This version assumes the data
-      type from the channel entry. 
+      type from the channel entry.
 
       @param token     Write token.
       @param ts        Time specification.
   */
   DCOWriter(ChannelWriteToken &token, const DataTimeSpec& ts);
+
+  /** Constructor with time tick, for event writing. Note that these
+      objects are light-weight, and meant to be constructed (on the
+      stack) and discarded. This version assumes the data type from
+      the channel entry.
+
+      @param token     Write token.
+      @param ts        Time specification, if omitted, takes current tick.
+  */
+  DCOWriter(ChannelWriteToken &token,
+            TimeTickType ts = SimTime::getTimeTick());
 
   /** Destructor */
   ~DCOWriter();
