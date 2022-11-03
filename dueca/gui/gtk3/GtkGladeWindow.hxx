@@ -241,9 +241,27 @@ struct GladeCallbackTable {
     describes how these are labeled.
 
     In your glade gui, ensure that:
+
     - Each ComboBox that you want to use has a text entry
-    - Use column 0 for the entry if you don't want a mapping (directly
-      uses the enum names), column 1 if you do want a mapping.
+
+    - Specify column 0 of the associated GtkListStore for the entry if
+      you don't want a mapping (directly use the enum names), column
+      1 if you do want a mapping.
+
+    - A ComboBox does not need a GtkListStore in the gui file; if none
+      is found, one will be automatically generated. If you do define
+      a GtkListStore in the ui file, give it two gchararray columns.
+
+    - The widgets you want to connect to a DCO object need an ID that
+      matches the DCO object member you want to link, e.g., ID
+      "myui_speed" will link to the DCO member "speed", if you specify
+      "myui_%s" as the format.
+
+    - When linking to an array in a DCO object, use a number in the ID,
+      e.g., array format "myui_%s[%d]" enables you to link widgets with
+      ID's "myui_button[0]", "myui_button[1]", etc., to elements in an
+      array in the DCO object named "button"
+
  */
 class GtkGladeWindow
 {
