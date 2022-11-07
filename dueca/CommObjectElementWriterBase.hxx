@@ -413,15 +413,15 @@ private:
   { throw(ConversionNotDefined()); }
 
 public:
-  inline bool isEnd()
-  { return isEnd(typename dco_traits<T>::wtype()); }
+  inline bool isEnd() const final
+  { return _isEnd(typename dco_traits<T>::wtype()); }
 private:
-  bool isEnd(const dco_write_fixed_it&)
+  bool _isEnd(const dco_write_fixed_it&) const
   { return par::ii == par::object->end(); }
-  bool isEnd(const dco_write_single&)
+  bool _isEnd(const dco_write_single&) const
   { throw(ConversionNotDefined()); }
   template<typename Dum>
-  bool isEnd(const Dum&)
+  bool _isEnd(const Dum&) const
   { return false; }
 };
 

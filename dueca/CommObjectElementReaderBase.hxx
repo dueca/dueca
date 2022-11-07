@@ -108,15 +108,15 @@ private:
   { par::ii = data.begin(); par::object = &data; }
 
 public:
-  bool isEnd() const
-  { return isEnd(typename dco_traits<T>::rtype()); }
+  bool isEnd() const final
+  { return _isEnd(typename dco_traits<T>::rtype()); }
 
 private:
-  inline bool isEnd(const dco_read_single&) const
+  inline bool _isEnd(const dco_read_single&) const
   { return par::have_read; }
-  inline bool isEnd(const dco_read_iterable&) const
+  inline bool _isEnd(const dco_read_iterable&) const
   { return par::ii == par::object->end(); }
-  inline bool isEnd(const dco_read_map&) const
+  inline bool _isEnd(const dco_read_map&) const
   { return par::ii == par::object->end(); }
 
 public:
