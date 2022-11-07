@@ -36,7 +36,7 @@ ParserElement.enablePackrat()
 
 helptext = \
     """Generate DCO object header and body code from the standard input"""
-epilog = "copyright TUDelft-AE-C&S, 2016"
+epilog = "copyright DUECA authors, 2022"
 
 # some global flags
 in_dueca = False
@@ -44,6 +44,7 @@ do_debug = False
 compilerarg = []
 nextinclude = False
 objectnamespace = []
+pack_alignment = None
 
 # pre strip compiler arguments - oldstyle
 if '--' in sys.argv[1:]:
@@ -496,6 +497,14 @@ def appendNameSpace(upto, line, c):
     debugprint("addnamespace", c)
     objectnamespace.append(c[-1])
 
+@catchguard
+def setPackAlignment(upto, line, c):
+    global pack_alignment
+    debugprint("setPackAlignment", c)
+    if c[-1] == '0':
+        pack_alignment is None
+    else:
+        pack_alignment = int(c[-1])
 
 class MemberInfo:
 
@@ -2331,8 +2340,12 @@ class EventAndStream(Channel):
     def __init__(self, c):
         super(EventAndStream, self).__init__(c)
         self.dcovariant = 'event and stream'
-        self.packpragma = ''
-        self.endpackpragma = ''
+        if pack_alignment is not None:
+            self.packpragma = f'\n#pragma pack({pack_alignment})'
+            self.endpackpragma = '\n#pragma pack()'
+        else:
+            self.packpragma = ''
+            self.endpackpragma = ''
         pass
 
     def complete(self):
@@ -2478,6 +2491,11 @@ stringvar = QuotedString(quoteChar='"', escChar='\\', unquoteResults=False,
                          multiline=True).setName('stringvar')
 namespace = (Literal('(') + Literal('Namespace') +
              identifier + Literal(')')).addParseAction(appendNameSpace)
+alignment = Literal('(') + Literal('PackAlignment') + \
+    ( Literal('1') | Literal('2') | Literal('4') |
+      Literal('8') | Literal('0') ).addParseAction(setPackAlignment) + \
+      Literal(')')
+
 
 # the unquoteResults flag also removes backslashes elswhere in the string
 # (i.e., not
@@ -2603,7 +2621,8 @@ arraysizeenum = arraysizeenumkw + White() + \
 
 
 # event | stream | enum |
-content = ZeroOrMore(comment | ctype | namespace | eventandstream | enum |
+content = ZeroOrMore(comment | ctype | namespace | alignment |
+                     eventandstream | enum |
                      headercomments | enum | clenum | enumcode |
                      arraysize | arraysizeenum )
 
