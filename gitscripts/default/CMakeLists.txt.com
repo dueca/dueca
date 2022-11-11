@@ -48,6 +48,10 @@ dueca_add_module(
   # specify include directories, add for used libraries as needed
   INCLUDEDIRS ${DCO_INCLUDE_DIRS}
 
+  # include directories that should also be searched by other modules
+  # that directly use code from this module (through USEMODULES)
+  # INCLUDEDIRS_PUBLIC
+
   # optionally add more DUECA components
   # DUECA_COMPONENTS
 
@@ -61,6 +65,10 @@ dueca_add_module(
 
   # optionally give compiler options
   COMPILEOPTIONS ${CUSTOM_OPTIONS}
+
+  # compile options that should also be added for other modules
+  # that directly use code from this module (through USEMODULES)
+  # COMPILEOPTIONS_PUBLIC
   )
 
 # specify dependency on (other project's) comm-objects
