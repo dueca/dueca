@@ -182,9 +182,9 @@ Typical working mode:
     - set DAPPS_GITROOT to file:///tmp/convert/repo/
     - set DUECA_CVSTOGITPATCHES to the place where you keep the patches
     - set DAPPS_CVSROOT to the CVS repository location
-    - if continuing with an existing project, source the setenv file to
-      set these parameters.
-    - start converting "base" projects, that do not depend on other
+    - if continuing with an existing project, source the setenv file
+      at the base of the conversion folder to set these parameters.
+    - start converting "base" projects, ones that do not depend on other
       projects' dco files.
     - try compiling, editing, adjusting the projects, using dueca-gproject
     - when happy with the state of a project, from within the project folders
@@ -192,7 +192,9 @@ Typical working mode:
       folders, or dueca-cvs-to-git --save-gitdiff, to save the total step
       from cvs conversion to final edited version.
     - when happy with the conversion of all projects, copy the git versions
-      to permanent repositories and never look back.
+      to permanent repositories and never look back:
+      * git remote add origin2 <url to the new place>
+      * git push origin2 master
 
 The patch folder can keep temporary results; when converting a project from
 cvs, the patches there are used to update the converted project. The "total"
