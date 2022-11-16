@@ -38,7 +38,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START;
@@ -376,6 +376,9 @@ bool WebSocketsServer::_complete(S& server)
     [this](shared_ptr<typename S::Connection> connection,
            shared_ptr<typename S::InMessage> in_message) {
 
+      DEB("Message on connection 0x" << std::hex <<
+	  reinterpret_cast<void*>(connection.get()) << std::dec);
+
       // find the channel access corresponding to the connection
       auto em = this->singlereadsmapped.find
         (reinterpret_cast<void*>(connection.get()));
@@ -391,19 +394,29 @@ bool WebSocketsServer::_complete(S& server)
         return;
       }
 
-      // create the reader
-      DCOReader r(em->second->datatype.c_str(), em->second->r_token);
-      DataTimeSpec dtd = r.timeSpec();
+      // room for response
       rapidjson::StringBuffer doc;
       rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
       writer.StartObject();
-      writer.Key("tick");
-      writer.Uint(dtd.getValidityStart());
-      writer.Key("data");
-      if (extended) DCOtoJSONcompact(writer, r);
-      else DCOtoJSONstrict(writer, r);
-      writer.EndObject();
+      try {
+	// create the reader
+	DCOReader r(em->second->datatype.c_str(), em->second->r_token);
+	DataTimeSpec dtd = r.timeSpec();
+	writer.Key("tick");
+	writer.Uint(dtd.getValidityStart());
+	writer.Key("data");
+	if (extended) DCOtoJSONcompact(writer, r);
+	else DCOtoJSONstrict(writer, r);
+      }
+      catch (const NoDataAvailable& e) {
+	/* DUECA websockets.
 
+	   There is no current data on the requested stream.
+	*/
+	W_XTR("No data on " << em->second->r_token.getName() <<
+	      " sending empty {}");
+      }
+      writer.EndObject();
       connection->send
         (doc.GetString(),
          [](const SimpleWeb::error_code &ec) {
@@ -433,14 +446,22 @@ bool WebSocketsServer::_complete(S& server)
     [this](shared_ptr<typename S::Connection> connection,
            int status, const std::string &reason) {
 
+      DEB("Close on connection 0x" << std::hex <<
+	  reinterpret_cast<void*>(connection.get()) << std::dec);
+
+      std::string ename("unknown");
       auto qpars = SimpleWeb::QueryString::parse(connection->query_string);
       auto ekey = qpars.find("entry");
+      if (ekey != qpars.end()) {
+	ename = ekey->second;
+      }
+
       /* DUECA websockets.
 
          Information on the closing of the connection of a client with
          a "current" URL. */
       I_XTR("Closing endpoint at /current/" <<
-            connection->path_match[1] << "?entry=" << ekey->second <<
+            connection->path_match[1] << "?entry=" << ename <<
             " code: " << status << " reason: \"" << reason << '"');
 
       // find the mapped connection, and remove
@@ -455,7 +476,7 @@ bool WebSocketsServer::_complete(S& server)
            to a close attempt on a "current" URL.
         */
         W_XTR("Cannot find mapping for endpoint at /current/" <<
-              connection->path_match[1] << "?entry=" << ekey->second);
+              connection->path_match[1] << "?entry=" << ename);
       }
     };
 
@@ -463,6 +484,8 @@ bool WebSocketsServer::_complete(S& server)
   current.on_open =
     [this](shared_ptr<typename S::Connection> connection) {
 
+      DEB("Open on connection 0x" << std::hex <<
+	  reinterpret_cast<void*>(connection.get()) << std::dec);
       DEB("New connection currentdata");
 
       // find the specific URL, and entry number
@@ -717,8 +740,13 @@ bool WebSocketsServer::_complete(S& server)
       // check no entry is present on this connection
       auto ww = this->writers.find(reinterpret_cast<void*>(connection.get()));
       if (ww != this->writers.end()) {
+	/* DUECA websockets.
+
+	   Entry is not free. */
+	W_XTR("There is already a writer on " << connection->path_match[0] <<
+	      ", closing.");
         const std::string reason("Server logic error");
-         connection->send_close(1007, reason);
+	connection->send_close(1007, reason);
         return;
       }
 
@@ -732,6 +760,11 @@ bool WebSocketsServer::_complete(S& server)
       // check that this URL is available
       if (ee == this->writersetup.end() &&
           pre == this->presetwriters.end()) {
+	/* DUECA websockets.
+
+	   there is no endpoint here. */
+	W_XTR("URL not available on " << connection->path_match[0] <<
+	      ", closing.");
         const std::string reason("Resource not available");
         connection->send_close(1001, reason);
         return;
@@ -749,7 +782,7 @@ bool WebSocketsServer::_complete(S& server)
                the warning if this simply replaces a connection with a
                crashed, now defunct program.
             */
-            W_MOD("New connection for " << pre->second->identification <<
+            W_XTR("New connection for " << pre->second->identification <<
                   " forcing old connection to close");
             auto it = this->writers.find(pre->second->disConnect());
             if (it != this->writers.end()) {
@@ -761,7 +794,7 @@ bool WebSocketsServer::_complete(S& server)
                  Trying to replace and remove an existing connection
                  to a preset write entry, but the old connection
                  cannot be found. */
-              W_MOD("Could not find old connection to remove");
+              W_XTR("Could not find old connection to remove");
             }
           }
           pre->second->doConnect(connection);
@@ -770,7 +803,13 @@ bool WebSocketsServer::_complete(S& server)
           return;
         }
         else {
-          const std::string reason("Resource already connected");
+	  /* DUECA websockets.
+
+	     There is already a connection here.
+	  */
+	  W_XTR("There is already a connection on " <<
+		connection->path_match[0]);
+	  const std::string reason("Resource already connected");
           connection->send_close(1001, reason);
           return;
         }
@@ -1072,7 +1111,7 @@ bool WebSocketsServer::_complete_http(S& server)
       /* DUECA websockets.
 
          Unexpected error in the HTTP static file server. */
-      E_MOD("Http server error code " << ec << " (" << ec.message() <<
+      E_XTR("Http server error code " << ec << " (" << ec.message() <<
             ") for request :" << request->path << ' ' << request->query_string);
     };
 
