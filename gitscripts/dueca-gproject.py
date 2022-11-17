@@ -523,8 +523,8 @@ class OnExistingProject():
 
         if len(curpath) < 2 or curpath[-1] != curpath[-2]:
             print(f"Could not find project folder in {os.getcwd()}")
-            raise Exception(f"dueca-project {command} needs to be run from"
-                            " within a project")
+            raise Exception(f"dueca-gproject {command} needs to be run from"
+                            " the main project directory")
 
         self.project = curpath[-1]
         self.projectdir = projectdir
