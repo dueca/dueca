@@ -12,19 +12,19 @@ add_subdirectory(example)
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import pyparsing"
   RESULT_VARIABLE PYTHON_RESULT_PYPARSING)
 if (PYTHON_HAVE_PYPARSING)
-  message(NOTICE "Missing Python module \"pyparsing\"")
+  message(STATUS "Missing Python module \"pyparsing\"")
 endif()
 
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import argparse"
   RESULT_VARIABLE PYTHON_RESULT_ARGPARSE)
 if (PYTHON_HAVE_ARGPARSE)
-  message(NOTICE "Missing Python module \"argparse\"")
+  message(STATUS "Missing Python module \"argparse\"")
 endif()
 
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import xlwt"
   RESULT_VARIABLE PYTHON_RESULT_XLWT)
 if (PYTHON_HAVE_XLWT)
-  message(NOTICE "Missing Python module \"xlwt\" ${PYTHON_HAVE_XLWT} ${Python_COMPILER}")
+  message(STATUS "Missing Python module \"xlwt\" ${PYTHON_HAVE_XLWT} ${Python_COMPILER}")
 endif()
 
 if (PYTHON_RESULT_PYPARSING EQUAL "0" AND
@@ -54,11 +54,11 @@ if (PYTHON_RESULT_PYPARSING EQUAL "0" AND
 
 else()
 
-  message(NOTICE "Faking log message list")
-  message(NOTICE "PYTHON_HAVE_PYPARSING ${PYTHON_HAVE_PYPARSING}")
-  message(NOTICE "PYTHON_HAVE_ARGPARSE ${PYTHON_HAVE_ARGPARSE}")
-  message(NOTICE "PYTHON_HAVE_XLWT ${PYTHON_HAVE_XLWT}")
-  message(NOTICE "Python_EXECUTABLE ${Python_EXECUTABLE}")
+  message(STATUS "Faking log message list")
+  message(STATUS "PYTHON_HAVE_PYPARSING ${PYTHON_HAVE_PYPARSING}")
+  message(STATUS "PYTHON_HAVE_ARGPARSE ${PYTHON_HAVE_ARGPARSE}")
+  message(STATUS "PYTHON_HAVE_XLWT ${PYTHON_HAVE_XLWT}")
+  message(STATUS "Python_EXECUTABLE ${Python_EXECUTABLE}")
 
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dueca-messagelist.doc

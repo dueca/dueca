@@ -8,34 +8,53 @@
 find_package(DuecaAddLibrary)
 find_package(DuecaCodegen)
 
+# optionally for websocket over ssl
 pkg_check_modules(LIBSSL REQUIRED openssl)
+find_package(Boost 1.60 COMPONENTS system filesystem REQUIRED)
+if (${CMAKE_VERSION} VERSION_LESS "3.14.0")
 
-# set(CMAKE_REQUIRED_DEFINITIONS ${CMAKE_THREAD_LIBS_INIT})
-set(CMAKE_REQUIRED_LIBRARIES ${LIBSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  # compile checks fail for this cmake
+  find_file(HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WS_HPP
+    simple-websocket-server/server_ws.hpp
+    PATHS ${INCLUDE_DIRECTORIES})
+  find_file(HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP
+    simple-websocket-server/server_wss.hpp
+    PATHS ${INCLUDE_DIRECTORIES})
+  find_file(HAVE_SIMPLE_WEB_SERVER_SERVER_HTTP_HPP
+    simple-web-server/server_http.hpp
+    PATHS ${INCLUDE_DIRECTORIES})
+  find_file(HAVE_SIMPLE_WEB_SERVER_SERVER_HTTPS_HPP
+    simple-web-server/server_https.hpp
+    PATHS ${INCLUDE_DIRECTORIES})
 
-check_include_file_cxx(simple-websocket-server/server_ws.hpp
-  HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WS_HPP)
-check_include_file_cxx(simple-websocket-server/server_wss.hpp
-  HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP)
-check_include_file_cxx(simple-web-server/server_http.hpp
-  HAVE_SIMPLE_WEB_SERVER_SERVER_HTTP_HPP)
-check_include_file_cxx(simple-web-server/server_https.hpp
-  HAVE_SIMPLE_WEB_SERVER_SERVER_HTTPS_HPP)
+else()
+
+  set(CMAKE_REQUIRED_DEFINITIONS ${CMAKE_THREAD_LIBS_INIT})
+  set(CMAKE_REQUIRED_LIBRARIES ${LIBSSL_LIBRARIES} Boost::system
+    ${CMAKE_THREAD_LIBS_INIT})
+
+  check_include_file_cxx(simple-websocket-server/server_ws.hpp
+    HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WS_HPP)
+  check_include_file_cxx(simple-websocket-server/server_wss.hpp
+    HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP)
+  check_include_file_cxx(simple-web-server/server_http.hpp
+    HAVE_SIMPLE_WEB_SERVER_SERVER_HTTP_HPP)
+  check_include_file_cxx(simple-web-server/server_https.hpp
+    HAVE_SIMPLE_WEB_SERVER_SERVER_HTTPS_HPP)
+endif()
 
 if (NOT HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WS_HPP)
   message(FATAL_ERROR "Could not find simple-websocket-server/server_ws.hpp")
 endif()
-#if (NOT HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP)
-#  message(FATAL_ERROR "Could not find simple-websocket-server/server_wss.hpp")
-#endif()
+if (NOT HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP)
+  message(FATAL_ERROR "Could not find simple-websocket-server/server_wss.hpp")
+endif()
 if (NOT HAVE_SIMPLE_WEB_SERVER_SERVER_HTTP_HPP)
   message(FATAL_ERROR "Could not find simple-web-server/server_http.hpp")
 endif()
-#if (NOT HAVE_SIMPLE_WEB_SERVER_SERVER_HTTPS_HPP)
-#  message(FATAL_ERROR "Could not find simple-web-server/server_https.hpp")
-#endif()
-
-find_package(Boost 1.60 COMPONENTS system filesystem REQUIRED)
+if (NOT HAVE_SIMPLE_WEB_SERVER_SERVER_HTTPS_HPP)
+  message(FATAL_ERROR "Could not find simple-web-server/server_https.hpp")
+endif()
 
 mylinker_arguments(OUTPUT WEBSOCK_BOOST_LIBRARIES
    LIBLIST ${Boost_LIBRARIES})
