@@ -2,6 +2,15 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.4] - 2022-11-17
+
+- Remove gtk2-related classes from the documentation; having the same
+  classes in two different versions confused doxygen
+- Add an option to the code generator for struct packing alignment
+- Various documentation fixes
+- Correct a segmentation fault in WebSocketsServer, when closing a
+  connection that used the default to get entry0
+
 ## [3.2.3] - 2022-11-03
 
 - Clearer message on problems with dueca-gproject refresh
