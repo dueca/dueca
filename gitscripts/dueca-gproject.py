@@ -219,7 +219,7 @@ def git_ensure_remote_clean(remote: str, project: str):
         remote[-len(project)-4:-4] != project:
         raise Exception(
             f"Last component of remote name '{remote}'"
-            f" should match project name '{project}'")
+            f" should end with .git and match project name '{project}'")
 
 def trim_lines(text):
     lines = [l.replace('\t', '        ')
