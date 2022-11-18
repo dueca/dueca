@@ -86,7 +86,7 @@ class RootMap(dict):
 
     def addProjectRemote(self, url: str):
         """
-        Set the specific url remote:/// to the actual remote upstream
+        Set the specific url origin:/// to the actual remote upstream
 
         Parameters
         ----------
@@ -99,10 +99,10 @@ class RootMap(dict):
 
         """
         urlbase = '/'.join(url.split('/')[:-1]) + '/'
-        dprint(f"adding shortcut remote for {urlbase}")
-        if 'remote' in self and self['remote'] != urlbase:
+        dprint(f"adding shortcut origin for {urlbase}")
+        if 'origin' in self and self['origin'] != urlbase:
             print("Overwriting remote origin with", urlbase)
-        self['remote'] = urlbase
+        self['origin'] = urlbase
 
     def urlToAbsolute(self, url):
         """
@@ -133,7 +133,7 @@ class RootMap(dict):
         ----------
         url : str
             Shorthand url, starting with 'dgr:///' or 'dgr.*:///' or
-            'remote:///' .
+            'origin:///' .
 
         Returns
         -------

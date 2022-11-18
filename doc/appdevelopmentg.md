@@ -174,7 +174,7 @@ following:
 								created when you clone the project for a
 								specific node; based on machinemapping.xml, the
 								appropriate class is chosen. This file is
-								not checked into the repository.</td></tr>
+								not checked in to the repository.</td></tr>
 
 </table>
 
@@ -290,26 +290,32 @@ desktop, you work with a local git repository, and it will be located
 in the hidden `.git` folder of your project. To synchronize code and
 keep back ups, dueca-gproject also uses an upstream remote repository.
 
-Since your project may borrow from other projects, it will interact
-with one or multiple remote git repositories. For each of these
-projects, the git url to the remote repository must be known. A number
-of these projects from which we borrow are so commonly used that we
-assemble these under a default group on the gitlab.tudelft.nl server.
+You might also want to split work over different projects. As an
+example, for a simulation experiment you are going to connect your
+program to an eye tracker. Since the eye-tracker connection might be
+useful for multiple projects, it is best to develop its modules, and
+possibly some test facilities, in a separate project, and when the eye
+tracking works, borrow its modules into your experiment project.
+
+You can use your account on a gitlab or github server to locate the
+remote repositories, for example, you created these empty repositories:
+
+    git@gitlab.somewhere.org:i-am-a-gitlab-user/MyNewEyeTracker.git
+	git@gitlab.somewhere.org:i-am-a-gitlab-user/MyExperiment.git
 
 These repositories' url's therefore all start with the same path,
 differing only by repository/project name. By defining this in an
 "environment variable" in your shell, you do not need to specify the
 url's for these commonly used projects. In your `.profile` or
-`.bash_profile` start script, specify:
+`.bash_profile` start script, specify the following environment
+variable:
 
-    DAPPS_GITROOT=git@gitlab.tudelft.nl:ae-cs-dueca-base/
+    export DAPPS_GITROOT=git@gitlab.somewhere.org:i-am-a-gitlab-user/
 
-If only a project name is then given, e.g., you are borrowing from
-`FlexiStick`, the `dueca-gproject` script will assume that the
-corresponding url will be
-`git@gitlab.tudelft.nl:ae-cs-dueca-base/FlexiStick.git`
+Now you can use the shorthands `dgr:///MyNewEyeTracker.git` and
+`MyExperiment.git`, and these will also be stored in the project configuration. If you later move repositories, or someone else clones your efforts to their own repository, the translation will also work for them.
 
-If you borrow from a project somewhere else, you need to specify the
+If you borrow from a project somewhere else, you can always specify the
 full URL. The common steps outlined below will present you with a mix
 of `git` and `dueca-gproject` commands to maintain your project.
 
@@ -325,12 +331,12 @@ WorldView project. For its housekeeping, the `dueca-gproject` stores
 the location of the repository URL's, and these would need to be
 modified whenever a repository moves.
 
-To fix that, there are a nuber of shortcut URL's that are
-automatically or custom defined. The first of these is `remote://`,
-you will find in `modules.xml` that the location of the project you
-are working on will have been adjusted to `origin:///MyProject.git`
-(assuming that project is called MyProject). When interacting with
-git, the full project URL will be substituted.
+To fix that, there are a number of shortcut URL's that are
+automatically or custom defined. Any shortcut `origin:///` will
+automatically be set to the location of the 'origin' repository of the
+checked out project itself as returned from:
+
+	git remote -v
 
 A number of other shortcut URL's can be defined through SHELL
 environment variables. These can then be used to represent the
@@ -374,7 +380,13 @@ etc.</td></tr>
 <tr><td>`DAPPS_GITROOT_yard`</td>
 <td>`git@gitlab.tudelft.nl:ae-cs-dueca-yard/`</td>
 <td>`dgryard:///`</td>
-<td>Older projects that need clean-up.</td></tr>
+<td>Older projects, converted from our old CVS repository, that
+    mostly need clean-up.</td></tr>
+
+<tr><td>`DAPPS_GITROOT_students`</td>
+<td>`git@gitlab.tudelft.nl:ae-cs-dueca-students/`</td>
+<td>`dgrstudents:///`</td>
+<td>Currently active student projects.</td></tr>
 </table>
 
 When specifying a repository to the `dueca-gproject` script, the
