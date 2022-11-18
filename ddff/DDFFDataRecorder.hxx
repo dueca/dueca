@@ -363,10 +363,22 @@ public:
  */
   void channelRecord(const DataTimeSpec& ts, CommObjectWriter& writer);
 
-  /** Replay the data into a write channel.
+  /** Replay previously recorded data into a write channel. The replay
+      considers the requested replay time, in combination with the
+      offset (compared to recorded data), defined through the
+      startReplay call.
 
       @param ts      Time for which data is to be replayed.
       @param w_token Channel write token.
+      
+      @returns       Number of replayed data points; the replay looks at the
+                     given time specification and replays all data
+                     corresponding to this specification. In case of
+                     event replay, this can result in zero, one or
+                     multiple events replayed. For stream channels,
+                     you should keep the replay rate (ts) matching the
+                     recording, so typically one data point is
+                     replayed.
    */
   unsigned channelReplay(const DataTimeSpec& ts, ChannelWriteToken& w_token);
 

@@ -9,16 +9,27 @@ include(CheckSymbolExists)
 find_package(DuecaAddLibrary)
 
 pkg_check_modules(LIBSSL REQUIRED openssl)
-set(CMAKE_REQUIRED_DEFINITIONS ${CMAKE_THREAD_LIBS_INIT})
-set(CMAKE_REQUIRED_LIBRARIES ${LIBSSL_LIBRARIES})
-check_include_file_cxx(simple-websocket-server/server_ws.hpp
-  HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WS_HPP)
-check_include_file_cxx(simple-websocket-server/server_wss.hpp
-  HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP)
+find_package(Boost 1.60 COMPONENTS system filesystem REQUIRED)
+
+if (${CMAKE_VERSION} VERSION_LESS "3.14.0")
+  # compile checks fail for this cmake
+  find_file(HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WS_HPP
+    simple-websocket-server/server_ws.hpp
+    PATHS ${INCLUDE_DIRECTORIES})
+  find_file(HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP
+    simple-websocket-server/server_wss.hpp
+    PATHS ${INCLUDE_DIRECTORIES})
+else()
+  set(CMAKE_REQUIRED_DEFINITIONS ${CMAKE_THREAD_LIBS_INIT})
+  set(CMAKE_REQUIRED_LIBRARIES ${LIBSSL_LIBRARIES} Boost::system
+    ${CMAKE_THREAD_LIBS_INIT})
+  check_include_file_cxx(simple-websocket-server/server_ws.hpp
+    HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WS_HPP)
+  check_include_file_cxx(simple-websocket-server/server_wss.hpp
+    HAVE_SIMPLE_WEBSOCKET_SERVER_SERVER_WSS_HPP)
+endif()
 
 check_symbol_exists(SO_PRIORITY netinet/ip.h SYMBOL_SO_PRIORITY)
-
-find_package(Boost 1.60 COMPONENTS system filesystem REQUIRED)
 
 mylinker_arguments(OUTPUT WEBSOCK_BOOST_LIBRARIES
   LIBLIST ${Boost_LIBRARIES})

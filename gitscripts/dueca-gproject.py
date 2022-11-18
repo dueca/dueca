@@ -1106,7 +1106,7 @@ class PreparePlatform(OnExistingProject):
             help='Name for the new platform')
         parser.add_argument(
             '--template', type=str,
-            help='File with the platform template')
+            help='Platform name, or file with the platform template')
         parser.add_argument(
             '--nodes', type=str, nargs='+',
             help='Selection of nodes, if not all nodes used')
@@ -1114,7 +1114,8 @@ class PreparePlatform(OnExistingProject):
 
     def __call__(self, ns):
 
-        if ns.template and ns.template[0] == os.sep:
+        if ns.template and ns.template[-4:] == '.xml' and \
+           os.path.exists(ns.template):
             template = ns.template
 
         else:

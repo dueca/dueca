@@ -53,7 +53,7 @@ make_module_creator(const std::string& mtype,
                     const std::string& part,
                     const PrioritySpec& ps)
 {
-  DEB("Creating a module of type " << mtype << " part " << part);
+  DEB("Creating a module of type \"" << mtype << "\" part \"" << part << '"');
   return boost::intrusive_ptr<ModuleCreator>
     (CreationCenter::single()->createModuleCreator
      (mtype, part, ps));

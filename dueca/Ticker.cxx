@@ -696,6 +696,18 @@ void Ticker::startTicking()
 {
   // kickstart myself by scheduling for the first tick
   keep_running = true;
+
+  unsigned runtime = unsigned(time_grain * MAX_TIMETICK);
+  unsigned days = runtime / (24*60*60);
+  unsigned hours = (runtime - days*24*60*60) / 3600;
+
+  /* DUECA timing.
+
+     Warn about the maximum duration of this simulation, based on
+     MAX_TIMETICK and the granule value
+  */
+  W_TIM("Maximum runtime is " << days << " days and " << hours << " hours.");
+
   /* DUECA timing.
 
      Information that an activity manager starts scheduling at this

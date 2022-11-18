@@ -224,6 +224,8 @@ namespace %(name)s_space {
         if self.nest:
             hdf5body = [ """
 #if defined(DUECA_CONFIG_HDF5) && !defined(__CUSTOM_GETHDF5DATATYPE)%(nsopen)s
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
 const H5::DataType* %(name)s::getHDF5DataType()
 {
   static H5::CompType data_type(sizeof(__ThisDCOType__));
@@ -245,6 +247,7 @@ const H5::DataType* %(name)s::getHDF5DataType()
   };
   return &data_type;
 }%(nsclose)s
+#pragma GCC diagnostic pop
 #endif
 """ % self.__dict__)
         else:
@@ -253,6 +256,8 @@ const H5::DataType* %(name)s::getHDF5DataType()
         # part 2, channel reading functor class + constructor
         hdf5body.append("""
 #if defined(DUECA_CONFIG_HDF5)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
 // guarded in a separate namespace
 namespace %(name)s_space {
 
@@ -290,6 +295,7 @@ namespace %(name)s_space {
                              dueca::get_hdf5_elt_type(tex), 1);
     }
   }
+#pragma GCC diagnostic pop
 """ % { 'idx' : i+1 })
 
         # part 2b, functor itself
@@ -325,6 +331,8 @@ namespace %(name)s_space {
         hdf5body.append("""
 
 #if !defined(__CUSTOM_HDF5_READ_FUNCTOR)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
   HDF5DCOReadFunctor::
   HDF5DCOReadFunctor(boost::weak_ptr<H5::H5File> file,
                      const std::string& path,
@@ -352,6 +360,7 @@ namespace %(name)s_space {
                              dueca::get_hdf5_elt_type(tex), 1);
     }
   }
+#pragma GCC diagnostic pop
 """ % { 'idx' : i+1 })
 
         # part 2b, functor itself

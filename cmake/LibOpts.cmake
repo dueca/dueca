@@ -63,7 +63,7 @@ function (MYLINKER_ARGUMENTS)
       # Boost::python, Boost::system etc were found as library files
       # and returned in Boost_LIBRARIES with:
       #   find_package(Boost 1.60 COMPONENTS ...)
-      message(WARNING "Fixing strange Ubuntu lib name '${l}'")
+      message(STATUS "Converting lib dependency '${l}' to linker option")
       string(REGEX REPLACE "^Boost\\:\\:(.*)$" "boost_\\1" LIB "${l}")
       if (LIB STREQUAL "boost_python")
         find_library(BPLIB NAMES boost_python310 boost_python39 boost_python38)

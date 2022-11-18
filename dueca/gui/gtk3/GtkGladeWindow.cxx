@@ -339,7 +339,7 @@ bool GtkGladeWindow::_setValue(const char* wname, bool value, bool warn)
     return false;
   }
 
-  {
+  if (GTK_IS_TOGGLE_BUTTON(o)) {
     GtkToggleButton *t = GTK_TOGGLE_BUTTON(o);
     gtk_toggle_button_set_active(t, value ? TRUE : FALSE);
     return true;
