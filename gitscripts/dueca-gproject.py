@@ -219,7 +219,7 @@ def git_ensure_remote_clean(remote: str, project: str):
         remote[-len(project)-4:-4] != project:
         raise Exception(
             f"Last component of remote name '{remote}'"
-            f" should match project name '{project}'")
+            f" should end with .git and match project name '{project}'")
 
 def trim_lines(text):
     lines = [l.replace('\t', '        ')
@@ -245,7 +245,7 @@ def guess_ifaddress(nodename=None):
         try:
             ipaddress = socket.gethostbyname(hname)
         except:
-            print('Cannot determine ip address')
+            print('Cannot determine IP address')
     except:
         print('Cannot determine host name')
     print("Assuming machine IP address", ipaddress)
@@ -523,8 +523,8 @@ class OnExistingProject():
 
         if len(curpath) < 2 or curpath[-1] != curpath[-2]:
             print(f"Could not find project folder in {os.getcwd()}")
-            raise Exception(f"dueca-project {command} needs to be run from"
-                            " within a project")
+            raise Exception(f"dueca-gproject {command} needs to be run from"
+                            " the main project directory")
 
         self.project = curpath[-1]
         self.projectdir = projectdir
@@ -576,7 +576,7 @@ class NewModule(OnExistingProject):
             help="A name for the new module")
         parser.add_argument(
             '--pseudo', action='store_true',
-            help="Make this a pseudo (no code) module")
+            help="Make this a pseudo module without any source code (data only)")
         parser.add_argument(
             '--inactive', action='store_true',
             help="Create the module, but do not include (on this node's)"
@@ -646,11 +646,11 @@ class BorrowModule(OnExistingProject):
             help="Remote URL for the project from which the module is borrowed")
         parser.add_argument(
             '--pseudo', action='store_true',
-            help="This is a pseudo (no code) module")
+            help="This is a pseudo (no code, data only) module")
         parser.add_argument(
             '--version', type=str,
             help="Version, branch, commit revision to borrow. If empty,"
-                 "the latest is used.")
+                 "the master branch is used.")
         parser.set_defaults(handler=BorrowModule)
 
     def __call__(self, ns):
@@ -663,7 +663,7 @@ class BorrowModule(OnExistingProject):
 
             if not m.isNewModule(project, ns.name):
                 raise Exception(f"Module {project}/{ns.name} already borrowed,"
-                                " try a 'dueca-project refresh'")
+                                " try a 'dueca-gproject refresh'")
 
             m.addModule(project, ns.name, ns.version, ns.remote, ns.pseudo)
             m.refreshBorrowed()
@@ -694,7 +694,7 @@ class BorrowProject(OnExistingProject):
         parser.add_argument(
             '--version', type=str,
             help="Version, branch, commit revision to borrow. If empty,"
-                 "the latest is used.")
+                 "the master branch is used.")
         parser.set_defaults(handler=BorrowProject)
 
     def __call__(self, ns):
@@ -707,7 +707,7 @@ class BorrowProject(OnExistingProject):
 
             if not m.isNewProject(project):
                 raise Exception(f"Project {project} already borrowed,"
-                                " try a 'dueca-project refresh'")
+                                " try a 'dueca-gproject refresh'")
 
             m.addModule(project, None, ns.version, ns.remote)
             m.refreshBorrowed()
@@ -740,7 +740,7 @@ class CopyModule(OnExistingProject):
         parser.add_argument(
             '--version', type=str, default='HEAD',
             help="Version, branch, export revision to copy. If empty,"
-                 "the latest is used.")
+                 "the master branch is used.")
         parser.add_argument(
             '--newname', type=str, default='',
             help="New name of the copied module, if specified")
