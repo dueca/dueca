@@ -346,8 +346,9 @@ class NewProject:
         # check that the remote project is clean/has not code
         if ns.remote:
             RootMap().addProjectRemote(ns.remote)
-            git_ensure_remote_clean(RootMap().urlToAbsolute(ns.remote), ns.name)
-            remoteurl = RootMap().urlToRelative(ns.remote)
+            git_ensure_remote_clean(
+                RootMap().urlToAbsolute(ns.remote), ns.name)
+            remoteurl = RootMap().urlToRelative(ns.remote, ns.name)
         else:
             remoteurl = ''
 

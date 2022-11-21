@@ -125,7 +125,7 @@ class RootMap(dict):
                 return root + url[len(u)+4:]
         return url
 
-    def urlToRelative(self, url):
+    def urlToRelative(self, url, _prjname=None):
         """
         Convert a URL using gitroot to relative.
 
@@ -146,7 +146,7 @@ class RootMap(dict):
         try:
             prjname = ProjectRepo().project
         except ValueError:
-            prjname = None
+            prjname = _prjname
 
         for u, root in self.items():
             if url.startswith(root) and \
