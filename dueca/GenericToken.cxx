@@ -77,11 +77,6 @@ const GlobalId& GenericToken::getChannelId() const
   return channel->getId();
 }
 
-bool GenericToken::localChannelEndExists(const NameSet& name)
-{
-  return ChannelManager::single()->findChannel(name) != NULL;
-}
-
 boost::weak_ptr<DCOMetaFunctor>
 GenericToken::getMetaFunctorBase(const std::string& fname) const
 {

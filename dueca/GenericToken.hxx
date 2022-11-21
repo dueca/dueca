@@ -40,10 +40,6 @@ class DataSetConverter;
 class EventConverter;
 struct NameSet;
 class GenericCallback;
-class DataObjectReadAccess;
-
-
-typedef unsigned ChannelEntryIndex;
 
 /** The accessToken objects are used in conjunction with the channel
     system. When a component requests access to a channel, an
@@ -124,14 +120,6 @@ public:
       Note that tokens have to be checked before use.
       \returns  true if the token is ready for use, false otherwise. */
   virtual bool isValid() = 0;
-
-protected:
-  /** Index of the channel. */
-  int index;
-
-protected: // service for derived (template) classes
-  /** Check for the existence of a local event channel end. */
-  static bool localChannelEndExists(const NameSet& name);
 
 private:
   /** Obtain the base DCOMetaFunctor
