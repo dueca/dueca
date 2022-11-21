@@ -141,14 +141,19 @@ class RootMap(dict):
             Complete url.
 
         """
+        # figure out if we are in a project; in that case, also translate
+        # the origin url
+        try:
+            prjname = ProjectRepo().project
+        except ValueError:
+            prjname = None
+
         for u, root in self.items():
             if url.startswith(root) and \
-                (u != 'origin' or
-                 url[len(root):-4] == ProjectRepo().project):
+                (u != 'origin' or url[len(root):-4] == prjname):
                 dprint(f"Translating {url} to {u}:///{url[len(root):]}")
                 return f'{u}:///' + url[len(root):]
         return url
-
 
 
 # singleton for the project folder's git repository
