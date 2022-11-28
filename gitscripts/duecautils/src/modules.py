@@ -123,6 +123,8 @@ class RootMap(dict):
             if url.startswith(f'{u}:///'):
                 dprint(f"Translating {url} to {root}{url[len(u)+4:]}")
                 return root + url[len(u)+4:]
+            else:
+                dprint(f"url {url} does not start with {u}:///")
         return url
 
     def urlToRelative(self, url, _prjname=None):
@@ -149,6 +151,7 @@ class RootMap(dict):
             prjname = _prjname
 
         for u, root in self.items():
+            dprint(f"project name: {prjname} from url: {url[len(root):-4]}")
             if url.startswith(root) and \
                 (u != 'origin' or url[len(root):-4] == prjname):
                 dprint(f"Translating {url} to {u}:///{url[len(root):]}")
@@ -359,10 +362,12 @@ class Project:
 
     def createModule(self, module: str, url: str, pseudo, inactive):
 
-        if url and self.url != url:
+        if url and RootMap().urlToAbsolute(self.url) != \
+            RootMap().urlToAbsolute(url):
             raise Exception(
-                f'URL conflict trying to extend modules from {self.name}'
-                f' old url: {self.url} new:{url}')
+                f'URL conflict trying to extend modules from {self.name}\n'
+                f' old url: {self.url} ({RootMap().urlToAbsolute(self.url)})\n'
+                f' new url: {url} ({RootMap().urlToAbsolute(url)})')
         m = Module(name=module, xmlroot=self.xmlnode,
                    pseudo=pseudo, inactive=inactive)
         self.modules.append(m)
@@ -498,7 +503,7 @@ class Modules:
                 '- Check that you have access to the url\n'
                 '- If you changed the url, remove the borrowed project\n'
                 f'  (rm -rf ../{prj.name})\n')
-            # dprint(f"Git error message {e}")
+            dprint(f"Git error message {e}")
 
         # create a branch if needed
         if version not in rrepo.heads:
