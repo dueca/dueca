@@ -18,6 +18,13 @@ import tempfile
 
 # regex for decoding project URL
 _decodeprj = re.compile(r"^(.+)/(.+)\.git$")
+
+# decoding the shortened url tag
+_decodeurltag = re.compile(r"^([a-zA-Z0-9]+):///(.+)$")
+
+# common url type tags
+_urltags = set(('http', 'https', 'ssh', 'rsync', 'file'))
+
 def projectSplit(url: str):
     """
     Split the project URL into a repository/project part
@@ -39,9 +46,9 @@ def projectSplit(url: str):
 
     """
     try:
-        match = _decodeprj.fullmatch(url)
+        _match = _decodeprj.fullmatch(url)
         # dprint("splitting url", url, " into ", match.group(1), '/', match.group(2))
-        return match.group(1), match.group(2)
+        return _match.group(1), _match.group(2)
     except Exception as e:
         print(f"Cannot split project url from {url}")
         raise e
@@ -111,7 +118,8 @@ class RootMap(dict):
         Parameters
         ----------
         url : str
-            Shorthand url, starting with 'dgr:///' or 'dgr.*:///'.
+            Shorthand url, starting with 'dgr:///' or 'dgr.*:///', or
+            origin:///
 
         Returns
         -------
@@ -119,12 +127,21 @@ class RootMap(dict):
             Complete url.
 
         """
+        # Check if this shorthand has a translation
         for u, root in self.items():
             if url.startswith(f'{u}:///'):
                 dprint(f"Translating {url} to {root}{url[len(u)+4:]}")
                 return root + url[len(u)+4:]
-            else:
-                dprint(f"url {url} does not start with {u}:///")
+
+        # When here, no translation. Check the URL, and warn if it looks
+        # like one that needs to be translated
+        _match = _decodeurltag.fullmatch(url)
+        if _match and _match.group(1) not in _urltags:
+            print(f"Warning, cannot convert short URL {url}")
+            if _match.group(1).startswith('dgr'):
+                print("Check that you have the right DAPPS_GITROOT variable")
+
+        # Return unchanged
         return url
 
     def urlToRelative(self, url, _prjname=None):
