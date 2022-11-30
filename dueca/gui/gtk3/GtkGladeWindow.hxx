@@ -321,41 +321,50 @@ public:
   ~GtkGladeWindow();
 
   /** Initialization.
-      \param file        Name of the glade interface file
-      \param mainwidget  Top-level widget (normally a window) in that
+      @param file        Name of the glade interface file
+      @param mainwidget  Top-level widget (normally a window) in that
                          file that will be opened.
-      \param client      Pointer to the class that will be receiving
+      @param client      Pointer to the class that will be receiving
                          the callbacks.
-      \param table       Table linking widget, signal, callback
+      @param table       Table linking widget, signal, callback
                          function and optionally the pointer argument
                          to the callback function.
       @param connect_signals Connect gobject callback signals
-      \returns           true if all OK. */
+      @param warn        Warn when widgets in the callback table are not
+                         found in the interface.
+      @returns           true if all OK. */
   bool readGladeFile(const char* file,
                      const char* mainwidget,
                      gpointer client = NULL,
                      const GladeCallbackTable *table =
                      reinterpret_cast<GladeCallbackTable*>(NULL),
-                     bool connect_signals = false);
+                     bool connect_signals = false,
+		     bool warn = true);
 
   /** Connect callbacks to widgets. You can repeatedly use this
       function, adding more callbacks to the widgets.
-      \param client      Pointer to the class that will be receiving
+      @param client      Pointer to the class that will be receiving
                          the callbacks.
-      \param table       Table linking widget, signal, callback
+      @param table       Table linking widget, signal, callback
                          function and optionally the pointer argument
-                         to the callback function. */
-  void connectCallbacks(gpointer client, const GladeCallbackTable *table);
+                         to the callback function.
+      @param warn        Warn when widgets in the callback table are not
+                         found in the interface. */
+  void connectCallbacks(gpointer client, const GladeCallbackTable *table,
+			bool warn = true);
 
   /** Connect callbacks to widgets. Callbacks will be added as last.
       You can repeatedly use this
       function, adding more callbacks to the widgets.
-      \param client      Pointer to the class that will be receiving
+      @param client      Pointer to the class that will be receiving
                          the callbacks.
-      \param table       Table linking widget, signal, callback
+      @param table       Table linking widget, signal, callback
                          function and optionally the pointer argument
-                         to the callback function. */
-  void connectCallbacksAfter(gpointer client, const GladeCallbackTable *table);
+                         to the callback function.
+      @param warn        Warn when widgets in the callback table are not
+                         found in the interface. */
+  void connectCallbacksAfter(gpointer client, const GladeCallbackTable *table,
+			     bool warn = true);
 
   /** Connect GObject in-code callbacks, note that this is effective
       only once, and called when connect_signals=true in the readGladeFile
@@ -368,14 +377,14 @@ public:
       GtkListStore and GtkTreeStore objects you need getObject().
 
       @param wname       Widget name.
-      @returns           A widget object.
+      @returns           A widget object, NULL when the object is not found.
   */
   GtkWidget* operator [] (const char* wname);
 
   /** Access anything in the interface file as objects
 
       @param name        Object name.
-      @returns           A GObject pointer.
+      @returns           A GObject pointer, NULL when the object is not found.
   */
   GObject* getObject(const char* name);
 
@@ -513,7 +522,7 @@ public:
 #endif
 
   /** Change position and size of the window.
-      \param  p    Vector with offset and size elements, p[0] offset
+      @param  p    Vector with offset and size elements, p[0] offset
                    x. p[1] offset y, if either < 0, position hints are
                    ignored. p[2] width, p[3] height, if either <= 0,
                    size hints are ignored. Vector must have 2 or 4 elements. */
