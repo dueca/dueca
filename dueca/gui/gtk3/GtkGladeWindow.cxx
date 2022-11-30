@@ -93,7 +93,7 @@ bool GtkGladeWindow::readGladeFile(const char* file,
 
   // and connect signals gobject etc.
   if (connect_signals) {
-    this->connectCallbackSymbols();
+    this->connectCallbackSymbols(reinterpret_cast<gpointer>(client));
   }
 
   // done

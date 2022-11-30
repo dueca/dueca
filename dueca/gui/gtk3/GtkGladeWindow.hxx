@@ -320,7 +320,13 @@ public:
   /** Destructor. Also closes the window if not already closed. */
   ~GtkGladeWindow();
 
-  /** Initialization.
+  /** Initialization of the glade window.
+
+      Loads the interface code from the file and creates the main
+      widget. Connects callbacks given in the table, and optionally
+      connects callback signals to symbols found in the application's
+      symbol table.
+      
       @param file        Name of the glade interface file
       @param mainwidget  Top-level widget (normally a window) in that
                          file that will be opened.
@@ -329,7 +335,9 @@ public:
       @param table       Table linking widget, signal, callback
                          function and optionally the pointer argument
                          to the callback function.
-      @param connect_signals Connect gobject callback signals
+      @param connect_signals Connect gobject callback signals. The user_data
+                         argument to callback functions is obtained from
+			 the "client" argument.
       @param warn        Warn when widgets in the callback table are not
                          found in the interface.
       @returns           true if all OK. */
