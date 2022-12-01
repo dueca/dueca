@@ -21,8 +21,8 @@
 #include <DataTimeSpec.hxx>
 #include <H5Cpp.h>
 #include <vector>
-#include <boost/weak_ptr.hpp>
 #include <map>
+#include <memory>
 #include <fixvector.hxx>
 #include <string>
 #include <map>
@@ -56,7 +56,7 @@ USING_DUECA_NS;
 class HDF5DCOWriteFunctor: public DCOFunctor
 {
   /** Pointer to the file */
-  boost::weak_ptr<H5::H5File> file;
+  std::weak_ptr<H5::H5File> file;
 
 protected:
   /** Time span for writing */
@@ -216,7 +216,7 @@ protected:
   void prepareRow();
 
   /** Constructor */
-  HDF5DCOWriteFunctor(boost::weak_ptr<H5::H5File>& file,
+  HDF5DCOWriteFunctor(std::weak_ptr<H5::H5File>& file,
                       const std::string& path, size_t chunksize,
                       const std::string& label,
                       size_t nelts, bool compress, bool writeticks,

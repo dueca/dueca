@@ -17,7 +17,6 @@
 #include <Entity.hxx>
 #include <CreationCenter.hxx>
 #include <boost/python.hpp>
-#include <boost/shared_ptr.hpp>
 
 DUECA_NS_START
 

@@ -17,7 +17,7 @@
 #include <map>
 #include <algorithm>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <simple-websocket-server/server_ws.hpp>
@@ -566,7 +566,7 @@ struct WriteReadEntry:
                             other clients/connections
       @param initstate      Starting state of the object
   */
-  WriteReadEntry(boost::shared_ptr<WriteReadSetup> setup,
+  WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                  WebSocketsServer *master,
                  const PrioritySpec& ps, bool extended,
                  WriteReadEntry::WRState initstate = WriteReadEntry::Connected);
@@ -690,24 +690,24 @@ struct NameTokenId {
 };
 
 /** Map to find the single reads, given name and entry id */
-typedef std::map<NameEntryId,boost::shared_ptr<SingleEntryRead> >
+typedef std::map<NameEntryId,std::shared_ptr<SingleEntryRead> >
 singleread_t;
 
 /** Map to find the single reads given a connection */
-typedef std::map<void*,boost::shared_ptr<SingleEntryRead> >
+typedef std::map<void*,std::shared_ptr<SingleEntryRead> >
 singlereadmap_t;
 
 /** Map to find follow/push entries */
-typedef std::map<NameEntryId,boost::shared_ptr<SingleEntryFollow> >
+typedef std::map<NameEntryId,std::shared_ptr<SingleEntryFollow> >
 followread_t;
 
 /** Map to find monitors */
-typedef std::map<std::string,boost::shared_ptr<ChannelMonitor> >
+typedef std::map<std::string,std::shared_ptr<ChannelMonitor> >
 monitormap_t;
 
 /** Map with writeable channels */
 typedef std::map<std::string,
-                 boost::shared_ptr<WriteableSetup> > writeables_t;
+                 std::shared_ptr<WriteableSetup> > writeables_t;
 
 /** Map with pre-configured write channels */
 typedef std::map<std::string,
@@ -715,7 +715,7 @@ typedef std::map<std::string,
 
 /** Map with set-ups for WriterReader combinations */
 typedef std::map<std::string,
-                 boost::shared_ptr<WriteReadSetup> > writereadables_t;
+                 std::shared_ptr<WriteReadSetup> > writereadables_t;
 
 /** Map with active writers */
 typedef std::map<void*,

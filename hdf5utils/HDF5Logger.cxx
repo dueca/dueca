@@ -200,7 +200,7 @@ bool HDF5Logger::complete()
   else {
     current_filename =
       FormatTime(boost::posix_time::second_clock::universal_time());
-    hfile = boost::shared_ptr<H5::H5File>
+    hfile = std::shared_ptr<H5::H5File>
       (new H5::H5File(current_filename, H5F_ACC_EXCL, H5::FileCreatPropList::DEFAULT,
                       access_proplist));
 
@@ -303,7 +303,7 @@ TargetedLog(const std::string& channelname, const std::string& dataclass,
   //
 }
 
-void HDF5Logger::TargetedLog::createFunctor(boost::weak_ptr<H5::H5File> nfile,
+void HDF5Logger::TargetedLog::createFunctor(std::weak_ptr<H5::H5File> nfile,
                                             const HDF5Logger *master,
                                             const std::string &prefix)
 {
@@ -313,7 +313,7 @@ void HDF5Logger::TargetedLog::createFunctor(boost::weak_ptr<H5::H5File> nfile,
   try {
 
     // metafunctor can create the logging functor
-    boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor
+    std::weak_ptr<HDF5DCOMetaFunctor> metafunctor
       (r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
 
     functor.reset(metafunctor.lock()->getWriteFunctor
@@ -389,12 +389,12 @@ bool HDF5Logger::logChannel(const vector<string>& i)
   }
   try {
     if (i.size() == 4) {
-      newtarget = boost::shared_ptr<TargetedLog>
+      newtarget = std::shared_ptr<TargetedLog>
         (new TargetedLog(i[0], i[1], i[2], i[3], getId(),
                          always_logging, reduction, chunksize, compress));
     }
     else {
-      newtarget = boost::shared_ptr<TargetedLog>
+      newtarget = std::shared_ptr<TargetedLog>
         (new TargetedLog(i[0], i[1], i[2], getId(),
                          always_logging, reduction, chunksize, compress));
     }
@@ -423,7 +423,7 @@ bool HDF5Logger::watchChannel(const vector<string>& i)
   }
   try {
     watched.push_back
-      (boost::shared_ptr<EntryWatcher>
+      (std::shared_ptr<EntryWatcher>
        (new EntryWatcher(i[0], i[1], this, always_logging, compress,
                          reduction, chunksize)));
   }
@@ -502,7 +502,7 @@ bool HDF5Logger::internalIsPrepared()
       ChannelEntryInfo ei = (*ii)->r_token.getChannelEntryInfo();
 
       // metafunctor can create the logging functor
-      boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor
+      std::weak_ptr<HDF5DCOMetaFunctor> metafunctor
         ((*ii)->r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
 
       // logging functor, supply file information. Label will be saved
@@ -588,7 +588,7 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
   if (r_config && r_config->getNumVisibleSets(ts.getValidityStart())) {
 
     DataReader<HDFLogConfig> cnf(*r_config, ts);
-    boost::shared_ptr<H5::H5File> nfile;
+    std::shared_ptr<H5::H5File> nfile;
     std::string filename = FormatTime
       (boost::posix_time::second_clock::universal_time(),
        cnf.data().filename);

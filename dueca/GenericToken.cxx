@@ -77,7 +77,7 @@ const GlobalId& GenericToken::getChannelId() const
   return channel->getId();
 }
 
-boost::weak_ptr<DCOMetaFunctor>
+std::weak_ptr<DCOMetaFunctor>
 GenericToken::getMetaFunctorBase(const std::string& fname) const
 {
   return DataClassRegistry::single().getMetaFunctor(dataclassname, fname);

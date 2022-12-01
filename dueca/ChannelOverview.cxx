@@ -218,7 +218,7 @@ struct match_readinfo
   match_readinfo(const uint32_t& ri) : creationid(ri) { }
   bool operator()
   (const
-   boost::shared_ptr<ChannelOverview::ChannelInfoSet::
+   std::shared_ptr<ChannelOverview::ChannelInfoSet::
    EntryInfoSet::ReadInfoSet>& s)
   { return creationid == s->rdata.creationid; }
 };
@@ -264,7 +264,7 @@ unsigned ChannelOverview::_processReadInfo(const ChannelReadInfo& data)
   else {
     readerid = infolist[chanid]->entries[entryid]->readerid++;
     infolist[chanid]->entries[entryid]->rdata.push_back
-      (boost::shared_ptr<ChannelInfoSet::EntryInfoSet::ReadInfoSet>
+      (std::shared_ptr<ChannelInfoSet::EntryInfoSet::ReadInfoSet>
        (new ChannelInfoSet::EntryInfoSet::ReadInfoSet(readerid, data)));
   }
 
@@ -416,7 +416,7 @@ void ChannelOverview::WatchWriteInfo::entryAdded(const ChannelEntryInfo& i)
 {
   DEB("write info additional entry " << i)
   r_writeinfo.push_back
-    (boost::shared_ptr<MonitorEntry>
+    (std::shared_ptr<MonitorEntry>
      (new MonitorEntry(NameSet("ChannelWriteInfo://dueca"), i.entry_id,
                        "ChannelWriteInfo",i.origin, ptr,
                        &ChannelOverview::processWriteInfo)));
@@ -438,7 +438,7 @@ void ChannelOverview::WatchReadInfo::entryAdded(const ChannelEntryInfo& i)
 {
   DEB("read info additional entry " << i)
   r_readinfo.push_back
-    (boost::shared_ptr<MonitorEntry>
+    (std::shared_ptr<MonitorEntry>
      (new MonitorEntry(NameSet("ChannelReadInfo://dueca"), i.entry_id,
                        "ChannelReadInfo", i.origin, ptr,
                        &ChannelOverview::processReadInfo)));

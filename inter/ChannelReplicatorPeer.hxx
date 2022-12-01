@@ -49,7 +49,7 @@ private: // simulation data
   bool                                commanded_stop;
 
   /** Type definition, for queue of channel readers */
-  typedef std::list<std::pair<uint16_t,boost::shared_ptr<EntryReader> > >
+  typedef std::list<std::pair<uint16_t,std::shared_ptr<EntryReader> > >
   readerlist_type;
 
   /** Candidate readers to configure and insert */

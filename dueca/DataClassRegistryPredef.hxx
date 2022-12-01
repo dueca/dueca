@@ -20,7 +20,7 @@
 #include <Exception.hxx>
 #include <map>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/scoped_ptr.hpp>
 #include <dueca/visibility.h>
 
@@ -31,11 +31,11 @@ typedef CommObjectMemberAccessBase* CommObjectMemberAccessBasePtr;
 struct CommObjectDataTable;
 class DCOMetaFunctor;
 class DCOFunctor;
-typedef std::map<std::string,boost::shared_ptr<dueca::DCOMetaFunctor> >
+typedef std::map<std::string,std::shared_ptr<dueca::DCOMetaFunctor> >
 functortable_type;
 class DataSetConverter;
 struct DCRegistryEntry;
-typedef std::map<const std::string,boost::shared_ptr<DCRegistryEntry> >
+typedef std::map<const std::string,std::shared_ptr<DCRegistryEntry> >
   DataClassRegistry_map_type;
 
 /** Entry of the DataClassRegistry */

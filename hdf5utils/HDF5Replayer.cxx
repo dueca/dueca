@@ -266,7 +266,7 @@ bool HDF5Replayer::addReplayer(const std::vector<std::string>& def)
 
   // create the replayer object
   replays.push_back
-    (boost::shared_ptr<ReplaySet>
+    (std::shared_ptr<ReplaySet>
      (new ReplaySet(def[0], def[1], def[2], hfile, getId(),
                     rcontinuous, ta, pm, tc)));
 
@@ -324,7 +324,7 @@ bool HDF5Replayer::openFile(const std::string& fname)
   }
   try {
     H5::Exception::dontPrint();
-    hfile = boost::shared_ptr<H5::H5File>
+    hfile = std::shared_ptr<H5::H5File>
     (new H5::H5File(fname, H5F_ACC_RDONLY));
   }
   catch (const H5::Exception& e) {
@@ -490,7 +490,7 @@ void HDF5Replayer::doCalculation(const TimeSpec& ts)
 
 HDF5Replayer::ReplaySet::ReplaySet
 (const std::string& channelname, const std::string &dataclass,
- const std::string& logpath, boost::weak_ptr<H5::H5File> hfile,
+ const std::string& logpath, std::weak_ptr<H5::H5File> hfile,
  const GlobalId &masterid, bool rcontinuous,
  Channel::EntryTimeAspect ta, Channel::PackingMode pm,
  Channel::TransportClass tc) :
@@ -668,7 +668,7 @@ void HDF5Replayer::ReplaySet::holdcurrent(const TimeSpec& ts,
   }
 }
 
-void HDF5Replayer::ReplaySet::switchFile(boost::weak_ptr<H5::H5File> hfile,
+void HDF5Replayer::ReplaySet::switchFile(std::weak_ptr<H5::H5File> hfile,
                                          const GlobalId& masterid)
 {
   std::string label("");
@@ -711,7 +711,7 @@ void HDF5Replayer::ReplaySet::switchFile(boost::weak_ptr<H5::H5File> hfile,
   }
 
   // get the metafunctor and create the functor
-  boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor =
+  std::weak_ptr<HDF5DCOMetaFunctor> metafunctor =
     w_token->getMetaFunctor<HDF5DCOMetaFunctor>("hdf5");
   functor.reset(metafunctor.lock()->getReadFunctor(hfile, logpath));
 }

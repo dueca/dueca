@@ -21,7 +21,7 @@
 STARTHDF5LOG;
 
 HDF5DCOWriteFunctor::
-HDF5DCOWriteFunctor(boost::weak_ptr<H5::H5File>& file,
+HDF5DCOWriteFunctor(std::weak_ptr<H5::H5File>& file,
                     const std::string& path, size_t chunksize,
                     const std::string& label,
                     size_t nelts, bool compress, bool writeticks,

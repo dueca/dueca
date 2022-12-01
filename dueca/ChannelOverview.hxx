@@ -37,6 +37,7 @@
 #include <list>
 #include <set>
 #include <fstream>
+#include <memory>
 
 DUECA_NS_START
 
@@ -103,7 +104,7 @@ private: // channel access
   };
 
   /** List of monitoring entries */
-  typedef std::list<boost::shared_ptr<MonitorEntry> > t_monitorentrylist;
+  typedef std::list<std::shared_ptr<MonitorEntry> > t_monitorentrylist;
 
   /** Channels  watcher derivative  */
   struct WatchReadInfo: public ChannelWatcher {
@@ -207,13 +208,13 @@ public:
       };
 
       /** Organise with all client data */
-      std::list<boost::shared_ptr<ReadInfoSet> > rdata;
+      std::list<std::shared_ptr<ReadInfoSet> > rdata;
 
       EntryInfoSet(const ChannelWriteInfo& wdata);
     };
 
     /** List of entries */
-    std::vector<boost::shared_ptr<EntryInfoSet> > entries;
+    std::vector<std::shared_ptr<EntryInfoSet> > entries;
 
     ChannelInfoSet(const std::string& name, bool accesszero);
   };
@@ -239,7 +240,7 @@ private:
 
 protected:
   /** list of info sets */
-  std::vector<boost::shared_ptr<ChannelInfoSet> > infolist;
+  std::vector<std::shared_ptr<ChannelInfoSet> > infolist;
 
   /** temporary list of incoming ChannelReadInfo that waits for
       a ChannelWriteInfo item to open up */

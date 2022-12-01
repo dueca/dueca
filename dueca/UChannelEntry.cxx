@@ -1240,11 +1240,6 @@ void UChannelEntry::unlinkFromDataClass()
       dataclasslink.back()->entries = l->next;
     }
 
-    // park (otherwise danger, some reading entry might just be
-    // dereferencing l->next. There is only one thread doing changes
-    // here, no risk of a sudden l->next->next change
-    //trashcan.push_back(boost::shared_ptr<UCEntryLink>(l));
-
     // remove this from my list
     dataclasslink.pop_back();
   }

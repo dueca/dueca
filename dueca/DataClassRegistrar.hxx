@@ -18,14 +18,14 @@
 #include <inttypes.h>
 #include <map>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <dueca_ns.h>
 
 DUECA_NS_START;
 class DataSetConverter;
 struct CommObjectDataTable;
 class DCOMetaFunctor;
-typedef std::map<std::string,boost::shared_ptr<dueca::DCOMetaFunctor> >
+typedef std::map<std::string,std::shared_ptr<dueca::DCOMetaFunctor> >
 functortable_type;
 
 /** Helper class to register all communicatable channel object

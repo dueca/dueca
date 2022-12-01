@@ -17,21 +17,11 @@
 
 #include <inttypes.h>
 #include <limits>
-#include <boost/weak_ptr.hpp>
 
-#include "DataClassRegistryPredef.hxx"
 #include "dueca_ns.h"
-
-// pre-definitions of some types
+#include "DataClassRegistryPredef.hxx"
 
 DUECA_NS_START;
-class CommObjectMemberAccessBase;
-typedef CommObjectMemberAccessBase* CommObjectMemberAccessBasePtr;
-struct CommObjectDataTable;
-class DCOMetaFunctor;
-typedef std::map<std::string,boost::shared_ptr<dueca::DCOMetaFunctor> >
-functortable_type;
-class DataSetConverter;
 
 /** Global registry for information about Dueca Communication Object
     (DCO) types.
@@ -186,7 +176,7 @@ public:
       @param fname       functor name
       @returns           weak reference to base functor.
   */
-  boost::weak_ptr<DCOMetaFunctor>
+  std::weak_ptr<DCOMetaFunctor>
   getMetaFunctor(const std::string& classname, const std::string& fname) const;
 };
 

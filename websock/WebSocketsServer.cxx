@@ -510,7 +510,7 @@ bool WebSocketsServer::_complete(S& server)
         if (mon != this->monitors.end()) {
           std::string datatype = mon->second->findEntry(entry);
           if (datatype.size()) {
-            boost::shared_ptr<SingleEntryRead> newcur
+            std::shared_ptr<SingleEntryRead> newcur
               (new SingleEntryRead
                (mon->second->channelname, datatype, entry,
                 this->getId()));
@@ -623,7 +623,7 @@ bool WebSocketsServer::_complete(S& server)
           auto dataclass = mm->second->findEntry(entry);
           if (dataclass.size()) {
 
-            boost::shared_ptr<SingleEntryFollow>
+            std::shared_ptr<SingleEntryFollow>
               newfollow(new SingleEntryFollow
                         (mm->second->channelname, dataclass, entry,
                          this->getId(), this->read_prio,
@@ -1262,7 +1262,7 @@ bool WebSocketsServer::setCurrentData(const std::vector<std::string>& def)
   }
 
   try {
-    boost::shared_ptr<SingleEntryRead> nentry
+    std::shared_ptr<SingleEntryRead> nentry
       (new SingleEntryRead(def[1], def[2], entryid, getId()));
     readsingles[key] = nentry;
   }
@@ -1369,7 +1369,7 @@ bool WebSocketsServer::setChannelInfo(const std::vector<std::string>& def)
   }
 
   try {
-    boost::shared_ptr<ChannelMonitor> nentry
+    std::shared_ptr<ChannelMonitor> nentry
       (new ChannelMonitor(def[1], time_spec));
     monitors[def[0]] = nentry;
   }
@@ -1414,7 +1414,7 @@ bool WebSocketsServer::setWriterSetup(const std::vector<std::string>& def)
   // a setup where multiple connections may be made, and each
   // connection dynamically creates a channel entry to write in
   try {
-    boost::shared_ptr<WriteableSetup> nentry
+    std::shared_ptr<WriteableSetup> nentry
       (new WriteableSetup(def[1], (def.size() > 2) ? def[2] : std::string("")));
     writersetup[def[0]] = nentry;
   }
@@ -1528,7 +1528,7 @@ bool WebSocketsServer::setWriteReadSetup(const std::vector<std::string>& def)
   }
 
   try {
-    boost::shared_ptr<WriteReadSetup> nentry
+    std::shared_ptr<WriteReadSetup> nentry
       (new WriteReadSetup(def[1], def[2]));
 
     // run through any additional arguments

@@ -182,7 +182,7 @@ namespace %(name)s_space {
     %(name)s example%(parentdecwrite)s;
   public:
     // constructor, to be invoked by the metafunctor
-    HDF5DCOWriteFunctor(boost::weak_ptr<H5::H5File> file,
+    HDF5DCOWriteFunctor(std::weak_ptr<H5::H5File> file,
                         const std::string& path,
                         size_t chunksize,
                         const std::string& label,
@@ -199,7 +199,7 @@ namespace %(name)s_space {
     %(name)s example%(parentdecread)s;
   public:
     // constructor, to be invoked by the metafunctor
-    HDF5DCOReadFunctor(boost::weak_ptr<H5::H5File> file,
+    HDF5DCOReadFunctor(std::weak_ptr<H5::H5File> file,
                        const std::string& path,
                        bool readticks);
     // the functor member used by channel writing code
@@ -263,7 +263,7 @@ namespace %(name)s_space {
 
 #if !defined(__CUSTOM_HDF5_WRITE_FUNCTOR)
   HDF5DCOWriteFunctor::
-  HDF5DCOWriteFunctor(boost::weak_ptr<H5::H5File> file,
+  HDF5DCOWriteFunctor(std::weak_ptr<H5::H5File> file,
                       const std::string& path,
                       size_t chunksize,
                       const std::string& label,
@@ -334,7 +334,7 @@ namespace %(name)s_space {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
   HDF5DCOReadFunctor::
-  HDF5DCOReadFunctor(boost::weak_ptr<H5::H5File> file,
+  HDF5DCOReadFunctor(std::weak_ptr<H5::H5File> file,
                      const std::string& path,
                      bool readticks) :
     dueca::hdf5log::HDF5DCOReadFunctor(file, path,
@@ -397,7 +397,7 @@ namespace %(name)s_space {
     }""" % self.__dict__)
 
         hdf5body.append("""
-    HDF5DCOWriteFunctor* getWriteFunctor(boost::weak_ptr<H5::H5File> file,
+    HDF5DCOWriteFunctor* getWriteFunctor(std::weak_ptr<H5::H5File> file,
                                          const std::string& path,
                                          size_t chunksize,
                                          const std::string& label,
@@ -409,7 +409,7 @@ namespace %(name)s_space {
                                      compress, writeticks, startend);
     }
 
-    HDF5DCOReadFunctor* getReadFunctor(boost::weak_ptr<H5::H5File> file,
+    HDF5DCOReadFunctor* getReadFunctor(std::weak_ptr<H5::H5File> file,
                                        const std::string& path,
                                        bool writeticks=true)
     {

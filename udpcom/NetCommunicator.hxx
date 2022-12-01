@@ -17,7 +17,7 @@
 #include <map>
 #include <netinet/in.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <dueca.h>
 #include <dueca/MessageBuffer.hxx>

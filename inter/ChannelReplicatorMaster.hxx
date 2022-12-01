@@ -70,14 +70,14 @@ private: // simulation data
   peer_ack_type                       peer_acknowledgements;
 
   /** Type definition, for queue of channel readers */
-  typedef std::list<std::pair<uint16_t,boost::shared_ptr<EntryReader> > >
+  typedef std::list<std::pair<uint16_t,std::shared_ptr<EntryReader> > >
   readerlist_type;
 
   /** Channel readers to clean */
   readerlist_type                    obsolete_readers;
 
   /** Type definition, for queue of channel writers */
-  typedef std::list<std::pair<uint16_t,boost::shared_ptr<EntryWriter> > >
+  typedef std::list<std::pair<uint16_t,std::shared_ptr<EntryWriter> > >
   writerlist_type;
 
   /** Candidate writers to configure and insert */

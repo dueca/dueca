@@ -22,7 +22,7 @@
 STARTHDF5LOG;
 
 
-HDF5DCOReadFunctor::HDF5DCOReadFunctor(boost::weak_ptr<H5::H5File>& file,
+HDF5DCOReadFunctor::HDF5DCOReadFunctor(std::weak_ptr<H5::H5File>& file,
                                        const std::string& path,
                                        size_t nelts, bool readticks) :
   file(file.lock()),
