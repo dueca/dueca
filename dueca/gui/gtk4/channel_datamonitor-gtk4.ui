@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">100</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment2">
+    <property name="upper">100</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
+  <object class="GtkListStore" id="liststore1"/>
+  <object class="GtkWindow" id="channel_datamonitor">
+    <property name="title" translatable="1">Channel Entry Data Monitor</property>
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="main_toolbar">
+            <child>
+              <object class="GtkButton" id="close">
+                <property name="label" translatable="1">close</property>
+                <property name="tooltip-text" translatable="1">Close this view</property>
+                <property name="use-underline">1</property>
+                <property name="icon-name">window-close</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="refresh_data">
+                <property name="label" translatable="1">refresh</property>
+                <property name="focus-on-click">0</property>
+                <property name="tooltip-text" translatable="1">Refresh the displayed data</property>
+                <property name="use-underline">1</property>
+                <property name="icon-name">view-refresh</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <child>
+                  <object class="GtkLabel" id="timespan_label">
+                    <property name="label">time span</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <style>
+              <class name="toolbar"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrollwindow">
+            <property name="focusable">1</property>
+            <property name="hadjustment">adjustment1</property>
+            <property name="vadjustment">adjustment2</property>
+            <property name="propagate-natural-width">1</property>
+            <property name="propagate-natural-height">1</property>
+            <property name="child">
+              <object class="GtkColumnView" id="channel_data_view">
+                <property name="width-request">600</property>
+                <property name="height-request">300</property>
+                <property name="focusable">1</property>
+                <property name="model">liststore1</property>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>

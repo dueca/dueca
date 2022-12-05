@@ -1,0 +1,84 @@
+using Gtk 4.0;
+
+Adjustment adjustment1 {
+}
+
+Adjustment adjustment2 {
+}
+
+TreeListModel datamodel {
+}
+
+SingleSelection listselect {
+  model: datamodel;
+}
+
+Sorter namesorter {
+}
+
+Window channel_datamonitor {
+  title: _("Channel Entry Data Monitor");
+
+  Box mainbox {
+    orientation: vertical;
+
+    Box toolbar {
+      orientation: horizontal;
+
+      Button close {
+        label: _("Close");
+        tooltip-text: _("Close this data view");
+        use-underline: true;
+        icon-name: "window-close";
+      }
+
+      Button refresh_data {
+        label: _("Refresh");
+        tooltip-text: _("Obtain and refresh the displayed data");
+        use-underline: true;
+        icon-name: "view-refresh";
+      }
+
+      Separator {
+      }
+
+      Box {
+        Label timespan_label {
+          label: "time span";
+          tooltip-text: _("Time for the current data");
+        }
+      }
+
+      styles [
+        "toolbar",
+      ]
+    }
+
+    ScrolledWindow datawindow {
+      focusable: true;
+      hadjustment: adjustment1;
+      vadjustment: adjustment2;
+      propagate-natural-width: true;
+      propagate-natural-height: true;
+
+      ColumnView channel_data_view {
+        width-request: 600;
+        height-request: 400;
+        focusable: true;
+        model: listselect;
+
+        ColumnViewColumn name {
+          fixed-width: -1;
+          title: "name";
+          sorter: namesorter;
+        }
+
+        ColumnViewColumn value {
+          fixed-width: -1;
+          resizable: true;
+          title: "value";
+        }
+      }
+    }
+  }
+}

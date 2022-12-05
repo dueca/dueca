@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkAdjustment" id="horizontal">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="vertical">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkWindow" id="channel_use_view">
+    <property name="title" translatable="1">Channel Overview</property>
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="main_toolbar">
+            <style>
+              <class name="toolbar"/>
+            </style>
+            <property name="css-classes">toolbar</property>
+            <child>
+              <object class="GtkButton" id="close">
+                <property name="label" translatable="1">Close</property>
+                <property name="use_underline">1</property>
+                <property name="icon-name">window-close</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="refresh_times">
+                <property name="label" translatable="1">Access #</property>
+                <property name="use_underline">1</property>
+                <property name="icon-name">view-refresh</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrollwindow">
+            <property name="vexpand">1</property>
+            <property name="focusable">1</property>
+            <property name="hadjustment">horizontal</property>
+            <property name="vadjustment">vertical</property>
+            <property name="propagate_natural_width">1</property>
+            <property name="propagate_natural_height">1</property>
+            <property name="child">
+              <object class="GtkTreeView" id="channel_overview">
+                <property name="width_request">600</property>
+                <property name="height_request">300</property>
+                <property name="focusable">1</property>
+                <property name="hadjustment">horizontal</property>
+                <property name="vadjustment">vertical</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+    <child>
+      <placeholder/>
+    </child>
+  </object>
+</interface>
