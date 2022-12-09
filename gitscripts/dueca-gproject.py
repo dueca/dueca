@@ -1204,7 +1204,7 @@ class PreparePlatform(OnExistingProject):
                         nodes.append(Namespace(
                             highest_priority=node.get('highest-priority', 4),
                             name=node.get('name'),
-                            script=None,
+                            script=self.checkScriptlang(),
                             machine_class=node.get('machineclass'),
                             node_number=node.get('node-number', None),
                             if_address=node.get('if-address', '0.0.0.0'),
@@ -1220,7 +1220,12 @@ class PreparePlatform(OnExistingProject):
                             nums.remove(nno)
                             n.node_number = nno
                         except KeyError as e:
-                            print("Wrong node number specified")
+                            if nno >= len(nodes):
+                                print("Node number too high"
+                                      f" {nno} >= {len(nodes)}")
+                            else:
+                                print(f"Number {nno} not available,"
+                                      " specified multiple times?")
                             raise e
                         except:
                             pass

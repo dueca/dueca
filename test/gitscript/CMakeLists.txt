@@ -273,7 +273,6 @@ if (Python3_Interpreter_FOUND)
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject2/TestProject2)
 
-
   add_test(NAME prepare_gitcommit1c
     COMMAND git commit -a -m "compiles now"
     WORKING_DIRECTORY
