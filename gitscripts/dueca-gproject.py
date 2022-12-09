@@ -549,9 +549,7 @@ class OnExistingProject():
         try:
             cm = subprocess.run(
                 ['cmake', '--build', 'build', '--', 'scriptlang'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #print(cm.stdout, cm.stderr)
-            #print(['cmake', '--build', 'build', '--', 'scriptlang'])
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             self.scriptlang = cm.stdout.strip().decode('UTF-8').split()[0]
         except Exception as e:
             print(f"Could not determine script language, {e}")
