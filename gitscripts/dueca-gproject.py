@@ -961,6 +961,7 @@ class NewNode(OnExistingProject):
             if ns.script and ns.script != scriptlang:
                 print("Warning, you seem to have selected a script language"
                       " that does not match the one in the code")
+                scriptlang = ns.script
             elif scriptlang:
                 pass
             elif not scriptlang and ns.script:
