@@ -418,8 +418,8 @@ performed by a `git clone` command. However, to get the proper file
 structure, and pull the modules that are borrowed from other projects,
 it is better to do this through the dueca-gproject command.
 
-    dueca-gproject clone --name MyOldProject [--node solo] \
-                         --remote <git url> [--version some-version]
+    dueca-gproject clone --remote <git url> \
+                         [--node solo] [--version some-version]
 
 The script uses the mapping between nodes and machine class to check
 out the software corresponding to the right machine class. The "solo"
@@ -788,12 +788,11 @@ can be created from your development desktop or laptop, as shown
 above. After that, walk over to (or remote login to) the computers of
 the simulator, and on each computer clone the project with
 `dueca-gproject`. In general, the projects are located under the
-`dapps` folder of the username under which you log in to the simulator
-computers. This uses the mapping between node and machine class to
-select the proper machine class, example.
+`dapps` or `gdapps` folder of the username under which you log in to the
+simulator computers. This uses the mapping between node and machine class 
+to select the proper machine class, for example:
 
-    dueca-gproject clone --name MyProject --remote <project url> \
-                         --node srsecs
+    dueca-gproject clone --remote <project url> --node srsecs
 
 There are a number of common pitfalls when deploying a project on the
 computers/nodes of a platform:
