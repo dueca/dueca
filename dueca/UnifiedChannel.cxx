@@ -76,10 +76,10 @@ struct channelreadinfo
     _stash("ChannelReadInfo")
   { }
 
-    static channelreadinfo& single()
+  static channelreadinfo& single()
   {
-    static channelreadinfo singleton;
-    return singleton;
+    static channelreadinfo *singleton = new channelreadinfo();
+    return *singleton;
   }
 
   static void initialize()
