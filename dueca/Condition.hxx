@@ -4,6 +4,7 @@
         date            : 000209
         category        : header file
         description     :
+        api             : DUECA_API
         changes         : 000209 first version
         language        : C++
         copyright       : (c) 2016 TUDelft-AE-C&S
@@ -20,7 +21,7 @@
 DUECA_NS_START
 class ConditionData;
 
-/** Encapsulation of the pthread_cond functionality of posix threads. */
+/** Wait and resume object */
 class Condition
 {
   /** Reference to the OS-dependent data */
@@ -30,22 +31,30 @@ class Condition
   vstring name;
 
 public:
-  /** Constructor. */
+  /** Constructor.
+
+      @param name   Identifying name.
+  */
   Condition(const char* name);
 
   /** Destructor. */
   ~Condition();
 
-  /** Enter the condition test. */
+  /** Enter the condition test.
+
+      Call this before checking to see whether waiting is needed, or call it
+      when changing the conditions, and signalling a resume.
+   */
   void enterTest();
 
-  /** Start waiting, if it appears that the test was false. */
+  /** Start waiting, if it appears that the test was false, call this
+      after an enterTest.  */
   void wait();
 
-  /** Leave the condition test. */
+  /** Leave the condition test, after enterTest or wait. */
   void leaveTest();
 
-  /** Signal the condition to the waiters. */
+  /** Signal the condition to any waiters. */
   void signal();
 };
 
