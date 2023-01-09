@@ -25,6 +25,10 @@ _decodeurltag = re.compile(r"^([a-zA-Z0-9]+):///(.+)$")
 # common url type tags
 _urltags = set(('http', 'https', 'ssh', 'rsync', 'file'))
 
+# folders
+_decodesparsefolder = re.compile(r"^(.+)/\*$")
+_deflt_sparse_folders = set(('run', 'comm-objects', '.config', 'build'))
+
 def projectSplit(url: str):
     """
     Split the project URL into a repository/project part
@@ -419,6 +423,45 @@ class Modules:
         # for clean is None, this reads the modules list
         self._sync()
 
+    def _updateOwnSparse(self, modules: list) -> bool:
+
+        # get the repository for this folder
+        rrepo = git.Repo(f'.')
+
+        # is this a sparse checkout?
+        cread = rrepo.config_reader()
+        if not cread.get_value('core', 'sparseCheckout', False):
+            return False
+
+        # check whether the modules are all in the sparse list
+        folders = set([str(m) for m in modules])
+
+        try:
+            with open('.git/info/sparse-checkout', 'r') as ms:
+                for l in ms:
+                    _match = _decodesparsefolder.fullmatch(l.strip())
+                    if _match and _match.group(1) in folders:
+                        folders.remove(_match.group(1))
+                        dprint(f"found matching line {l.strip()} in sparse")
+                    elif _match and _match.group(1) in _deflt_sparse_folders:
+                        pass
+                    else:
+                        dprint(f"No match {l.strip()} in sparse")
+
+
+            # check if a folder needs to be added
+            if folders:
+                with open(f'.git/info/sparse-checkout', 'a') as ms:
+                    for f in folders:
+                        dprint(f"Adding line to sparse: {f}/*\n")
+                        ms.write(f"{f}/*\n")
+                return True
+
+        except FileNotFoundError:
+            print("Cannot open .git/info/sparse-checkout file; check your"
+                  " cloned copy")
+        return False
+
     def _addToSparse(self, prj: Project, lines: list) -> None:
         """
         Add file names or patterns to a sparse-checkout file for a project
@@ -769,6 +812,11 @@ class Modules:
         for (name, p) in self.projects.items():
 
             if name == self.ownproject:
+
+                if self._updateOwnSparse(p.modules):
+                    print(
+"""New module(s) found among the own project's modules and added to the
+sparse-checkout file. Re-run 'git pull'""")
                 # dprint(f"Refresh own modules {self.ownproject}, not borrowing")
                 # rrepo = ProjectRepo().repo
                 # version = (p.version != 'HEAD' and p.version) or 'master'
@@ -784,7 +832,7 @@ class Modules:
             # fetch for the project's claimed version, and a checkout
             self._addToSparse(p, [f'{m}/*' for m in p.modules])
 
-            dprint(f"Pulled {len(p.modules)} module from {name}")
+            dprint(f"Pulled {len(p.modules)} module(s) from {name}")
 
         # next assemble all borrowed comm-objects
         # this will call addToSparse to add the comm-objects folder(s)
