@@ -6,7 +6,7 @@ setup(
     description='Support code for DUECA python scripts',
     author="Rene van Paassen",
     author_email="rene.vanpaassen@gmail.com",
-    package_dir = { 'duecautils' : '@CMAKE_CURRENT_SOURCE_DIR@/src' },
+    package_dir = { 'duecautils' : './src' },
     url = 'https://dueca.tudelft.nl/',
     packages=["duecautils",
               "duecautils.actions",

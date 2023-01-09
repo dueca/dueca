@@ -35,7 +35,7 @@ struct DCRegistryEntry
   std::string parent;
 
   /** Pointer to the parent, again, if applicable */
-  boost::shared_ptr<DCRegistryEntry> iparent;
+  std::shared_ptr<DCRegistryEntry> iparent;
 
   /** Table with member name - access object pairs. */
   const CommObjectDataTable* table;
@@ -110,7 +110,7 @@ void DataClassRegistry::registerClass(const char* classname,
   }
   entries.insert(map_type::value_type
                  (std::string(classname),
-                  boost::shared_ptr<DCRegistryEntry>
+                  std::shared_ptr<DCRegistryEntry>
                   (new DCRegistryEntry(parent, table,
                                        functortable, converter))));
   assert(entries.find(std::string("")) == entries.end());
@@ -293,7 +293,7 @@ DataClassRegistry::getConverter(const std::string& classname) const
   return ix->second->converter.get();
 }
 
-boost::weak_ptr<DCOMetaFunctor>
+std::weak_ptr<DCOMetaFunctor>
 DataClassRegistry::getMetaFunctor(const std::string& classname,
                                   const std::string& fname) const
 {
@@ -303,7 +303,7 @@ DataClassRegistry::getMetaFunctor(const std::string& classname,
   functortable_type::const_iterator fi = ix->second->functortable->find(fname);
   if (fi == ix->second->functortable->end()) throw(UndefinedFunctor(classname));
 
-  return boost::weak_ptr<DCOMetaFunctor>(fi->second);
+  return std::weak_ptr<DCOMetaFunctor>(fi->second);
 }
 
 DataObjectClassNotFound::DataObjectClassNotFound(const std::string& msg) :

@@ -496,7 +496,7 @@ struct match_readid
   match_readid(const uint32_t readerid) : readerid(readerid) { }
   bool operator()
   (const
-   boost::shared_ptr<ChannelOverview::ChannelInfoSet::
+   std::shared_ptr<ChannelOverview::ChannelInfoSet::
    EntryInfoSet::ReadInfoSet>& s)
   { return readerid == s->rdata.creationid; }
 };

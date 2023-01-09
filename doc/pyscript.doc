@@ -76,7 +76,7 @@
 
     // this contains the interface to the scripting language
     #include <dueca/ScriptInterpret.hxx>
-    #include <boost/shared_ptr.hpp>
+    #include <memory>
 
     // start function for declaring Python interface
     static void startfunc()
@@ -89,7 +89,7 @@
       // module in Python; bpy::no_init prevents creating a Python-side
       // constructor
       bpy::class_<MyModule,
-                  boost::shared_ptr<MyModule>,
+                  std::shared_ptr<MyModule>,
                   boost::noncopyable >("MyModule", bpy::no_init)
 
       // in this example we expose a python dictionary to Python

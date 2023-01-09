@@ -96,7 +96,7 @@ private: // channel access
   };
 
   /** List of netload entries */
-  typedef std::list<boost::shared_ptr<NetLoadEntry> > t_netloadlist;
+  typedef std::list<std::shared_ptr<NetLoadEntry> > t_netloadlist;
 
   /** To watch the channel with timing and use information */
   struct WatchNetLoadInfo: public ChannelWatcher {

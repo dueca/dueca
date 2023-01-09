@@ -2,6 +2,16 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.5] - 2023-01-09
+
+- Some documentation updates (git setup, simplesimulation, GtkGladeWindow, 
+  Condition)
+- dueca-gproject improvements (handling sparse setup, url translation)
+- Use std::shared_ptr instead of boost::shared_ptr
+- Accomodate Python 3.11 where available
+- Improved detection PYSITEDIR in CMake conf
+- Check script language in dueca-gproject
+
 ## [3.2.4] - 2022-11-17
 
 - Remove gtk2-related classes from the documentation; having the same

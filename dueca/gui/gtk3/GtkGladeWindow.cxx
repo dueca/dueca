@@ -57,7 +57,8 @@ bool GtkGladeWindow::readGladeFile(const char* file,
                                    const char* mainwidget,
                                    gpointer client,
                                    const GladeCallbackTable *table,
-                                   bool connect_signals)
+                                   bool connect_signals,
+				   bool warn)
 {
   if (builder == NULL) builder = gtk_builder_new();
 
@@ -87,12 +88,12 @@ bool GtkGladeWindow::readGladeFile(const char* file,
 
   // connect all required buttons.
   if (client && table) {
-    connectCallbacks(client, table);
+    connectCallbacks(client, table, warn);
   }
 
   // and connect signals gobject etc.
   if (connect_signals) {
-    this->connectCallbackSymbols();
+    this->connectCallbackSymbols(reinterpret_cast<gpointer>(client));
   }
 
   // done
@@ -100,7 +101,8 @@ bool GtkGladeWindow::readGladeFile(const char* file,
 }
 
 void GtkGladeWindow::connectCallbacks(gpointer client,
-                                      const GladeCallbackTable *table)
+                                      const GladeCallbackTable *table,
+				      bool warn)
 {
   const GladeCallbackTable *cbl = table;
   while (cbl->widget) {
@@ -115,8 +117,7 @@ void GtkGladeWindow::connectCallbacks(gpointer client,
                        caller);
     }
 
-    else {
-      // failure to find this widget
+    else if (warn) {
       /* DUECA graphics.
 
          Cannot find a widget in the gtk-builder model, when trying
@@ -132,7 +133,8 @@ void GtkGladeWindow::connectCallbacks(gpointer client,
 }
 
 void GtkGladeWindow::connectCallbacksAfter(gpointer client,
-                                           const GladeCallbackTable *table)
+                                           const GladeCallbackTable *table,
+					   bool warn)
 {
   const GladeCallbackTable *cbl = table;
   while (cbl->widget) {
@@ -147,8 +149,7 @@ void GtkGladeWindow::connectCallbacksAfter(gpointer client,
                                caller);
     }
 
-    else {
-      // failure to find this widget
+    else if (warn) {
       /* DUECA graphics.
 
          Cannot find a widget in the gtk-builder model, when trying

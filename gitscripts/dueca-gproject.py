@@ -346,8 +346,9 @@ class NewProject:
         # check that the remote project is clean/has not code
         if ns.remote:
             RootMap().addProjectRemote(ns.remote)
-            git_ensure_remote_clean(RootMap().urlToAbsolute(ns.remote), ns.name)
-            remoteurl = RootMap().urlToRelative(ns.remote)
+            git_ensure_remote_clean(
+                RootMap().urlToAbsolute(ns.remote), ns.name)
+            remoteurl = RootMap().urlToRelative(ns.remote, ns.name)
         else:
             remoteurl = ''
 
@@ -548,9 +549,7 @@ class OnExistingProject():
         try:
             cm = subprocess.run(
                 ['cmake', '--build', 'build', '--', 'scriptlang'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #print(cm.stdout, cm.stderr)
-            #print(['cmake', '--build', 'build', '--', 'scriptlang'])
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             self.scriptlang = cm.stdout.strip().decode('UTF-8').split()[0]
         except Exception as e:
             print(f"Could not determine script language, {e}")
@@ -960,6 +959,7 @@ class NewNode(OnExistingProject):
             if ns.script and ns.script != scriptlang:
                 print("Warning, you seem to have selected a script language"
                       " that does not match the one in the code")
+                scriptlang = ns.script
             elif scriptlang:
                 pass
             elif not scriptlang and ns.script:
@@ -1203,7 +1203,7 @@ class PreparePlatform(OnExistingProject):
                         nodes.append(Namespace(
                             highest_priority=node.get('highest-priority', 4),
                             name=node.get('name'),
-                            script=None,
+                            script=self.checkScriptlang(),
                             machine_class=node.get('machineclass'),
                             node_number=node.get('node-number', None),
                             if_address=node.get('if-address', '0.0.0.0'),
@@ -1219,7 +1219,12 @@ class PreparePlatform(OnExistingProject):
                             nums.remove(nno)
                             n.node_number = nno
                         except KeyError as e:
-                            print("Wrong node number specified")
+                            if nno >= len(nodes):
+                                print("Node number too high"
+                                      f" {nno} >= {len(nodes)}")
+                            else:
+                                print(f"Number {nno} not available,"
+                                      " specified multiple times?")
                             raise e
                         except:
                             pass

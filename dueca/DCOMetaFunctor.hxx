@@ -18,7 +18,7 @@
 #include <string>
 #include <map>
 #include <iostream>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <dueca_ns.h>
 
 DUECA_NS_START;
@@ -123,7 +123,7 @@ public:
 };
 
 /** type definition for metafunctor tables */
-typedef std::map<std::string,boost::shared_ptr<dueca::DCOMetaFunctor> >
+typedef std::map<std::string,std::shared_ptr<dueca::DCOMetaFunctor> >
 functortable_type;
 
 /** Struct to declare a MetaFunctor to the DCO type system
@@ -134,7 +134,7 @@ struct LoadMetaFunctor {
       @param functortable map with metafunctors
       @param key          Key for the new entry */
   LoadMetaFunctor(functortable_type& functortable, const char* key) {
-    functortable[key] = boost::shared_ptr<DCOMetaFunctor>(new F());
+    functortable[key] = std::shared_ptr<DCOMetaFunctor>(new F());
   }
 };
 

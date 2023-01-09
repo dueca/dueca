@@ -28,7 +28,7 @@ USING_DUECA_NS;
 #include "ReplicatorConfig.hxx"
 
 // include headers for functions/classes you need in the module
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/scoped_ptr.hpp>
 #include "ReplicatorNamespace.hxx"
 #include "EntryWatcher.hxx"
@@ -79,7 +79,7 @@ protected: // simulation data
     boost::scoped_ptr<EntryWatcher>   watcher;
 
     /** type for reader list */
-    typedef std::list<boost::shared_ptr<EntryReader> > readerlist_type;
+    typedef std::list<std::shared_ptr<EntryReader> > readerlist_type;
 
     /** entry id for the next entry */
     dueca::entryid_type               next_id;
@@ -88,7 +88,7 @@ protected: // simulation data
     readerlist_type                   readers;
 
     /** type for writer list */
-    typedef std::map<unsigned,boost::shared_ptr<EntryWriter> > writerlist_type;
+    typedef std::map<unsigned,std::shared_ptr<EntryWriter> > writerlist_type;
 
     /** List of writers that push in the remotely created data */
     writerlist_type                   writers;
@@ -104,7 +104,7 @@ protected: // simulation data
 
   /** map with watched channels */
   typedef std::map<channel_id_t,
-                   boost::shared_ptr<WatchedChannel> >  channelmap_type;
+                   std::shared_ptr<WatchedChannel> >  channelmap_type;
 
   /** An entry for each watched channel */
   channelmap_type                     watched;
@@ -118,7 +118,7 @@ protected: // simulation data
     DetectedEntry &operator=(const DetectedEntry&);
   };
 
-  typedef boost::shared_ptr<DetectedEntry> detected_entry_type;
+  typedef std::shared_ptr<DetectedEntry> detected_entry_type;
 
   /** asynchronous messaging about new entries in this channel */
   AsyncList<DetectedEntry*>  detected_entries;
@@ -133,7 +133,7 @@ protected: // simulation data
   };
 
   /** Deleted entry type */
-  typedef boost::shared_ptr<DeletedEntry> deleted_entry_type;
+  typedef std::shared_ptr<DeletedEntry> deleted_entry_type;
 
   /** deleted entries in this channel */
   AsyncList<DeletedEntry*> deleted_entries;

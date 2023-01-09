@@ -824,7 +824,7 @@ unsigned WriteReadSetup::getNextId()
 
 CODE_REFCOUNT(WriteReadEntry);
 
-WriteReadEntry::WriteReadEntry(boost::shared_ptr<WriteReadSetup> setup,
+WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                                WebSocketsServer *master,
                                const PrioritySpec& ps,
                                bool extended,

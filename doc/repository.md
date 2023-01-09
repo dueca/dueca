@@ -4,7 +4,7 @@ This documentation is specific to the Control and Simulation division
 at the Aerospace Engineering department of the Delft University of
 Techology, the place where DUECA was created. However, it might offer
 some inspiration to others who want to organise their software
-repositories for DUECA projects. It is currently (2021) a work in
+repositories for DUECA projects. It is currently (2022) a work in
 progress, since we are just transitioning from old CVS-based projects
 to git+CMake based projects.
 
@@ -106,12 +106,12 @@ with time the DCO objects and sometimes modules borrowed from these
 projects are moved into base projects, while the projects themselves
 are moved to the archive. </td></tr>
 
-<tr><td>Netid folders </td><td> When working on their graduation
-projects, students can use a clone from one of the projects in the
-above groups as reference, or start a new project, and store it under
-their own netid at the gitlab server. After completion of the project
-the result is merged back into the donating project or added to the
-archive. </td></tr>
+<tr><td>AE-CS-DUECA-students </td><td> When working on their
+graduation projects, students receive either a clone from an existing
+project, or start a new, blank project. A staff member will create the
+project, and assign access to teh student. After completion of the
+project, the result is added to the archive or active group, or merged
+back into the donating project as a separate branch. </td></tr>
 
 </table>
 

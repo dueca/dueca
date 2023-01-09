@@ -21,10 +21,10 @@ include(GNUInstallDirs)
 # version information, please update accordingly
 set(VERMAJOR 3)
 set(VERMINOR 2)
-set(REVISION 4)
+set(REVISION 5)
 set(GENCODEGEN 110)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "12 Jun 2022")
+set(VERSION_DATE "09 Jan 2023")
 string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
 set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 
@@ -532,8 +532,8 @@ if (SCRIPT_PYTHON)
   else()
     find_library(BPLIB
 
-      NAMES boost_python310 boost_python39 boost_python38
-      boost_python37 boost_python-py310 boost_python-py39
+      NAMES boost_python311 boost_python310 boost_python39 boost_python38
+      boost_python37 boost_python-py311 boost_python-py310 boost_python-py39
       boost_python-py38 boost_python-py37 boost_python-py36
       boost_python3 boost_python-py3 boost_python27 boost_python2
       boost_python)

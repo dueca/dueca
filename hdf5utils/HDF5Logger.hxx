@@ -40,9 +40,8 @@
 #include <map>
 #include <list>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/scoped_ptr.hpp>
-#include <boost/weak_ptr.hpp>
 
 STARTHDF5LOG;
 
@@ -63,7 +62,7 @@ class HDF5Logger: public SimulationModule
 private: // simulation data
 
   // file for logging
-  boost::shared_ptr<H5::H5File> hfile;
+  std::shared_ptr<H5::H5File> hfile;
 
   // file access properties
   H5::FileAccPropList           access_proplist;
@@ -119,7 +118,7 @@ private: // simulation data
     ChannelReadToken r_token;
 
     /** Metafunctor for creating the working functor */
-    boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor;
+    std::weak_ptr<HDF5DCOMetaFunctor> metafunctor;
 
     /** Functor for the access */
     boost::scoped_ptr<HDF5DCOWriteFunctor> functor;
@@ -137,7 +136,7 @@ private: // simulation data
                 unsigned chunksize, bool compress);
 
     /** create the functor, e.g. when logging new file or new location */
-    void createFunctor(boost::weak_ptr<H5::H5File> nfile,
+    void createFunctor(std::weak_ptr<H5::H5File> nfile,
                        const HDF5Logger *master,
                        const std::string &prefix);
 
@@ -152,13 +151,13 @@ private: // simulation data
   };
 
   /** Type definition for the list */
-  typedef std::list<boost::shared_ptr<TargetedLog> > targeted_list_t;
+  typedef std::list<std::shared_ptr<TargetedLog> > targeted_list_t;
 
   /** List of targeted channel entries */
   targeted_list_t             targeted;
 
   /** List of channel watchers */
-  typedef std::list<boost::shared_ptr<EntryWatcher> > watcher_list_t;
+  typedef std::list<std::shared_ptr<EntryWatcher> > watcher_list_t;
 
   /** List of globally watched channels. */
   watcher_list_t              watched;
@@ -265,7 +264,7 @@ private: // the member functions that are called for activities
   friend class EntryWatcher;
 
   /** access the file object */
-  inline boost::weak_ptr<H5::H5File> getFile() const { return hfile; }
+  inline std::weak_ptr<H5::H5File> getFile() const { return hfile; }
 
   /** get the chunk size */
   inline unsigned getChunkSize() const { return chunksize; }

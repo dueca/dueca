@@ -29,7 +29,6 @@
 #include "NameSet.hxx"
 #include "ChannelDef.hxx"
 #include <DCOMetaFunctor.hxx>
-#include <boost/weak_ptr.hpp>
 #include <DataClassRegistryPredef.hxx>
 
 #include <dueca_ns.h>
@@ -40,10 +39,6 @@ class DataSetConverter;
 class EventConverter;
 struct NameSet;
 class GenericCallback;
-class DataObjectReadAccess;
-
-
-typedef unsigned ChannelEntryIndex;
 
 /** The accessToken objects are used in conjunction with the channel
     system. When a component requests access to a channel, an
@@ -125,20 +120,12 @@ public:
       \returns  true if the token is ready for use, false otherwise. */
   virtual bool isValid() = 0;
 
-protected:
-  /** Index of the channel. */
-  int index;
-
-protected: // service for derived (template) classes
-  /** Check for the existence of a local event channel end. */
-  static bool localChannelEndExists(const NameSet& name);
-
 private:
   /** Obtain the base DCOMetaFunctor
       @param fname Functor type name
       @throws      UndefinedFunctor  If there is no metafunctor of the
                    specified type */
-  boost::weak_ptr<DCOMetaFunctor>
+  std::weak_ptr<DCOMetaFunctor>
   getMetaFunctorBase(const std::string& fname) const;
 
 public:
@@ -166,10 +153,10 @@ public:
                    to the requested type
       @returns     Reference to a metafunctor */
   template <class MFT>
-  boost::weak_ptr<MFT> getMetaFunctor(const std::string& fname) const
+  std::weak_ptr<MFT> getMetaFunctor(const std::string& fname) const
   {
-    boost::weak_ptr<DCOMetaFunctor> dcofnc = getMetaFunctorBase(fname);
-    boost::weak_ptr<MFT> res = boost::dynamic_pointer_cast<MFT>(dcofnc.lock());
+    std::weak_ptr<DCOMetaFunctor> dcofnc = getMetaFunctorBase(fname);
+    std::weak_ptr<MFT> res = std::dynamic_pointer_cast<MFT>(dcofnc.lock());
     if (res.expired()) {
       throw FunctorTypeMismatch();
     }

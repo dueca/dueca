@@ -452,16 +452,16 @@ following contents:
 
 ;; Communication of essential stick inputs to the SimpleSimulation UFO
 (Object ControlInput
-;; enable packing into messagepack format
-(Option msgpack)
-;; Roll input
-(float roll (Default 0.0f))
-;; Pitch input
-(float pitch (Default 0.0f))
-;; Yawing
-(float yaw (Default 0.0f))
-;; Commanded speed
-(float throttle (Default 0.0f))
+  ;; enable packing into messagepack format
+  (Option msgpack)
+  ;; Roll input
+  (float roll (Default 0.0f))
+  ;; Pitch input
+  (float pitch (Default 0.0f))
+  ;; Yawing
+  (float yaw (Default 0.0f))
+  ;; Commanded speed
+  (float throttle (Default 0.0f))
 )
 ~~~~
 
@@ -607,7 +607,7 @@ the world. The following code lists the creation of the two tokens:
              "ControlInput", 0, Channel::Continuous, Channel::OnlyOneEntry),
   w_egomotion(getId(), NameSet(getEntity(), "ObjectMotion", part),
               "BaseObjectMotion", "ufo movement", Channel::Continuous,
-              OnlyOneEntry),
+              Channel::OnlyOneEntry),
 
   // activity initialization
   // myclock(),
@@ -820,8 +820,8 @@ make
 
 You will see that the build now automatically includes the
 `ControlInput.dco` file, and the new module we added. In most cases,
-c++ header and body files are automatically included for compilation,
-if you don't want that, adapt the `CMakeLists.txt` files.
+c++ header and body files in a module are automatically included for
+compilation, if you don't want that, adapt the `CMakeLists.txt` files.
 
 This creates an executable called `dueca_run.x`. It contains the
 module we developed, and the borrowed modules and code from FlexiStick
@@ -1559,7 +1559,7 @@ void UFODynamics::fillSnapshot(const TimeSpec& ts,
   // set the right format
   snap.coding = Snapshot::Doubles;
 
-if (from_trim) {
+  if (from_trim) {
     // use packData(s, trim_state_variable1); ... to pack your state into
     // the snapshot
   }
@@ -1704,7 +1704,11 @@ Added platform simlab
 run-data  simlab  solo
 ~~~
 
-This only added a folder to the run folder. We will define two nodes in this platform, giving them the names of `host` and `igtest`. We will assign node number zero to the host node, so the DUECA interface appear there, and also make it communication master, so it will drive the communication cycle.
+This only added a folder to the run folder. We will define two nodes
+in this platform, giving them the names of `host` and `igtest`. We
+will assign node number zero to the host node, so the DUECA interface
+appear there, and also make it communication master, so it will drive
+the communication cycle.
 
 ~~~{.bash}
 [enter]$ dueca-gproject new-node --name host --platform simlab \

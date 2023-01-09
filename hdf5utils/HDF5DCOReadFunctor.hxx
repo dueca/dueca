@@ -20,8 +20,8 @@
 #include <DataTimeSpec.hxx>
 #include <H5Cpp.h>
 #include <vector>
-#include <boost/weak_ptr.hpp>
 #include <map>
+#include <memory>
 #include <fixvector.hxx>
 #include <string>
 #include <map>
@@ -38,7 +38,7 @@ USING_DUECA_NS;
 class HDF5DCOReadFunctor: public DCOFunctor
 {
   /** Pointer to the file */
-  boost::weak_ptr<H5::H5File> file;
+  std::weak_ptr<H5::H5File> file;
 
 protected:
 
@@ -200,7 +200,7 @@ public:
   TimeTickType getTick(bool nextrow=false);
 
   /** Constructor */
-  HDF5DCOReadFunctor(boost::weak_ptr<H5::H5File>& file,
+  HDF5DCOReadFunctor(std::weak_ptr<H5::H5File>& file,
                      const std::string& path,
                      size_t nelts, bool readticks);
 

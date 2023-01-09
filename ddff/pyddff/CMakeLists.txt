@@ -42,17 +42,11 @@ add_custom_target(
 # find an installation folder for the Python packages; we know
 # pyparsing is installed, since we need it for dco objects
 if (NOT PYSITEDIR)
-  find_path(PYSITEDIR
-    NAMES pyparsing.py
-    NO_DEFAULT_PATH
-    PATH_SUFFIXES dist-packages site-packages
-    PATHS
-    ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_MAJOR}
-    ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_MAJMIN}
-    /usr/lib/python${PYTHON_MAJOR}
-    /usr/lib/python${PYTHON_MAJMIN}
-    /usr/local/lib/python${PYTHON_MAJOR}
-    /usr/local/lib/python${PYTHON_MAJMIN})
+  execute_process(
+    COMMAND ${Python_EXECUTABLE} -c
+    "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+    OUTPUT_VARIABLE PYSITEDIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
 set(PYMOD_INSTALL_TYPE bdist_wheel)

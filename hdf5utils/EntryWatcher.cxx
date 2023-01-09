@@ -100,7 +100,7 @@ void EntryWatcher::accessAndLog(const dueca::TimeSpec& ts)
   }
 }
 
-void EntryWatcher::createFunctors(boost::weak_ptr<H5::H5File> nfile,
+void EntryWatcher::createFunctors(std::weak_ptr<H5::H5File> nfile,
                                   const std::string &prefix)
 {
   checkChanges();
@@ -172,7 +172,7 @@ void EntryWatcher::EntryData::accessAndLog(const dueca::TimeSpec& ts)
   }
 }
 
-void EntryWatcher::EntryData::createFunctor(boost::weak_ptr<H5::H5File> nfile,
+void EntryWatcher::EntryData::createFunctor(std::weak_ptr<H5::H5File> nfile,
                                             const HDF5Logger *master,
                                             unsigned chunksize,
                                             bool always_logging,
@@ -183,7 +183,7 @@ void EntryWatcher::EntryData::createFunctor(boost::weak_ptr<H5::H5File> nfile,
   ChannelEntryInfo ei = r_token.getChannelEntryInfo();
 
   // metafunctor can create the logging functor
-  boost::weak_ptr<HDF5DCOMetaFunctor> metafunctor
+  std::weak_ptr<HDF5DCOMetaFunctor> metafunctor
     (r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
 
   std::stringstream dpath;

@@ -25,7 +25,7 @@
 #include "ModuleIdList.hxx"
 #include "Callback.hxx"
 #include "Activity.hxx"
-#include <boost/shared_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 using namespace std;
 
 #include <dueca_ns.h>

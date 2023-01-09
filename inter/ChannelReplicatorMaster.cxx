@@ -560,7 +560,7 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
 
         // packing worked, proceed with creating entry in readers
         watched[cid]->readers.push_back
-          (boost::shared_ptr<EntryReader>
+          (std::shared_ptr<EntryReader>
            (new EntryReader(getId(), *ei, watched[cid]->channelname)));
 
         if (w_replicatorinfo) {
@@ -787,7 +787,7 @@ clientDecodeConfig(AmorphReStore& s, unsigned peer_id)
       // will be processed in sendChannelConfigChanges
       candidate_writers.push_back
         (make_pair
-         (cmd.channel_id, boost::shared_ptr<EntryWriter>
+         (cmd.channel_id, std::shared_ptr<EntryWriter>
           (new EntryWriter
            (getId(), peer_id, cmd.tmp_entry_id,
             watched[cmd.channel_id]->channelname,
@@ -943,7 +943,7 @@ bool ChannelReplicatorMaster::watchChannels
   // add all named channels to the watched list
   for (std::vector<std::string>::const_iterator ii = chlist.begin();
        ii != chlist.end(); ii++) {
-    watched[channel_id] = boost::shared_ptr<WatchedChannel>
+    watched[channel_id] = std::shared_ptr<WatchedChannel>
       (new WatchedChannel(*ii, channel_id, this));
     channel_id++;
   }

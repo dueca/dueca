@@ -289,7 +289,7 @@ clientDecodeConfig(AmorphReStore& s)
 #endif
 
       // add the channel watcher
-      watched[cmd.channel_id] = boost::shared_ptr<WatchedChannel>
+      watched[cmd.channel_id] = std::shared_ptr<WatchedChannel>
         (new WatchedChannel(cmd.name, cmd.channel_id, this));
     }
       break;
@@ -340,7 +340,7 @@ clientDecodeConfig(AmorphReStore& s)
               watched[cmd.channel_id]->channelname <<
               " rid " << cmd.entry_id << " origin " << cmd.slave_id);
         watched[cmd.channel_id]->writers[cmd.entry_id] =
-          boost::shared_ptr<EntryWriter>
+          std::shared_ptr<EntryWriter>
           (new EntryWriter
            (getId(), cmd.slave_id, cmd.entry_id,
             watched[cmd.channel_id]->channelname,
@@ -449,7 +449,7 @@ void ChannelReplicatorPeer::clientSendConfig()
         // awaits confirmation by the master.
         candidate_readers.push_back
           (make_pair
-           (cid, boost::shared_ptr<EntryReader>
+           (cid, std::shared_ptr<EntryReader>
             (new EntryReader(getId(), *ei, watched[cid]->channelname))));
         candidate_readers.back().second->setReplicatorEntryId(tmpid);
         watched[cid]->next_id++;

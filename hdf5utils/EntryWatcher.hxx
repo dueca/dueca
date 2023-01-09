@@ -19,6 +19,7 @@
 #include <ChannelWatcher.hxx>
 #include <dueca.h>
 #include "HdfLogNamespace.hxx"
+#include <memory>
 #include <boost/scoped_ptr.hpp>
 
 STARTHDF5LOG;
@@ -85,7 +86,7 @@ class EntryWatcher: public dueca::ChannelWatcher
     void accessAndLog(const dueca::TimeSpec& ts);
 
     /** create the functor, e.g. when logging new file or new location */
-    void createFunctor(boost::weak_ptr<H5::H5File> nfile,
+    void createFunctor(std::weak_ptr<H5::H5File> nfile,
                        const HDF5Logger *master,
                        unsigned chunksize, bool always_logging,
                        bool compress,
@@ -93,7 +94,7 @@ class EntryWatcher: public dueca::ChannelWatcher
   };
 
   /** List type of above */
-  typedef std::list<boost::shared_ptr<EntryData> > entrylist_type;
+  typedef std::list<std::shared_ptr<EntryData> > entrylist_type;
 
   /** The resulting list */
   entrylist_type entrylist;
@@ -119,7 +120,7 @@ public:
   void accessAndLog(const dueca::TimeSpec& ts);
 
   /** re-create Functors for a new file */
-  void createFunctors(boost::weak_ptr<H5::H5File> nfile,
+  void createFunctors(std::weak_ptr<H5::H5File> nfile,
                       const std::string &prefix);
 };
 

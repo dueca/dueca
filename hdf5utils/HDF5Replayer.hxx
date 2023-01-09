@@ -30,9 +30,8 @@ USING_DUECA_NS;
 #include "HDF5DCOMetaFunctor.hxx"
 #include <list>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/scoped_ptr.hpp>
-#include <boost/weak_ptr.hpp>
 
 STARTHDF5LOG;
 USING_DUECA_NS;
@@ -61,7 +60,7 @@ class HDF5Replayer: public SimulationModule
 
 private: // simulation data
   /// file for reading
-  boost::shared_ptr<H5::H5File> hfile;
+  std::shared_ptr<H5::H5File> hfile;
 
   /// remember when to check tokens for late file selection
   bool                          tocheck_tokens;
@@ -123,7 +122,7 @@ private: // simulation data
 
     /** Constructor */
     ReplaySet(const std::string& channelname, const std::string &dataclass,
-              const std::string& logpath, boost::weak_ptr<H5::H5File> hfile,
+              const std::string& logpath, std::weak_ptr<H5::H5File> hfile,
               const GlobalId &masterid, bool rcontinuous,
               Channel::EntryTimeAspect ta, Channel::PackingMode pm,
               Channel::TransportClass tc);
@@ -144,12 +143,12 @@ private: // simulation data
     void spoolStart(const TimeTickType& replay_start);
 
     /** reset to start reading from a new file. */
-    void switchFile(boost::weak_ptr<H5::H5File> hfile,
+    void switchFile(std::weak_ptr<H5::H5File> hfile,
                     const GlobalId& masterid);
   };
 
   /** Type definition for the list */
-  typedef std::list<boost::shared_ptr<ReplaySet> > replay_list_t;
+  typedef std::list<std::shared_ptr<ReplaySet> > replay_list_t;
 
   /** List with replays */
   replay_list_t                  replays;

@@ -196,7 +196,7 @@ void NetUseOverview::WatchNetLoadInfo::entryAdded(const ChannelEntryInfo& i)
 {
   if (i.data_class == std::string(NetCapacityLog::classname)) {
     loads.push_back
-      (boost::shared_ptr<NetUseOverview::NetLoadEntry>
+      (std::shared_ptr<NetUseOverview::NetLoadEntry>
        (new NetLoadEntry(NameSet("NetCommLog://dueca"),
                          i.entry_id, NetCapacityLog::classname,
                          ptr, &NetUseOverview::processLoadInfo)));

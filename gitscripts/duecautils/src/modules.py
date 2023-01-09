@@ -18,6 +18,17 @@ import tempfile
 
 # regex for decoding project URL
 _decodeprj = re.compile(r"^(.+)/(.+)\.git$")
+
+# decoding the shortened url tag
+_decodeurltag = re.compile(r"^([a-zA-Z0-9]+):///(.+)$")
+
+# common url type tags
+_urltags = set(('http', 'https', 'ssh', 'rsync', 'file'))
+
+# folders
+_decodesparsefolder = re.compile(r"^(.+)/\*$")
+_deflt_sparse_folders = set(('run', 'comm-objects', '.config', 'build'))
+
 def projectSplit(url: str):
     """
     Split the project URL into a repository/project part
@@ -39,9 +50,9 @@ def projectSplit(url: str):
 
     """
     try:
-        match = _decodeprj.fullmatch(url)
+        _match = _decodeprj.fullmatch(url)
         # dprint("splitting url", url, " into ", match.group(1), '/', match.group(2))
-        return match.group(1), match.group(2)
+        return _match.group(1), _match.group(2)
     except Exception as e:
         print(f"Cannot split project url from {url}")
         raise e
@@ -86,7 +97,7 @@ class RootMap(dict):
 
     def addProjectRemote(self, url: str):
         """
-        Set the specific url remote:/// to the actual remote upstream
+        Set the specific url origin:/// to the actual remote upstream
 
         Parameters
         ----------
@@ -99,10 +110,10 @@ class RootMap(dict):
 
         """
         urlbase = '/'.join(url.split('/')[:-1]) + '/'
-        dprint(f"adding shortcut remote for {urlbase}")
-        if 'remote' in self and self['remote'] != urlbase:
+        dprint(f"adding shortcut origin for {urlbase}")
+        if 'origin' in self and self['origin'] != urlbase:
             print("Overwriting remote origin with", urlbase)
-        self['remote'] = urlbase
+        self['origin'] = urlbase
 
     def urlToAbsolute(self, url):
         """
@@ -111,7 +122,8 @@ class RootMap(dict):
         Parameters
         ----------
         url : str
-            Shorthand url, starting with 'dgr:///' or 'dgr.*:///'.
+            Shorthand url, starting with 'dgr:///' or 'dgr.*:///', or
+            origin:///
 
         Returns
         -------
@@ -119,13 +131,24 @@ class RootMap(dict):
             Complete url.
 
         """
+        # Check if this shorthand has a translation
         for u, root in self.items():
             if url.startswith(f'{u}:///'):
                 dprint(f"Translating {url} to {root}{url[len(u)+4:]}")
                 return root + url[len(u)+4:]
+
+        # When here, no translation. Check the URL, and warn if it looks
+        # like one that needs to be translated
+        _match = _decodeurltag.fullmatch(url)
+        if _match and _match.group(1) not in _urltags:
+            print(f"Warning, cannot convert short URL {url}")
+            if _match.group(1).startswith('dgr'):
+                print("Check that you have the right DAPPS_GITROOT variable")
+
+        # Return unchanged
         return url
 
-    def urlToRelative(self, url):
+    def urlToRelative(self, url, _prjname=None):
         """
         Convert a URL using gitroot to relative.
 
@@ -133,7 +156,7 @@ class RootMap(dict):
         ----------
         url : str
             Shorthand url, starting with 'dgr:///' or 'dgr.*:///' or
-            'remote:///' .
+            'origin:///' .
 
         Returns
         -------
@@ -141,14 +164,20 @@ class RootMap(dict):
             Complete url.
 
         """
+        # figure out if we are in a project; in that case, also translate
+        # the origin url
+        try:
+            prjname = ProjectRepo().project
+        except ValueError:
+            prjname = _prjname
+
         for u, root in self.items():
+            dprint(f"project name: {prjname} from url: {url[len(root):-4]}")
             if url.startswith(root) and \
-                (u != 'origin' or
-                 url[len(root):-4] == ProjectRepo().project):
+                (u != 'origin' or url[len(root):-4] == prjname):
                 dprint(f"Translating {url} to {u}:///{url[len(root):]}")
                 return f'{u}:///' + url[len(root):]
         return url
-
 
 
 # singleton for the project folder's git repository
@@ -354,10 +383,12 @@ class Project:
 
     def createModule(self, module: str, url: str, pseudo, inactive):
 
-        if url and self.url != url:
+        if url and RootMap().urlToAbsolute(self.url) != \
+            RootMap().urlToAbsolute(url):
             raise Exception(
-                f'URL conflict trying to extend modules from {self.name}'
-                f' old url: {self.url} new:{url}')
+                f'URL conflict trying to extend modules from {self.name}\n'
+                f' old url: {self.url} ({RootMap().urlToAbsolute(self.url)})\n'
+                f' new url: {url} ({RootMap().urlToAbsolute(url)})')
         m = Module(name=module, xmlroot=self.xmlnode,
                    pseudo=pseudo, inactive=inactive)
         self.modules.append(m)
@@ -391,6 +422,45 @@ class Modules:
 
         # for clean is None, this reads the modules list
         self._sync()
+
+    def _updateOwnSparse(self, modules: list) -> bool:
+
+        # get the repository for this folder
+        rrepo = git.Repo(f'.')
+
+        # is this a sparse checkout?
+        cread = rrepo.config_reader()
+        if not cread.get_value('core', 'sparseCheckout', False):
+            return False
+
+        # check whether the modules are all in the sparse list
+        folders = set([str(m) for m in modules])
+
+        try:
+            with open('.git/info/sparse-checkout', 'r') as ms:
+                for l in ms:
+                    _match = _decodesparsefolder.fullmatch(l.strip())
+                    if _match and _match.group(1) in folders:
+                        folders.remove(_match.group(1))
+                        dprint(f"found matching line {l.strip()} in sparse")
+                    elif _match and _match.group(1) in _deflt_sparse_folders:
+                        pass
+                    else:
+                        dprint(f"No match {l.strip()} in sparse")
+
+
+            # check if a folder needs to be added
+            if folders:
+                with open(f'.git/info/sparse-checkout', 'a') as ms:
+                    for f in folders:
+                        dprint(f"Adding line to sparse: {f}/*\n")
+                        ms.write(f"{f}/*\n")
+                return True
+
+        except FileNotFoundError:
+            print("Cannot open .git/info/sparse-checkout file; check your"
+                  " cloned copy")
+        return False
 
     def _addToSparse(self, prj: Project, lines: list) -> None:
         """
@@ -493,7 +563,7 @@ class Modules:
                 '- Check that you have access to the url\n'
                 '- If you changed the url, remove the borrowed project\n'
                 f'  (rm -rf ../{prj.name})\n')
-            # dprint(f"Git error message {e}")
+            dprint(f"Git error message {e}")
 
         # create a branch if needed
         if version not in rrepo.heads:
@@ -742,6 +812,11 @@ class Modules:
         for (name, p) in self.projects.items():
 
             if name == self.ownproject:
+
+                if self._updateOwnSparse(p.modules):
+                    print(
+"""New module(s) found among the own project's modules and added to the
+sparse-checkout file. Re-run 'git pull'""")
                 # dprint(f"Refresh own modules {self.ownproject}, not borrowing")
                 # rrepo = ProjectRepo().repo
                 # version = (p.version != 'HEAD' and p.version) or 'master'
@@ -757,7 +832,7 @@ class Modules:
             # fetch for the project's claimed version, and a checkout
             self._addToSparse(p, [f'{m}/*' for m in p.modules])
 
-            dprint(f"Pulled {len(p.modules)} module from {name}")
+            dprint(f"Pulled {len(p.modules)} module(s) from {name}")
 
         # next assemble all borrowed comm-objects
         # this will call addToSparse to add the comm-objects folder(s)

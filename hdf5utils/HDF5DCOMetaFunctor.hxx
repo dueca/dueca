@@ -84,7 +84,7 @@ public:
                        channel token to apply the operation, in this
                        case writing data to HDF5 file
    */
-  virtual HDF5DCOWriteFunctor* getWriteFunctor(boost::weak_ptr<H5::H5File> file,
+  virtual HDF5DCOWriteFunctor* getWriteFunctor(std::weak_ptr<H5::H5File> file,
                                                const std::string& path,
                                                size_t chunksize,
                                                const std::string& label,
@@ -104,7 +104,7 @@ public:
                        channel token to apply the operation, in this
                        case writing data to HDF5 file
   */
-  virtual HDF5DCOReadFunctor* getReadFunctor(boost::weak_ptr<H5::H5File> file,
+  virtual HDF5DCOReadFunctor* getReadFunctor(std::weak_ptr<H5::H5File> file,
                                              const std::string& path,
                                              bool readticks=true) = 0;
 };
