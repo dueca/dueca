@@ -73,7 +73,7 @@ void Arena::extendStorage()
 
   atomic_add32(memtotal_alloc, atomic_access(default_alloc));
 
-#ifdef I_MEM_ACTIVE
+#ifndef USE_BOOST_LOCKFREE
   /* DUECA memory.
 
      Information on additional memory needed for reclaimable objects

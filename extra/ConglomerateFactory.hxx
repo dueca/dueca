@@ -253,6 +253,9 @@ struct SubcontractorBase
   create(const typename Xbase::Key& key, const typename Xbase::SpecBase& spec)
   = 0;
 
+  /** Print debug information to the given stream
+      @param os         Output stream
+  */
   virtual void print(std::ostream& os) { }
 };
 

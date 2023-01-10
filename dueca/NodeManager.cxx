@@ -193,7 +193,6 @@ void NodeManager::processMessages(const TimeSpec& time)
     else {
       changed = (node_state[d.origin().getLocationId()] != d.data().state);
       node_state[d.origin().getLocationId()] = d.data().state;
-#ifdef I_SYS_ACTIVE
       if (changed && this_node == 0) {
         /* DUECA system.
 
@@ -202,7 +201,6 @@ void NodeManager::processMessages(const TimeSpec& time)
         I_SYS("Node " << int(d.origin().getLocationId()) <<
               " changed to state " << d.data().state);
       }
-#endif
       if (this_node == 0) {
         DuecaView::single()->refreshNodesView();
       }

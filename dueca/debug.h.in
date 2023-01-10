@@ -41,7 +41,7 @@
     be used to adjust the different logging levels at runtime.
 
     Before including this file, you can pre-define the macros, to
-    influence the defauls, like:
+    influence the defaults, like:
 
     @code
     #define D_MOD

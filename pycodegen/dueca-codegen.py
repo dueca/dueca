@@ -2474,7 +2474,7 @@ streamkw = Literal('(') + Literal('Stream').addParseAction(startEventAndStream)
 eventstreamkw = Literal('(') + \
     Literal('EventAndStream').addParseAction(startEventAndStream)
 objectkw = Literal('(') + Literal('Object').addParseAction(startEventAndStream)
-    
+
 # Only enumerator code
 enumeratorkw = Literal('(') + \
     Literal('Enumerator').addParseAction(startEnumerator)

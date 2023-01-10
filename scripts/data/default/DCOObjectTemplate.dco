@@ -1,0 +1,27 @@
+;; -*-scheme-*-
+(Header "
+        from item       : @name@.dco
+        date            : @date@
+        category        : Dueca Communication Object specification
+        author          : @author@
+        description     : @description@
+        copyright       : (c) @year@
+        language        : C++")
+
+;; Definitions/includes for the different datatypes used in the object
+@typedefs@
+
+;; DCO object <replace this comment>
+(Object @name@@includefile@@options@
+
+@members@
+        )
+
+;; Some reference for defining datatypes:
+;; (Type <typename> "<optional include/c++ commands>") -> basic types
+;; (Enum <enumname> <inttype>
+;;       ;; optional member description
+;;       <member> [ = <num> (optional) ])              -> enum types
+;; (EnumClass +same as above )                         -> class enum types
+;; (IterableType <typename> "include/c++ commands")    -> iterable
+;; (IterableVarSizeType <typename> "include ..")       -> it, variable size

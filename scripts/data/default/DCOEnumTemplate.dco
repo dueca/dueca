@@ -1,0 +1,22 @@
+;; -*-scheme-*-
+(Header "
+        from item       : @name@.dco
+        date            : @date@
+        category        : Dueca Communicatable Enumerator specification
+        author          : @author@
+        description     : @description@
+        copyright       : (c) @year@
+        language        : C++")
+
+;; Definitions/includes for the enumerator used in the enum
+@typedefs@
+
+;; Enumerator DCO type <replace this comment>
+(Enumerator @name@@includefile@@options@
+            )
+
+;; Some reference for defining enum types:
+;; (Enum <enumname> <inttype>
+;;       ;; optional member description
+;;       <member> [ = <num> (optional) ])              -> enum types
+;; (EnumClass +same as above )                         -> class enum types

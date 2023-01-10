@@ -17,7 +17,8 @@
 #else
 #define newlog_macros_hxx
 
-/** @file Definition of DUECA logging macros */
+/** @file newlog-macros.hxx
+    Definition of DUECA logging macros. */
 
 #ifndef debug_h
 #error "This file is not meant for direct inclusion; use through debug.h"
@@ -25,9 +26,10 @@
 
 #ifdef D_CNF
 #undef D_CNF
-#define D_CNF_ACTIVE
+/// Debug messages for configuration initial state
 #define D_CNF_INITIAL_ON true
 #else
+/// Debug messages for configuration initial state
 #define D_CNF_INITIAL_ON false
 #endif
 
@@ -44,9 +46,10 @@
 
 #ifdef I_CNF
 #undef I_CNF
-#define I_CNF_ACTIVE
+/// Information messages for configuration initial state
 #define I_CNF_INITIAL_ON true
 #else
+/// Information messages for configuration initial state
 #define I_CNF_INITIAL_ON false
 #endif
 
@@ -63,9 +66,10 @@
 
 #ifdef W_CNF
 #undef W_CNF
-#define W_CNF_ACTIVE
+/// Warning messages for configuration initial state
 #define W_CNF_INITIAL_ON true
 #else
+/// Warning messages for configuration initial state
 #define W_CNF_INITIAL_ON false
 #endif
 
@@ -81,8 +85,6 @@
       logger.transmit(); } }
 
 #undef E_CNF
-#define E_CNF_ACTIVE
-
 
 /** @brief Error messages for configuration related actions.
     @param A    Message to be printed, as std::ostream expression.
@@ -98,9 +100,10 @@
 // SYS: system running messages
 #ifdef D_SYS
 #undef D_SYS
-#define D_SYS_ACTIVE
+/// Debug messages for base system initial state
 #define D_SYS_INITIAL_ON true
 #else
+/// Debug messages for base system initial state
 #define D_SYS_INITIAL_ON false
 #endif
 
@@ -117,9 +120,10 @@
 
 #ifdef I_SYS
 #undef I_SYS
-#define I_SYS_ACTIVE
+/// Informational messages for base system initial state
 #define I_SYS_INITIAL_ON true
 #else
+/// Informational messages for base system initial state
 #define I_SYS_INITIAL_ON false
 #endif
 
@@ -136,9 +140,10 @@
 
 #ifdef W_SYS
 #undef W_SYS
-#define W_SYS_ACTIVE
+/// Warning messages for base system initial state
 #define W_SYS_INITIAL_ON true
 #else
+/// Warning messages for base system initial state
 #define W_SYS_INITIAL_ON false
 #endif
 
@@ -154,7 +159,6 @@
       logger.transmit(); } }
 
 #undef E_SYS
-#define E_SYS_ACTIVE
 
 /** @brief Error messages for DUECA base system related actions.
     @param A    Message to be printed, as std::ostream expression.
@@ -171,9 +175,10 @@
 // ACT: activation related messages
 #ifdef D_ACT
 #undef D_ACT
-#define D_ACT_ACTIVE
+/// Debug messages for triggering and activation initial state
 #define D_ACT_INITIAL_ON true
 #else
+/// Debug messages for triggering and activation initial state
 #define D_ACT_INITIAL_ON false
 #endif
 
@@ -190,9 +195,10 @@
 
 #ifdef I_ACT
 #undef I_ACT
-#define I_ACT_ACTIVE
+/// Informational messages for triggering and activation initial state
 #define I_ACT_INITIAL_ON true
 #else
+/// Informational messages for triggering and activation initial state
 #define I_ACT_INITIAL_ON false
 #endif
 
@@ -209,9 +215,10 @@
 
 #ifdef W_ACT
 #undef W_ACT
-#define W_ACT_ACTIVE
+/// Warning messages for triggering and activation initial state
 #define W_ACT_INITIAL_ON true
 #else
+/// Warning messages for triggering and activation initial state
 #define W_ACT_INITIAL_ON false
 #endif
 
@@ -227,7 +234,6 @@
       logger.transmit(); } }
 
 #undef E_ACT
-#define E_ACT_ACTIVE
 
 /** @brief Error messages for triggering&activation related actions.
     @param A    Message to be printed, as std::ostream expression.
@@ -244,9 +250,10 @@
 // CHN: channel related messages
 #ifdef D_CHN
 #undef D_CHN
-#define D_CHN_ACTIVE
+/// Debug messages for channel communication initial state
 #define D_CHN_INITIAL_ON true
 #else
+/// Debug messages for channel communication initial state
 #define D_CHN_INITIAL_ON false
 #endif
 
@@ -263,9 +270,10 @@
 
 #ifdef I_CHN
 #undef I_CHN
-#define I_CHN_ACTIVE
+/// Informational messages for channel communication initial state
 #define I_CHN_INITIAL_ON true
 #else
+/// Informational messages for channel communication initial state
 #define I_CHN_INITIAL_ON false
 #endif
 
@@ -282,9 +290,10 @@
 
 #ifdef W_CHN
 #undef W_CHN
-#define W_CHN_ACTIVE
+/// Warning messages for channel communication initial state
 #define W_CHN_INITIAL_ON true
 #else
+/// Warning messages for channel communication initial state
 #define W_CHN_INITIAL_ON false
 #endif
 
@@ -300,7 +309,6 @@
       logger.transmit(); } }
 
 #undef E_CHN
-#define E_CHN_ACTIVE
 
 /** @brief Error messages for channel communication related actions.
     @param A    Message to be printed, as std::ostream expression.
@@ -317,9 +325,10 @@
 // SHM: shared memory related messages
 #ifdef D_SHM
 #undef D_SHM
-#define D_SHM_ACTIVE
+/// Debug messages for shared memory initial state
 #define D_SHM_INITIAL_ON true
 #else
+/// Debug messages for shared memory initial state
 #define D_SHM_INITIAL_ON false
 #endif
 
@@ -336,9 +345,10 @@
 
 #ifdef I_SHM
 #undef I_SHM
-#define I_SHM_ACTIVE
+/// Informational messages for shared memory initial state
 #define I_SHM_INITIAL_ON true
 #else
+/// Informational messages for shared memory initial state
 #define I_SHM_INITIAL_ON false
 #endif
 
@@ -355,9 +365,10 @@
 
 #ifdef W_SHM
 #undef W_SHM
-#define W_SHM_ACTIVE
+/// Warning messages for shared memory initial state
 #define W_SHM_INITIAL_ON true
 #else
+/// Warning messages for shared memory initial state
 #define W_SHM_INITIAL_ON false
 #endif
 
@@ -373,7 +384,6 @@
       logger.transmit(); } }
 
 #undef E_SHM
-#define E_SHM_ACTIVE
 
 /** @brief Error messages for shared memory backend related actions.
     @param A    Message to be printed, as std::ostream expression.
@@ -390,9 +400,10 @@
 // TIM: timing related messages
 #ifdef D_TIM
 #undef D_TIM
-#define D_TIM_ACTIVE
+/// Debug messages for timing initial state
 #define D_TIM_INITIAL_ON true
 #else
+/// Debug messages for timing initial state
 #define D_TIM_INITIAL_ON false
 #endif
 
@@ -409,9 +420,10 @@
 
 #ifdef I_TIM
 #undef I_TIM
-#define I_TIM_ACTIVE
+/// Informational messages for timing initial state
 #define I_TIM_INITIAL_ON true
 #else
+/// Informational messages for timing initial state
 #define I_TIM_INITIAL_ON false
 #endif
 
@@ -428,9 +440,10 @@
 
 #ifdef W_TIM
 #undef W_TIM
-#define W_TIM_ACTIVE
+/// Warning messages for timing initial state
 #define W_TIM_INITIAL_ON true
 #else
+/// Warning messages for timing initial state
 #define W_TIM_INITIAL_ON false
 #endif
 
@@ -446,7 +459,6 @@
       logger.transmit(); } }
 
 #undef E_TIM
-#define E_TIM_ACTIVE
 
 /** @brief Error messages for timing related actions.
     @param A    Message to be printed, as std::ostream expression.
@@ -463,9 +475,10 @@
 // NET: network related messages
 #ifdef D_NET
 #undef D_NET
-#define D_NET_ACTIVE
+/// Debug messages for network communication initial state
 #define D_NET_INITIAL_ON true
 #else
+/// Debug messages for network communication initial state
 #define D_NET_INITIAL_ON false
 #endif
 
@@ -482,9 +495,10 @@
 
 #ifdef I_NET
 #undef I_NET
-#define I_NET_ACTIVE
+/// Informational messages for network communication initial state
 #define I_NET_INITIAL_ON true
 #else
+/// Informational messages for network communication initial state
 #define I_NET_INITIAL_ON false
 #endif
 
@@ -501,9 +515,10 @@
 
 #ifdef W_NET
 #undef W_NET
-#define W_NET_ACTIVE
+/// Warning messages for network communication initial state
 #define W_NET_INITIAL_ON true
 #else
+/// Warning messages for network communication initial state
 #define W_NET_INITIAL_ON false
 #endif
 
@@ -519,7 +534,6 @@
       logger.transmit(); } }
 
 #undef E_NET
-#define E_NET_ACTIVE
 
 /** @brief Error messages for network backend related actions.
     @param A    Message to be printed, as std::ostream expression.
@@ -536,9 +550,12 @@
 // MOD: messages by application modules
 #ifdef D_MOD
 #undef D_MOD
+/// Debug messages for base system active
 #define D_MOD_ACTIVE
+/// Debug messages for application code (modules) initial state
 #define D_MOD_INITIAL_ON true
 #else
+/// Debug messages for application code (modules) initial state
 #define D_MOD_INITIAL_ON false
 #endif
 
@@ -555,9 +572,12 @@
 
 #ifdef I_MOD
 #undef I_MOD
+/// Informational messages for base system active
 #define I_MOD_ACTIVE
+/// Informational messages for application code (modules) initial state
 #define I_MOD_INITIAL_ON true
 #else
+/// Informational messages for application code (modules) initial state
 #define I_MOD_INITIAL_ON false
 #endif
 
@@ -574,9 +594,10 @@
 
 #ifdef W_MOD
 #undef W_MOD
-#define W_MOD_ACTIVE
+/// Warning messages for application code (modules) initial state
 #define W_MOD_INITIAL_ON true
 #else
+/// Warning messages for application code (modules) initial state
 #define W_MOD_INITIAL_ON false
 #endif
 
@@ -592,7 +613,6 @@
       logger.transmit(); } }
 
 #undef E_MOD
-#define E_MOD_ACTIVE
 
 /** @brief Error messages for application module code.
     @param A    Message to be printed, as std::ostream expression.
@@ -609,9 +629,10 @@
 // STS: status monitoring related messages
 #ifdef D_STS
 #undef D_STS
-#define D_STS_ACTIVE
+/// Debug messages for state machine initial state
 #define D_STS_INITIAL_ON true
 #else
+/// Debug messages for state machine initial state
 #define D_STS_INITIAL_ON false
 #endif
 
@@ -628,9 +649,10 @@
 
 #ifdef I_STS
 #undef I_STS
-#define I_STS_ACTIVE
+/// Informational messages for state machine initial state
 #define I_STS_INITIAL_ON true
 #else
+/// Informational messages for state machine initial state
 #define I_STS_INITIAL_ON false
 #endif
 
@@ -647,9 +669,10 @@
 
 #ifdef W_STS
 #undef W_STS
-#define W_STS_ACTIVE
+/// Warning messages for state machine initial state
 #define W_STS_INITIAL_ON true
 #else
+/// Warning messages for state machine initial state
 #define W_STS_INITIAL_ON false
 #endif
 
@@ -665,7 +688,6 @@
       logger.transmit(); } }
 
 #undef E_STS
-#define E_STS_ACTIVE
 
 /** @brief Error messages for distributed state machine.
     @param A    Message to be printed, as std::ostream expression.
@@ -682,9 +704,10 @@
 // TRM: model trim related messages
 #ifdef D_TRM
 #undef D_TRM
-#define D_TRM_ACTIVE
+/// Debug messages for trim calculation initial state
 #define D_TRM_INITIAL_ON true
 #else
+/// Debug messages for trim calculation initial state
 #define D_TRM_INITIAL_ON false
 #endif
 
@@ -701,9 +724,10 @@
 
 #ifdef I_TRM
 #undef I_TRM
-#define I_TRM_ACTIVE
+/// Informational messages for trim calculation initial state
 #define I_TRM_INITIAL_ON true
 #else
+/// Informational messages for trim calculation initial state
 #define I_TRM_INITIAL_ON false
 #endif
 
@@ -720,9 +744,10 @@
 
 #ifdef W_TRM
 #undef W_TRM
-#define W_TRM_ACTIVE
+/// Warning messages for trim calculation initial state
 #define W_TRM_INITIAL_ON true
 #else
+/// Warning messages for trim calculation initial state
 #define W_TRM_INITIAL_ON false
 #endif
 
@@ -738,7 +763,6 @@
       logger.transmit(); } }
 
 #undef E_TRM
-#define E_TRM_ACTIVE
 
 /** @brief Error messages for trim calculation.
     @param A    Message to be printed, as std::ostream expression.
@@ -755,9 +779,10 @@
 // MEM: memory related messages
 #ifdef D_MEM
 #undef D_MEM
-#define D_MEM_ACTIVE
+/// Debug messages for memory handling initial state
 #define D_MEM_INITIAL_ON true
 #else
+/// Debug messages for memory handling initial state
 #define D_MEM_INITIAL_ON false
 #endif
 
@@ -774,9 +799,10 @@
 
 #ifdef I_MEM
 #undef I_MEM
-#define I_MEM_ACTIVE
+/// Informational messages for memory handling initial state
 #define I_MEM_INITIAL_ON true
 #else
+/// Informational messages for memory handling initial state
 #define I_MEM_INITIAL_ON false
 #endif
 
@@ -793,9 +819,10 @@
 
 #ifdef W_MEM
 #undef W_MEM
-#define W_MEM_ACTIVE
+/// Warning messages for memory handling initial state
 #define W_MEM_INITIAL_ON true
 #else
+/// Warning messages for memory handling initial state
 #define W_MEM_INITIAL_ON false
 #endif
 
@@ -811,7 +838,6 @@
       logger.transmit(); } }
 
 #undef E_MEM
-#define E_MEM_ACTIVE
 
 /** @brief Error messages for memory management.
     @param A    Message to be printed, as std::ostream expression.
@@ -828,9 +854,10 @@
 // INT: interconnect messages
 #ifdef D_INT
 #undef D_INT
-#define D_INT_ACTIVE
+/// Debug messages for DUECA interconnections initial state
 #define D_INT_INITIAL_ON true
 #else
+/// Debug messages for DUECA interconnections initial state
 #define D_INT_INITIAL_ON false
 #endif
 
@@ -847,9 +874,10 @@
 
 #ifdef I_INT
 #undef I_INT
-#define I_INT_ACTIVE
+/// Informational messages for DUECA interconnections initial state
 #define I_INT_INITIAL_ON true
 #else
+/// Informational messages for DUECA interconnections initial state
 #define I_INT_INITIAL_ON false
 #endif
 
@@ -866,9 +894,10 @@
 
 #ifdef W_INT
 #undef W_INT
-#define W_INT_ACTIVE
+/// Warning messages for DUECA interconnections initial state
 #define W_INT_INITIAL_ON true
 #else
+/// Warning messages for DUECA interconnections initial state
 #define W_INT_INITIAL_ON false
 #endif
 
@@ -884,7 +913,6 @@
       logger.transmit(); } }
 
 #undef E_INT
-#define E_INT_ACTIVE
 
 /** @brief Error messages from the DUECA interconnector.
     @param A    Message to be printed, as std::ostream expression.
@@ -900,9 +928,10 @@
 // XTR: extra component messages (hdf5 logger, extra)
 #ifdef D_XTR
 #undef D_XTR
-#define D_XTR_ACTIVE
+/// Debug messages for extras initial state
 #define D_XTR_INITIAL_ON true
 #else
+/// Debug messages for extras initial state
 #define D_XTR_INITIAL_ON false
 #endif
 
@@ -919,9 +948,10 @@
 
 #ifdef I_XTR
 #undef I_XTR
-#define I_XTR_ACTIVE
+/// Informational messages for extras initial state
 #define I_XTR_INITIAL_ON true
 #else
+/// Informational messages for extras initial state
 #define I_XTR_INITIAL_ON false
 #endif
 
@@ -938,9 +968,10 @@
 
 #ifdef W_XTR
 #undef W_XTR
-#define W_XTR_ACTIVE
+/// Warning messages for extras initial state
 #define W_XTR_INITIAL_ON true
 #else
+/// Warning messages for extras initial state
 #define W_XTR_INITIAL_ON false
 #endif
 
@@ -956,7 +987,6 @@
       logger.transmit(); } }
 
 #undef E_XTR
-#define E_XTR_ACTIVE
 
 /** @brief Error messages for extra facilities.
     @param A    Message to be printed, as std::ostream expression.
