@@ -44,21 +44,21 @@ please consider the following definitions:
                         "solo". </td></tr>
 
 <tr><td> machine class </td><td> The software and hardware
-	                             configuration for a specific node
-	                             type. Each node needs certain
-	                             software and/or hardware to do its
-	                             function. For example the SIMONA
-	                             Research Simulator has three
-	                             computers for the image
-	                             generation. These run DUECA nodes
-	                             traditionally called srsig1, srsig2,
-	                             and srsig3, i.e., named after the
-	                             computers they run on.<br> These
-	                             nodes all use the same hardware
-	                             (graphics cards) and software, such
-	                             as scene graph libraries, so they are
-	                             defined by machine class
-	                             srs-ig. </td></tr>
+                                 configuration for a specific node
+                                 type. Each node needs certain
+                                 software and/or hardware to do its
+                                 function. For example the SIMONA
+                                 Research Simulator has three
+                                 computers for the image
+                                 generation. These run DUECA nodes
+                                 traditionally called srsig1, srsig2,
+                                 and srsig3, i.e., named after the
+                                 computers they run on.<br> These
+                                 nodes all use the same hardware
+                                 (graphics cards) and software, such
+                                 as scene graph libraries, so they are
+                                 defined by machine class
+                                 srs-ig. </td></tr>
 
 <tr><td> project </td><td> The set of software running a simulation,
                            with configuration files for the platforms,
@@ -171,10 +171,10 @@ following:
                                 selection of machine-class specific
                                 build instructions and DUECA
                                 modules. The contents of this file are
-								created when you clone the project for a
-								specific node; based on machinemapping.xml, the
-								appropriate class is chosen. This file is
-								not checked in to the repository.</td></tr>
+                                created when you clone the project for a
+                                specific node; based on machinemapping.xml, the
+                                appropriate class is chosen. This file is
+                                not checked in to the repository.</td></tr>
 
 </table>
 
@@ -301,7 +301,7 @@ You can use your account on a gitlab or github server to locate the
 remote repositories, for example, you created these empty repositories:
 
     git@gitlab.somewhere.org:i-am-a-gitlab-user/MyNewEyeTracker.git
-	git@gitlab.somewhere.org:i-am-a-gitlab-user/MyExperiment.git
+    git@gitlab.somewhere.org:i-am-a-gitlab-user/MyExperiment.git
 
 These repositories' url's therefore all start with the same path,
 differing only by repository/project name. By defining this in an
@@ -336,7 +336,7 @@ automatically or custom defined. Any shortcut `origin:///` will
 automatically be set to the location of the 'origin' repository of the
 checked out project itself as returned from:
 
-	git remote -v
+    git remote -v
 
 A number of other shortcut URL's can be defined through SHELL
 environment variables. These can then be used to represent the
@@ -460,9 +460,9 @@ That means that if you already have a checked-out clone of your
 project on your computer, a good way to continue working is:
 
     # first get all updates that were made to this project elsewhere
-	git pull
-	# and ensure any changes to borrowed modules and dco's are in
-	dueca-gproject refresh
+    git pull
+    # and ensure any changes to borrowed modules and dco's are in
+    dueca-gproject refresh
 
 See also the next section.
 
@@ -507,7 +507,7 @@ and it will be easy:
   changed. You can use the `-m` option to add a commit message, as an
   example:
 
-	  git commit -a -m "Added an option to configure wind conditions"
+      git commit -a -m "Added an option to configure wind conditions"
 
 - Likewise, after you are done with working on your project for the
   day, or for now (e.g., because you are running to the lab to test
@@ -801,7 +801,7 @@ above. After that, walk over to (or remote login to) the computers of
 the simulator, and on each computer clone the project with
 `dueca-gproject`. In general, the projects are located under the
 `dapps` or `gdapps` folder of the username under which you log in to the
-simulator computers. This uses the mapping between node and machine class 
+simulator computers. This uses the mapping between node and machine class
 to select the proper machine class, for example:
 
     dueca-gproject clone --remote <project url> --node srsecs

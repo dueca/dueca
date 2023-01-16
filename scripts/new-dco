@@ -75,7 +75,7 @@ def read_transform_and_write(f0: str, f1: str, subst: dict, fake: bool):
             fdata = str(v).join(fdata.split(f'@{k}@'))
     if fake:
         print(fdata)
-    else:   
+    else:
         with open(f1, 'w') as fw:
             fw.write(fdata)
     return f1
@@ -108,7 +108,7 @@ class Type:
     def __init__(self, args):
         self.type = args[0]
         self.c_instructions = (len(args) > 1) and args[1] or ''
-    
+
     def __str__(self):
         if self.c_instructions:
             return f'(Type {self.type}\n      "{self.c_instructions}")'
@@ -121,7 +121,7 @@ class IterableType(Type):
             return f'(IterableType {self.type}\n      "{self.c_instructions}")'
         else:
             return f'(IterableType {self.type})'
-    
+
 class VarIterableType(Type):
     def __str__(self):
         return f"(terableVarType {self.type}{self.c_instructions})"
@@ -139,7 +139,7 @@ class Enum(Type):
         self.representation = args[1]
         self.c_instructions = (len(args) > 2) and args[2] or ''
         self.values = []
-        
+
     def addvalue(self, args):
         self.values.append(EnumValue(args))
 
@@ -147,17 +147,19 @@ class Enum(Type):
         evlist = []
         args = []
         for ev in self.values:
-            if ev.comment: 
-                args.append(f"     ;; {ev.comment}")
+            if ev.comment:
+                args.append(f"     ;; {ev.comment}\n")
             args.append(f"      {ev.name}")
             if ev.value is not None:
-                args.append(f" = {ev.value}")
+                args.append(f" = {ev.value}\n")
+            else:
+                args.append("\n")
         if args:
             evlist.append(''.join(args))
         else:
-            evlist.append('\n     ;; Define your enum values here')
+            evlist.append('\n      ;; Define your enum values here\n')
         enumvalues = "\n".join(evlist)
-        return f"(Enum {self.type} {self.representation}\n{enumvalues}\n     )"
+        return f"(Enum {self.type} {self.representation}\n{enumvalues}      )"
 
 class ClassEnum(Enum):
 
@@ -165,21 +167,22 @@ class ClassEnum(Enum):
         evlist = []
         args = []
         for ev in self.values:
-            if ev.comment: 
-                args.append(f"     ;; {ev.comment}")
-            args.append(f"      {ev.name}")
+            if ev.comment:
+                args.append(f"           ;; {ev.comment}\n")
+            args.append(f"           {ev.name}")
             if ev.value is not None:
-                args.append(f" = {ev.value}")
+                args.append(f" = {ev.value}\n")
+            else:
+                args.append("\n")
         if args:
             evlist.append(''.join(args))
         else:
             evlist.append('\n         ;; Define your enum values here')
-        evlist.append(''.join(args))
         enumvalues = "\n".join(evlist)
-        return f"(ClassEnum {self.type} {self.representation}\n{enumvalues}\n     )"
-    
+        return f"(ClassEnum {self.type} {self.representation}\n{enumvalues}           )"
+
 class Member:
-    
+
     def __init__(self, arg):
         if len(arg) < 2:
             raise ValueError("Need at least type and name for member")
@@ -187,16 +190,16 @@ class Member:
         self.name = arg[1]
         self.comment = (len(arg) > 2) and arg[2] or ''
         self.default = ''
-        
+
     def __str__(self):
-        res = self.comment and [ f"      ;; {self.comment}\n" ] or [] 
-        res.append(f"       ({self.type} {self.name}")
+        res = self.comment and [ f"        ;; {self.comment}\n" ] or []
+        res.append(f"        ({self.type} {self.name}")
         if self.default:
             res.append(f" (Default {self.default}))")
         else:
             res.append(")")
         return ''.join(res)
-   
+
 class CollectEnums(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if namespace.typedefs[-1].__class__ not in (Enum, ClassEnum):
@@ -206,33 +209,33 @@ class CollectEnums(argparse.Action):
 class AppendType(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         namespace.typedefs.append(Type(values))
-        
+
 class AppendIterableType(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         namespace.typedefs.append(IterableType(values))
-        
+
 class AppendIterableVarType(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         namespace.typedefs.append(VarIterableType(values))
-        
+
 class AppendEnum(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         namespace.typedefs.append(Enum(values))
-        
+
 class AppendClassEnum(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         namespace.typedefs.append(ClassEnum(values))
 
 class AppendMember(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        namespace.member.append(Member(values))
+        namespace.members.append(Member(values))
 
 class AddDefault(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        if not len(namespace.member):
+        if not len(namespace.members):
             raise ValueError("Need member first to apply default")
-        namespace.member[-1].default = values
-    
+        namespace.members[-1].default = values
+
 class NewDCOObject:
     """ Create a new DCO object."""
 
@@ -264,7 +267,7 @@ class NewDCOObject:
             '--classenum', nargs='+', action=AppendClassEnum,
             help="Define an enum, give a name and an int type for packing")
         parser.add_argument(
-            '--enumvalue', action=CollectEnums, nargs='+', 
+            '--enumvalue', action=CollectEnums, nargs='+',
             help="Provide an enum value, give a name, and optionally\n"
             "comment string, and optionally integer value")
         parser.add_argument(
@@ -277,31 +280,30 @@ class NewDCOObject:
             "name and optionally C++ instructions/include")
         parser.add_argument(
             '--member', action=AppendMember, nargs="+",
-            help="Add a member to the DCO object. Enter type, member name and"
-            "optionally comment")
+            help="Add a member to the DCO object. Enter type, and member name")
         parser.add_argument(
-            '--default', action=AddDefault, 
+            '--default', action=AddDefault,
             help="Set a default for the last DCO member added")
-        
+
         parser.set_defaults(handler=NewDCOObject)
         parser.set_defaults(typedefs=[])
-        parser.set_defaults(member=[])
+        parser.set_defaults(members=[])
 
     def __call__(self, ns, fake: bool=False):
-        
+
         options = '\n'.join(
             [ f"        (Option {o})" for o in ns.option ])
         typedefs = '\n'.join(
             [ str(td) for td in ns.typedefs])
-        if ns.member:
+        if ns.members:
             members = '\n'.join(
-                [ str(mm) for mm in ns.member])
+                [ str(mm) for mm in ns.members])
         else:
             members = '        ;; list your DCO members here <and replace this comment>'
-            
+
         fillin = dict(
             name=ns.name,
-            includefile=(ns.includefile and 
+            includefile=(ns.includefile and
                          f"     (IncludeFile {ns.name}Extra)") or '',
             options=(options and ('\n' + options) or ''),
             typedefs=typedefs,
@@ -310,7 +312,7 @@ class NewDCOObject:
             date=date,
             year=year,
             author=author)
-        
+
         outfile = f"{ns.name}.dco"
         if overWriteOK(outfile):
             read_transform_and_write(f"{duecabase}/DCOObjectTemplate.dco",
@@ -344,14 +346,14 @@ class NewDCOEnum:
             '--classenum', nargs='+', action=AppendClassEnum,
             help="Define an enum, give a name and an int type for packing")
         parser.add_argument(
-            '--enumvalue', action=CollectEnums, nargs='+', 
+            '--enumvalue', action=CollectEnums, nargs='+',
             help="Provide an enum value, give a name, and optionally\n"
             "comment string, and optionally integer value")
         parser.set_defaults(handler=NewDCOEnum)
         parser.set_defaults(typedefs=[])
 
     def __call__(self, ns, fake: bool=False):
-        
+
         options = '\n'.join(
             [ f"        (Option {o})" for o in ns.option ])
         if len(ns.typedefs) != 1 or \
@@ -361,22 +363,23 @@ class NewDCOEnum:
         typedefs = str(ns.typedefs[0])
         fillin = dict(
             name=ns.name,
-            includefile=(ns.includefile and 
+            includefile=(ns.includefile and
                          f"     (IncludeFile {ns.name}Extra)") or '',
             options=(options and ('\n' + options) or ''),
             typedefs=typedefs,
+            description=ns.description,
             date=date,
             year=year,
             author=author)
-        
+
         outfile = f"{ns.name}.dco"
         if overWriteOK(outfile):
             read_transform_and_write(f"{duecabase}/DCOEnumTemplate.dco",
                                      outfile, fillin, fake)
-            
+
 NewDCOEnum.args(subparsers)
 
-fake = True
+fake = False
 
 if not fake:
     # parse the arguments
@@ -395,25 +398,26 @@ if not fake:
 
 else:
     for arg in ( 'object --name Test'.split(),
-                 ('enum', '--name', 'EnumTest', 
+                 ('enum', '--name', 'EnumTest',
                   '--enum', 'EnumTest', 'uint8_t', '#include <inttypes.h>'),
-                 ('object', '--name', 'Test2', 
-                  '--type', 'double', '#include <inttypes.h', 
-                  '--classenum', 'List', 'uint8_t', '// none needed', 
-                  '--enumvalue', 'One', 'first member', '1', 
+                 ('object', '--name', 'Test2',
+                  '--type', 'double', '#include <inttypes.h',
+                  '--classenum', 'List', 'uint8_t', '// none needed',
+                  '--enumvalue', 'One', 'first member', '1',
                   '--enumvalue', 'Two',
-                  '--member', 'double', 'dval', 'a double value'
-                  '--member', 'double', 'eval'
+                  '--enumvalue', 'Three', 'third', '4',
+                  '--member', 'double', 'dval', 'a double value',
+                  '--member', 'double', 'eval',
                   '--member', 'List', 'l', 'type of stuff',
                   '--default', 'One'
                   )
                  ):
         pres = parser.parse_args(arg)
-   
+
         # if successful, a handler has been provided
         try:
             hclass = pres.handler
-            
+
             # run the handler; create the class object and call it
             handler    = hclass()
             handler(pres, fake)
@@ -421,5 +425,4 @@ else:
         except AttributeError:
             print(f"failed {arg}")
 
-        
-        
+
