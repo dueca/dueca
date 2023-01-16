@@ -18,7 +18,6 @@
 
 #include "TimingCheck.hxx"
 #include <TimingResults.hxx>
-#include <EventAccessToken.hxx>
 #include <Activity.hxx>
 #include <TimeSpec.hxx>
 #include <NameSet.hxx>
@@ -32,10 +31,6 @@
 #ifdef HAVE_STDLIB_H
 #include <cstdlib>
 #endif
-
-#define DO_INSTANTIATE
-#include <EventAccessToken.hxx>
-#include <WrapSendEvent.hxx>
 
 #define DEBPRINTLEVEL -1
 #include <debprint.h>

@@ -23,6 +23,7 @@
 #include "DataWriter.hxx"
 #include <boost/lexical_cast.hpp>
 #include <DCOtoJSON.hxx>
+#include <WrapSendEvent.hxx>
 
 //#define D_CHN
 //#define I_CHN
@@ -33,9 +34,7 @@
 #define DO_INSTANTIATE
 #include "registry.hxx"
 #include "Callback.hxx"
-#include "EventAccessToken.hxx"
 #include "ParameterTable.hxx"
-#include <WrapSendEvent.hxx>
 #ifdef HAVE_SSTREAM
 #include <sstream>
 #endif

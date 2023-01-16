@@ -27,7 +27,10 @@
 #include "Arena.hxx"
 #include "Su.hxx"
 #include <dueca-conf.h>
-
+#include "ChannelReadToken.hxx"
+#include "ChannelWriteToken.hxx"
+#include <dueca/DataReader.hxx>
+#include <dueca/WrapSendEvent.hxx>
 
 #if defined(HAVE_PTHREAD_H)
 #include <pthread.h>
@@ -49,11 +52,7 @@
 
 
 #define DO_INSTANTIATE
-#include "Event.hxx"
-#include "EventAccessToken.hxx"
 #include "Callback.hxx"
-#include "EventReader.hxx"
-#include <WrapSendEvent.hxx>
 
 #include "debug.h"
 #define DEBPRINTLEVEL -1

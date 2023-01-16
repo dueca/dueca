@@ -18,7 +18,7 @@
 #include <ObjectManager.hxx>
 #include <ChannelManager.hxx>
 #include <CriticalActivity.hxx>
-#include <EventReader.hxx>
+#include <DataReader.hxx>
 #include <UnifiedChannel.hxx>
 #include <StoreInformation.hxx>
 #include <CallbackWithId.hxx>
@@ -31,8 +31,6 @@
 
 #define DO_INSTANTIATE
 #include <Callback.hxx>
-#include <EventAccessToken.hxx>
-#include <Event.hxx>
 #include <CallbackWithId.hxx>
 #include "ParameterTable.hxx"
 #define DO_INSTANTIATE
@@ -92,7 +90,7 @@ const char* ReflectiveFillUnpacker::getTypeName()
 
 void ReflectiveFillUnpacker::tokenValid(const TimeSpec& ts)
 {
-  for (list<EventChannelReadToken<FillSet> *>::iterator ii =
+  for (list<ChannelReadToken*>::iterator ii =
          all_tokens.begin(); ii != all_tokens.end(); ii++) {
     (*ii)->isValid();
   }
@@ -123,10 +121,12 @@ initialise(const ReflectiveStoreInformation& i)
       store[ii].reUse(0);
 
       // open a channel
-      EventChannelReadToken<FillSet> *token =
-        new EventChannelReadToken<FillSet>
+      ChannelReadToken *token =
+        new ChannelReadToken
         (getId(), NameSet("dueca", "FillSet", ii),
-         ChannelDistribution::NO_OPINION, Regular, &token_valid);
+         getclassname<FillSet>(), 0,
+	 Channel::Events, Channel::OnlyOneEntry,
+	 Channel::AdaptEventStream, 0.0, &token_valid);
 
       // make a callback object, which takes a pointer to the channel
       CallbackWithId<ReflectiveFillUnpacker,SenderInfo>
@@ -173,7 +173,7 @@ void ReflectiveFillUnpacker::
 receiveAPiece(const TimeSpec& ts,
               SenderInfo& info)
 {
-  EventReader<FillSet> i(*info.second, ts);
+  DataReader<FillSet> i(*info.second, ts);
 
   int storeno = info.first;
 
@@ -240,7 +240,7 @@ receiveAPiece(const TimeSpec& ts,
           // gobble the mark
           store[storeno].gobbleBigMark();
           int old_size = store[storeno].getSize();
-          c->unPackData(store[storeno], i.getMaker().getLocationId(), size);
+          c->unPackData(store[storeno], i.origin().getLocationId(), size);
 
           // check the consumption of bytes
           if (size != old_size - store[storeno].getSize()) {

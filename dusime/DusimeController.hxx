@@ -21,7 +21,8 @@
 #include "SimTime.hxx"
 #include "EntityCommand.hxx"
 #include "EntityConfirm.hxx"
-#include "EventAccessToken.hxx"
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/ChannelWriteToken.hxx>
 #include "Callback.hxx"
 #include "Activity.hxx"
 #include <SimStateRequest.hxx>

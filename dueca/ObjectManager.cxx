@@ -23,18 +23,19 @@
 #include "ObjectInfo.hxx"
 #include "nodes.h"
 #include "ParameterTable.hxx"
+#include <dueca/ChannelWriteToken.hxx>
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/DataWriter.hxx>
+#include <dueca/DataReader.hxx>
+#include <boost/lexical_cast.hpp>
 
 #define DO_INSTANTIATE
-#include "EventReader.hxx"
 #include "registry.hxx"
-#include "Event.hxx"
-#include "EventAccessToken.hxx"
 #include "Callback.hxx"
 #include <dassert.h>
 #include "dueca_assert.h"
 #include <cstring>
 #include "MemberCall.hxx"
-#include "EventWriter.hxx"
 #include <iomanip>
 
 DUECA_NS_START
@@ -185,17 +186,22 @@ void ObjectManager::completeCreation()
   if (location != 0) {
 
     // not 0, so open a channel end to send the object data to no 0
-    object_info_write = new EventChannelWriteToken<ObjectInfo>
+    object_info_write = new ChannelWriteToken
       (getId(), NameSet("dueca", "ObjectInfo", ""),
-       ChannelDistribution::NO_OPINION, Regular, &token_valid);
+       getclassname<ObjectInfo>(), std::string("object info ") +
+       boost::lexical_cast<std::string>(unsigned(location)),
+       Channel::Events, Channel::OneOrMoreEntries,
+       Channel::OnlyFullPacking, Channel::Regular, &token_valid);
   }
   else {
 
     // open the channel for reading. This means that in principle only
     // in 0 a complete info record on objects is kept
-    object_info_read = new EventChannelReadToken<ObjectInfo>
+    object_info_read = new ChannelReadToken
       (getId(), NameSet("dueca", "ObjectInfo", ""),
-       ChannelDistribution::JOIN_MASTER, Regular, &token_valid);
+       getclassname<ObjectInfo>(), entry_any,
+       Channel::Events, Channel::OneOrMoreEntries,
+       Channel::AdaptEventStream, 0.0, &token_valid);
 
     read_foreign_objects = new ActivityCallback
       (getId(), "process object description", &cb, PrioritySpec(0,0));
@@ -222,7 +228,8 @@ void ObjectManager::readForeignObjects(const TimeSpec &time)
   // get the event from the channel
   //const Event<ObjectInfo> *e;
   //object_info_read->getNextEvent(e, time);
-  EventReader<ObjectInfo> e(*object_info_read, TimeSpec::end_of_time);
+  DataReader<ObjectInfo, VirtualJoin> e
+    (*object_info_read, TimeSpec::end_of_time);
 
   // look where it is from
   //  const ObjectInfo* info = e->getEventData();
@@ -246,7 +253,7 @@ void ObjectManager::sendAllToNode0()
 
     // the channel is usable, send all new id's
     while (object_id_sent < object_id_count) {
-      EventWriter<ObjectInfo> w(*object_info_write, SimTime::now());
+      DataWriter<ObjectInfo> w(*object_info_write, SimTime::now());
       w.data().id = GlobalId(location, object_id_sent);
       w.data().name_set = getNameSet(object_id_sent);
       object_id_sent++;

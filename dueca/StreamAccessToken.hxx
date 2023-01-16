@@ -45,7 +45,11 @@ struct GlobalId;
     For the channel, the accessToken acts as an identifier. It
     contains the sequence number of the component, as used in the
     channel object, and a GlobalId of the component. These are used
-    for accounting purposes. */
+    for accounting purposes.
+
+    Note that StreamChannelReadToken is obsolete; please use
+    ChannelReadToken in new code.
+*/
 template<class T>
 class StreamChannelReadToken : public ChannelReadToken
 {
@@ -149,7 +153,11 @@ public:
     channel.
 
     Construct the access token and keep it, to gain access to the
-    channel. Please check with GenericToken::isValid() before writing. */
+    channel. Please check with GenericToken::isValid() before writing.
+
+    Note that StreamChannelWriteToken is obsolete; please use 
+    ChannelWriteToken in new code.
+*/
 template<class T>
 class StreamChannelWriteToken : public ChannelWriteToken
 {

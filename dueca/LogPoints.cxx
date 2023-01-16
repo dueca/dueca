@@ -16,11 +16,10 @@
 #include "LogPoints.hxx"
 #include <NodeManager.hxx>
 #include <exception>
+#include <DataReader.hxx>
 
 #define DO_INSTANTIATE
-#include <EventReader.hxx>
 #include <Callback.hxx>
-#include <Event.hxx>
 
 #define DEBPRINTLEVEL -1
 #include <debprint.h>

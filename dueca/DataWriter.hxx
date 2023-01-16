@@ -17,6 +17,8 @@
 #include <dueca_ns.h>
 #include "SimTime.hxx"
 #include "DataWriterArraySize.hxx"
+#include "ChannelWriteToken.hxx"
+
 DUECA_NS_START
 
 /** Common base class for DataWriter instantiations. */

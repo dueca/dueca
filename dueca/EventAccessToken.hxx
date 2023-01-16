@@ -47,7 +47,11 @@ class TimingView;
     By constructing an access token (and keeping it!!), a module
     gains access to the event channel. Note that this creates the
     obligation to read out the events (with the getNextEvent call),
-    otherwise the channel gets clogged. */
+    otherwise the channel gets clogged.
+
+    Note that EventChannelReadToken is obsolete; please use
+    ChannelReadToken in new code.
+*/
 template<class T>
 class EventChannelReadToken : public ChannelReadToken
 {
@@ -142,7 +146,11 @@ void wrapSendEvent(EventChannelWriteToken<T> &t, const T* edata,
     ChannelWriteToken objects.
 
     Construct the access token and keep it, to gain access to the
-    channel. Please check with GenericToken::isValid() before writing. */
+    channel. Please check with GenericToken::isValid() before writing.
+
+    Note that EventChannelWriteToken is obsolete; please use 
+    ChannelWriteToken in new code.
+*/
 template<class T>
 class EventChannelWriteToken : public ChannelWriteToken
 {

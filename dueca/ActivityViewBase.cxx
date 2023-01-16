@@ -28,6 +28,7 @@
 #include <cmath>
 #include <time.h>
 #include <DataReader.hxx>
+#include <DataWriter.hxx>
 #include <sstream>
 
 #define W_STS

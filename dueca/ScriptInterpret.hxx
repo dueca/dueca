@@ -39,8 +39,8 @@ struct ScriptHelper;
 struct PythonScripting;
 struct SchemeScripting;
 void init_module_dueca();
-template <class T> class EventChannelReadToken;
-template <class T> class EventChannelWriteToken;
+class ChannelReadToken;
+class ChannelWriteToken;
 
 /** Type of a function returning void. */
 typedef void (*voidfunc)(void);
@@ -134,20 +134,20 @@ class ScriptInterpret: public NamedObject
 
   /** Pointer to an access token for a channel to write the model
       script onto. This is only used by node 0. */
-  EventChannelWriteToken<ScriptLine>  *w_creation;
+  ChannelWriteToken  *w_creation;
 
   /** Access token for the channel from which the model script is
       received. */
-  EventChannelReadToken<ScriptLine>   *t_creation;
+  ChannelReadToken   *t_creation;
 
   /** Confirmation for the received scheme commands */
-  EventChannelWriteToken<ScriptConfirm>  *w_confirm;
+  ChannelWriteToken  *w_confirm;
 
   /** Confirmation for the received scheme commands */
-  EventChannelReadToken<ScriptConfirm>   *t_confirm;
+  ChannelReadToken   *t_confirm;
 
   /** Final command to go ahead and read the added configuration. */
-  EventChannelWriteToken<ScriptConfirm>  *w_goahead;
+  ChannelWriteToken  *w_goahead;
 
   /** \{ Callback function for reading model data. */
   Callback<ScriptInterpret>           cb1, cb2; /// \}

@@ -21,6 +21,9 @@
 #include "NameSet.hxx"
 #include "Environment.hxx"
 #include "DuecaView.hxx"
+#include <dueca/DataWriter.hxx>
+#include <dueca/DataReader.hxx>
+#include <WrapSendEvent.hxx>
 
 // localized development debugging
 #define DEBPRINTLEVEL -1
@@ -36,11 +39,8 @@
 #endif
 
 #define DO_INSTANTIATE
-#include "Event.hxx"
-#include "EventAccessToken.hxx"
 #include "Callback.hxx"
 #include <CriticalActivity.hxx>
-#include <WrapSendEvent.hxx>
 
 DUECA_NS_START
 

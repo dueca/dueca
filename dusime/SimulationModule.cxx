@@ -14,20 +14,18 @@
 
 #define SimulationModule_cxx
 #include "SimulationModule.hxx"
-#include <EventReader.hxx>
+#include <dueca/DataReader.hxx>
+#include <dueca/WrapSendEvent.hxx>
 //#define D_MOD
 #define W_MOD
 #define E_MOD
 #include <debug.h>
 
 #define DO_INSTANTIATE
-#include "Event.hxx"
 #include "Callback.hxx"
-#include "EventAccessToken.hxx"
 #include "StateChange.hxx"
 #include <AsyncList.hxx>
 #include <NameSet.hxx>
-#include <WrapSendEvent.hxx>
 #include <debprint.h>
 
 DUECA_NS_START
@@ -45,12 +43,16 @@ SimulationModule::SimulationModule(Entity* e,
 
   // a token for reading commands from the entity
   t_entity_commands(getId(),
-                    NameSet("dusime", "EntityCommand", "")),
+                    NameSet("dusime", getclassname<EntityCommand>(), ""),
+                    getclassname<EntityCommand>(), 0,
+                    Channel::Events, Channel::OnlyOneEntry),
 
   // a write token, for sending confirmation
   t_entity_confirm(getId(),
-                   NameSet("dusime", "EntityConfirm", ""),
-                   ChannelDistribution::NO_OPINION),
+                   NameSet("dusime", getclassname<EntityConfirm>(), ""),
+                   getclassname<EntityConfirm>(),
+                   getNameSet().name,
+                   Channel::Events, Channel::OneOrMoreEntries),
 
   // a callback to my module that processes the data on the entity channel
   cb1(this, &SimulationModule::processEntityCommands),
@@ -153,13 +155,13 @@ void SimulationModule::processEntityCommands(const TimeSpec& ts)
   t_entity_commands.isValid();
 
   while (t_entity_commands.getNumVisibleSets()) {
-    EventReader<EntityCommand> r(t_entity_commands);
+    DataReader<EntityCommand> r(t_entity_commands);
 
     switch(r.data().command) {
 
     case EntityCommand::NewState:
       future_states.push_back
-        (StateChange<SimulationState>(r.getTick(), r.data().new_state));
+        (StateChange<SimulationState>(r.timeSpec().getValidityStart(), r.data().new_state));
       break;
 
     case EntityCommand::SendSnapshot:
@@ -169,7 +171,7 @@ void SimulationModule::processEntityCommands(const TimeSpec& ts)
       break;
 
     case EntityCommand::PrepareSnapshot:
-      if (r.getTick() < last_check) {
+      if (r.timeSpec().getValidityStart() < last_check) {
         /* DUSIME system.
 
            The snapshot preparation command arrived too late. If this
@@ -177,10 +179,10 @@ void SimulationModule::processEntityCommands(const TimeSpec& ts)
            commands, see the Environment configuration options.
          */
         W_MOD(getId() << " at time " << last_check
-              << " too late for snapshot at " << r.getTick());
+              << " too late for snapshot at " << r.timeSpec().getValidityStart());
       }
       snap_state = SnapshotState::SnapPrepared;
-      future_snap_time = r.getTick();
+      future_snap_time = r.timeSpec().getValidityStart();
       break;
 
     case  EntityCommand::ConfirmState:

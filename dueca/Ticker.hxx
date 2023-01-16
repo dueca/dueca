@@ -40,9 +40,10 @@ class TimeKeeper;
 struct SyncReport;
 struct SyncReportRequest;
 struct ParameterTable;
-template<class T> class EventChannelWriteToken;
-template<class T> class EventChannelReadToken;
 class OsDependent;
+class ChannelReadToken;
+class ChannelWriteToken;
+
 /** A clock synchronisation object.  A ticker is a DUECA module that
     is runs by an ActivityManager. The difference with normal modules
     is that the Ticker blocks, waiting for a certain time. The main
@@ -184,10 +185,10 @@ class Ticker: public ScriptCreatable,
   ActivityManager*                        my_activity_manager;
 
   /** Access token for sync report requests. */
-  EventChannelReadToken<SyncReportRequest>* sync_report_request;
+  ChannelReadToken*      sync_report_request;
 
   /** Access token for sending the sync report results. */
-  EventChannelWriteToken<SyncReport>*     sync_report;
+  ChannelWriteToken*     sync_report;
 
   /** Function on token completion */
   Callback<Ticker>                        token_valid;

@@ -24,7 +24,6 @@
 #include "Callback.hxx"
 #include "Activity.hxx"
 #include "ScriptConfirm.hxx"
-#include "EventAccessToken.hxx"
 #include <boost/scoped_ptr.hpp>
 
 using namespace std;
@@ -33,8 +32,6 @@ using namespace std;
 DUECA_NS_START;
 
 // class names
-template<class T> class EventChannelReadToken;
-template<class T> class EventChannelWriteToken;
 class ChannelManager;
 class EntityManager;
 class ActivityManager;
@@ -45,6 +42,7 @@ struct DataTimeSpec;
 class GuiHandler;
 struct ParameterTable;
 class CPULowLatency;
+class ChannelReadToken;
 
 void environment_main_thread(int phase);
 
@@ -155,7 +153,7 @@ private:
 
   /** Event channel over which confirmation for additional read action
       comes. */
-  EventChannelReadToken<ScriptConfirm> *t_moreconf;
+  ChannelReadToken     *t_moreconf;
 
   /** If additional data has been read, we have to wait for
       copying. This is the callback function. */

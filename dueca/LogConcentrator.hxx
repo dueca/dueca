@@ -21,7 +21,6 @@
 #include <StateGuard.hxx>
 #include <LogMessage.hxx>
 #include <Callback.hxx>
-#include <EventAccessToken.hxx>
 #include <LogLevelCommand.hxx>
 #include <EasyId.hxx>
 #include <InformationStash.hxx>
@@ -32,7 +31,7 @@ DUECA_NS_START
 class EasyId;
 class ActivityCallback;
 class PeriodicAlarm;
-
+class ChannelReadToken;
 
 /** This class assembles all loggers ever used in a DUECA system, and
     handles logging actions. */
@@ -66,7 +65,7 @@ class LogConcentrator: private StateGuard
 
   /** Read token for handling commands about switching logging on and
       off. */
-  EventChannelReadToken<LogLevelCommand> *r_level;
+  ChannelReadToken               *r_level;
 
   /** Stream to print to. */
   std::ostream& logfile;

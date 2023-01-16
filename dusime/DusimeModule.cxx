@@ -16,8 +16,8 @@
 #include "DusimeModule.hxx"
 #include <dueca-conf.h>
 #include <Snapshot.hxx>
-#include <EventAccessToken.hxx>
-#include <EventReader.hxx>
+#include <DataReader.hxx>
+#include <DataWriter.hxx>
 #include <GenericVarIO.hxx>
 #include <Callback.hxx>
 #include <Activity.hxx>
@@ -30,11 +30,8 @@
 #include <debug.h>
 
 #define DO_INSTANTIATE
-#include <EventAccessToken.hxx>
-#include <EventWriter.hxx>
-#include <Callback.hxx>
-#include <Event.hxx>
-#include <WrapSendEvent.hxx>
+#include <dueca/Callback.hxx>
+#include <dueca/WrapSendEvent.hxx>
 
 #include <debprint.h>
 

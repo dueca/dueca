@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <ChannelManager.hxx>
 #include <dueca-conf.h>
+#include "DataWriter.hxx"
+#include <WrapSendEvent.hxx>
 
 #ifdef TEST_OPTIONS
 #define DEBPRINTLEVEL -1
@@ -30,11 +32,6 @@
 #include <debug.h>
 
 #include <debprint.h>
-
-#define DO_INSTANTIATE
-#include "EventAccessToken.hxx"
-#include "DataWriter.hxx"
-#include <WrapSendEvent.hxx>
 
 DUECA_NS_START
 

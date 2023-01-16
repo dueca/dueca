@@ -19,12 +19,14 @@
 #include "Callback.hxx"
 #include "EntityState.hxx"
 #include "EntityUpdate.hxx"
-#include "EventAccessToken.hxx"
 #include "NamedObject.hxx"
 #include "Activity.hxx"
 #include "SimTime.hxx"
 #include <ModuleState.hxx>
 #include <stringoptions.h>
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/ChannelWriteToken.hxx>
+
 using namespace std;
 
 #include <dueca_ns.h>
@@ -97,16 +99,16 @@ class EntityManager: public NamedObject
   DuecaView            *duecaview;
 
   /** Read token for a channel that contains update commands. */
-  EventChannelReadToken<EntityUpdate>   t_updates;
+  ChannelReadToken             t_updates;
 
   /** Write token for a channel with confirmation messages. */
-  EventChannelWriteToken<EntityUpdate>  w_confirms;
+  ChannelWriteToken            w_confirms;
 
   /** Write token for a channel with commands, only by node 0 */
-  EventChannelReadToken<EntityUpdate>  *t_confirms;
+  ChannelReadToken            *t_confirms;
 
   /** Read token for a channel with the confirmation messages. */
-  EventChannelWriteToken<EntityUpdate> *w_updates;
+  ChannelWriteToken           *w_updates;
 
   /** Three callback objects. \{ */
   Callback<EntityManager>               cb1, cb2, cb3;  /// \}

@@ -24,9 +24,10 @@
 #include "SimulationState.hxx"
 #include "StateChange.hxx"
 #include "SimTime.hxx"
-#include "EventAccessToken.hxx"
 #include "EntityCommand.hxx"
 #include "EntityConfirm.hxx"
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/ChannelWriteToken.hxx>
 #include "Callback.hxx"
 #include "Activity.hxx"
 #include <AsyncList.hxx>
@@ -60,10 +61,10 @@ private:
 
   /** An access token for reading the commands from the entity
       manager. */
-  EventChannelReadToken<EntityCommand>     t_entity_commands;
+  ChannelReadToken                         t_entity_commands;
 
   /** An access token for readback to the entity manager. */
-  EventChannelWriteToken<EntityConfirm>    t_entity_confirm;
+  ChannelWriteToken                        t_entity_confirm;
 
   /** 1st callback object. */
   Callback<HardwareModule>                 cb1;

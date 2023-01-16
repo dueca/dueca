@@ -31,13 +31,12 @@
 #include <CriticalActivity.hxx>
 #include <StoreInformation.hxx>
 #include "ParameterTable.hxx"
+#include <dueca/DataWriter.hxx>
+#include <boost/lexical_cast.hpp>
 
 #define DO_INSTANTIATE
-#include <EventAccessToken.hxx>
-#include <EventWriter.hxx>
 #include <Callback.hxx>
 #include <AsyncList.hxx>
-#include <Event.hxx>
 #include "dueca_assert.h"
 #include "VarProbe.hxx"
 #include <debprint.h>
@@ -126,8 +125,11 @@ void ReflectiveFillPacker::initialise(const ReflectiveStoreInformation& i)
   I_SHM(getId() << "Opening output channel");
 
   // first time entry, open the channel
-  out = new EventChannelWriteToken<FillSet>
-    (getId(), NameSet("dueca", "FillSet", i.node_id));
+  out = new ChannelWriteToken
+    (getId(), NameSet("dueca", "FillSet", i.node_id),
+     getclassname<FillSet>(), std::string("fill pack ") +
+     boost::lexical_cast<std::string>(unsigned(i.node_id)),
+     Channel::Events, Channel::OnlyOneEntry);
 
 
   // adjust the wait period to be 2 s, but at least 10 cycles
@@ -266,7 +268,7 @@ void ReflectiveFillPacker::sendAPiece(const TimeSpec& ts)
     int send_size = min(packet_size, bytes_to_send);
 
     {
-      EventWriter<FillSet> fs(*out, ts, send_size);
+      DataWriter<FillSet> fs(*out, ts, send_size);
 
       // pack in the data
       std::memcpy(fs.data().data.ptr(),

@@ -19,10 +19,11 @@
 #include <LogPoint.hxx>
 #include <Callback.hxx>
 #include <Activity.hxx>
-#include <EventAccessToken.hxx>
 #include <boost/scoped_ptr.hpp>
 
 DUECA_NS_START
+
+class ChannelReadToken;
 
 /** Container for activity descriptions. */
 class LogPoints

@@ -16,13 +16,10 @@
 #define DataReaderBase_hxx
 
 #include <dueca_ns.h>
-#include <TimeSpec.hxx>
+#include <DataTimeSpec.hxx>
 #include <ChannelReadToken.hxx>
 
 DUECA_NS_START;
-
-
-class ChannelReadToken;
 
 /** Base class for the DataReader derived templates.
 

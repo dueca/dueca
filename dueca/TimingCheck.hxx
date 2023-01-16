@@ -25,7 +25,6 @@
 DUECA_NS_START
 
 struct TimingResults;
-template<class T> class EventChannelWriteToken;
 class Activity;
 class TimeSpec;
 
