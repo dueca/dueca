@@ -54,7 +54,7 @@ def projectSplit(url: str):
         # dprint("splitting url", url, " into ", match.group(1), '/', match.group(2))
         return _match.group(1), _match.group(2)
     except Exception as e:
-        print(f"Cannot split project url from {url}")
+        print(f"Cannot split project url from {url}", file=sys.stderr)
         raise e
 
 # singleton for the mapping of shortened URL's
@@ -112,7 +112,7 @@ class RootMap(dict):
         urlbase = '/'.join(url.split('/')[:-1]) + '/'
         dprint(f"adding shortcut origin for {urlbase}")
         if 'origin' in self and self['origin'] != urlbase:
-            print("Overwriting remote origin with", urlbase)
+            print("Overwriting remote origin with", urlbase, file=sys.stderr)
         self['origin'] = urlbase
 
     def urlToAbsolute(self, url):
@@ -141,9 +141,12 @@ class RootMap(dict):
         # like one that needs to be translated
         _match = _decodeurltag.fullmatch(url)
         if _match and _match.group(1) not in _urltags:
-            print(f"Warning, cannot convert short URL {url}")
+            print(f"Warning, cannot convert short URL {url}", file=sys.stderr)
             if _match.group(1).startswith('dgr'):
-                print("Check that you have the right DAPPS_GITROOT variable")
+                print("Check that you have the right DAPPS_GITROOT variable",
+                      file=sys.stderr)
+
+
 
         # Return unchanged
         return url
@@ -234,12 +237,13 @@ def checkGitUrl(repo: git.Repo = None, url: str='', print=print):
     for u, root in RootMap().items():
         try:
             repo.git.ls_remote(f'{root}{project}.git')
-            print(f'Automatic re-map of url {url} to '
+            dprint(f'Automatic re-map of url {url} to '
                   f'{u}:///{project}.git (at {root})')
             return f'{root}{project}.git', True
         except git.GitCommandError as e:
             dprint(f"No luck finding '{root}/{project}.git, git error {e}'")
-    print(f"Cannot find url {url}, incomplete refresh, check modules.xml")
+    print(f"Cannot find url {url}, incomplete refresh, check modules.xml",
+          file=sys.stderr)
     return '', False
 
 def findProjectDir(initdir):
@@ -261,7 +265,7 @@ def findProjectDir(initdir):
         inprojectdir = False
 
     if len(curpath) < 2 or curpath[-1] != curpath[-2]:
-        print(f"Could not find project folder from {initdir}")
+        print(f"Could not find project folder from {initdir}", file=sys.stderr)
         raise Exception("Run this from within a project")
 
     return curpath[-1], projectdir, inprojectdir
@@ -311,7 +315,7 @@ class Project:
 
         elif xmlroot is not None and url is not None:
 
-            # newly constructed
+            # newly constructed project
             self.url = RootMap().urlToAbsolute(url)
             self.name = projectSplit(self.url)[1]
             self.version = version
@@ -370,7 +374,7 @@ class Project:
                 self.name = projectSplit(self.url)[1]
 
         except Exception as e:
-            print("Failure in decoding a <project> block")
+            print("Failure in decoding a <project> block", file=sys.stderr)
             raise e
 
     def deleteModule(self, module):
@@ -379,7 +383,8 @@ class Project:
             del self.modules[idx]
             dprint(f"Deleted module {module} from project {self.name}")
         except ValueError:
-            print(f"Delete: Cannot find {module} in {self.name}")
+            print(f"Delete: Cannot find {module} in {self.name}",
+                  file=sys.stderr)
 
     def createModule(self, module: str, url: str, pseudo, inactive):
 
@@ -426,7 +431,7 @@ class Modules:
     def _updateOwnSparse(self, modules: list) -> bool:
 
         # get the repository for this folder
-        rrepo = git.Repo(f'.')
+        rrepo = git.Repo('.')
 
         # is this a sparse checkout?
         cread = rrepo.config_reader()
@@ -451,7 +456,7 @@ class Modules:
 
             # check if a folder needs to be added
             if folders:
-                with open(f'.git/info/sparse-checkout', 'a') as ms:
+                with open('.git/info/sparse-checkout', 'a') as ms:
                     for f in folders:
                         dprint(f"Adding line to sparse: {f}/*\n")
                         ms.write(f"{f}/*\n")
@@ -459,7 +464,7 @@ class Modules:
 
         except FileNotFoundError:
             print("Cannot open .git/info/sparse-checkout file; check your"
-                  " cloned copy")
+                  " cloned copy", file=sys.stderr)
         return False
 
     def _addToSparse(self, prj: Project, lines: list) -> None:
@@ -548,7 +553,8 @@ class Modules:
             if version != branch:
                 print(
                     f"Borrowed code from {prj.name} was on branch:{branch}"
-                    f" changing to {version} based on modules.xml")
+                    f" changing to {version} based on modules.xml",
+                    file=sys.stderr)
 
         # get tags and the items in sparse checkout
         try:
@@ -562,7 +568,7 @@ class Modules:
                 '- Is the entry in .config/class/<class>/modules.xml valid?\n'
                 '- Check that you have access to the url\n'
                 '- If you changed the url, remove the borrowed project\n'
-                f'  (rm -rf ../{prj.name})\n')
+                f'  (rm -rf ../{prj.name})\n', file=sys.stderr)
             dprint(f"Git error message {e}")
 
         # create a branch if needed
@@ -604,7 +610,8 @@ class Modules:
             #prj.repo_cycle = self.repo_cycle
 
         except git.exc.GitCommandError as e:
-            print(f"Cannot pull/checkout comm-objects in {prj.name}, {e}")
+            print(f"Cannot pull/checkout comm-objects in {prj.name}, {e}",
+                  file=sys.stderr)
 
     def _analyseCommObjectFile(self, p, m, call_for_new_project=None):
         if os.path.isfile(f'{self.projectdir}/../{p}/{m}/CMakeLists.txt'):
@@ -665,7 +672,8 @@ class Modules:
         if prj is None:
             print(f"Not recursing, but likely need DCO from {p}"
                   f" adding an entry to {self.projectdir}/"
-                  f".config/class/{self.mclass}/modules.xml")
+                  f".config/class/{self.mclass}/modules.xml",
+                  file=sys.stderr)
 
     def _chainCommObjectDepsOrAddProject(self, p: str):
 
@@ -730,7 +738,7 @@ class Modules:
                             raise XML_TagUnknown(node)
             except Exception as e:
                 print("Failed to parse module information"
-                      f" from {self.fname}: {e}")
+                      f" from {self.fname}: {e}", file=sys.stderr)
                 raise e
 
             self.clean = True
@@ -816,7 +824,7 @@ class Modules:
                 if self._updateOwnSparse(p.modules):
                     print(
 """New module(s) found among the own project's modules and added to the
-sparse-checkout file. Re-run 'git pull'""")
+sparse-checkout file. Re-run 'git pull'""", file=sys.stderr)
                 # dprint(f"Refresh own modules {self.ownproject}, not borrowing")
                 # rrepo = ProjectRepo().repo
                 # version = (p.version != 'HEAD' and p.version) or 'master'

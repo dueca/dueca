@@ -91,7 +91,7 @@ class NodeMachineMapping:
 
         # failed, warn and return a harmless default
         print(f"Cannot find class for node {node} in mapping,"
-                  " defaulting to solo")
+                  " defaulting to solo", file=sys.stderr)
         return 'solo'
 
     def newMapping(self, nname, mclass, sparse_checkout=False, force=False):
@@ -106,7 +106,8 @@ class NodeMachineMapping:
                 print(f"Forcing change in mapping for node {nname}, from"
                       f"{self.nodes[nname][0]}"
                       f" {self.nodes[nname][1] and ' (sparse)' or ''}"
-                      f"to {mclass}{sparse_checkout and ' (sparse)' or ''}")
+                      f"to {mclass}{sparse_checkout and ' (sparse)' or ''}",
+                      file=sys.stderr)
 
                 self.nodes[nname][2]['machineclass'] = mclass
                 self.nodes[nname][2]['sparse-checkout'] = sparse_checkout
