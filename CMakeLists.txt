@@ -8,6 +8,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 if (POLICY CMP0075)
+  message(STATUS "New policy CMP0075")
   cmake_policy(SET CMP0075 NEW)
 endif()
 
@@ -526,10 +527,10 @@ set(SCRIPTLANG)
 # python and boost only for python script interface
 if (SCRIPT_PYTHON)
 
-  if (APPLE)
-    set(BPCOMP python39)
+  #if (APPLE)
+  #  set(BPCOMP python39)
 
-  else()
+  #else()
     find_library(BPLIB
 
       NAMES boost_python311 boost_python310 boost_python39 boost_python38
@@ -550,7 +551,7 @@ if (SCRIPT_PYTHON)
       message(FATAL "Python 2 is obsolete")
       # set(PYREQ 2)
     endif()
-  endif()
+  #endif()
 
   # FindPython exists from cmake 3.12 onwards
   if (CMAKE_VERSION VERSION_LESS "3.12")

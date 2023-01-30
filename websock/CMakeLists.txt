@@ -9,7 +9,7 @@ find_package(DuecaAddLibrary)
 find_package(DuecaCodegen)
 
 # optionally for websocket over ssl
-pkg_check_modules(LIBSSL REQUIRED openssl)
+pkg_check_modules(LIBSSL openssl REQUIRED)
 find_package(Boost 1.60 COMPONENTS system filesystem REQUIRED)
 if (${CMAKE_VERSION} VERSION_LESS "3.14.0")
 
@@ -30,7 +30,7 @@ if (${CMAKE_VERSION} VERSION_LESS "3.14.0")
 else()
 
   set(CMAKE_REQUIRED_DEFINITIONS ${CMAKE_THREAD_LIBS_INIT})
-  set(CMAKE_REQUIRED_LIBRARIES ${LIBSSL_LIBRARIES} Boost::system
+  set(CMAKE_REQUIRED_LIBRARIES ${LIBSSL_LINK_LIBRARIES} Boost::system
     ${CMAKE_THREAD_LIBS_INIT})
 
   check_include_file_cxx(simple-websocket-server/server_ws.hpp
