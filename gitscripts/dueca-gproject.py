@@ -546,6 +546,7 @@ class OnExistingProject():
         except AttributeError:
             pass
 
+        self.scriptlang = None
         self.pushDir()
         try:
             cm = subprocess.run(
@@ -553,7 +554,9 @@ class OnExistingProject():
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             self.scriptlang = cm.stdout.strip().decode('UTF-8').split()[0]
         except Exception as e:
-            print(f"Could not determine script language, {e}", file=sys.stderr)
+            print(f"Could not determine script language, {e}\n"
+                  "failed command: cmake --build build -- scriptlang",
+                  file=sys.stderr)
         self.popDir()
         return self.scriptlang
 
@@ -957,6 +960,7 @@ class NewNode(OnExistingProject):
                     'Node number must be smaller than number of nodes')
 
             scriptlang = self.checkScriptlang()
+
             if ns.script and ns.script != scriptlang:
                 print("Warning, you seem to have selected a script language"
                       " that does not match the one in the code",
