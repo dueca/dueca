@@ -2,6 +2,15 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.5] - 2023-02-07
+
+- Fix script language detection in dueca-gproject
+- Correct cmake test for websocket headers
+- Finally fixed running the runtests under Wayland
+- Use unified channel tokens for internal DUECA communication
+- Add a new-dco script, to get nicer .dco files
+- Documentation and style tweaks
+
 ## [3.2.5] - 2023-01-09
 
 - Some documentation updates (git setup, simplesimulation, GtkGladeWindow, 
