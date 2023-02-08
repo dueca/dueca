@@ -21,7 +21,6 @@
 #endif
 
 #include <Accessor.hxx>
-#include <EventAccessToken.hxx>
 #include <Activity.hxx>
 #include <Callback.hxx>
 #include <inttypes.h>

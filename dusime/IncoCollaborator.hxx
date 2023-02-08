@@ -18,13 +18,14 @@
 #endif
 
 #include <IncoSpec.hxx>
-#include "EventAccessToken.hxx"
 #include <IncoNotice.hxx>
 #include "Callback.hxx"
 #include <CallbackWithId.hxx>
 #include "Activity.hxx"
 #include "IncoCalculator.hxx"
 #include "IncoVariableWork.hxx"
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/ChannelWriteToken.hxx>
 #include <cmath>
 #include <cstdlib>
 #include <Eigen/Dense>
@@ -75,10 +76,10 @@ class IncoCollaborator
   list< vector<double> > results;
 
   /** Access token for receiving trim calculation results. */
-  EventChannelReadToken<IncoNotice>   t_inco_feedback;
+  ChannelReadToken                t_inco_feedback;
 
   /** Access token for writing trim calculation input. */
-  EventChannelWriteToken<IncoNotice>  t_inco_control;
+  ChannelWriteToken               t_inco_control;
 
   /** A callback to a member function of the IncoCalculator class. A
       callback to this class is not possible, an object needs to be a

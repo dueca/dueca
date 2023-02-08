@@ -226,6 +226,7 @@ public:
   cannot_find_segment(const char* entity, unsigned idx);
 };
 
+/** Tag information does not match recorders */
 class tag_information_not_matching_recorders: public std::exception
 {
   /** Error string */

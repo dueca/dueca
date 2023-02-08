@@ -465,6 +465,32 @@ following contents:
 )
 ~~~~
 
+Alternatively, you can use the script `new-dco` to create that dco
+file for you. As a minimum, `new-dco` requires the name of the DCO
+file, and the corresponding object that you are trying to create, and
+it produces a skeleton file to adapt to your liking:
+
+~~~~{.bash}
+[enter]$ new-dco object --name ControlInput
+~~~~
+
+You can also populate the object with more arguments:
+
+~~~~{.bash}
+[enter]$ new-dco object --name ControlInput \
+                 --type float \
+                 --option msgpack \
+                 --member float roll "Roll input" \
+                 --default 0.0f \
+                 --member float pitch "Pitch input" \
+                 --default 0.0f \
+                 --member float yaw "Yawing" \
+                 --default 0.0f \
+                 --member float throttle "Commanded Speed" \
+                 --default 0.0f
+~~~~
+
+
 Note the following:
 
 - Comments are started with a semicolon (;)
@@ -481,7 +507,7 @@ Note the following:
   first, that is the reason for the `(Type float)` line.
 
 Before we continue, add the communication object to the repository, and
-commit our work.
+commit your work.
 
 ~~~~{.bash}
 [enter]$ git add comm-objects/ControlInput.dco

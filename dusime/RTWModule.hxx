@@ -49,10 +49,10 @@ class RTWModule : public SimulationModule
     Callback<RTWModule>                     cb1, cb2;
 
     /** An access token for reading the incoming xml snapshots. */
-    EventChannelReadToken<XmlSnapshot>      r_xml_snap;
+    ChannelReadToken                        r_xml_snap;
 
     /** An access token for sending xml snapshots for the current state. */
-    EventChannelWriteToken<XmlSnapshot>     w_xml_snap;
+    ChannelWriteToken                       w_xml_snap;
 
     /** An actvity to react to entity commands. */
     ActivityCallback                        xml_snap_recv;

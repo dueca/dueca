@@ -24,9 +24,12 @@
 #include <dueca/ObjectManager.hxx>
 #include <dueca/NodeManager.hxx>
 #include <dueca/ScriptConfirm.hxx>
-#include <dueca/EventReader.hxx>
-#include <dueca/EventWriter.hxx>
+#include <dueca/DataReader.hxx>
 #include <dueca/ScriptHelper.hxx>
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/ChannelWriteToken.hxx>
+#include <dueca/WrapSendEvent.hxx>
+#include <boost/lexical_cast.hpp>
 
 #include <fstream>
 #include <stringoptions.h>
@@ -38,11 +41,7 @@
 #include <debprint.h>
 
 #define DO_INSTANTIATE
-#include "Event.hxx"
-#include "EventAccessToken.hxx"
-#include "Callback.hxx"
-#include "Dstring.hxx"
-#include "WrapSendEvent.hxx"
+#include <dueca/Callback.hxx>
 
 DUECA_NS_START
 
@@ -92,27 +91,40 @@ void ScriptInterpret::completeCreation()
 
   // initiate the communication with other scheme interpreters
   if (ObjectManager::single()->getLocation() == 0) {
-    w_creation = new EventChannelWriteToken<ScriptLine>
+    w_creation = new ChannelWriteToken
       (getId(), NameSet("dueca", "ScriptLine", ""),
-       ChannelDistribution::SOLO_SEND, Bulk, &token_valid);
+       getclassname<ScriptLine>(), "script lines",
+       Channel::Events, Channel::OnlyOneEntry,
+       Channel::OnlyFullPacking, Channel::Bulk, &token_valid);
 
-    t_confirm = new EventChannelReadToken<ScriptConfirm>
+    t_confirm = new ChannelReadToken
       (getId(), NameSet("dueca", "ScriptConfirm", ""),
-       ChannelDistribution::JOIN_MASTER, Regular, &token_valid);
+       getclassname<ScriptConfirm>(), entry_any,
+       Channel::Events, Channel::OneOrMoreEntries,
+       Channel::AdaptEventStream, 0.0, &token_valid);
 
-    w_goahead = new EventChannelWriteToken<ScriptConfirm>
+    w_goahead = new ChannelWriteToken
       (getId(), NameSet("dueca", "ScriptConfirm", "processadditional"),
-       ChannelDistribution::SOLO_SEND, Regular, &token_valid);
+       getclassname<ScriptConfirm>(), "script go ahead",
+       Channel::Events, Channel::OnlyOneEntry,
+       Channel::OnlyFullPacking, Channel::Regular, &token_valid);
 
     process_confirm->setTrigger(*t_confirm);
     process_confirm->switchOn(TimeSpec(0,0));
   }
-  t_creation = new EventChannelReadToken<ScriptLine>
+  t_creation = new ChannelReadToken
       (getId(), NameSet("dueca", "ScriptLine", ""),
-       ChannelDistribution::NO_OPINION, Bulk, &token_valid);
-  w_confirm = new EventChannelWriteToken<ScriptConfirm>
+       getclassname<ScriptLine>(), 0,
+       Channel::Events, Channel::OnlyOneEntry,
+       Channel::AdaptEventStream, 0.0, &token_valid);
+
+  w_confirm = new ChannelWriteToken
     (getId(), NameSet("dueca", "ScriptConfirm", ""),
-     ChannelDistribution::NO_OPINION, Regular, &token_valid);
+     getclassname<ScriptConfirm>(), std::string("script confirm ") +
+     boost::lexical_cast<std::string>
+     (unsigned(ObjectManager::single()->getLocation())),
+     Channel::Events, Channel::OneOrMoreEntries,
+     Channel::OnlyFullPacking, Channel::Regular,  &token_valid);
 
   handle_lines->setTrigger(*t_creation);
   handle_lines->switchOn(TimeSpec(0,0));
@@ -185,13 +197,13 @@ void ScriptInterpret::createObjects()
 
     // copy the basic configuration file to the pipe
     while (helper->readline(buff)) {
-      wrapSendEvent(*w_creation, new ScriptLine(buff), send_time);
+      wrapSendData(*w_creation, new ScriptLine(buff), send_time);
     }
 
     // copy closing off
-    wrapSendEvent
+    wrapSendData
       (*w_creation, new ScriptLine(helper->phase2), send_time);
-    wrapSendEvent
+    wrapSendData
       (*w_creation, new ScriptLine(helper->stopsign), send_time);
 
     /// flag that we have to wait for the model to be copied over
@@ -258,7 +270,7 @@ void ScriptInterpret::writeQuit()
 
 void ScriptInterpret::handleConfigurationLines(const TimeSpec& time)
 {
-  if (t_creation->getNumWaitingEvents(time)) {
+  if (t_creation->haveVisibleSets(time)) {
     DataReader<ScriptLine, VirtualJoin> e(*t_creation);
 
     if (helper->writeline(e.data().line)) {
@@ -289,9 +301,9 @@ void ScriptInterpret::handleConfigurationLines(const TimeSpec& time)
 
 void ScriptInterpret::checkConfirms(const TimeSpec& time)
 {
-  EventReader<ScriptConfirm> conf(*t_confirm, time);
+  DataReader<ScriptConfirm, VirtualJoin> conf(*t_confirm, time);
 
-  confirmation_count[conf.getMaker().getLocationId()] =
+  confirmation_count[conf.origin().getLocationId()] =
     conf.data().confirm_no;
 
   bool check_copy = true;
@@ -301,7 +313,7 @@ void ScriptInterpret::checkConfirms(const TimeSpec& time)
 
   if (check_copy && received_sets > sent_sets) {
     sent_sets = received_sets;
-    EventWriter<ScriptConfirm> go(*w_goahead, time);
+    DataWriter<ScriptConfirm> go(*w_goahead, time);
     go.data().confirm_no = sent_sets;
   }
 

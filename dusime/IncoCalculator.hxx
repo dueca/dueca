@@ -20,12 +20,12 @@ using namespace std;
 #include "Module.hxx"
 #include "IncoSpec.hxx"
 #include "IncoNotice.hxx"
-#include "EventAccessToken.hxx"
 #include "Callback.hxx"
 #include "Activity.hxx"
-#include "EventReader.hxx"
 #include <dueca_ns.h>
 #include "IncoVariableWork.hxx"
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/ChannelWriteToken.hxx>
 
 DUECA_NS_START
 class IncoCollaborator;
@@ -94,7 +94,7 @@ class IncoCalculator: public Module
   list<IncoCollaborator*> partners;
 
   /** Communication, for reception of inco specifications. */
-  EventChannelReadToken<IncoSpec>         t_inco_spec;
+  ChannelReadToken                        t_inco_spec;
 
   /** Callback object to implement the activity. */
   Callback<IncoCalculator>                cb1;

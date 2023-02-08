@@ -34,8 +34,6 @@ class UnifiedChannel;
 class Environment;
 struct ChannelEndUpdate;
 struct ChannelChangeNotification;
-template<class T> class Event;
-template<class T> class EventChannelWriteToken;
 
 /** This class defines a set of data needed for keeping an inventory
     of channel ends in different places. The originating channel must

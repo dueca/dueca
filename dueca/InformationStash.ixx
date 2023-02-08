@@ -15,12 +15,10 @@
 #define InformationStash_cxx
 #include "InformationStash.hxx"
 #include "NodeManager.hxx"
-#include "EventWriter.hxx"
 #include "Callback.ixx"
 #include "TimedServicer.hxx"
-#define DO_INSTANTIATE
-#include "EventAccessToken.hxx"
-#include <WrapSendEvent.hxx>
+#include <dueca/ChannelWriteToken.hxx>
+#include <dueca/WrapSendEvent.hxx>
 
 #define DEBPRINTLEVEL 0
 #include <debprint.h>

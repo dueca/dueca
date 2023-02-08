@@ -21,9 +21,11 @@
 #include "Environment.hxx"
 #include "SimTime.hxx"
 #include <algorithm>
-#include <EventReader.hxx>
+#include <dueca/DataReader.hxx>
+#include <dueca/DataWriter.hxx>
 #include <StatusKeeper.hxx>
 #include "DuecaView.hxx"
+#include <boost/lexical_cast.hpp>
 #define E_MOD
 #define W_MOD
 #define I_MOD
@@ -36,10 +38,7 @@
 #include "EntityManager.hxx"
 
 #define DO_INSTANTIATE
-#include "EventAccessToken.hxx"
-#include "EventWriter.hxx"
 #include "Callback.hxx"
-#include <Event.hxx>
 
 #define CHECK_TOKEN(A) \
   if (! ( A ) .isValid() ) return;
@@ -65,17 +64,23 @@ EntityManager::EntityManager(int location, int n_nodes,
   emergency_flag(false),
   query_countdown(10),
   state_has_changed(true),
-  t_updates(getId(), NameSet("dueca", "EntityUpdates", "command")),
+  t_updates(getId(), NameSet("dueca", "EntityUpdates", "command"),
+            getclassname<EntityUpdate>(), 0, Channel::Events),
   w_confirms(getId(), NameSet("dueca", "EntityUpdates", "confirm"),
-             ChannelDistribution::NO_OPINION),
+             getclassname<EntityUpdate>(),
+             std::string("entity update confirm n=") +
+             boost::lexical_cast<std::string>(location),
+             Channel::Events, Channel::OneOrMoreEntries),
   t_confirms(location == 0 ?
-             new EventChannelReadToken<EntityUpdate>
+             new ChannelReadToken
              (getId(), NameSet("dueca", "EntityUpdates", "confirm"),
-              ChannelDistribution::JOIN_MASTER) : NULL),
+              getclassname<EntityUpdate>(), entry_any,
+              Channel::Events, Channel::OneOrMoreEntries) : NULL),
   w_updates(location == 0 ?
-            new EventChannelWriteToken<EntityUpdate>
+            new ChannelWriteToken
             (getId(), NameSet("dueca", "EntityUpdates", "command"),
-             ChannelDistribution::JOIN_MASTER) : NULL),
+             getclassname<EntityUpdate>(), "#0 update command",
+             Channel::Events, Channel::OnlyOneEntry) : NULL),
   cb1(this, &EntityManager::checkEntityProgress),
   cb2(this, &EntityManager::queryEntityStatus),
   cb3(this, &EntityManager::processEntityCommands),
@@ -150,7 +155,7 @@ void EntityManager::checkIn(Entity* e)
     E_SYS(getId() << " confirm channel not yet valid for check in");
   }
   else {
-    EventWriter<EntityUpdate> w(w_confirms, SimTime::getTimeTick());
+    DataWriter<EntityUpdate> w(w_confirms, SimTime::getTimeTick());
     w.data().name_set = NameSet(e->getEntity(), "", "");
     w.data().global_id = e->getId();
     w.data().t = EntityUpdate::Created;
@@ -169,7 +174,7 @@ void EntityManager::reportModule(Entity* e, const NameSet& nset,
   // report the creation of a module.
   CHECK_TOKEN(w_confirms);
 
-  EventWriter<EntityUpdate> w(w_confirms, SimTime::getTimeTick());
+  DataWriter<EntityUpdate> w(w_confirms, SimTime::getTimeTick());
   w.data().name_set = nset;
   w.data().global_id = id;
   w.data().t = EntityUpdate::Created;
@@ -182,7 +187,7 @@ void EntityManager::reportStatus(const GlobalId& id, const ModuleState& s)
   CHECK_TOKEN(w_confirms);
 
   // send a status report for this module
-  EventWriter<EntityUpdate> w(w_confirms, SimTime::getTimeTick());
+  DataWriter<EntityUpdate> w(w_confirms, SimTime::getTimeTick());
   w.data().name_set = set;
   w.data().global_id = id;
   w.data().t = EntityUpdate::Report;
@@ -198,9 +203,9 @@ void EntityManager::checkEntityProgress(const TimeSpec& ts)
 
   // get the next event
   try {
-    while (t_confirms->getNumWaitingEvents()) {
+    while (t_confirms->haveVisibleSets()) {
 
-      EventReader<EntityUpdate> d(*t_confirms);
+      DataReader<EntityUpdate, VirtualJoin> d(*t_confirms);
 
       DEB1(getId() << " got progress " << d.data());
 
@@ -258,7 +263,7 @@ void EntityManager::checkEntityProgress(const TimeSpec& ts)
             StatusT1 c(StatusKeeper<StatusT1, DuecaView>::single().
                        findSummary(ModuleId::find(d.data().global_id)).
                        getOrCalculateStatus());
-            c.setModuleState(d.data().state, d.getTick());
+            c.setModuleState(d.data().state, d.timeSpec().getValidityStart());
             DEB(getId() << " updating with " << c);
             StatusKeeper<StatusT1, DuecaView>::single().getTop().updateStatus
               (ModuleId::find(d.data().global_id), c);
@@ -280,7 +285,7 @@ void EntityManager::checkEntityProgress(const TimeSpec& ts)
 
            Status report on entity changes could not be processed. */
         W_SYS("EntityManager got state report " << d.data().state
-              << " from " << d.getMaker());
+              << " from " << d.origin());
       }
     }
   }
@@ -315,12 +320,12 @@ void EntityManager::processEntityCommands(const TimeSpec& ts)
 {
   CHECK_TOKEN(t_updates);
 
-  while (t_updates.getNumVisibleSets()) {
+  while (t_updates.haveVisibleSets()) {
 
     try {
 
       // we were triggered, get an event
-      EventReader<EntityUpdate> d(t_updates);
+      DataReader<EntityUpdate> d(t_updates);
 
       // process
       switch(d.data().t) {
@@ -376,7 +381,7 @@ void EntityManager::emergency()
   // hardware has already been stopped by the node managers.
   for (list<std::string>::const_iterator ii = entities.begin();
        ii != entities.end(); ii++) {
-    EventWriter<EntityUpdate> w(*w_updates, SimTime::getTimeTick());
+    DataWriter<EntityUpdate> w(*w_updates, SimTime::getTimeTick());
     w.data().name_set = NameSet(ii->c_str(), "", "");
     w.data().global_id = getId();
     w.data().t = EntityUpdate::Command;
@@ -411,7 +416,7 @@ void EntityManager::queryEntityStatus(const TimeSpec& time)
     query_countdown = 10;
     for (list<string>::const_iterator ii = entities.begin();
          ii != entities.end(); ii++) {
-      EventWriter<EntityUpdate> w(*w_updates, time);
+      DataWriter<EntityUpdate> w(*w_updates, time);
       w.data().name_set = NameSet(ii->c_str(), "", "");
       w.data().global_id = getId();
       w.data().t = EntityUpdate::Query;
@@ -462,7 +467,7 @@ bool EntityManager::controlEntities(int p)
 
   for (list<string>::const_iterator ii = entities.begin();
        ii != entities.end(); ii++) {
-    EventWriter<EntityUpdate> w(*w_updates, TimeSpec(last_command_time));
+    DataWriter<EntityUpdate> w(*w_updates, last_command_time);
     w.data().name_set = NameSet(ii->c_str(), "", "");
     w.data().global_id = getId();
     w.data().t = EntityUpdate::Command;
@@ -476,4 +481,3 @@ bool EntityManager::controlEntities(int p)
 }
 
 DUECA_NS_END
-

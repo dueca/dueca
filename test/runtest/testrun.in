@@ -3,6 +3,8 @@
 @XVFB@ @DISPLAY@ -screen 0 @DISPLAYSIZE@x24 &
 XVFBPID=$!
 export DISPLAY=@DISPLAY@
+export GDK_BACKEND=x11
+export -n WAYLAND_DISPLAY
 
 sleep 1
 @WINDOWMANAGER@ &

@@ -1,5 +1,6 @@
-#!/usr/bin/bash
+#!/bin/bash
 
+export LC_ALL=C
 @XVFB@ @DISPLAY@ -screen 0 @DISPLAYSIZE@x24 &
 XVFBPID=$!
 export DISPLAY=@DISPLAY@
@@ -7,8 +8,7 @@ export DISPLAY=@DISPLAY@
 sleep 1
 @WINDOWMANAGER@ &
 sleep 1
-timeout --kill-after=3 10s \
-       @Python_EXECUTABLE@ -c "import pynput"
+timeout 10s @Python_EXECUTABLE@ -c "import pynput"
 RESULT=$?
 sleep 1
 

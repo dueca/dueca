@@ -64,7 +64,7 @@ configure.args-append   \
                     -DBUILD_GTK2=ON -DBUILD_GTKMM=ON \
                     -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON \
                     -DBUILD_GLUT=ON -DBUILD_GLUTGUI=ON \
-                    -DBUILD_FLTK=OFF -DBUILD_SHM=ON \
+                    -DBUILD_FLTK=OFF -DBUILD_SHM=OFF \
                     -DDUECA_BUILD_SHARED=ON \
                     -DDUECA_BUILD_STATIC=OFF \
                     -DDUECA_INIT_STATIC=ON \
@@ -77,46 +77,50 @@ configure.args-append   \
                     -DUSE_ATOMIC=ON \
                     -DCMAKE_PREFIX_PATH=${prefix} \
                     -DBUILD_WEBSOCK=ON \
+		    -DBUILD_DDFF=ON \
                     -DCMAKE_BUILD_TYPE:STRING="Unix Makefiles" \
                     -DCMAKE_OSX_ARCHITECTURES=x86_64
 
-variant             python36 \
-                    conflicts python37 python38 python39 \
-                    description "with python 3.6 scripting" {
+variant             python311 \
+                    conflicts  python38 python39 python310 \
+                    description "with python 3.11 scripting" {
     configure.args-append  -DSCRIPT_PYTHON=ON
-    depends_lib-append           port:python36 \
-                                 port:py36-parsing
-    require_active_variants boost python36
+    depends_lib-append           port:python311 \
+                                 port:py311-parsing
+				 port:py311-wheel \
+				 port:py311-pip
+    require_active_variants boost python311
 }
 
-variant             python37 \
-                    conflicts python36 python38 python39 \
-                    description "with python 3.7 scripting" {
+variant             python310 \
+                    conflicts python38 python39 python311 \
+                    description "with python 3.10 scripting" {
     configure.args-append  -DSCRIPT_PYTHON=ON
-    depends_lib-append           port:python37 \
-                                 port:py37-parsing
-    require_active_variants boost python37
+    depends_lib-append           port:python310 \
+                                 port:py310-parsing
+				 port:py310-wheel \
+				 port:py310-pip
+    require_active_variants boost python310
 }
 
-variant             python38 \
-                    conflicts python36 python37 python39 \
-                    description "with python 3.8 scripting" {
-    configure.args-append  -DSCRIPT_PYTHON=ON
-    depends_lib-append           port:python38 \
-                                 port:py38-parsing
-    require_active_variants boost python38 \
-                            boost-numpy python38
-}
 variant             python39 \
-                    conflicts python36 python37 python38 \
+                    conflicts python38 python310 python311 \
                     description "with python 3.9 scripting" {
     configure.args-append  -DSCRIPT_PYTHON=ON
     depends_lib-append           port:python39 \
                                  port:py39-parsing \
 				 port:py39-wheel \
 				 port:py39-pip
-    require_active_variants boost python39 \
-                            boost-numpy python39
+    require_active_variants boost python39
+}
+
+variant             python38 \
+                    conflicts python39 python310 python311 \
+                    description "with python 3.8 scripting" {
+    configure.args-append  -DSCRIPT_PYTHON=ON
+    depends_lib-append           port:python38 \
+                                 port:py38-parsing
+    require_active_variants boost python38
 }
 
 
@@ -126,6 +130,6 @@ variant             guile \
     depends_lib-append           port:guile
 }
 
-if {![variant_isset python36] && ![variant_isset python37] && ![variant_isset python38]} {
-    default_variants +python38 +guile
+if {![variant_isset python310] && ![variant_isset python39] && ![variant_isset python38] && ![variant_isset python311]} {
+    default_variants +python311 +guile
 }

@@ -4,6 +4,7 @@ echo "This script configures an un-optimized version, with debugging"
 echo "information. This is the configuration for development and testing."
 
 BUILDDIR=build-osx
+
 if [ -d $BUILDDIR ]; then
    echo "Build directory $BUILDDIR already present"
 else
@@ -18,6 +19,9 @@ fi
 cd $BUILDDIR
 rm -f CMakeCache.txt
 # rm -rf CMakeFiles
+
+PYVERSION=`python3 -c "import sys; print('.'.join(map(str,sys.version_info[:2])),end='')"`
+echo "Python version ${PYVERSION}"
 
 cmake -G Ninja \
       -DCMAKE_CXX_FLAGS="-Wno-cast-align" \

@@ -553,11 +553,12 @@ void ReflectiveAccessor::handleControlWrite(uint32_t offset,
            Confirmation not complete, not advancing.
          */
         I_SHM("confirm not complete, not advancing com state");
-#ifdef I_SHM_ACTIVE
-        for (unsigned int ii = 0; ii < no_parties; ii++ )
-          cerr << ii << ':' << area_start[ii] << ' ';
-        cerr << endl;
-#endif
+	if (I_SHM_INITIAL_ON) {
+	  for (unsigned int ii = 0; ii < no_parties; ii++ )
+	    cerr << ii << ':' << area_start[ii] << ' ';
+	  cerr << endl;
+	}
+
         // not all the same, may mean the others are already writing clocks
         if (cstate == Contact3) {
             bool oper_test = true;

@@ -22,10 +22,10 @@
 #include "TimeKeeper.hxx"
 #include "SyncReport.hxx"
 #include "SyncReportRequest.hxx"
-#include "EventAccessToken.hxx"
 #include "ParameterTable.hxx"
 #include "Su.hxx"
-#include "EventReader.hxx"
+#include <dueca/DataReader.hxx>
+#include <dueca/WrapSendEvent.hxx>
 //#define D_TIM
 #define I_TIM
 #define W_TIM
@@ -34,6 +34,7 @@
 #include "Environment.hxx"
 #include "ActivityManager.hxx"
 #include "SimTime.hxx"
+#include <boost/lexical_cast.hpp>
 #define MAX_BURST_TICKS 4
 #ifdef HAVE_SYS_NEUTRINO_H
 #include <sys/neutrino.h>
@@ -62,12 +63,9 @@
 #endif
 #define DO_INSTANTIATE
 #include "Callback.hxx"
-#include "EventAccessToken.hxx"
 #include "dueca_assert.h"
 #include "VarProbe.hxx"
-#include <WrapSendEvent.hxx>
 #include "TimedServicer.hxx"
-#include <Event.hxx>
 
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -395,12 +393,16 @@ const ParameterTable* Ticker::getParameterTable()
 void Ticker::completeCreation()
 {
   // create the access tokens for the sync report stuff
-  sync_report_request = new EventChannelReadToken<SyncReportRequest>
+  sync_report_request = new ChannelReadToken
     (getId(), NameSet("dueca", "SyncReportRequest", ""),
-     ChannelDistribution::NO_OPINION, Regular, &token_valid);
-  sync_report = new EventChannelWriteToken<SyncReport>
+     getclassname<SyncReportRequest>(), 0, Channel::Events,
+     Channel::OnlyOneEntry, Channel::AdaptEventStream, 0.0, &token_valid);
+  sync_report = new ChannelWriteToken
     (getId(), NameSet("dueca", "SyncReport", ""),
-     ChannelDistribution::NO_OPINION, Bulk, &token_valid);
+     getclassname<SyncReport>(), std::string("sync report from ") +
+     boost::lexical_cast<std::string>(getId()),
+     Channel::Events, Channel::OneOrMoreEntries, Channel::OnlyFullPacking,
+     Channel::Bulk, &token_valid);
 }
 
 void Ticker::tokenValid(const TimeSpec& ts)
@@ -427,7 +429,7 @@ Ticker::~Ticker()
 void Ticker::reportSync(const TimeSpec &ts)
 {
   // just to clear things, read out the event from the request channel
-  EventReader<SyncReportRequest> r(*sync_report_request, ts);
+  DataReader<SyncReportRequest> r(*sync_report_request, ts);
 
   // if the report request says so, reset the error counter, don't
   // send data.
@@ -438,16 +440,16 @@ void Ticker::reportSync(const TimeSpec &ts)
 
   // ask the time keeper how much difference with the master, and send
   // this as an event
-  wrapSendEvent(*sync_report,
-                new SyncReport(time_keeper->getCurrentSyncDifference(),
-                               time_keeper->noTimesEarly(),
-                               time_keeper->noTimesLate(),
-                               time_keeper->noWaitsCancelled(),
-                               time_keeper->noDoubleWaits(),
-                               time_keeper->earliestOutOfSync(),
-                               time_keeper->latestOutOfSync(),
-                               time_keeper->measuredStep()),
-                ts.getValidityStart());
+  wrapSendData(*sync_report,
+	       new SyncReport(time_keeper->getCurrentSyncDifference(),
+			      time_keeper->noTimesEarly(),
+			      time_keeper->noTimesLate(),
+			      time_keeper->noWaitsCancelled(),
+			      time_keeper->noDoubleWaits(),
+			      time_keeper->earliestOutOfSync(),
+			      time_keeper->latestOutOfSync(),
+			      time_keeper->measuredStep()),
+	       ts.getValidityStart());
   pending_late_early_reset = true;
 }
 

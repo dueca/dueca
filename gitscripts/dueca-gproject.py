@@ -155,7 +155,7 @@ def create_and_copy(dirs, files, subst):
             else:
                 raise Exception(f"Failed to create directory {d}")
         except ValueError as ve:
-            print(f"Problem formatting '{_d}'")
+            print(f"Problem formatting '{_d}'", file=sys.stderr)
             raise ve
 
     dc = subprocess.run(("dueca-config", "--path-datafiles"),
@@ -245,9 +245,9 @@ def guess_ifaddress(nodename=None):
         try:
             ipaddress = socket.gethostbyname(hname)
         except:
-            print('Cannot determine IP address')
+            print('Cannot determine IP address', file=sys.stderr)
     except:
-        print('Cannot determine host name')
+        print('Cannot determine host name', file=sys.stderr)
     print("Assuming machine IP address", ipaddress)
     return ipaddress
 
@@ -523,7 +523,8 @@ class OnExistingProject():
             self.inprojectdir = False
 
         if len(curpath) < 2 or curpath[-1] != curpath[-2]:
-            print(f"Could not find project folder in {os.getcwd()}")
+            print(f"Could not find project folder in {os.getcwd()}",
+                  file=sys.stderr)
             raise Exception(f"dueca-gproject {command} needs to be run from"
                             " the main project directory")
 
@@ -545,6 +546,7 @@ class OnExistingProject():
         except AttributeError:
             pass
 
+        self.scriptlang = None
         self.pushDir()
         try:
             cm = subprocess.run(
@@ -552,7 +554,9 @@ class OnExistingProject():
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             self.scriptlang = cm.stdout.strip().decode('UTF-8').split()[0]
         except Exception as e:
-            print(f"Could not determine script language, {e}")
+            print(f"Could not determine script language, {e}\n"
+                  "failed command: cmake --build build -- scriptlang",
+                  file=sys.stderr)
         self.popDir()
         return self.scriptlang
 
@@ -956,9 +960,11 @@ class NewNode(OnExistingProject):
                     'Node number must be smaller than number of nodes')
 
             scriptlang = self.checkScriptlang()
+
             if ns.script and ns.script != scriptlang:
                 print("Warning, you seem to have selected a script language"
-                      " that does not match the one in the code")
+                      " that does not match the one in the code",
+                      file=sys.stderr)
                 scriptlang = ns.script
             elif scriptlang:
                 pass
@@ -1181,16 +1187,17 @@ class PreparePlatform(OnExistingProject):
                                         modules.append(
                                             (url, modname, version))
                             else:
-                                print(f"Unexpected xml tag {c.tag}")
+                                print(f"Unexpected xml tag {c.tag}",
+                                      file=sys.stderr)
 
                         # add the machine class if applicable
                         try:
                             n = Namespace(name=mname, gui=gui, switch=False,
                                           config=config, modules=modules)
-                            print("nmc with", n)
+                            #print("nmc with", n)
                             nmc(n)
                         except Exception as e:
-                            print(e)
+                            print(e, file=sys.stderr)
 
                 elif elt.tag.endswith('platform'):
                     pname = ns.name or elt.get('name')
@@ -1221,10 +1228,12 @@ class PreparePlatform(OnExistingProject):
                         except KeyError as e:
                             if nno >= len(nodes):
                                 print("Node number too high"
-                                      f" {nno} >= {len(nodes)}")
+                                      f" {nno} >= {len(nodes)}",
+                                      file=sys.stderr)
                             else:
                                 print(f"Number {nno} not available,"
-                                      " specified multiple times?")
+                                      " specified multiple times?",
+                                      file=sys.stderr)
                             raise e
                         except:
                             pass

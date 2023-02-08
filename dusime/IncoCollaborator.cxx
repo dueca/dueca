@@ -21,14 +21,13 @@
 #include <IncoCalculator.hxx>
 #include <TrimView.hxx>
 #include <dassert.h>
-#include <Event.hxx>
+#include <DataReader.hxx>
+#include <DataWriter.hxx>
+#include <WrapSendEvent.hxx>
 
 #define DO_INSTANTIATE
-#include <Event.hxx>
 #include <CallbackWithId.hxx>
-#include <EventAccessToken.hxx>
-#include <EventReader.hxx>
-#include <WrapSendEvent.hxx>
+
 #define D_TRM
 #define I_TRM
 #define W_TRM
@@ -50,13 +49,16 @@ IncoCollaborator::IncoCollaborator(const IncoSpec& spec,
                    "IncoResults",
                    (vstring(specification.module.getClass()) +
                     vstring("/") +
-                    vstring(specification.module.getPart())).c_str())),
+                    vstring(specification.module.getPart())).c_str()),
+                  getclassname<IncoNotice>(), entry_any, Channel::Events),
   t_inco_control(calculator->getId(), NameSet
                  (specification.module.getEntity(),
                   "IncoControl",
                   (vstring(specification.module.getClass()) +
                    vstring("/") +
-                   vstring(specification.module.getPart())).c_str())),
+                   vstring(specification.module.getPart())).c_str()),
+                 getclassname<IncoNotice>(), "inco control",
+                 Channel::Events),
   cb(calculator, &IncoCalculator::processIncoResults, this),
   process(calculator->getId(), "receive inco data", &cb, PrioritySpec(0,0))
 {
@@ -89,7 +91,7 @@ IncoCollaborator::IncoCollaborator(const IncoSpec& spec,
 bool IncoCollaborator::processEvent(const TimeSpec& ts, IncoMode mode)
 {
   // read out the event
-  EventReader<IncoNotice> e(t_inco_feedback, ts);
+  DataReader<IncoNotice, VirtualJoin> e(t_inco_feedback);
 
   DEB1("processing " << e.data());
 

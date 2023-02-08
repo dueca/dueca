@@ -28,7 +28,8 @@ Name: %name
 Version: %ver
 Release: 1
 License: EUPL-1.2
-Group: Libraries/
+URL: https://github.com/dueca
+Group: Development/Libraries/C and C++
 
 Requires: python3
 Requires: cvs
@@ -143,13 +144,13 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-root
 DUECA is a middleware library for the implementation of real-time data
 flow processes on distributed hardware. It is currently used for the
 Man-Machine lab of the Control and Simulation Division, Aerospace
-Engineering, Delft University of Technology, on the SIMONA Research
+Engineering, Delft Universtiy of Technology, on the SIMONA Research
 Simulator, for the displays in the PH-LAB laboratory aircraft and on
 a some other set-ups.
 
 %package devel
 Summary: Development headers and libraries for DUECA
-Group: Libraries
+Group: Development/Libraries/C and C++
 Requires: %{name} = %{ver}
 Requires: eigen3-devel
 Requires: freeglut-devel
@@ -196,16 +197,15 @@ headers, libraries and development scripts
 
 %package dusime
 Summary: For simulations in dueca
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: %{name} = %{ver}
-Requires: libdueca-ddff%{sosuffix}
 %description dusime
 DUSIME is an addition to DUECA that provides classes for implementations
 of simulation models in a real-time data flow process
 
 %package dusime-devel
 Summary: For simulations in dueca
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: %{name}-dusime = %{ver}
 Requires: %{name}-ddff-devel
 Requires: toml11-devel
@@ -216,14 +216,14 @@ This package contains development headers, libraries and development scripts
 
 %package -n libdueca-ddff%{sosuffix}
 Summary: File logging facilities
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: %{name} = %{ver}
 %description -n libdueca-ddff%{sosuffix}
 DDFF is a custom file format for logging and replay in DUECA
 
 %package ddff-devel
 Summary: File logging facilities
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: libdueca-ddff%{sosuffix} = %{ver}
 Requires: date-devel
 %description ddff-devel
@@ -232,7 +232,7 @@ This package contains development headers, libraries and development scripts
 
 %package -n libdueca-inter%{sosuffix}
 Summary: Connect DUECA instances
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: %{name}
 %description -n libdueca-inter%{sosuffix}
 INTER is an addition to DUECA that provides classes for implementations
@@ -240,7 +240,7 @@ of simulation models in a real-time data flow process
 
 %package inter-devel
 Summary: For simulations in dueca
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: libdueca-inter%{sosuffix} = %{ver}
 %description inter-devel
 INTER is an addition to DUECA that can connect several DUECA processes.
@@ -251,7 +251,7 @@ This package contains development headers, libraries and development scripts
 
 %package -n libdueca-hdf%{sosuffix}
 Summary: Connect DUECA instances
-Group: Libraries/
+Group: Development/Libraries/C and C++
 BuildRequires: hdf5-devel
 BuildRequires: zlib-devel
 
@@ -260,7 +260,7 @@ HDF is an addition to DUECA that provides hdf logging
 
 %package hdf-devel
 Summary: For simulations in dueca
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: libdueca-hdf%{sosuffix} = %{ver}
 Requires: hdf5-devel
 Requires: %{name}-devel
@@ -278,14 +278,16 @@ want to tweak and replace the default logging module
 
 %package -n libdueca-udp%{sosuffix}
 Summary: Connect DUECA communication using new udp library
-Group: Libraries/
+Group: Development/Libraries/C and C++
 
 %description -n libdueca-udp%{sosuffix}
-New udp-based connection library
+New udp-based connection library, offers means to communication using
+udp point-to-point, multicast, broadcast and communication over websocket
+links.
 
 %package udp-devel
-Summary: For simulations in dueca
-Group: Libraries/
+Summary: Network communication for simulations in DUECA
+Group: Development/Libraries/C and C++
 Requires: libdueca-udp%{sosuffix} = %{ver}
 Requires: %{name}-devel
 
@@ -300,14 +302,15 @@ the set-up of the communication based on a server-client TCP connection.
 %if 0%{?websock_config}
 %package -n libdueca-websock%{sosuffix}
 Summary: Connect to DUECA using websockets
-Group: Libraries/
+Group: Development/Libraries/C and C++
 
 %description -n libdueca-websock%{sosuffix}
-Websocket communication to channels
+Websocket communication to channels. Offers websocket endpoints and
+communication through JSON objects.
 
 %package websock-devel
 Summary: For simulations in dueca
-Group: Libraries/
+Group: Development/Libraries/C and C++
 Requires: libdueca-websock%{sosuffix} = %{ver}
 Requires: %{name}-devel
 
@@ -318,7 +321,7 @@ This library offers websocket connection to dueca channels
 
 %package doc
 Summary: API documentation for DUECA/DUSIME
-Group: Libraries/
+Group: Development/Libraries/C and C++
 %description doc
 Documentation for users of the DUSIME and DUECA API
 

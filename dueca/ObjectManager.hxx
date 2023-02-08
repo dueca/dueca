@@ -31,8 +31,8 @@ using namespace std;
 #include <dueca_ns.h>
 DUECA_NS_START
 struct ObjectInfo;
-template<class T> class EventChannelReadToken;
-template<class T> class EventChannelWriteToken;
+class ChannelReadToken;
+class ChannelWriteToken;
 struct ParameterTable;
 
 #if USING_BOOST_INHERIT == 0
@@ -83,10 +83,10 @@ class ObjectManager:
   void tokenValid(const TimeSpec& ts);
 
   /** Channel for reading object information. */
-  EventChannelReadToken<ObjectInfo>*   object_info_read;
+  ChannelReadToken*   object_info_read;
 
   /** Access to a channel for writing object information. */
-  EventChannelWriteToken<ObjectInfo>*    object_info_write;
+  ChannelWriteToken*    object_info_write;
 
   /** Callback object. */
   Callback<ObjectManager>                cb;

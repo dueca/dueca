@@ -415,13 +415,17 @@ public:
 
   /** Struct for mapping enum name to representation string */
   struct OptionMapping {
+    /** String representation of the enum value */
     const char* ename;
+    /** How this value should be shown in the interface */
     const char* representation;
   };
 
   /** Struct for describing mappings */
   struct OptionMappings {
+    /** String representation of the DCO member */
     const char* dcomember;
+    /** Mapping to apply for this member's values */
     const OptionMapping *mapping;
   };
 
@@ -445,6 +449,8 @@ public:
       @param mapping   Optional mapping table, defining sets of
                        member name + enum string, to representation,
                        NULL-terminated.
+      @param warn      If true, warn for DCO members that are not
+                       matched in the interface ID's.
   */
   bool fillOptions(const char* dcoclass,
                    const char* format, const char* arrformat = NULL,

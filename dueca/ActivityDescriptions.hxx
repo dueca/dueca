@@ -21,7 +21,7 @@
 #include <ActivityContext.hxx>
 #include <Callback.hxx>
 #include <Activity.hxx>
-#include <EventAccessToken.hxx>
+#include <dueca/ChannelReadToken.hxx>
 #include <fstream>
 #include <boost/scoped_ptr.hpp>
 

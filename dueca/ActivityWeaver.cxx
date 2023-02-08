@@ -291,8 +291,7 @@ bool ActivityWeaver::areTheLogsComplete()
       current_logs[ii]->base_tick == base_tick;
   }
 
-#ifdef I_ACT_ACTIVE
-  if (!logs_complete) {
+  if (I_ACT_INITIAL_ON && !logs_complete) {
     /* DUECA UI.
 
        Logs for ActivityView have not been fully received. May
@@ -310,7 +309,6 @@ bool ActivityWeaver::areTheLogsComplete()
     }
     cerr << endl;
   }
-#endif
 
   return logs_complete;
 }

@@ -19,7 +19,7 @@ Name: %name
 Version: %ver
 Release: 1
 License: EUPL-1.2
-Group: Libraries/
+Group: Development/Libraries/C and C++
 
 Requires: python3
 Requires: cvs

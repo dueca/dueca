@@ -19,7 +19,6 @@
 
 #include <NamedObject.hxx>
 #include <FillSet.hxx>
-#include <EventAccessToken.hxx>
 #include <Callback.hxx>
 #include <Activity.hxx>
 #include <AmorphStore.hxx>
@@ -28,6 +27,7 @@
 DUECA_NS_START
 class ChannelManager;
 class ReflectiveStoreInformation;
+class ChannelReadToken;
 
 /** Unpacks low-priority (bulk) messages.
 
@@ -68,7 +68,7 @@ class ReflectiveFillUnpacker:
 
   /** For convenience, a pair of store no and pointer to a channel
       acces token. */
-  typedef pair<int, EventChannelReadToken<FillSet>*> SenderInfo;
+  typedef pair<int, ChannelReadToken*> SenderInfo;
 
   /** Priority of unpacking, default */
   PrioritySpec unpack_prio;
@@ -80,7 +80,7 @@ class ReflectiveFillUnpacker:
       it. */
   list<ActivityCallback*>               all_receive_stuff;
 
-  list<EventChannelReadToken<FillSet> *> all_tokens;
+  list<ChannelReadToken*>               all_tokens;
 
 public:
   /** This class can be created from scheme */

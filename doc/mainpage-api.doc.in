@@ -105,9 +105,10 @@ Creation and Configuration), and provides basic simulation services
 with these. DUSIME gives you the infrastructure to make a simulation
 that can stop, start, take snapshots of the model state, re-initialise
 to a pre-defined model state (and maybe in some future version
-calculate trim conditions for the model). This manual is written for
-people who use DUECA with DUSIME, and all the examples concern
-simulation models.
+calculate trim conditions for the model). There are also facilities
+for recording the user input of a simulation, and replaying that
+input. This manual is written for people who use DUECA with DUSIME,
+and all the examples concern simulation models. 
 
 \section overview Overview of the documentation
 

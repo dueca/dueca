@@ -20,7 +20,6 @@
 #include <TimeSpec.hxx>
 #include <Callback.hxx>
 #include <Activity.hxx>
-#include <EventAccessToken.hxx>
 #include <FillSet.hxx>
 #include <GenericPacker.hxx>
 #include <AsyncList.hxx>
@@ -31,6 +30,7 @@ DUECA_NS_START
 class ReflectiveStoreInformation;
 class AmorphStore;
 struct ParameterTable;
+class ChannelWriteToken;
 
 /** Objects that uses a reflective/shared memory communications area
     to transport -- slowly -- large bulk data objects. */
@@ -75,7 +75,7 @@ class ReflectiveFillPacker: public GenericPacker
 
   /** access token for sending data. This indirectly uses the normal
       transmission channels. */
-  EventChannelWriteToken<FillSet> *out;
+  ChannelWriteToken *out;
 
   /** Method that does the data sending. */
   void sendAPiece(const TimeSpec& ts);

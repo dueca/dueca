@@ -18,11 +18,10 @@
 #include <NodeManager.hxx>
 #include <debug.h>
 #include <iomanip>
+#include <dueca/DataReader.hxx>
 
 #define DO_INSTANTIATE
 #include <Callback.hxx>
-#include <EventReader.hxx>
-#include <Event.hxx>
 
 DUECA_NS_START
 

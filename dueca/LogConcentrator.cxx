@@ -25,15 +25,13 @@
 #include <InformationStash.ixx>
 #include <PeriodicAlarm.hxx>
 #include <Ticker.hxx>
-#include <Event.hxx>
 #include <algorithm>
+#include <DataReader.hxx>
 
 #define DO_INSTANTIATE
 //#include <AsyncList.hxx>
 //#include <AsyncQueueMT.hxx>
 #include <Callback.hxx>
-#include <EventAccessToken.hxx>
-#include <EventReader.hxx>
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
 
@@ -104,8 +102,9 @@ void LogConcentrator::initialise(const TimeSpec& ts)
                         periodsize);
 
   // create token for reading level commands
-  r_level = new EventChannelReadToken<LogLevelCommand>
-    (id->getId(), NameSet("dueca", "LogLevelCommand", ""));
+  r_level = new ChannelReadToken
+    (id->getId(), NameSet("dueca", "LogLevelCommand", ""),
+     getclassname<LogLevelCommand>(), 0, Channel::Events);
 
   // activity for processing these
   configure = new ActivityCallback(id->getId(), "configure logging",
@@ -119,9 +118,9 @@ void LogConcentrator::configureLevel(const TimeSpec& ts)
   LogLevelCommand newl;
 
   while (r_level->isValid() &&
-         r_level->getNumWaitingEvents()) {
+         r_level->haveVisibleSets()) {
     try {
-      EventReader<LogLevelCommand> c(*r_level);
+      DataReader<LogLevelCommand> c(*r_level);
       newl = c.data();
     }
     catch (const exception& e) {

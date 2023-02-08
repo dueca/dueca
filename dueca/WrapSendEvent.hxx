@@ -44,7 +44,7 @@ inline void _wrapSendEvent(ChannelWriteToken &t, const void* edata,
     Note that the use of this function should be reserved to people
     who really know what they are doing, and only if there is a real
     (performance) need, if you are not one of these, inform yourself
-    well or use an EventWriter, which provides a much safer interface
+    well or use an DataWriter, which provides a much safer interface
     to the channel.
 */
 inline void wrapSendEvent(ChannelWriteToken &t, const void* edata,
@@ -60,7 +60,7 @@ inline void wrapSendEvent(ChannelWriteToken &t, const void* edata,
     Note that the use of this function should be reserved to people
     who really know what they are doing, and only if there is a real
     (performance) need, if you are not one of these, inform yourself
-    well or use an EventWriter, which provides a much safer interface
+    well or use a DataWriter, which provides a much safer interface
     to the channel.
 */
 template <class T>
@@ -82,7 +82,7 @@ inline void wrapSendEvent(EventChannelWriteToken<T> &t, const T* edata,
     Note that the use of this function should be reserved to people
     who really know what they are doing, and only if there is a real
     (performance) need, if you are not one of these, inform yourself
-    well or use an EventWriter, which provides a much safer interface
+    well or use a DataWriter, which provides a much safer interface
     to the channel.
 */
 inline void wrapSendData(ChannelWriteToken &t, const void* edata,

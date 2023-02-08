@@ -17,15 +17,13 @@
 
 #include "DusimeController.hxx"
 #include <dueca/Environment.hxx>
-#include "NameSet.hxx"
+#include <dueca/NameSet.hxx>
+#include <dueca/DataReader.hxx>
+#include <dueca/DataWriter.hxx>
 #define DO_INSTANTIATE
-#include <Event.hxx>
 #include "Callback.hxx"
-#include "EventAccessToken.hxx"
 #include <Ticker.hxx>
 #include <cmath>
-#include <EventReader.hxx>
-#include <EventWriter.hxx>
 #include <EntityManager.hxx>
 #include <StatusKeeper.hxx>
 #include <StatusT1.hxx>

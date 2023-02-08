@@ -38,6 +38,7 @@
 #include "CPULowLatency.hxx"
 #include <locale>
 #include <sstream>
+#include <dueca/ChannelReadToken.hxx>
 #define W_CNF
 #define I_SYS
 #define W_SYS
@@ -59,10 +60,8 @@
 
 
 #define DO_INSTANTIATE
-#include "Event.hxx"
 #include "VarProbe.hxx"
 #include "MemberCall.hxx"
-#include "EventAccessToken.hxx"
 #include <Callback.hxx>
 #include <InformationStash.ixx>
 #include <debprint.h>
@@ -914,8 +913,10 @@ void Environment::proceed(int stage)
     */
     // open an event channel that carries confirmations that additional
     // configuration data can be processed
-    t_moreconf = new EventChannelReadToken<ScriptConfirm>
-      (getId(), NameSet("dueca", "ScriptConfirm", "processadditional"));
+    t_moreconf = new ChannelReadToken
+      (getId(), NameSet("dueca", "ScriptConfirm", "processadditional"),
+       getclassname<ScriptConfirm>(), 0, Channel::Events,
+       Channel::OnlyOneEntry, Channel::JumpToMatchTime);
     // connect as trigger
     wait_additional->setTrigger(*t_moreconf);
     wait_additional->switchOn(TimeSpec(0,0));

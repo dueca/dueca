@@ -13,17 +13,16 @@
 
 #include "RTWModule.hxx"
 
-#include <EventReader.hxx>
+#include <dueca/DataReader.hxx>
 #include <debug.h>
-#include "Snapshot.hxx"
-#include <XmlSnapshot.hxx>
+#include <dusime/Snapshot.hxx>
+#include <dusime/XmlSnapshot.hxx>
+#include <dueca/WrapSendEvent.hxx>
+#include <dueca/NameSet.hxx>
 
 #define DO_INSTANTIATE
-#include "Event.hxx"
 #include "Callback.hxx"
-#include "EventAccessToken.hxx"
-#include <NameSet.hxx>
-#include <WrapSendEvent.hxx>
+
 #include <debprint.h>
 
 DUECA_NS_START
@@ -41,11 +40,15 @@ RTWModule::RTWModule(Entity* e, const char* m_class, const char* part,
 
   // a token for reading commands from the entity
   r_xml_snap(getId(), NameSet(getEntity(), "XmlSnapshot", "get"),
-             ChannelDistribution::NO_OPINION, Bulk, &cb2),
+             getclassname<XmlSnapshot>(), entry_any,
+             Channel::Events, Channel::OneOrMoreEntries,
+             Channel::AdaptEventStream, 0.1, &cb2),
 
   // a write token, for sending confirmation
   w_xml_snap(getId(), NameSet(getEntity(), "XmlSnapshot", "set"),
-             ChannelDistribution::NO_OPINION, Bulk),
+             getclassname<XmlSnapshot>(), "snapshot confirmation",
+             Channel::Events, Channel::OneOrMoreEntries,
+             Channel::OnlyFullPacking, Channel::Bulk),
 
   // make an activity
   xml_snap_recv(getId(), "process xml snapshot events", &cb1, PrioritySpec(0, 0))
@@ -70,7 +73,7 @@ void RTWModule::receiveXmlSnapshot(const TimeSpec& ts)
   }
 
   // read the snapshot from the channel
-  EventReader<XmlSnapshot> r(r_xml_snap, ts);
+  DataReader<XmlSnapshot,VirtualJoin> r(r_xml_snap, ts);
   DEB1(getId() << "Me: " << getNameSet().getEntity() << ' ' << getNameSet().getClass() << ' ' << getNameSet().getPart());
   DEB1(getId() << "Incoming packet: " << r.data().originator.getEntity() << ' ' << r.data().originator.getClass() << ' ' << r.data().originator.getPart());
   // check that it is for me
@@ -94,7 +97,7 @@ void RTWModule::receiveXmlSnapshot(const TimeSpec& ts)
     switch (cmd) {
       case XmlSnapshot::PrepareXmlSnapshot:
         xml_snap_state = SnapshotState::SnapPrepared;
-        future_xml_snap_time  = r.getTick();
+        future_xml_snap_time  = r.timeSpec().getValidityStart();
         break;
 
       case XmlSnapshot::SendXmlSnapshot:

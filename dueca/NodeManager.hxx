@@ -18,11 +18,12 @@
 #endif
 
 #include "NamedObject.hxx"
-#include "EventAccessToken.hxx"
 #include "NodeControlMessage.hxx"
 #include "PeriodicAlarm.hxx"
 #include "Callback.hxx"
 #include "Activity.hxx"
+#include <dueca/ChannelReadToken.hxx>
+#include <dueca/ChannelWriteToken.hxx>
 #include <vector>
 using namespace std;
 #include <dueca_ns.h>

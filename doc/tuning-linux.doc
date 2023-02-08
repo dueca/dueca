@@ -523,7 +523,7 @@ Option "TransformationMatrix" "0.545455 0.000000 0.000000 0.000000 0.900000 0.00
 @section tunelinux_sound Sound tuning
 
 This description on sound tuning is not yet complete. Here, we assume an
-Ubuntu 20.04 workstation. Sound is controlled over pulseaudio.
+Ubuntu 20.04 or 22.04 workstation. Sound is controlled over pulseaudio.
 
 To detect which hardware devices are seen by the operating system, check
 first with the ALSA facility aplay:
@@ -555,10 +555,29 @@ journalctl log, and there is no bluetooth device to configure, run:
 sudo apt-get remove --auto-remove pulseaudio-module-bluetooth
 @endverbatim
 
-To run the pulseaudio as a system service, use the configuration at
-https://github.com/shivasiddharth/PulseAudio-System-Wide
+Since the dueca process is run over an ssh login -- unless you are
+running node 0 on the desktop you are starting from -- it is better to
+run the pulseaudio as a system service, use
+[this configuration]
+(https://github.com/shivasiddharth/PulseAudio-System-Wide)
+
+Edit the `/etc/pulse/client.conf` file, set
+
+@verbatim
+autospawn = no
+default-server = /var/run/pulse/native
+@endverbatim
+
+Reboot if needed, verify that there is only one pulseaudio daemon running;
+
+@verbatim
+srs@srsefis2:~ ps aux | grep pulseaudio
+pulse       1003  0.0  0.1 313524 13120 ?        S<sl Jan26   0:00 /usr/bin/pulseaudio --daemonize=no --system --realtime --log-target=journal
+@endverbatim
 
 Further instructions (setting group membership!) at https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
+
+Add the simulation user to the groups `audio` and `pulse-access`.
 
 Selecting specific cards, if needed, at
 https://unix.stackexchange.com/questions/473846/how-does-pulseaudio-determine-which-alsa-devices-to-make-available-or-not

@@ -9,6 +9,8 @@ set(DATA
   SimulationModuleTemplate.cxx SimulationModuleTemplate.hxx
   DuecaHelperTemplate.cxx DuecaHelperTemplate.hxx
   Simulink88Template.cxx Simulink88Template.hxx
-  Simulink88Test.cc Simulink88Makefile )
+  Simulink88Test.cc Simulink88Makefile
+  DCOObjectTemplate.dco DCOEnumTemplate.dco
+)
 
 install(FILES ${DATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca/data/default)

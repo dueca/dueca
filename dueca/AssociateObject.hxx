@@ -67,6 +67,8 @@ template<class Host>
 class AssociateObject: public NamedObject {
   ObjectType host_type;
 public:
+  /** Class name constant, should be equal to the host object's
+      classname, used for reporting errors and warnings. */
   static const char* const classname;
 
 public:

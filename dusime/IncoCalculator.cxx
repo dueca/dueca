@@ -29,10 +29,10 @@
 #include <ParameterTable.hxx>
 #include <dassert.h>
 #include <IncoSpec.hxx>
+#include <dueca/DataReader.hxx>
+#include <dueca/DataWriter.hxx>
 
 #define DO_INSTANTIATE
-#include <Event.hxx>
-#include "EventAccessToken.hxx"
 #include "MemberCall.hxx"
 #include "Callback.hxx"
 #include <TrimView.hxx>
@@ -87,7 +87,8 @@ IncoCalculator::IncoCalculator(Entity* e,
   // channel for initial condition specifications
   t_inco_spec(getId(),
               NameSet(getEntity(), "IncoSpec", ""),
-              ChannelDistribution::JOIN_MASTER),
+              getclassname<IncoSpec>(), entry_any,
+              Channel::Events),
 
   // this for listening to inco specifications
   cb1(this, &IncoCalculator::receiveNewIncoSpec),
@@ -121,7 +122,7 @@ void IncoCalculator::receiveNewIncoSpec(const TimeSpec& t)
   //const Event<IncoSpec>* e;
   //const IncoSpec* d;
   t_inco_spec.isValid();
-  EventReader<IncoSpec> d(t_inco_spec);
+  DataReader<IncoSpec, VirtualJoin> d(t_inco_spec);
   //  t_inco_spec.getNextEvent(e, t); d = e->getEventData();
   DEB1("inco specification " << d.data());
 

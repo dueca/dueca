@@ -9,6 +9,7 @@ Created on Fri Apr 30 19:59:02 2021
 import os
 import re
 from .verboseprint import dprint
+import sys
 
 _dcoline = re.compile(
     r'^[ \t]*([^/]+)/comm-objects/(.*).dco[ \t]*#*.*[ \t\n]*')
@@ -58,7 +59,7 @@ class CommObjectDef:
 
     def __hash__(self):
         return f'{self.base_project}/{self.dco}'
-    
+
     def __str__(self):
         return f'{self.base_project}/{self.dco}'
 
@@ -78,7 +79,7 @@ class CommObjectDef:
 class CommObjectsListIterator:
     def __init__(self, colist):
         self._iter = iter(colist.dco)
-        
+
     def __next__(self):
         elem = next(self._iter)
         while elem.base_project is None:
@@ -100,7 +101,7 @@ class CommObjectsList:
     def contains(self, project, dco):
         # dprint(list(map(str, self.dco)), CommObjectDef(None, project, dco))
         return CommObjectDef(None, project, dco) in self.dco
-    
+
 
     def doubles(self):
         found = set()
@@ -113,7 +114,7 @@ class CommObjectsList:
     def add(self, project, dco, comment):
         if self.contains(project, dco):
             print(f'Not adding, {self.fname} already contains '
-                  f'{project}/comm-objects/{dco}.dco')
+                  f'{project}/comm-objects/{dco}.dco', file=sys.stderr)
             return
         self.dco.append(CommObjectDef(None, project, dco, comment))
         self.clean = False
@@ -125,21 +126,22 @@ class CommObjectsList:
             self.dco[todelete].remove(comment)
             self.clean = False
         except ValueError:
-            print(f'No delete, {self.fname} does not contain {str(searchfor)}')
-        return                  
-        
+            print(f'No delete, {self.fname} does not contain {str(searchfor)}',
+                  file=sys.stderr)
+        return
+
     def listProjects(self):
         res = set()
         for dco in self.dco:
             if dco.base_project is not None:
                 res.add(dco.base_project)
         return list(res)
-    
+
     def _sync(self):
-        
+
         if self.clean:
             return
-        
+
         if self.clean is None:
             # dprint("Reading", self.fname)
             with open(self.fname, 'r') as cf:
@@ -147,18 +149,17 @@ class CommObjectsList:
             self.clean = True
             # dprint("after reading", list(map(str, self.dco)))
             return
-        
+
         # dirty, write now
         try:
             os.rename(self.fname, self.fname + '~')
         except FileNotFoundError:
             pass
-        
+
         with open(self.fname, 'w') as cf:
             for l in self.dco:
                 cf.write(l.line())
         self.clean = True
-        
+
     def __iter__(self):
         return CommObjectsListIterator(self)
-        
