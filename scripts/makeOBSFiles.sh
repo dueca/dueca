@@ -24,9 +24,11 @@ OSCDIR="${HOME}/rpmbuild/home:repabuild/${NAME}"
 OSCDIRV="${HOME}/rpmbuild/tu/home:repabuild/dueca-versioned"
 
 # root of the repository with source
-GITSERVER=$(git remote -v | grep '^origin.*[(]fetch[)]$' | \
-                sed -e 's/origin[[:space:]]*\([^[:space:]]*\).*$/\1/')
-GITREMOTE="--remote=${GITSERVER}"
+GITSERVER=git@github.com:dueca/dueca.git
+
+# by default, pull from the official dueca remote
+#GITREMOTE="--remote=${GITSERVER}"
+
 
 # process input arguments
 while getopts "khH:s:" optname
@@ -47,18 +49,22 @@ if test -z $1; then
 fi
 VERSION=$1
 if [ -z "$GITBRANCHORTAG" ]; then
-    GITBRANCHORTAG=$VERSION
+    GITREMOTE="https://github.com/dueca/dueca/archive/v${VERSION}.tar.gz"
 fi
-
 
 # create a source rpm
 function create_debfiles()
 {
     echo "Using temporary dir $PKGDIR"
     mkdir ${PKGDIR}/dueca-${VERSION}
-    git archive --format=tar \
-        $GITREMOTE ${GITBRANCHORTAG} | \
-        tar -C $PKGDIR/dueca-${VERSION} -xf -
+    if [ -z ${GITREMOTE} ]; then
+	git archive --format=tar \
+            ${GITBRANCHORTAG} | \
+            tar -C $PKGDIR/dueca-${VERSION} -xf -
+    else
+	echo "curl -L ${GITREMOTE}"
+        curl -L ${GITREMOTE} | tar -C $PKGDIR -zxf -
+    fi
     if [ \! -d ${PKGDIR}/dueca-${VERSION}/dueca ]; then
         echo "Could not export copy"
         exit 1
