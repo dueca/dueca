@@ -587,6 +587,7 @@ getent group rtdueca || groupadd rtdueca
 %{_prefix}/bin/dueca-rtwparser
 %{_prefix}/bin/makemycvsdir
 %{_prefix}/bin/new-module
+%{_prefix}/bin/new-dco
 %{_prefix}/bin/dueca-channeldot
 %{_prefix}/bin/dueca-gproject
 %{_prefix}/bin/dueca-cvs-to-git
