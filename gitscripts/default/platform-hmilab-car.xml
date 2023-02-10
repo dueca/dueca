@@ -14,27 +14,27 @@
       </config>
       <modules>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/HMILabHardware.git</url>
+	  <url>dgrbase:///HMILabHardware.git</url>
 	  <name>PedalsIO</name>
 	  <version>master</version>
 	</module>
 	<module>
-          <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+          <url>dgrbase:///ECIToolbox.git</url>
 	  <name>DisturbanceGenerator</name>
 	  <version>master</version>
 	</module>
 	<module>
-          <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+          <url>dgrbase:///ECIToolbox.git</url>
 	  <name>DataReader</name>
 	  <version>master</version>
 	</module>
 	<module>
-          <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+          <url>dgrbase:///ECIToolbox.git</url>
 	  <name>Channalyzer</name>
 	  <version>master</version>
 	</module>
 	<module>
-          <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+          <url>dgrbase:///ECIToolbox.git</url>
 	  <name>DataViewer</name>
 	  <version>master</version>
 	</module>
@@ -43,22 +43,22 @@
     <machineclass name="hmi-ig" gui="none">
       <modules>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>WorldView</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>OgreViewer</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>HMILabViewFiles</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>SpecificationBase</name>
 	  <version>master</version>
 	</module>
@@ -68,67 +68,67 @@
     <machineclass name="hmi-host" gui="none">
       <modules>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <url>dgrpub:///WorldListener.git</url>
 	  <name>OpenALListener</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <url>dgrpub:///WorldListener.git</url>
 	  <name>WorldListener</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>SpecificationBase</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+	  <url>dgrbase:///ECIToolbox.git</url>
 	  <name>DisturbanceGenerator</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+	  <url>dgrbase:///ECIToolbox.git</url>
 	  <name>DataReader</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+	  <url>dgrpub:///ECIToolbox.git</url>
 	  <name>Channalyzer</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/ECIToolbox.git</url>
+	  <url>dgrbase:///ECIToolbox.git</url>
 	  <name>DataViewer</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/HMILabHardware.git</url>
+	  <url>dgrbase:///HMILabHardware.git</url>
 	  <name>SteeringWheelIO</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/	HMILabSound.git</url>
+	  <url>dgrbase:///HMILabSound.git</url>
 	  <name>NewCarSound</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/HMILabSound.git</url>
+	  <url>dgrbase:///HMILabSound.git</url>
 	  <name>Sounds</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/DrivingSimulator.git</url>
+	  <url>dgrbase:///DrivingSimulator.git</url>
 	  <name>IDSS</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/DrivingSimulator.git</url>
+	  <url>dgrbase:///DrivingSimulator.git</url>
 	  <name>SensorSuite</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/DrivingSimulator.git</url>
+	  <url>dgrbase:///DrivingSimulator.git</url>
 	  <name>CarDynamics</name>
 	  <version>master</version>
 	</module>

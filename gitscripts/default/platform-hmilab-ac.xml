@@ -14,22 +14,22 @@
       </config>
       <modules>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <url>dgrbase:///CSControlLoading.git</url>
 	  <name>IOController</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <url>dgrbase:///CSControlLoading.git</url>
 	  <name>ControlLoading</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <url>dgrbase:///CSControlLoading.git</url>
 	  <name>CLConfigurations</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+	  <url>dgrbase:///CSControlLoading.git</url>
 	  <name>cl-analyser</name>
 	  <version>master</version>
 	</module>
@@ -38,22 +38,22 @@
     <machineclass name="hmi-ig" gui="none">
       <modules>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>WorldView</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>OSGViewer</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>HMILabViewFiles</name>
 	  <version>master</version>
 	</module>
         <module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>SpecificationBase</name>
 	  <version>master</version>
 	</module>
@@ -63,17 +63,17 @@
     <machineclass name="hmi-host" gui="glut">
       <modules>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <url>dgrpub:///WorldListener.git</url>
 	  <name>OpenALListener</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+	  <url>dgrpub:///WorldListener.git</url>
 	  <name>WorldListener</name>
 	  <version>master</version>
 	</module>
 	<module>
-	  <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+	  <url>dgrpub:///WorldView.git</url>
 	  <name>SpecificationBase</name>
 	  <version>master</version>
 	</module>
@@ -86,6 +86,7 @@
     <node name="dutmms4" machineclass="hmi-io"/>
     <node name="dutmms2" machineclass="hmi-efis"/>
     <node name="dutmms14" machineclass="hmi-ig"/>
-    <node name="dutmms14b" machineclass="hmi-ig"/>
+    <node name="dutmms15" machineclass="hmi-ig"/>
+    <node name="dutmms16" machineclass="hmi-ig"/>
   </platform>
 </configuration>
