@@ -537,6 +537,7 @@ class Modules:
         # simply create when it was not yet there
         except FileNotFoundError:
             with open(f'../{prj.name}/.git/info/sparse-checkout', 'w') as ms:
+                ms.write('/README*\n')
                 for l in to_add:
                     ms.write(l + '\n')
 

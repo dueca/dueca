@@ -4,7 +4,6 @@
         date            : 051017
         category        : header file
         description     :
-        documentation   : DUECA_API
         changes         : 051017 first version
         language        : C++
         copyright       : (c) 2016 TUDelft-AE-C&S
