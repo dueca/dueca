@@ -282,9 +282,11 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &sr: readsingles) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String(sr.first.name.c_str());
-        writer.Key("datatype");
+        writer.String((std::string("current/") + sr.first.name).c_str());
+        writer.Key("dataclass");
         writer.String(sr.second->datatype.c_str());
+        writer.Key("entry");
+        writer.Int(sr.first.id);
         writer.EndObject();
       }
       writer.EndArray();
@@ -294,9 +296,11 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &fr: followers) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String(fr.first.name.c_str());
-        writer.Key("datatype");
+        writer.String((std::string("read/") + fr.first.name).c_str());
+        writer.Key("dataclass");
         writer.String(fr.second->datatype.c_str());
+        writer.Key("entry");
+        writer.Int(fr.first.id);
         writer.EndObject();
       }
       writer.EndArray();
@@ -306,7 +310,7 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &mn: monitors) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String(mn.first.c_str());
+        writer.String((std::string("info/") + mn.first).c_str());
         writer.EndObject();
       }
       writer.EndArray();
@@ -317,7 +321,7 @@ bool WebSocketsServer::_complete(S& server)
         writer.StartObject();
         writer.Key("endpoint");
         writer.String((std::string("write/") + wr.first).c_str());
-        writer.Key("datatype");
+        writer.Key("dataclass");
         writer.String(wr.second->dataclass.c_str());
         writer.EndObject();
       }
@@ -1512,7 +1516,7 @@ bool WebSocketsServer::setWriteReadSetup(const std::vector<std::string>& def)
        Configuration for a "write-and-read" URL is not complete. Check your
        configuration file.
     */
-    E_CNF("Need URL name + 2 x channel name");
+    E_CNF("Need endpoint name + 2 x channel name");
     return false;
   }
 

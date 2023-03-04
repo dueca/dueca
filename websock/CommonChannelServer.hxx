@@ -472,7 +472,7 @@ struct WriteReadEntry:
   public ChannelWatcher
 {
   INCLASS_REFCOUNT(WriteReadEntry);
-  
+
   /** Autostart callback function */
   Callback<WriteReadEntry>  autostart_cb;
 
