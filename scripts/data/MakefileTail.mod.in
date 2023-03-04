@@ -21,13 +21,13 @@ PRODIR := 	$(shell cd .. && pwd)
 PRONAME =	$(notdir $(PRODIR))
 
 # compiler definitions
-CPP =		g++ 
+CPP =		g++
 CC = 		gcc
 FORTRAN =       gfortran
 ifeq ($(DEBUG),y)
     CPPFLAGS =	-g -Wall -std=c++11
     CFLAGS =    -g -Wall
-    FFLAGS =    -g -Wall			 
+    FFLAGS =    -g -Wall
 else
     CPPFLAGS =	-O -Wall -std=c++11
     CFLAGS =    -O -Wall
@@ -50,7 +50,7 @@ GSRCS =         $(DIFS:.if=.cxx)
 GENERATED = 	$(DUECATYPES:.dco=.cxx)
 GENERATEDH = 	$(GENERATED:.cxx=.hxx)
 GOBJECTS =	$(GENERATED:.cxx=.o)
-CPPOBJ = 	$(patsubst %.cpp, %.o, $(CPPSRC:.cxx=.o)) 
+CPPOBJ = 	$(patsubst %.cpp, %.o, $(CPPSRC:.cxx=.o))
 COBJ =		$(CSRC:.c=.o)
 FOBJ =          $(FSRC:.f=.o)
 OBJS =		$(shell for i in $(CPPOBJ) $(COBJ) $(GOBJECTS) $(FOBJ) $(USEROBJ); do echo $$i; done | sort -u)
@@ -71,7 +71,7 @@ HMIOBJ = 	$(shell ls components/components.o 2>/dev/null)
 all :	hmilib-all
 	$(MAKE) -C ../../$(APPNAME) ../$(PRONAME)/$(MODNAME)
 
-top-all: local-all hmilib-all version-check module.o		
+top-all: local-all hmilib-all version-check module.o
 
 .depend:
 	touch .depend
@@ -89,12 +89,12 @@ local-generated:
 	$(CPP) -c $(CPPFLAGS) $(CPPINCL) $(@:.o=.cpp) -o $@
 
 %.cxx : %.dco
-	$(CODEGEN) < $<
+	$(CODEGEN) $<
 
-%.o : %.c 
+%.o : %.c
 	$(CC) -c $(CFLAGS) $(CINCL) $< -o $@
 
-%.o : %.f 
+%.o : %.f
 	$(FORTRAN) -c $(FFLAGS) $(FINCL) $< -o $@
 
 %.hxx : %.if
@@ -115,7 +115,7 @@ module.o: $(OBJS) $(HMIOBJ)
 	    $(LD) $(LDFLAGS) $(OBJS) $(HMIOBJ) -o $@ ;\
 	fi
 
-depend: local-depend hmilib-depend 
+depend: local-depend hmilib-depend
 	@if [ "x$(CSRC)$(CPPSRC)$(GENERATED)$(GHDRS)" = "x" ]; then \
 	    echo "No source, no dependencies"; \
 	    touch .depend; \

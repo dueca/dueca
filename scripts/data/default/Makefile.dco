@@ -16,17 +16,17 @@
 # =========================================================================
 
 # if needed, add the path to extra header files you need
-EXTRA_INCLUDES = 
+EXTRA_INCLUDES =
 
 # Normally, in a comm-objects directory, there are no C++ source files
-# other than those automatically generated from .dco files 
-CPPSRC = 	
+# other than those automatically generated from .dco files
+CPPSRC =
 
 # And no C source files either
-CSRC =		
+CSRC =
 
 # add all the files with the definitions of the generated-types (.dco files)
-# this looks at the comm-objects.lst files in all 
+# this looks at the comm-objects.lst files in all
 DUECATYPES := 	$(shell if which dueca-listdco 2>/dev/null >/dev/null; then \
 		  dueca-listdco; \
 		  else ls *.dco 2>/dev/null; fi)
@@ -61,5 +61,3 @@ local-mrproper:
 
 # Put additional commands for locally generated code here
 local-generated:
- 
-
