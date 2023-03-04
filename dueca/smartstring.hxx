@@ -12,8 +12,8 @@
         license         : EUPL-1.2
 */
 
-#ifndef smartstring_hxx
 #define smartstring_hxx
+#pragma once
 #include "DCOtoJSON.hxx"
 #include "JSONtoDCO.hxx"
 #include "DCOtoXML.hxx"
@@ -208,4 +208,3 @@ public:
 
 DUECA_NS_END;
 
-#endif

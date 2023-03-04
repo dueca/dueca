@@ -13,9 +13,8 @@
         license         : EUPL-1.2
 */
 
-#ifndef limvector_hxx
+#pragma once
 #define limvector_hxx
-
 #include <dueca_ns.h>
 #include <CommObjectTraits.hxx>
 #include <PackTraits.hxx>
@@ -255,4 +254,3 @@ struct diffpack_traits<limvector<N,D> >: public diffpack_vector { };
 
 DUECA_NS_END;
 
-#endif

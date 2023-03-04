@@ -13,9 +13,8 @@
         license         : EUPL-1.2
 */
 
-#ifndef fixvector_hxx
+#pragma once
 #define fixvector_hxx
-
 #include <dueca_ns.h>
 #include <vectorexceptions.hxx>
 #include <CommObjectTraits.hxx>
@@ -224,4 +223,3 @@ ostream& operator << (ostream& os, const dueca::fixvector<N,D>& v)
 }
 PRINT_NS_END;
 
-#endif

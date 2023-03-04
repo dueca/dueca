@@ -11,6 +11,56 @@
         license         : EUPL-1.2
 */
 
+#ifdef smartstring_hxx
+#ifndef msgpack_unstream_iter_hxx_smartstring
+#define msgpack_unstream_iter_hxx_smartstring
+MSGPACKUS_NS_START;
+template<typename S>
+void msg_unpack(S& i0, const S& iend, dueca::smartstring& i);
+MSGPACKUS_NS_END;
+#endif
+#endif
+
+#ifdef Dstring_hxx
+#ifndef msgpack_unstream_iter_hxx_dstring
+#define msgpack_unstream_iter_hxx_dstring
+MSGPACKUS_NS_START;
+template <typename S, unsigned mxsize>
+void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& i);
+MSGPACKUS_NS_END;
+#endif
+#endif
+
+#ifdef fixvector_hxx
+#ifndef msgpack_unstream_iter_hxx_fixvector
+#define msgpack_unstream_iter_hxx_fixvector
+MSGPACKUS_NS_START;
+template <typename S, size_t N, typename T>
+void msg_unpack(S& i0, const S& iend, dueca::fixvector<N,T> & i);
+MSGPACKUS_NS_END;
+#endif
+#endif
+
+#ifdef limvector_hxx
+#ifndef msgpack_unstream_iter_hxx_limvector
+#define msgpack_unstream_iter_hxx_limvector
+MSGPACKUS_NS_START;
+template <typename S, size_t N, typename T>
+void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i);
+MSGPACKUS_NS_END;
+#endif
+#endif
+
+#ifdef varvector_hxx
+#ifndef msgpack_unstream_iter_hxx_varvector
+#define msgpack_unstream_iter_hxx_varvector
+MSGPACKUS_NS_START;
+template <typename S, typename T>
+void msg_unpack(S& i0, const S& iend, dueca::varvector<T> & i);
+MSGPACKUS_NS_END;
+#endif
+#endif
+
 #ifndef msgpack_unstream_iter_hxx
 #define msgpack_unstream_iter_hxx
 
@@ -646,30 +696,6 @@ void msg_unpack(S& i0, const S& iend, std::string& i)
   }
 }
 
-#ifdef smartstring_hxx
-template<typename S>
-void msg_unpack(S& i0, const S& iend, dueca::smartstring& i);
-#endif
-
-#ifdef Dstring_hxx
-template <typename S, unsigned mxsize>
-void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& i);
-#endif
-
-#ifdef fixvector_hxx
-template <typename S, size_t N, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::fixvector<N,T> & i);
-#endif
-
-#ifdef limvector_hxx
-template <typename S, size_t N, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i);
-#endif
-
-#ifdef varvector_hxx
-template <typename S, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::varvector<T> & i);
-#endif
 
 template <typename S, typename T>
 void msg_unpack(S& i0, const S& iend, std::vector<T> & i);

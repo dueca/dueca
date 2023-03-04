@@ -13,9 +13,8 @@
         license         : EUPL-1.2
 */
 
-#ifndef varvector_hxx
+#pragma once
 #define varvector_hxx
-
 #include <dueca_ns.h>
 #include <CommObjectTraits.hxx>
 #include <PackTraits.hxx>
@@ -268,4 +267,3 @@ struct diffpack_traits<varvector<D> >: public diffpack_vector { };
 
 DUECA_NS_END;
 
-#endif
