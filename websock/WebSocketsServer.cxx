@@ -38,7 +38,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL -1
+#define DEBPRINTLEVEL 1
 #include <debprint.h>
 
 DUECA_NS_START;
@@ -350,7 +350,7 @@ bool WebSocketsServer::_complete(S& server)
            }
          });
 
-      DEB("New connection on ^/configuration, sent data");
+      DEB("New connection on ^/configuration, sent data" << doc.GetString());
 
       // removed, closing at this point upsets some clients
       // const std::string reason("Configuration data sent");
@@ -377,7 +377,7 @@ bool WebSocketsServer::_complete(S& server)
            shared_ptr<typename S::InMessage> in_message) {
 
       DEB("Message on connection 0x" << std::hex <<
-	  reinterpret_cast<void*>(connection.get()) << std::dec);
+          reinterpret_cast<void*>(connection.get()) << std::dec);
 
       // find the channel access corresponding to the connection
       auto em = this->singlereadsmapped.find
@@ -399,22 +399,22 @@ bool WebSocketsServer::_complete(S& server)
       rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
       writer.StartObject();
       try {
-	// create the reader
-	DCOReader r(em->second->datatype.c_str(), em->second->r_token);
-	DataTimeSpec dtd = r.timeSpec();
-	writer.Key("tick");
-	writer.Uint(dtd.getValidityStart());
-	writer.Key("data");
-	if (extended) DCOtoJSONcompact(writer, r);
-	else DCOtoJSONstrict(writer, r);
+        // create the reader
+        DCOReader r(em->second->datatype.c_str(), em->second->r_token);
+        DataTimeSpec dtd = r.timeSpec();
+        writer.Key("tick");
+        writer.Uint(dtd.getValidityStart());
+        writer.Key("data");
+        if (extended) DCOtoJSONcompact(writer, r);
+        else DCOtoJSONstrict(writer, r);
       }
       catch (const NoDataAvailable& e) {
-	/* DUECA websockets.
+        /* DUECA websockets.
 
-	   There is no current data on the requested stream.
-	*/
-	W_XTR("No data on " << em->second->r_token.getName() <<
-	      " sending empty {}");
+           There is no current data on the requested stream.
+        */
+        W_XTR("No data on " << em->second->r_token.getName() <<
+              " sending empty {}");
       }
       writer.EndObject();
       connection->send
@@ -447,13 +447,13 @@ bool WebSocketsServer::_complete(S& server)
            int status, const std::string &reason) {
 
       DEB("Close on connection 0x" << std::hex <<
-	  reinterpret_cast<void*>(connection.get()) << std::dec);
+          reinterpret_cast<void*>(connection.get()) << std::dec);
 
       std::string ename("unknown");
       auto qpars = SimpleWeb::QueryString::parse(connection->query_string);
       auto ekey = qpars.find("entry");
       if (ekey != qpars.end()) {
-	ename = ekey->second;
+        ename = ekey->second;
       }
 
       /* DUECA websockets.
@@ -485,7 +485,7 @@ bool WebSocketsServer::_complete(S& server)
     [this](shared_ptr<typename S::Connection> connection) {
 
       DEB("Open on connection 0x" << std::hex <<
-	  reinterpret_cast<void*>(connection.get()) << std::dec);
+          reinterpret_cast<void*>(connection.get()) << std::dec);
       DEB("New connection currentdata");
 
       // find the specific URL, and entry number
@@ -740,13 +740,13 @@ bool WebSocketsServer::_complete(S& server)
       // check no entry is present on this connection
       auto ww = this->writers.find(reinterpret_cast<void*>(connection.get()));
       if (ww != this->writers.end()) {
-	/* DUECA websockets.
+        /* DUECA websockets.
 
-	   Entry is not free. */
-	W_XTR("There is already a writer on " << connection->path_match[0] <<
-	      ", closing.");
+           Entry is not free. */
+        W_XTR("There is already a writer on " << connection->path_match[0] <<
+              ", closing.");
         const std::string reason("Server logic error");
-	connection->send_close(1007, reason);
+        connection->send_close(1007, reason);
         return;
       }
 
@@ -760,11 +760,11 @@ bool WebSocketsServer::_complete(S& server)
       // check that this URL is available
       if (ee == this->writersetup.end() &&
           pre == this->presetwriters.end()) {
-	/* DUECA websockets.
+        /* DUECA websockets.
 
-	   there is no endpoint here. */
-	W_XTR("URL not available on " << connection->path_match[0] <<
-	      ", closing.");
+           there is no endpoint here. */
+        W_XTR("URL not available on " << connection->path_match[0] <<
+              ", closing.");
         const std::string reason("Resource not available");
         connection->send_close(1001, reason);
         return;
@@ -803,13 +803,13 @@ bool WebSocketsServer::_complete(S& server)
           return;
         }
         else {
-	  /* DUECA websockets.
+          /* DUECA websockets.
 
-	     There is already a connection here.
-	  */
-	  W_XTR("There is already a connection on " <<
-		connection->path_match[0]);
-	  const std::string reason("Resource already connected");
+             There is already a connection here.
+          */
+          W_XTR("There is already a connection on " <<
+                connection->path_match[0]);
+          const std::string reason("Resource already connected");
           connection->send_close(1001, reason);
           return;
         }
