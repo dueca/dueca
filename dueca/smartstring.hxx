@@ -208,3 +208,16 @@ public:
 
 DUECA_NS_END;
 
+#include "msgpack-unstream-iter.hxx"
+MSGPACKUS_NS_START;
+template<typename S>
+inline void msg_unpack(S& i0, const S& iend, dueca::smartstring& i)
+{
+  uint32_t len = unstream<S>::unpack_strsize(i0, iend);
+  i.resize(len);
+  for (size_t ii = 0; ii < len; ii++) {
+    check_iterator_notend(i0, iend);
+    i.data()[ii] = *i0++;
+  }
+}
+MSGPACKUS_NS_END;
