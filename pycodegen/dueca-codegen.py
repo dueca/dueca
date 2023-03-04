@@ -567,7 +567,7 @@ class BuildObject(object):
         if currentobject and self.name != currentobject:
             raise ValueError(
                 f"Produced objects {self.name}.hxx and {self.name}.cxx"
-                f"Do not match input file name {pvals.dcofile}")
+                f" do not match input file name {currentobject}")
 
         # specific addition to header
         self.headercomments = headercommentstring
@@ -3083,7 +3083,7 @@ if __name__ == "__main__":
         for fname in pvals.dcofile:
             with open(fname, 'r') as infile:
                 dcodata = ''.join(infile.readlines())
-                currentobject = fname[:-4]
+                currentobject = os.path.basename(fname)[:-4]
                 try:
                     content.parseString(dcodata, True)
                 except CodegenException as e:

@@ -84,20 +84,20 @@ macro(DUECACODEGEN_TARGET)
       string(REPLACE ".dco" ".cxx" SOURCE ${DCO})
       string(REPLACE ".dco" ".hxx" HEADER ${DCO})
       if (DCG_INDUECA OR CODEGEN_SOURCE)
-	add_custom_command(OUTPUT
+        add_custom_command(OUTPUT
           ${CMAKE_CURRENT_BINARY_DIR}/${HEADER}
           ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}
           COMMAND ${Python_EXECUTABLE}
-	  ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${TCFLAGS} <
+          ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${TCFLAGS}
           ${CMAKE_CURRENT_SOURCE_DIR}/${DCO}
           DEPENDS ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${DCO}
           COMMENT "[DuecaCodegen][${DCG_OUTPUT}] Code generation ${DCO}"
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
       else()
-	add_custom_command(OUTPUT
+        add_custom_command(OUTPUT
           ${CMAKE_CURRENT_BINARY_DIR}/${HEADER}
           ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}
-          COMMAND ${DuecaCodegen_EXECUTABLE} ${TCFLAGS} <
+          COMMAND ${DuecaCodegen_EXECUTABLE} ${TCFLAGS}
           ${CMAKE_CURRENT_SOURCE_DIR}/${DCO}
           DEPENDS ${DuecaCodegen_EXECUTABLE} ${DCO}
           COMMENT "[DuecaCodegen][${DCG_OUTPUT}] Code generation ${DCO}"
@@ -117,4 +117,3 @@ macro(DUECACODEGEN_TARGET)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(DuecaCodegen DEFAULT_MSG
   DuecaCodegen_EXECUTABLE)
-
