@@ -256,8 +256,8 @@ bool SingleEntryFollow::stop(const TimeSpec& ts)
   return true;
 }
 
-static void writeTypeInfo(json::Writer<json::StringBuffer>& writer,
-                          const std::string& dataclass)
+void writeTypeInfo(json::Writer<json::StringBuffer>& writer,
+                   const std::string& dataclass)
 {
   CommObjectReaderWriter rw(dataclass.c_str());
   writer.StartArray();

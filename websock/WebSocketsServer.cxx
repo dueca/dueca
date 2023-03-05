@@ -25,6 +25,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <fstream>
+#include <rapidjson/document.h>
+#include <rapidjson/reader.h>
+#include <rapidjson/error/en.h>
 
 // include the debug writing header, by default, write warning and
 // error messages
@@ -251,6 +254,10 @@ WebSocketsServer::WebSocketsServer(Entity* e, const char* part, const
   do_transfer.setTrigger(myclock);
 }
 
+// in the commonchannelserver code
+namespace json = rapidjson;
+void writeTypeInfo(json::Writer<json::StringBuffer>& writer,
+                   const std::string& dataclass);
 
 template<typename S>
 bool WebSocketsServer::_complete(S& server)
@@ -285,6 +292,8 @@ bool WebSocketsServer::_complete(S& server)
         writer.String((std::string("current/") + sr.first.name).c_str());
         writer.Key("dataclass");
         writer.String(sr.second->datatype.c_str());
+        writer.Key("typeinfo");
+        writeTypeInfo(writer, sr.second->datatype);
         writer.Key("entry");
         writer.Int(sr.first.id);
         writer.EndObject();
@@ -299,6 +308,8 @@ bool WebSocketsServer::_complete(S& server)
         writer.String((std::string("read/") + fr.first.name).c_str());
         writer.Key("dataclass");
         writer.String(fr.second->datatype.c_str());
+        writer.Key("typeinfo");
+        writeTypeInfo(writer, fr.second->datatype);
         writer.Key("entry");
         writer.Int(fr.first.id);
         writer.EndObject();
@@ -323,6 +334,8 @@ bool WebSocketsServer::_complete(S& server)
         writer.String((std::string("write/") + wr.first).c_str());
         writer.Key("dataclass");
         writer.String(wr.second->dataclass.c_str());
+        writer.Key("typeinfo");
+        writeTypeInfo(writer, wr.second->dataclass);
         writer.EndObject();
       }
       writer.EndArray();
