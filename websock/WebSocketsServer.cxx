@@ -289,7 +289,7 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &sr: readsingles) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String((std::string("current/") + sr.first.name).c_str());
+        writer.String(sr.first.name.c_str());
         writer.Key("dataclass");
         writer.String(sr.second->datatype.c_str());
         writer.Key("typeinfo");
@@ -305,7 +305,7 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &fr: followers) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String((std::string("read/") + fr.first.name).c_str());
+        writer.String(fr.first.name.c_str());
         writer.Key("dataclass");
         writer.String(fr.second->datatype.c_str());
         writer.Key("typeinfo");
@@ -321,7 +321,7 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &mn: monitors) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String((std::string("info/") + mn.first).c_str());
+        writer.String(mn.first.c_str());
         writer.EndObject();
       }
       writer.EndArray();
@@ -331,7 +331,7 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &wr: writersetup) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String((std::string("write/") + wr.first).c_str());
+        writer.String(wr.first.c_str());
         writer.Key("dataclass");
         writer.String(wr.second->dataclass.c_str());
         writer.Key("typeinfo");
@@ -345,7 +345,7 @@ bool WebSocketsServer::_complete(S& server)
       for (const auto &wr: writereadsetup) {
         writer.StartObject();
         writer.Key("endpoint");
-        writer.String((std::string("write-and-read/") + wr.first).c_str());
+        writer.String(wr.first.c_str());
         writer.EndObject();
       }
       writer.EndArray();
