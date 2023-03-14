@@ -2,7 +2,17 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [3.2.5] - 2023-02-07
+## [3.2.7] - 2023-PI
+
+- Add check to codegen, to ensure the right objects are generated
+- Expand the information on websockets
+- For completeness, add Base64File object to Snapshot
+- Fixes to msgpack generation
+- Check out README files when borrowing modules from other projects
+- Pull directly from github release when generating files for obs build
+- Add scripts to facilitate creation of runtest scenarios
+
+## [3.2.6] - 2023-02-07
 
 - Fix script language detection in dueca-gproject
 - Correct cmake test for websocket headers
