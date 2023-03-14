@@ -66,6 +66,7 @@ jobs:
         -DLOG_COMMUNICATIONS=ON
         -DLOG_PACKING=ON
         -DBUILD_HDF5=ON
+	-DBUILD_DDFF=ON
         -DFORCE_PYTHON_MALLOC=ON
         -DPYSITEDIR:PATH=${{env.PREFIX}}/lib/python${{env.PYVERSION}}/site-packages
         -DDUECA_INSTALL_ENVIRONMENT=ON
