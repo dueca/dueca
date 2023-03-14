@@ -10,7 +10,7 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Debug
   PREFIX: ${HOME}/prefix
-  PYVERSION: 3.8
+  PYVERSION: 3.10
 
 jobs:
   build:
@@ -25,9 +25,9 @@ jobs:
     - name: Install dependencies
       run: |
         wget -qO - https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_22.04/Release.key | sudo apt-key add -
-        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild:/xenial-universe/xUbuntu_20.04/ ./"
+        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild:/xenial-universe/xUbuntu_22.04/ ./"
         sudo apt update
-        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_20.04/ ./"
+        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_22.04/ ./"
         sudo apt update
         sudo apt --assume-yes upgrade
         sudo apt --assume-yes install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev libglade2-dev graphviz libgtkmm-2.4-dev freeglut3-dev libgtkglext1-dev libglui-dev python3-pyparsing libboost-dev inkscape cmake libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu
