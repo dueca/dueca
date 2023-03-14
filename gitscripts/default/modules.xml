@@ -23,7 +23,6 @@
      where it is.
 -->
 <machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
-  <project>
-    <url>@url@</url>
+  <project main="true">
   </project>
 </machine>

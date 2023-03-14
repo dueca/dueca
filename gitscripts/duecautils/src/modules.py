@@ -114,6 +114,8 @@ class RootMap(dict):
         if 'origin' in self and self['origin'] != urlbase:
             print("Overwriting remote origin with", urlbase, file=sys.stderr)
         self['origin'] = urlbase
+        self.prjname = url.split('/')[-1][:-4]
+        self.projecturl = url
 
     def urlToAbsolute(self, url):
         """
@@ -333,8 +335,14 @@ class Project:
 
             # create a new node and fill it
             self.xmlnode = etree.SubElement(xmlroot, 'project')
-            u = etree.SubElement(self.xmlnode, 'url')
-            u.text = RootMap().urlToRelative(self.url)
+
+            # the own project has an implicit URL
+            if self.name == RootMap().prjname:
+                self.xmlnode["main"] = True
+            else:
+                u = etree.SubElement(self.xmlnode, 'url')
+                u.text = RootMap().urlToRelative(self.url)
+
             if self.version:
                 v = etree.SubElement(self.xmlnode, 'version')
                 v.text = self.version
@@ -344,12 +352,17 @@ class Project:
             self.clean = True
             return
 
+        # Alternative, read the project from an xmlnode
         try:
             # recover from the node
             self.version = None
             self.url = None
             self.modules = []
             self.name = None
+
+            if self.xmlnode.get("main", False):
+                self.url = RootMap().projecturl
+
             for elt in self.xmlnode:
 
                 if XML_comment(elt):
