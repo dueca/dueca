@@ -115,6 +115,16 @@ Snapshot::Snapshot(const toml::value& coded)
     snfile.read(const_cast<char*>(data.data()), data_size);
   }
     break;
+  case Base64File: {
+    std::ifstream snfile
+      (toml::find<std::string>(coded, "file").c_str(), ios::ate);
+    size_t size = snfile.tellg();
+    snfile.seekg(0);
+    std::string tmp; tmp.resize(size, '\0');
+    snfile.read(const_cast<char*>(tmp.data()), size);
+    data = decode64(tmp);
+  }
+    break;
   case FloatFile: {
     std::ifstream snfile(toml::find<std::string>(coded, "file").c_str());
     std::vector<float> result;
@@ -138,6 +148,7 @@ Snapshot::Snapshot(const toml::value& coded)
   }
     break;
   }
+  data_size = data.size();
 }
 
 toml::value Snapshot::tomlCode(const std::string& fname) const
@@ -209,6 +220,12 @@ toml::value Snapshot::tomlCode(const std::string& fname) const
     result["file"] = fname;
   }
     break;
+  case Base64File: {
+    ofstream ofile(fname.c_str());
+    ofile << encode64(data);
+    result["file"] = fname;
+  }
+    break;
   }
   return result;
 }
@@ -221,6 +238,7 @@ bool Snapshot::saveExternal() const
   case DoubleFile:
   case JSONFile:
   case XMLFile:
+  case Base64File:
     return true;
   default:
     return false;
@@ -233,6 +251,7 @@ const char* Snapshot::fileExtension() const
   static const char* bin = ".bin";
   static const char* json = ".json";
   static const char* xml = ".xml";
+  static const char* b64 = ".b64";
   static const char* you_should_not =
     "you should not try to save this snapshot type in an external file";
   switch (coding) {
@@ -245,6 +264,8 @@ const char* Snapshot::fileExtension() const
     return json;
   case XMLFile:
     return xml;
+  case Base64File:
+    return b64;
   default:
     return you_should_not;
   }

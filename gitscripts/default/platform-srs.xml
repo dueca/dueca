@@ -14,42 +14,42 @@
       </config>
       <modules>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+          <url>dgrbase:///CSControlLoading.git</url>
 	  <name>ControlLoading</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+          <url>dgrbase:///CSControlLoading.git</url>
 	  <name>CLConfigurations</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+          <url>dgrbase:///CSControlLoading.git</url>
 	  <name>CLTools</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+          <url>dgrbase:///CSControlLoading.git</url>
 	  <name>cl-analyser</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+          <url>dgrbase:///CSControlLoading.git</url>
 	  <name>IOController</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/CSControlLoading.git</url>
+          <url>dgrbase:///CSControlLoading.git</url>
 	  <name>scripts</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/SRS.git</url>
+          <url>dgrbase:///SRS.git</url>
 	  <name>control-switches</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/SRS.git</url>
+          <url>dgrbase:///SRS.git</url>
 	  <name>gear-lever</name>
 	  <version>master</version>
 	</module>
@@ -58,7 +58,7 @@
     <machineclass name="srs-ig" gui="none">
       <modules>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/CitationDemo.git</url>
+          <url>dgrbase:///CitationDemo.git</url>
 	  <name>FGVisual</name>
 	  <version>master</version>
 	</module>
@@ -69,17 +69,17 @@
     <machineclass name="srs-sound" gui="none">
       <modules>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+          <url>dgrpub:///WorldListener.git</url>
 	  <name>OpenALListener</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/WorldListener.git</url>
+          <url>dgrpub:///WorldListener.git</url>
 	  <name>WorldListener</name>
 	  <version>master</version>
 	</module>
         <module>
-          <url>https://gitlab.tudelft.nl/csdueca/WorldView.git</url>
+          <url>dgrpub:///WorldView.git</url>
 	  <name>SpecificationBase</name>
 	  <version>master</version>
 	</module>

@@ -4,6 +4,7 @@
 
 # virtual framebuffer x server
 find_program(XVFB NAMES Xvfb)
+find_program(XVNCSERVER NAMES vncserver)
 find_program(WINDOWMANAGER NAMES openbox)
 find_program(WMCTRL NAMES wmctrl)
 find_package(LibXml2 REQUIRED)
@@ -87,27 +88,41 @@ else()
   endif()
 endif()
 
-# to prepare a control file:
-# run a vnc server with the following configuration
+if (PYTHON_HAVE_PIL EQUAL 0 AND
+    PYTHON_HAVE_WMCTRL EQUAL 0 AND
+    PYTHON_HAVE_PYNPUT EQUAL 0 AND
+    PYTHON_HAVE_ATTRS EQUAL 0 AND
+    NOT XVNCSERVER MATCHES ".*-NOTFOUND" AND
+    NOT WINDOWMANAGER MATCHES ".*-NOTFOUND")
+
+  configure_file(createrun.in createrun @ONLY)
+  execute_process(COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/createrun)
+  configure_file(viewrun.in viewrun @ONLY)
+  execute_process(COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/viewrun)
+  message(STATUS "Created the \"${CMAKE_CURRENT_BINARY_DIR}/createrun\" tool")
+  message(STATUS "Created the \"${CMAKE_CURRENT_BINARY_DIR}/viewrun\" tool")
+
+elseif(XVNCSERVER MATCHES ".*-NOTFOUND")
+  message(WARNING "No Xnest, cannot create a scenario creation script")
+endif()
+
+# User interaction with DUECA windows is read from xml files, and replayed
+# through a python script.
 #
-# .vnc/config
-#   geometry=1024x768
+# to prepare a new xml file, use the createrun script. This requires that
+# cmake finds an installed vnc server
 #
-# .vnc/xstartup
-#   unset SESSION_MANAGER
-#   unset DBUS_SESSION_BUS_ADDRESS
+# Then have a clean (no actions) control file, see cleanscenario.xml and
+# run ./test/runtest/createrun cleanscenario.xml
 #
-# startup a vnc session to your server, e.g., with vinagre
+# Connect to the window with a vnc client, e.g., remmina, on
+# vnc://127.0.0.1:5988
 #
-# Then have a clean (no actions) control file, and run
-# DISPLAY=:2 python testrunner.py --control cleanfile.xml --learn
-# Note: did not work under wayland, somehow dueca window escaped the
-# display??
-#
-# left Ctrl button inserts color checks at the cursor in the sequence
-# right Ctrl button inserts snapshots in the sequence
-# mouse interaction is recorded
-# recording ends when 'Esc' is pressed
+# - F1 button inserts color checks at the cursor in the sequence
+# - F2 button inserts snapshots in the sequence
+# - recording ends when 'Esc' is pressed
+# - mouse interaction is recorded and passed to the application
+# - other keys are passed to the application
 # The recorded control file can be played back on the same window manager
 # modify as needed, particularly wait a bit more in "advance", and extend
 # the timeout
@@ -122,13 +137,16 @@ endif()
 # assigned to the window, and when translated to be relative to the
 # window have a negative y value
 #
+# You can check the resulting file with the viewrun script, same vnc connection
+#
 # Items needed in a build/test environment
 #
 # - python3-pillow (on ubuntu pip3 install pillow --user)
 # - python3-pip
-# - xvfb
+# - Xvfb
+# - vncserver (for recording)
 # - wmctrl (the program)
-# - openbox
+# - openbox (chosen window manager)
 # - pynput: pip install pynput --user
 # - wmctrl: pip install wmctrl --user
 # - dueca temp installation:
@@ -136,8 +154,3 @@ endif()
 #   o PKG_CONFIG_PATH=/tmp/lib/pkgconfig:${PKG_CONFIG_PATH}
 #   o LD_LIBRARY_PATH=/tmp/lib:/tmp/lib64
 #   o PYTHONPATH=/tmp/lib/python/site-packages
-#
-# checking on the screen of the Xvfb
-#
-#  DISPLAY=:0 xwd -root -silent | convert xwd:- png:/tmp/screenshot.png
-#

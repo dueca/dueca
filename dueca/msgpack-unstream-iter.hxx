@@ -646,30 +646,6 @@ void msg_unpack(S& i0, const S& iend, std::string& i)
   }
 }
 
-#ifdef smartstring_hxx
-template<typename S>
-void msg_unpack(S& i0, const S& iend, dueca::smartstring& i);
-#endif
-
-#ifdef Dstring_hxx
-template <typename S, unsigned mxsize>
-void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& i);
-#endif
-
-#ifdef fixvector_hxx
-template <typename S, size_t N, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::fixvector<N,T> & i);
-#endif
-
-#ifdef limvector_hxx
-template <typename S, size_t N, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i);
-#endif
-
-#ifdef varvector_hxx
-template <typename S, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::varvector<T> & i);
-#endif
 
 template <typename S, typename T>
 void msg_unpack(S& i0, const S& iend, std::vector<T> & i);
@@ -683,5 +659,6 @@ void msg_unpack(S& i0, const S& iend, std::map<K,T> & i);
 MSGPACKUS_NS_END;
 
 #include <undebprint.h>
+
 
 #endif

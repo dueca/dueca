@@ -52,26 +52,27 @@ macro(DUECACODEGEN_TARGET)
     cmake_parse_arguments(DCG
       "INDUECA" "OUTPUT" "NAMESPACE;DCOSOURCE;FLAGS;INCLUDEDIRS" ${ARGN})
 
-    unset(TCFLAGS)
+    unset(DCG_TCFLAGS)
+    unset(DCG_CCFLAGS)
     if(DCG_INDUECA)
-      list(APPEND TCFLAGS "-d")
+      list(APPEND DCG_TCFLAGS "-d")
     endif()
     if (DCG_NAMESPACE)
       foreach(N ${DCG_NAMESPACE})
-        list(APPEND TCFLAGS "-n${N}")
+        list(APPEND DCG_TCFLAGS "-n ${N}")
       endforeach()
     endif()
     if(DCG_INCLUDEDIRS OR DCG_FLAGS)
-      list(APPEND TCFLAGS "--")
+      list(APPEND DCG_CCFLAGS "--")
     endif()
     if(DCG_FLAGS)
       foreach(F ${DCG_FLAGS})
-        list(APPEND TCFLAGS "${F}")
+        list(APPEND DCG_CCFLAGS "${F}")
       endforeach()
     endif()
     if (DCG_INCLUDEDIRS)
       foreach(I ${DCG_INCLUDEDIRS})
-        list(APPEND TCFLAGS "-I${I}")
+        list(APPEND DCG_CCFLAGS "-I${I}")
       endforeach()
     endif()
 
@@ -84,21 +85,21 @@ macro(DUECACODEGEN_TARGET)
       string(REPLACE ".dco" ".cxx" SOURCE ${DCO})
       string(REPLACE ".dco" ".hxx" HEADER ${DCO})
       if (DCG_INDUECA OR CODEGEN_SOURCE)
-	add_custom_command(OUTPUT
+        add_custom_command(OUTPUT
           ${CMAKE_CURRENT_BINARY_DIR}/${HEADER}
           ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}
           COMMAND ${Python_EXECUTABLE}
-	  ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${TCFLAGS} <
-          ${CMAKE_CURRENT_SOURCE_DIR}/${DCO}
+          ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${DCG_TCFLAGS}
+          ${CMAKE_CURRENT_SOURCE_DIR}/${DCO} ${DCG_CCFLAGS}
           DEPENDS ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${DCO}
           COMMENT "[DuecaCodegen][${DCG_OUTPUT}] Code generation ${DCO}"
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
       else()
-	add_custom_command(OUTPUT
+        add_custom_command(OUTPUT
           ${CMAKE_CURRENT_BINARY_DIR}/${HEADER}
           ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}
-          COMMAND ${DuecaCodegen_EXECUTABLE} ${TCFLAGS} <
-          ${CMAKE_CURRENT_SOURCE_DIR}/${DCO}
+          COMMAND ${DuecaCodegen_EXECUTABLE} ${DCG_TCFLAGS}
+          ${CMAKE_CURRENT_SOURCE_DIR}/${DCO} ${DCG_CCFLAGS}
           DEPENDS ${DuecaCodegen_EXECUTABLE} ${DCO}
           COMMENT "[DuecaCodegen][${DCG_OUTPUT}] Code generation ${DCO}"
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -117,4 +118,3 @@ macro(DUECACODEGEN_TARGET)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(DuecaCodegen DEFAULT_MSG
   DuecaCodegen_EXECUTABLE)
-

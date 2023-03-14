@@ -27,7 +27,7 @@
       Floats
       ;; data encoded in AmorphStore, all doubles, stored in toml
       Doubles
-      ;; External binary file, binary storage
+      ;; External binary file, binary storage, no information on format
       BinaryFile
       ;; External ASCII formatted file, data AmorphStore packed as floats
       FloatFile
@@ -37,6 +37,8 @@
       JSONFile
       ;; data directly encoded and stored as XML string in external file
       XMLFile
+      ;; data stored in Base64 in external file
+      Base64File
       )
 
 ;;  A Snapshot object can be used to send the data from a state

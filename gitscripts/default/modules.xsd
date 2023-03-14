@@ -16,7 +16,9 @@
   <xs:complexType name="project_t">
     <xs:sequence>
       <xs:element name="url"
-		  type="xs:string"/>
+		  type="xs:string"
+		  minOccurs="0"
+		  maxOccurs="1"/>
       <xs:element name="version"
 		  type="xs:string"
 		  minOccurs="0"/>
@@ -25,6 +27,6 @@
 		  minOccurs="0"
 		  maxOccurs="unbounded"/>
     </xs:sequence>
-    <xs:attribute name="altname" type="xs:string"/>
+    <xs:attribute name="main" type="xs:boolean"/>
   </xs:complexType>
 </xs:schema>

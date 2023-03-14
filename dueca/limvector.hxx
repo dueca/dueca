@@ -13,9 +13,8 @@
         license         : EUPL-1.2
 */
 
-#ifndef limvector_hxx
+#pragma once
 #define limvector_hxx
-
 #include <dueca_ns.h>
 #include <CommObjectTraits.hxx>
 #include <PackTraits.hxx>
@@ -255,4 +254,14 @@ struct diffpack_traits<limvector<N,D> >: public diffpack_vector { };
 
 DUECA_NS_END;
 
-#endif
+#include "msgpack-unstream-iter.hxx"
+MSGPACKUS_NS_START;
+template <typename S, size_t N, typename T>
+inline void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i)
+{
+  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
+  i.resize(len);
+  for (unsigned ii = 0; ii < len; ii++)
+    msg_unpack(i0, iend, i[ii]);
+}
+MSGPACKUS_NS_END;

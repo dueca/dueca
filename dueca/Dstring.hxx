@@ -25,7 +25,7 @@
     string types used in one node.
 */
 
-#ifndef Dstring_hxx
+#pragma once
 #define Dstring_hxx
 
 #include <cstdlib>
@@ -124,7 +124,7 @@ public:
 
   /** grab from a buffer */
   void assign(const char*d, size_t size);
-  
+
   /** Get the length of the string. */
   size_t size() const;
 
@@ -216,7 +216,16 @@ istream& operator >> (istream& is,
                       DUECA_NS ::Dstring<mxsize>& o);
 PRINT_NS_END
 
-
-
-#endif
-
+#include "msgpack-unstream-iter.hxx"
+MSGPACKUS_NS_START;
+template <typename S, unsigned mxsize>
+inline void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& i)
+{
+  uint32_t len = unstream<S>::unpack_strsize(i0, iend);
+  i.resize(len);
+  for (size_t ii = 0; ii < len; ii++) {
+    check_iterator_notend(i0, iend);
+    i.data()[ii] = *i0++;
+  }
+}
+MSGPACKUS_NS_END;

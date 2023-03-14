@@ -45,6 +45,7 @@ compilerarg = []
 nextinclude = False
 objectnamespace = []
 pack_alignment = None
+currentobject = None
 
 # pre strip compiler arguments - oldstyle
 if '--' in sys.argv[1:]:
@@ -63,6 +64,9 @@ aparser.add_argument(
 aparser.add_argument(
     '-n', '--namespace', action='append',
     default=[], help="namespace for the object")
+aparser.add_argument(
+    'dcofile', type=str, nargs='*',
+    help="Input file")
 
 pvals = aparser.parse_args(sys.argv[1:])
 
@@ -558,7 +562,12 @@ class BuildObject(object):
     def complete(self):
 
         # global variables
-        global headercommentstring, in_dueca, types
+        global headercommentstring, in_dueca, types, currentobject
+
+        if currentobject and self.name != currentobject:
+            raise ValueError(
+                f"Produced objects {self.name}.hxx and {self.name}.cxx"
+                f" do not match input file name {currentobject}")
 
         # specific addition to header
         self.headercomments = headercommentstring
@@ -1944,7 +1953,6 @@ class Channel(BuildObject):
 
     def complete(self):
 
-
         global headercommentstring, in_dueca
 
         self.memberprotos.pop()
@@ -2396,7 +2404,7 @@ class StandaloneEnum(BuildObject):
     def complete(self):
 
         # global variables
-        global headercommentstring, in_dueca, types
+        global headercommentstring, in_dueca, types, pvals
 
         enum = types[self.name]
         nameless = copy.copy(self)
@@ -3071,18 +3079,32 @@ if __name__ == "__main__":
     #do_debug = True
     from platform import python_version
 
-    if list(map(int, python_version().split('.')[:2])) < [3, 7]:
-        import io
-        dcodata = ''.join(io.TextIOWrapper(
-            sys.stdin.buffer, encoding='utf-8').readlines())
-    else:
-        sys.stdin.reconfigure(encoding='utf-8')
-        dcodata = ''.join(sys.stdin.readlines())
+    if pvals.dcofile:
+        for fname in pvals.dcofile:
+            with open(fname, 'r') as infile:
+                dcodata = ''.join(infile.readlines())
+                currentobject = os.path.basename(fname)[:-4]
+                try:
+                    content.parseString(dcodata, True)
+                except CodegenException as e:
+                    print('\n'.join([e.__doc__, '', 'Code generation failed!']))
+                    sys.exit(1)
+                except:
+                    raise
 
-    try:
-        content.parseString(dcodata, True)
-    except CodegenException as e:
-        print('\n'.join([e.__doc__, '', 'Code generation failed!']))
-        sys.exit(1)
-    except:
-        raise
+    else:
+        if list(map(int, python_version().split('.')[:2])) < [3, 7]:
+            import io
+            dcodata = ''.join(io.TextIOWrapper(
+                sys.stdin.buffer, encoding='utf-8').readlines())
+        else:
+            sys.stdin.reconfigure(encoding='utf-8')
+            dcodata = ''.join(sys.stdin.readlines())
+
+        try:
+            content.parseString(dcodata, True)
+        except CodegenException as e:
+            print('\n'.join([e.__doc__, '', 'Code generation failed!']))
+            sys.exit(1)
+        except:
+            raise

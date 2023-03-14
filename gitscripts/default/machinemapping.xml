@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- This file defines the mapping between DUECA nodes and their
-     machine class (type of checkout, libraries, modules) -->
+     machine class (type of checkout, libraries, modules).
+
+     Sparse checkout is always done for borrowed modules, but for the
+     project's own modules it can be controlled. Typically, on a machine
+     where you develop, it needs to be off, so you see all modules in the
+     project. Compilation is only performed for the modules in the
+     machine's modules.xml file, so this does not affect the size of the
+     executable.
+     -->
 <nodes
     xmlns="https://dueca.tudelft.nl"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

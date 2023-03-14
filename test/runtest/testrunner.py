@@ -19,8 +19,6 @@ import sys
 from lxml import etree
 from duecautils.xmlutil import XML_comment, XML_tag, XML_interpret_bool
 
-_loop = asyncio.get_event_loop()
-
 base = '/tmp/tmp.runner'
 x11display = os.environ.get("DISPLAY")
 
@@ -66,12 +64,14 @@ def findWindow(name: str):
     return None
 
 
-def findWindowUnder(wlist, x: int, y: int):
+def findWindowUnder(wlist, x: int, y: int, recording=False):
     global translation
     foundwin = None
     for w in Window.list():
         if w.wm_name not in known_windows:
             known_windows[w.wm_name] = (w.x, w.y)
+            if recording:
+                wlist.append(w.wm_name)
             print(f"{w.wm_name} {w.wm_state} at {w.x},{w.y} size {w.w},{w.h}")
         elif known_windows[w.wm_name] != (w.x, w.y):
             known_windows[w.wm_name] = (w.x, w.y)
@@ -90,21 +90,23 @@ def findWindowUnder(wlist, x: int, y: int):
     return foundwin
 
 class Project:
-    def __init__(self, name='', windows=None, xmlnode=None, xmlroot=None):
+    def __init__(self, xmlnode):
 
-        if xmlroot is not None and len(name):
-            self.xmlnode = etree.SubElement(xmlroot, 'project')
-            self.xmlnode['name'] = name
-            for w in windows:
-                etree.SubElement(self.xmlnode, 'window').text = w
-            self.windows, self.name = windows, name
+        self.name = xmlnode.get('name', None)
+        self.windows = []
+        for elt in xmlnode:
+            self.windows.append(elt.text.strip())
+            self.xmlnode = xmlnode
 
-        elif xmlnode is not None:
-            self.name = xmlnode.get('name', None)
-            self.windows = []
-            for elt in xmlnode:
-                self.windows.append(elt.text.strip())
-
+    def save(self):
+        tosave = set(self.windows)
+        for elt in self.xmlnode:
+            try:
+                tosave.remove(elt.text.strip())
+            except KeyError:
+                pass
+        for n in tosave:
+            etree.SubElement(self.xmlnode, 'window').text = n
 
 class Execute:
     def __init__(self, platform=None, node=None, xmlnode=None, xmlroot=None):
@@ -372,6 +374,7 @@ class Scenario:
 
         # write back to file
         print(f"Re-writing {self.fname}")
+        self.project.save()
         etree.ElementTree(self.xmltree).write(
                 self.fname, pretty_print=True, encoding='utf-8',
                 xml_declaration=True)
@@ -379,7 +382,7 @@ class Scenario:
 
     def pass_click(self, x, y, button, pressed):
 
-        window = findWindowUnder(self.project.windows, x, y)
+        window = findWindowUnder(self.project.windows, x, y, True)
         self.actions.append(Click(xmlroot=self.actionnode,
                                   window=window, x=x, y=y,
                                   button=button, pressed=pressed))
@@ -390,15 +393,15 @@ class Scenario:
 
     def pass_key(self, key):
         print(f"Key press {key}")
-        if key in (Key.ctrl,):
+        if key in (Key.f1,):
 
             # get color spot here
-            window = findWindowUnder(self.project.windows, self.x, self.y)
+            window = findWindowUnder(self.project.windows, self.x, self.y, True)
             self.actions.append(Check(xmlroot=self.actionnode,
                                       x=self.x, y=self.y, window=window))
             return True
 
-        elif key in (Key.ctrl_r,):
+        elif key in (Key.f2,):
 
             self.actions.append(Snap(xmlroot=self.actionnode,
                                      name=f'snapshot{self.snapnum:04d}.png'))
@@ -611,9 +614,3 @@ async def main():
     await asyncio.wait_for(doall, 500)
 
 asyncio.run(main())
-
-#_loop.run_until_complete(
-#    asyncio.ensure_future(scenario.run(runner, pres.learn)))
-
-
-

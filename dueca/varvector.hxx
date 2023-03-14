@@ -13,9 +13,8 @@
         license         : EUPL-1.2
 */
 
-#ifndef varvector_hxx
+#pragma once
 #define varvector_hxx
-
 #include <dueca_ns.h>
 #include <CommObjectTraits.hxx>
 #include <PackTraits.hxx>
@@ -268,4 +267,14 @@ struct diffpack_traits<varvector<D> >: public diffpack_vector { };
 
 DUECA_NS_END;
 
-#endif
+#include "msgpack-unstream-iter.hxx"
+MSGPACKUS_NS_START;
+template <typename S, typename T>
+inline void msg_unpack(S& i0, const S& iend, dueca::varvector<T> & i)
+{
+  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
+  i.resize(len);
+  for (unsigned ii = 0; ii < len; ii++)
+    msg_unpack(i0, iend, i[ii]);
+}
+MSGPACKUS_NS_END;
