@@ -1,4 +1,9 @@
-set(PLATFORMS platform-srs.xml platform-hmilab-car.xml platform-hmilab-ac.xml)
+set(PLATFORMS
+  platform-srs.xml
+  platform-hmilab-car.xml
+  platform-hmilab-ac.xml
+  platform-hmilab-manual.xml
+)
 
 set(DATA
 

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<configuration
+    xmlns="https://dueca.tudelft.nl"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://dueca.tudelft.nl platform.xsd">
+  <!-- Set-up for a manual control task on the HMI laboratory.
+
+       - zeronode dutmms1, class hmi-ecs
+       - master node dutmms4, class hmi-io
+       - display node dutmms2, class hmi-efis
+
+  -->
+  <machineclasses>
+    <machineclass name="hmi-ecs" gui="gtk3"/>
+    <machineclass name="hmi-io" gui="none">
+      <config>
+        set(PROJECT_LIBRARIES -L$ENV{HOME}/apps/hmi-io/build
+            -lhmi-io -lethercat)
+        set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/apps/hmi-io/build)
+      </config>
+      <modules>
+        <module>
+          <url>dgrbase:///CSControlLoading.git</url>
+          <name>IOController</name>
+          <version>master</version>
+        </module>
+        <module>
+          <url>dgrbase:///CSControlLoading.git</url>
+          <name>ControlLoading</name>
+          <version>master</version>
+        </module>
+        <module>
+          <url>dgrbase:///CSControlLoading.git</url>
+          <name>CLConfigurations</name>
+          <version>master</version>
+        </module>
+        <module>
+          <url>dgrbase:///CSControlLoading.git</url>
+          <name>cl-analyser</name>
+          <version>master</version>
+        </module>
+      </modules>
+    </machineclass>
+    <machineclass name="hmi-efis" gui="glut"/>
+  </machineclasses>
+  <platform name="hmilab" comm-master="dutmms4">
+    <node name="dutmms1" machineclass="hmi-ecs" node-number="0"/>
+    <node name="dutmms4" machineclass="hmi-io"/>
+    <node name="dutmms2" machineclass="hmi-efis"/>
+  </platform>
+</configuration>
