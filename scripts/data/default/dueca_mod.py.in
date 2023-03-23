@@ -1,4 +1,7 @@
 ## -*-python-*-
+## dueca.cnf: created with DUECA version @dueca-version@
+## Created on: @date@
+
 ## this is an example dueca_mod.py file, for you to start out with and adapt
 ## according to your needs. Note that you need a dueca_mod.py file only for the
 ## node with number 0

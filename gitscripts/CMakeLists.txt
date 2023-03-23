@@ -24,6 +24,8 @@ set(PYSCRIPTS
 
 install(PROGRAMS dueca-cvs-to-git.py DESTINATION ${CMAKE_INSTALL_BINDIR}
   RENAME dueca-cvs-to-git)
+install(PROGRAMS dueca-scheme-to-python.py DESTINATION ${CMAKE_INSTALL_BINDIR}
+  RENAME dueca-scheme-to-python)
 
 install(FILES ${PYSCRIPTS}
   DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca)

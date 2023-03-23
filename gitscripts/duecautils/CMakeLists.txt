@@ -26,6 +26,10 @@ endif()
 
 # list all python modules and files that create the package
 set(DEPS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/readcnf.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/readmod.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/readscheme.py
   ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/changedco.py
   ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/changemodule.py
   ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/__init__.py
