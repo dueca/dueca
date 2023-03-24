@@ -591,6 +591,7 @@ getent group rtdueca || groupadd rtdueca
 %{_prefix}/bin/dueca-channeldot
 %{_prefix}/bin/dueca-gproject
 %{_prefix}/bin/dueca-cvs-to-git
+%{_prefix}/bin/dueca-scheme-to-python
 
 # python package
 %{python3_sitelib}/duecautils*
