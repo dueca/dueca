@@ -115,7 +115,7 @@ def canWrite(fname, overwrite=False):
     return not os.path.exists(fname)
 
 def write_cnf_from_template(outfile, subst):
-    with open(f"{duecabase}/dueca_cnf.py.in", 'r') as fr:
+    with open(f"{duecabase}/dueca_cnf.py.in", 'r', encoding='utf-8') as fr:
         fdata = ''.join(fr.readlines())
     for k, v in subst.items():
         if f'@{k}@' in fdata:
@@ -125,7 +125,7 @@ def write_cnf_from_template(outfile, subst):
     if _verbose and fdata.count('@'):
         dprint(f"There are {fdata.count('@')} remaining @ signs")
 
-    with open(outfile, 'w') as fw:
+    with open(outfile, 'w', encoding='utf-8') as fw:
         fw.write(fdata)
 
 def get_dueca_version():
@@ -190,7 +190,7 @@ for cnf in cnffiles:
     if canWrite(out, runargs.overwrite):
 
         readscheme.clearValues()
-        with open(cnf, 'r') as f:
+        with open(cnf, 'r', encoding='utf-8') as f:
             res = readscheme.contents.parseFile(f)
         for r in res:
             if isinstance(r, readscheme.Expression):
@@ -207,10 +207,10 @@ for mod in modfiles:
     out = mod[:-4] + '_mod.py'
     if canWrite(out, runargs.overwrite):
 
-        with open(mod, 'r') as f:
+        with open(mod, 'r', encoding='utf-8') as f:
             res = readscheme.contents.parseFile(f)
 
-        with open(out, 'w') as f:
+        with open(out, 'w', encoding='utf-8') as f:
             print(new_mod_header, file=f)
             for r in res:
                 print(r.convert(0, _pool), file=f)
