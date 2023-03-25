@@ -23,6 +23,7 @@ import subprocess
 import argparse
 import tempfile
 from argparse import Namespace
+from collections import ChainMap
 import socket
 from datetime import date
 from lxml import etree
@@ -129,6 +130,35 @@ parser.add_argument(
     help="Verbose run with information output")
 subparsers = parser.add_subparsers(help='commands', title='commands')
 
+def get_dueca_version():
+    dc = subprocess.run(("dueca-config", "--version"), stdout=subprocess.PIPE)
+    return dc.stdout.strip().decode("UTF-8")
+
+_dueca_cnf_defaults = {
+    'this-node-id': 0,
+    'no-of-nodes': 1,
+    'send-order': 0,
+    'highest-manager': 4,
+    'run-in-multiple-threads?': True,
+    'rt-sync-mode': 2,
+    'graphic-interface': 'gtk3',
+    'tick-base-increment': 100,
+    'tick-compatible-increment': 100,
+    'tick-time-step': 0.01,
+    'communication-interval': 50,
+    'if-address': "127.0.0.1",
+    'mc-address': "224.0.0.1",
+    'mc-port': 7500,
+    'master-host': 'correct this value',
+    'packet-size': 4096,
+    'bulk-max-size': 128*1024,
+    'comm-prio-level': 3,
+    'unpack-prio-level': 2,
+    'bulk-unpack-prio-level': 1,
+    'dueca-version': get_dueca_version(),
+    'date': date.today().strftime("%d-%b-%Y"),
+    }
+
 def _gui_choices():
     return ('none', 'gtk3', 'gtk2', 'glut', 'glut-gui')
 
@@ -171,10 +201,6 @@ def create_and_copy(dirs, files, subst):
             read_transform_and_write(
                 duecabase + f[0], f1, subst))
     return fnew
-
-def get_dueca_version():
-    dc = subprocess.run(("dueca-config", "--version"), stdout=subprocess.PIPE)
-    return dc.stdout.strip().decode("UTF-8")
 
 def get_dueca_prefix():
     dc = subprocess.run(("dueca-config", "--prefix"), stdout=subprocess.PIPE)
@@ -364,17 +390,10 @@ class NewProject:
             '{project}/{project}'.format(project=ns.name))
 
         # add the default config files
-        cnfdef = {'this-node-id': 0,
-                  'no-of-nodes': 1,
-                  'send-order': 0,
-                  'rt-sync-mode': 2,
-                  'graphic-interface': ns.gui,
-                  'if-address': "127.0.0.1",
-                  'project': ns.name,
-                  'dueca-version': get_dueca_version(),
-                  'date': date.today().strftime("%d-%b-%Y"),
-                  'highest-manager': 4,
-                  'master-host': "127.0.0.1"}
+        cnfdef = ChainMap(
+            { 'graphic-interface': ns.gui,
+              'project': ns.name},
+            _dueca_cnf_defaults)
         if ns.script == 'python':
             create_and_copy([], NewProject.pfile, cnfdef)
         else:
@@ -976,19 +995,18 @@ class NewNode(OnExistingProject):
                     " configuration or specify the script language")
 
 
-            tofill = {'projectdir': self.projectdir,
-                      'platform': ns.platform,
-                      'node': ns.name,
-                      'no-of-nodes': ns.num_nodes,
-                      'this-node-id': ns.node_number,
-                      'send-order': (ns.cmaster and 1) or 0,
-                      'rt-sync-mode': 2,
-                      'highest-manager': ns.highest_priority,
-                      'graphic-interface': ns.gui,
-                      'if-address': ns.if_address,
-                      'dueca-version': get_dueca_version(),
-                      'date': date.today().strftime("%d-%b-%Y"),
-                      'master-host': ns.cmaster or ns.if_address }
+            tofill = ChainMap(
+                {'projectdir': self.projectdir,
+                 'platform': ns.platform,
+                 'node': ns.name,
+                 'no-of-nodes': ns.num_nodes,
+                 'this-node-id': ns.node_number,
+                 'send-order': (ns.cmaster and 1) or 0,
+                 'highest-manager': ns.highest_priority,
+                 'graphic-interface': ns.gui,
+                 'if-address': ns.if_address,
+                 'master-host': ns.cmaster or ns.if_address },
+                _dueca_cnf_defaults)
 
             create_and_copy(NewNode.dirs, NewNode.files, tofill)
             nfiles = (ns.node_number and 1) or 2

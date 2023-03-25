@@ -10,7 +10,7 @@ import os
 import sys
 from lxml import etree
 from .verboseprint import dprint
-from .xmlutil import XML_comment, XML_tag, XML_TagUnknown
+from .xmlutil import XML_comment, XML_tag, XML_TagUnknown, XML_interpret_bool
 
 class Platform:
 
@@ -59,9 +59,9 @@ class NodeMachineMapping:
                 if not XML_tag(node, 'node'):
                     raise XML_TagUnknown(node)
 
-                nname = node.get('name', None)
-                mclass = node.get('machineclass', None)
-                sparse = node.get('sparse-checkout', False)
+                nname = node.get('name', '').strip()
+                mclass = node.get('machineclass', '').strip()
+                sparse = XML_interpret_bool(node.get('sparse-checkout', "0"))
                 if not nname or not mclass:
                     raise Exception(
                         f"Node without name or machine class,"
@@ -98,6 +98,7 @@ class NodeMachineMapping:
 
         self._sync()
 
+        dprint(f"Checking mapping for {nname} from {self.nodes}")
         if nname in self.nodes:
             if self.nodes[nname][:2] == (mclass, sparse_checkout):
                 # no change in mapping
@@ -113,10 +114,10 @@ class NodeMachineMapping:
                 self.nodes[nname][2]['sparse-checkout'] = sparse_checkout
             else:
                 raise Exception(
-                    f"Conflicting mapping for node {nname}, from"
+                    f"Conflicting mapping for node {nname}, from "
                     f"{self.nodes[nname][0]}"
                     f" {self.nodes[nname][1] and ' (sparse)' or ''}"
-                    f"to {mclass}{sparse_checkout and ' (sparse)' or ''}")
+                    f" to {mclass}{sparse_checkout and ' (sparse)' or ''}")
             self.clean = False
         else:
             self.nodes[nname] = (mclass, sparse_checkout)

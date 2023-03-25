@@ -109,7 +109,7 @@ def readModules(project, machineclass):
 
     res = []
 
-    try: 
+    try:
         # decode the old modules list and add to the modules file
         with open(f'{project}/modules.{machineclass}', 'r') as f:
             for l in f:
@@ -135,7 +135,7 @@ startdir = os.getcwd()
 
 # already git-converted projects
 gitgroups = [ ('ae-cs-dueca-base', 'git@gitlab.tudelft.nl'),
-              ('ae-cs-dueca-active', 'git@gitlab.tudelft.nl'), 
+              ('ae-cs-dueca-active', 'git@gitlab.tudelft.nl'),
               ('ae-cs-dueca-archive', 'git@gitlab.tudelft.nl'),
               ('ae-cs-dueca-ftis', 'git@gitlab.tudelft.nl'),
               ('ae-cs-dueca-yard', 'git@gitlab.tudelft.nl'),
@@ -147,11 +147,11 @@ def constructUrl(prj):
         if os.path.isdir(f'{rundir}/{gg}/{prj}'):
             print(f"Borrow from already converted {gg}/{prj}")
             return f'{grepo}:{gg}/{prj}.git'
-        
+
     # assuming we are borrowing from a recent convert
     print(f"Borrow from now-converted project {prj}")
     return f'file://{rundir}/repo/{prj}.git'
-            
+
 
 parser = argparse.ArgumentParser(
         description=
@@ -317,6 +317,8 @@ mc_mapping = dict(solo='solo',
                   dutmms9='hmi-ig',
                   dutmms14='hmi-ig',
                   dutmms14b='hmi-ig',
+                  dutmms15='hmi-ig',
+                  dutmms16='hmi-ig',
                   dutmms1='hmi-ecs',
                   dutmms4='hmi-io',
                   dutmms2='hmi-efis',

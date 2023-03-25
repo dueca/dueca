@@ -161,7 +161,7 @@ more complex types:
      (IterableVarSizeType dueca::varvector<std::string>
      "#include <dueca/varvector.hxx>
      #include <string>")
-     
+
      (IterableVarSizeType dueca::limvector<5,std::string>
      "#include <dueca/limvector.hxx>
      #include <string>")
@@ -544,11 +544,24 @@ keyword. Currently two different additions are available:
   MessagePack format, see https://msgpack.org/index.html .
   For Enumerator types, use option msgpackenum
 
+\section codegen_codegen Generating the code for your dco file
+
+To help you create nicely formatted dco files, there is a little
+script, new-dco, that creates a dco file for you.
+
+
 
 
 \section codegen_example Example
 
-Finally, here is an
-\ref primarycontrols_code "example" of the generated code.
+Finally, here is an \ref primarycontrols_code "example" of the
+generated code. You can use it to create a simple template to edit, or
+let it enter a lot of the code for you already. A little example:
+
+\verbatim
+new-dco object --name MyData --description "Test object" --type float \
+	--member float a --default 0.0f
+\endverbatim
+
 
 */

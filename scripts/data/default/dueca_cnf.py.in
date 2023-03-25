@@ -12,7 +12,7 @@ send_order = @send-order@                         # order/prio in send cycle
 
 ### parameter defining real_time behaviour
 highest_manager = @highest-manager@                    # max priority of activities
-run_in_multiple_threads = True         # test with False for threading problems
+run_in_multiple_threads = @run-in-multiple-threads?@         # test with False for threading problems
 rt_sync_mode = @rt-sync-mode@                       # 0=sigwait, obsolete
                                        # 1=select, portable, obsolete
                                        # 2=nanosleep, good for all modern
@@ -26,15 +26,15 @@ graphic_interface = "@graphic-interface@"             # selection of interface
 ### parameters defining "size" of the time. Note that all nodes should have
 ### the same compatible_increment, and for all nodes
 ### tick_time_step/tick_base_increment should be the same
-tick_base_increment = 100              # logical increment of time, each tick
-tick_compatible_increment = 100        # same, but used at start_up
-tick_time_step = 0.01                  # time step for each tick
-communication_interval = 100           # interval for initiating comm
+tick_base_increment = @tick-base-increment@              # logical increment of time, each tick
+tick_compatible_increment = @tick-compatible-increment@        # same, but used at start_up
+tick_time_step = @tick-time-step@                  # time step for each tick
+communication_interval = @communication-interval@           # interval for initiating comm
 
 ### parameter for communication using multicast
 if_address = "@if-address@"            # address of own ip interface
-mc_address = "224.0.0.1"               # multicast address
-mc_port = 7500                         # master control port
+mc_address = "@mc-address@"               # multicast address
+mc_port = @mc-port@                         # master control port
 master_host = "@master-host@"          # hostname or IP of the comm master
 
 ### parameters for udp/websocket based communication (new style)
@@ -51,11 +51,11 @@ data_url = "udp://" + mc_address + ":" + str(mc_port+1)
 # data_url = "ws://" + master_host + ":" + str(mc_port) + "/data"
 
 ### common communication parameters
-packet_size = 8192                     # size of packets
-bulk_max_size = 128*1024               # max size of bulk messages
-comm_prio_level = 3                    # priority communication process
-unpack_prio_level = 2                  # priority unpacking incoming data
-bulk_unpack_prio_level = 2             # priority unpacking bulk data
+packet_size = @packet-size@                     # size of packets
+bulk_max_size = @bulk-max-size@                 # max size of bulk messages
+comm_prio_level = @comm-prio-level@                    # priority communication process
+unpack_prio_level = @unpack-prio-level@                  # priority unpacking incoming data
+bulk_unpack_prio_level = @bulk-unpack-prio-level@             # priority unpacking bulk data
 
 ### choice for the communication.
 use_ip_comm = no_of_nodes > 1          # if true, use ethernet
