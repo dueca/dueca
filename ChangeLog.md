@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.8] - 2023-03-25
+
+- Add a script for scheme to python configuration conversion
+- Some minor fixes in dueca-gproject
+- Improved comments in the config.cmake templates
+
 ## [3.2.7] - 2023-PI
 
 - Add check to codegen, to ensure the right objects are generated
@@ -23,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [3.2.5] - 2023-01-09
 
-- Some documentation updates (git setup, simplesimulation, GtkGladeWindow, 
+- Some documentation updates (git setup, simplesimulation, GtkGladeWindow,
   Condition)
 - dueca-gproject improvements (handling sparse setup, url translation)
 - Use std::shared_ptr instead of boost::shared_ptr
