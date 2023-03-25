@@ -58,12 +58,12 @@ function create_debfiles()
     echo "Using temporary dir $PKGDIR"
     mkdir ${PKGDIR}/dueca-${VERSION}
     if [ -z ${GITREMOTE} ]; then
-	git archive --format=tar \
+        git archive --format=tar \
             ${GITBRANCHORTAG} | \
             tar -C $PKGDIR/dueca-${VERSION} -xf -
     else
-	echo "curl -L ${GITREMOTE}"
-        curl -L ${GITREMOTE} | tar -C $PKGDIR -zxf -
+        echo "curl -L ${GITREMOTE}"
+        curl -L ${GITREMOTE} | tar -C $PKGDIR -xzf -
     fi
     if [ \! -d ${PKGDIR}/dueca-${VERSION}/dueca ]; then
         echo "Could not export copy"
@@ -138,7 +138,7 @@ function create_debfiles()
     sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
             s/debian\.tar/debian-xUbuntu_22\.04.tar/' ${NAME}.dsc > \
          ../../../$NAME-xUbuntu_22.04.dsc
-    
+
     # now hack/adapt for xUbuntu_18.04
     sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
             s/python3-xlwt/python-xlwt/' debian-versioned/control.bak > \
@@ -154,7 +154,7 @@ function create_debfiles()
             s/debian\.tar/debian-xUbuntu_18\.04.tar/
             s/python3-xlwt/python-xlwt/' ${NAME}.dsc > \
                 ../../../${NAME}-xUbuntu_18.04.dsc
-    
+
     # Portfile for mac osx builds
     cp Portfile ../../..
 
@@ -165,7 +165,7 @@ function create_debfiles()
 
     # now to obs source folder
     pushd obs
-    
+
     # default deb-based, currently focused on Ubuntu 20.04
     sed -e "s/@dueca_VERSION@/${VERSION}/" \
         debian/changelog.in >debian/changelog
@@ -194,8 +194,8 @@ function create_debfiles()
 
     # these are like Ubuntu 22.04
     for sfx in Debian_11 Raspbian_11; do
-	cp $NAME-xUbuntu_22.04.dsc $NAME-${sfx}.dsc
-	cp debian-versioned-xUbuntu_22.04.tar debian-${sfx}.tar
+        cp $NAME-xUbuntu_22.04.dsc $NAME-${sfx}.dsc
+        cp debian-versioned-xUbuntu_22.04.tar debian-${sfx}.tar
     done
 
     # add a test project, relies on available gproject
