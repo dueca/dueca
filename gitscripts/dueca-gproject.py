@@ -407,7 +407,7 @@ class NewProject:
 
         # add the remote and push results
         if ns.remote:
-            repo.create_remote('origin', RootMap().urlToAbsolute(remoteurl))
+            repo.create_remote('origin', RootMap().urlToAbsolute(ns.remote))
             repo.git.push('--set-upstream', 'origin', 'master')
 
         print(f"Created new DUECA project {ns.name}")
