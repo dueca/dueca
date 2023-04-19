@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.9] - 2023-04-19
+
+- Enable use of abbreviated url when creating projects
+- Fixes in various python code, to correctly read files on ubuntu 18.04
+
 ## [3.2.8] - 2023-03-25
 
 - Add a script for scheme to python configuration conversion
