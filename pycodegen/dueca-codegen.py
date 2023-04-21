@@ -3081,7 +3081,7 @@ if __name__ == "__main__":
 
     if pvals.dcofile:
         for fname in pvals.dcofile:
-            with open(fname, 'r') as infile:
+            with open(fname, 'r', encoding='utf-8') as infile:
                 dcodata = ''.join(infile.readlines())
                 currentobject = os.path.basename(fname)[:-4]
                 try:

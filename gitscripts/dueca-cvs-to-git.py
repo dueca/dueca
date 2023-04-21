@@ -148,10 +148,14 @@ def constructUrl(prj):
             print(f"Borrow from already converted {gg}/{prj}")
             return f'{grepo}:{gg}/{prj}.git'
 
-    # assuming we are borrowing from a recent convert
-    print(f"Borrow from now-converted project {prj}")
+    # is there a recently converted project?
+    if os.path.isdir(f'{rundir}/repo/{prj}.git'):
+        # assuming we are borrowing from a recent convert
+        print(f"Borrow from now-converted project {prj}")
+    else:
+        print(f"Cannot find conversion repository at '{rundir}/repo/{prj}.git'"
+              "Assuming it will be created")
     return f'file://{rundir}/repo/{prj}.git'
-
 
 parser = argparse.ArgumentParser(
         description=
@@ -517,7 +521,7 @@ for project in projects:
 
     # now add a tag
     repo.create_tag('from_cvs', message='As converted from ')
-    repo.remote().push('--tags')
+    repo.remote().push('from_cvs')
 
     #%% patch file available?
     allok = True
