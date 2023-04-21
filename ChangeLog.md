@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Enable use of abbreviated url when creating projects
 - Fixes in various python code, to correctly read files on ubuntu 18.04
+- Add a note on the ulimit problems in ubuntu 22.04
+- Remove the FORCE_PYTHON_MALLOC from all but ubuntu 20.04 builds
+- Test allowed memory limit before attempting an mlockall
 
 ## [3.2.8] - 2023-03-25
 

@@ -39,6 +39,7 @@
 #include <locale>
 #include <sstream>
 #include <dueca/ChannelReadToken.hxx>
+#include <sys/resource.h>
 #define W_CNF
 #define I_SYS
 #define W_SYS
@@ -1032,33 +1033,54 @@ void Environment::proceed(int stage)
 #endif
         }
       else {
-        /* DUECA system.
 
-           The process has no suid or root capability, but if the
-           configuration is appropriate, memlock should be
-           possible. This is now attempted. Failure indicates a
-           possibly lower real-time performance. If that is not
-           acceptable (for a production environment), see DUECA
-           documentation on tuning linux workstations to properly
-           configure.
-        */
-        I_SYS(getId() << " trying memlock without root capability");
-        if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
-          /* DUECA system.
+	// first check the limit; it has no use (Ubuntu 22.04)
+	// requesting mlock when the limit is low, as this will lead
+	// to alloc failures
+	rlimit mlcklim;
+	int res = getrlimit(RLIMIT_MEMLOCK, &mlcklim);
+	if (res != 0) {
+	  /* DUECA system.
 
-             Attempt to load and lock the memory for the DUECA
-             executable failed. This is normal during development,
-             when real-time and memory locking priorities are not
-             used, but should be avoided during deployment. Check the
-             page on 'tuning linux workstations' for guidance. This
-             may also happen when not enough memory is available.
-          */
-          W_SYS("Cannot memlock the DUECA executable: " << strerror(errno));
-          // perror("Cannot memlock program");
-        }
-        else {
-          cpu_lowlatency.reset(new CPULowLatency(0));
-        }
+	     Attempt to find out the memlock limit failed. */
+	  W_SYS("Cannot detect memlock limit: " << strerror(errno));
+	  mlcklim.rlim_cur = 0;
+	}
+
+	if (mlcklim.rlim_cur != RLIM_INFINITY &&
+	    mlcklim.rlim_cur < 100*1024*1024) {
+
+	  /* DUECA system.
+
+	     The system indicates that there is a limited amount of
+	     memory available for locking; avoiding the use of
+	     mlockall, because this may lead to memory allocation
+	     failure and crashes. Use ulimit and adapt with a
+	     configuration file in /etc/security/limits.d if you want
+	     memory locking and better real-time performance */
+	  W_SYS("Not attempting to lock memory, raise limits if needed");
+	}
+	else {
+
+	  if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
+	    /* DUECA system.
+	       
+	       Attempt to load and lock the memory for the DUECA
+	       executable failed. This is normal during development,
+	       when real-time and memory locking priorities are not
+	       used, but should be avoided during deployment. Check
+	       the page on 'tuning linux workstations' for
+	       guidance. This may also happen when not enough memory
+	       is available.
+	    */
+	    W_SYS("Cannot memlock the DUECA executable: " << strerror(errno));
+	  }
+	  else {
+	    // succeeded in memory locking. Also attempt to set CPU
+	    // to low latency mode
+	    cpu_lowlatency.reset(new CPULowLatency(0));
+	  }
+	}
       }
 #endif // HAVE_MLOCKALL
 
