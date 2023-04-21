@@ -36,7 +36,7 @@ processes, so the process must be locked in memory. I suggest the
 following adjustments:
 
 - Define a group of users that may run real-time tasks,
-  e.g., rtdueca, and add the users that need real-time priorities to this
+  e.g., `rtdueca`, and add the users that need real-time priorities to this
   group
 
 - Allow real-time priority and memlock via pam, add a file
@@ -304,7 +304,6 @@ can be configured in this way. There are several steps in this process:
 - To make the change implemented on start-up of the kernel, reconfigure the
   initial ram disk with:
 
-
       update-initramfs -uk all
 
 
@@ -322,7 +321,6 @@ consider:
 - An X server can be specified by defining a ServerLayout. The server
   layout combins input devices (mice, keyboards), with a screen. As an
   example, the sides screen of the projection in the HMI laboratory:
-
 
       Section "ServerLayout"
         Identifier        "sides"
@@ -361,7 +359,6 @@ consider:
 - The screen needs to further define the monitor and the
   associated/connected graphics card:
 
-
       Section "Screen"
         Identifier "ScreenSides"
         Device     "Card1"
@@ -383,17 +380,16 @@ consider:
   a single large display. Later, in generating the image, you can use
   two viewports or two windows to draw the graphics.
 
-
       Section "Device"
         Identifier  "Card1"
         Driver      "nvidia"
         VendorName  "nVidia Corporation"
         BoardName   "Unknown Board"
         BusID       "PCI:23:0:0"
-        Option            "TwinView" "true"
-        Option            "TwinViewOrientation" "RightOf"
-        Option            "UseEdidFreqs" "true"
-        Option            "ProbeAllGpus" "false"
+        Option      "TwinView" "true"
+        Option      "TwinViewOrientation" "RightOf"
+        Option      "UseEdidFreqs" "true"
+        Option      "ProbeAllGpus" "false"
         Option      "NoLogo" "true"
       EndSection
 
@@ -402,7 +398,6 @@ consider:
 
 - The monitor definition for the screen is default, since the card can
   already determine the monitor resolution and update rate:
-
 
       Section "Monitor"
         Identifier   "Monitor2"
@@ -430,7 +425,6 @@ At any moment, a device is uniquely identified by its device path (but
 note that that may change after a reboot). You can get udevadm to get
 information on the device in the following manner
 
-
     udevadm info -a -p $(udevadm info -q path -n /dev/input/event3)
 
 
@@ -442,7 +436,6 @@ e.g., device name and possibly serial number. If you have only one of
 these devices, the selection is simple, just select on the name of the
 thing, like:
 
-
     SUBSYSTEM=="input", ATTRS{name}=="Wacom BambooPT 2FG Small Pen"
 
 
@@ -452,13 +445,11 @@ physical bus location of the USB connection. As long as you don't
 re-plug the devices, this will stay constant, here is an example match
 on the plug/bus:
 
-
     SUBSYSTEM=="input", ATTRS{phys}=="usb-0000:00:1d.0-1.6.4/input0"
 
 
 Using the match, create a rules file in the `/etc/udev/rules.d` folder,
 e.g., `90-touch1.rules`:
-
 
     SUBSYSTEM=="input", ATTRS{phys}=="usb-0000:00:1d.0-1.6.4/input0", GROUP="users", MODE="0660", SYMLINK+="touchinput1"
 
@@ -480,7 +471,6 @@ This produces devices like `DP-0`, etc.
 
 - Step 2, find the x input devices:
 
-
       xinput list
 
 
@@ -488,13 +478,11 @@ Your touchscreen should have a number here, we assume 14 for now.
 
 - Now map the touchscreen to the required device/display:
 
-
       xinput --map-to-output 14 DP-0
 
 
 - If you want to make the touchscreen scaling permanent, check the
   matrix with:
-
 
       xinput list-props 14
 
@@ -503,12 +491,10 @@ You can set the coordinate transformation matrix in the
 xorg.conf, or (if you have only one graphics output/x window) add it
 to the udev rules magic; using the same example:
 
-
     SUBSYSTEM=="input", ATTRS{phys}=="usb-0000:00:1d.0-1.6.4/input0", ENV{WL_OUTPUT}="DP-0",ENV{LIBINPUT_CALIBRATION_MATRIX}="0.545455 0.000000 0.000000 0.000000 0.900000 0.000000 0.000000 0.000000 1.000000"
 
 
 And in xorg, in the InputDevice, add:
-
 
     Option "TransformationMatrix" "0.545455 0.000000 0.000000 0.000000 0.900000 0.000000 0.000000 0.000000 1.000000"
 
