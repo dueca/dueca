@@ -6,6 +6,8 @@ include /usr/share/cdbs/1/class/cmake.mk
 
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
+ISUBUNTU2004 ?= $(shell lsb_release -si | grep Ubuntu && lsb_release -sr | grep 20\.04 && echo "1" || echo "0")
+
 DEB_CMAKE_EXTRA_FLAGS += -DALSO_INIT_GLUT=ON \
 			-DCMAKE_BUILD_TYPE=Release \
 			-DSYSCONF_INSTALL_DIR=/etc \
@@ -23,7 +25,9 @@ DEB_CMAKE_EXTRA_FLAGS += -DALSO_INIT_GLUT=ON \
 			-DBUILD_UDP=ON \
 			-DBUILD_WEBSOCK=ON \
 			-DSCRIPT_PYTHON=ON \
+ifeq($ISUBUNTU2004,1)
 			-DFORCE_PYTHON_MALLOC=ON \
+endif
 			-DSCRIPT_SCHEME=ON \
 			-DBUILD_DDFF=ON \
 			-DTRY_INSTALL_PYTHON_BUILD=ON \
