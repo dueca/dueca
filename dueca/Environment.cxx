@@ -1047,8 +1047,7 @@ void Environment::proceed(int stage)
 	  mlcklim.rlim_cur = 0;
 	}
 
-	if (mlcklim.rlim_cur != RLIM_INFINITY &&
-	    mlcklim.rlim_cur < 100*1024*1024) {
+	if (mlcklim.rlim_cur != RLIM_INFINITY) {
 
 	  /* DUECA system.
 
