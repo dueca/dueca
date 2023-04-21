@@ -21,7 +21,7 @@ INPUT = mainpage-api.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/example/PulsedBody.hxx \
         @CMAKE_BINARY_DIR@/dueca/SimStateRequest.hxx \
         @CMAKE_CURRENT_SOURCE_DIR@/default-modules.doc \
-        @CMAKE_CURRENT_SOURCE_DIR@/tuning-linux.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/tuning-linux.md \
         @CMAKE_CURRENT_SOURCE_DIR@/macosx.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/dueca-2.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/interconnect.doc \
