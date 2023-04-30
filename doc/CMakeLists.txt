@@ -328,7 +328,7 @@ foreach(D ${PNGDATA})
   add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/images/${D}"
     COMMAND
     ${INKSCAPE} "${CMAKE_CURRENT_SOURCE_DIR}/images/${SVG}"
-    ${INKSCAPE_EXPORT_PNG}="${CMAKE_CURRENT_BINARY_DIR}/images/${D}"
+    ${INKSCAPE_EXPORT_PNG}=${D}
     MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/images/${SVG}"
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/images)
   add_custom_target(${D} ALL

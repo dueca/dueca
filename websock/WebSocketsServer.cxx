@@ -627,10 +627,13 @@ bool WebSocketsServer::_complete(S& server)
 
       // figure out if this channel/entry is already being followed
       auto ee = this->followers.find(key);
+      bool foundconnect = false;
 
       // if this is not the case, it might be configured
-      if (ee == this->followers.end()) {
-
+      if (ee != this->followers.end()) {
+        foundconnect = true;
+      }
+      else {
 
         // run through the monitors now
         auto mm = this->monitors.find(connection->path_match[1]);
@@ -645,13 +648,14 @@ bool WebSocketsServer::_complete(S& server)
                         (mm->second->channelname, dataclass, entry,
                          this->getId(), this->read_prio,
                          mm->second->time_spec, extended, true));
-            this->followers[key] = newfollow;
-            ee = this->followers.find(key);
+            this->autofollowers[key] = newfollow;
+            ee = this->autofollowers.find(key);
+            foundconnect = ee != this->autofollowers.end();
           }
         }
       }
 
-      if (ee != this->followers.end()) {
+      if (foundconnect) {
         ee->second->addConnection(connection);
       }
       else {

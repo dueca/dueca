@@ -638,27 +638,29 @@ endif()
 
 # look for inkscape, for pixmaps and doc
 find_program(INKSCAPE inkscape
-
   PATHS "/Applications/Inkscape.app/Contents/Resources/bin/inkscape"
         "/opt/local/bin")
 
 if (NOT INSCAPE STREQUAL "INKSCAPE-NOTFOUND")
 
   # new or old
-  EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-png=/dev/null
+  set(INKSCAPE_EXPORT_PNG)
+  EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-filename="test.png"
     RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
-
   if (INKSCAPE_RESULT EQUAL 0)
+    set(INKSCAPE_EXPORT_PNG "--export-filename")
+  else()
+    EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-png="test.png"
+    RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
+  endif()
+  if (NOT INKSCAPE_EXPORT_PNG AND INKSCAPE_RESULT EQUAL 0)
     set(INKSCAPE_EXPORT_PNG "--export-png")
-  else ()
-    EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-filename="test.png"
+  else()
+    EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-file="test.png"
       RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
-    if (INKSCAPE_RESULT EQUAL 0)
-      set(INKSCAPE_EXPORT_PNG "--export-filename")
-    else()
-      # assume early Fedora 32 inkscape....
-      set(INKSCAPE_EXPORT_PNG "--export-file")
-    endif()
+  endif()
+  if (NOT INKSCAPE_EXPORT_PNG AND INKSCAPE_RESULT EQUAL 0)
+    message(FATAL "Cannot determine png export option for inkscape")
   endif()
 endif()
 message(STATUS "inkscape export PNG command ${INKSCAPE_EXPORT_PNG}")
