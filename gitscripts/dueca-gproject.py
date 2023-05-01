@@ -443,7 +443,7 @@ class CloneProject:
 
     def __call__(self, ns):
 
-        urlbase, name = projectSplit(ns.remote)
+        _, name = projectSplit(ns.remote)
 
         # check that the local disk is free
         if os.path.exists(name):
