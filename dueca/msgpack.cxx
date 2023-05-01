@@ -344,9 +344,9 @@ bool DCOVirtualVisitorMap::start_array(uint32_t num_elements)
 void DCOVirtualVisitor::parse_error(size_t parsed_offset,
                                     size_t error_offset)
 {
-  /** DUECA extra.
+  /* DUECA extra.
 
-      Cannot parse a msgpack packed message. 
+     Cannot parse a msgpack packed message.
   */
   E_XTR("Error parsing MSGPack, at " << error_offset);
   //throw(msgpack_dco_error("parse error"));
@@ -355,9 +355,9 @@ void DCOVirtualVisitor::parse_error(size_t parsed_offset,
 void DCOVirtualVisitor::insufficient_bytes(size_t parsed_offset,
                                            size_t error_offset)
 {
-  /** DUECA extra.
+  /* DUECA extra.
 
-      End of data when parsing a msgpack packed message. 
+     End of data when parsing a msgpack packed message.
   */
   E_XTR("End of data parsing MSGPack, at " << error_offset);
   //throw(msgpack_dco_error("dataerror"));

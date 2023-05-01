@@ -12,13 +12,13 @@ import os
 import sys
 from pyparsing import Literal, OneOrMore, printables, Combine, \
     ParseException, Word, Regex, ParseResults, c_style_comment, \
-        ZeroOrMore, MatchFirst, LineEnd, LineStart
+        ZeroOrMore, MatchFirst, LineEnd, LineStart, SkipTo
 import re
 from argparse import ArgumentParser
 import xlwt
 import html
 
-_debug = True
+_debug = False #or True
 def dprint(*args, **kwargs):
     if _debug:
         print(*args, **kwargs)
@@ -239,10 +239,10 @@ class FileMessages:
 
     def combination(self, s: str, loc: int, toks: ParseResults):
         global currentline
-        print(s)
         if isinstance(toks[0], Comment) and isinstance(toks[1], LogMessage):
             self.messages.append(
-                (self.fname, currentline, toks[1].logcode, toks[0].comment))
+                (self.fname, currentline, toks[1].logcode, 
+                 toks[0].comment, toks[0].chapter))
         return toks
 
     def _parse(self, *args):
@@ -266,8 +266,9 @@ class FileMessages:
         return str(self.messages)
 
 class Comment:
-    def __init__(self, line, lines):
+    def __init__(self, line, chapter, lines):
         self.comment = line
+        self.chapter = chapter
         self.lines = lines
 
 class LogMessage:
@@ -279,8 +280,8 @@ currentline = 0
 def make_comment(s: str, loc: int, toks: ParseResults):
     global currentline
     #currentline += toks[0].count('\n') + 1
-    dprint("Comment", toks[0])
-    return Comment(toks[0], toks[0].count('\n')+1)
+    dprint("Comment", toks)    
+    return Comment(toks[1], toks[3][0], toks[3][1]+1)
 
 def make_logmessage(s: str, loc: int, toks: ParseResults):
     global currentline
@@ -290,8 +291,9 @@ def make_logmessage(s: str, loc: int, toks: ParseResults):
     return LogMessage(logcode, toks[2].count('\n') + 1)
 
 def make_logmiss(s: str, loc: int, toks: ParseResults):
-    global currentline
-    print(f"Log message without comment in line {currentline+1}:\n{''.join(toks)}",
+    global currentline, fname
+    print(f"In file {fname}, at line {currentline+1}\n"
+          f"Log message without comment:\n{''.join(toks)}",
           file=sys.stderr)
     currentline += toks[1].count('\n') + 1
     return None
@@ -314,7 +316,26 @@ def read_combined(s: str, loc: int, toks: ParseResults):
     dprint("Combination", toks)
     return "combination"
 
-parse_comment = c_style_comment.copy() # Literal('/*') + Regex(r".*?\*\/", re.DOTALL) + Literal('*/')
+def read_chapter(s: str, loc: int, toks: ParseResults):
+    global currentline
+    dprint("Chapter", toks)
+    return toks[0].strip().rstrip('.')
+
+def read_rest(s: str, loc: int, toks: ParseResults):
+    global currentline
+    dprint("Rest", toks, "loc", loc)
+    return ' '.join(toks[0][:-2].split()), 1 + toks[0].count('\n')
+    
+parse_chapter = SkipTo(LineEnd())
+parse_chapter.set_parse_action(read_chapter)
+parse_rest = SkipTo(Literal('*/'), include=True, failOn=Literal('/*'))
+# parse_rest = Regex(r".*?\*\/", re.DOTALL)
+parse_rest.set_parse_action(read_rest)
+parse_comment = Literal('/*') + parse_chapter + LineEnd() + parse_rest
+parse_oneline = Literal('/*') + Regex(r'.*') + Literal('*/')
+parse_oneline.set_parse_action(read_emptyline)
+
+#parse_comment = c_style_comment.copy() # Literal('/*') + Regex(r".*?\*\/", re.DOTALL) + Literal('*/')
 parse_comment.add_parse_action(make_comment)
 parse_lmessage = logstart + Regex(r".*?\)[ ]*;", re.DOTALL)
 parse_lmiss = parse_lmessage.copy()
@@ -327,7 +348,8 @@ parse_otherline.add_parse_action(read_otherline)
 parse_emptyline = LineStart() + LineEnd()
 parse_emptyline.set_parse_action(read_emptyline)
 parse_elt = MatchFirst(
-    (parse_combined, parse_lmiss, parse_emptyline, parse_otherline))
+    (parse_oneline, parse_combined, parse_lmiss, 
+     parse_emptyline, parse_otherline))
 parse_file = OneOrMore(parse_elt)
 
 if __name__ == '__main__':
@@ -352,7 +374,53 @@ if __name__ == '__main__':
 
     if len(sys.argv) <= 1:
 
-        fm = FileMessages('/home/repa/dueca/dueca/XMLtoDCO.cxx')
+        #parse_chapter.parseString("to line end")
+        #parse_rest.parseString("blablae */")
+        #parse_rest.parseString(" help me\nline 2 */")
+        #parse_comment.parseString("""/* chapter.
+        #                          
+        #                          and the comment
+        #                          line 2 */""")
+        #parse_comment.parseString("""/* chapter.
+        #                          and the comment
+        #                          line 2 */""")
+        fname = "dum"
+        #parse_comment.parseString("""
+        #                          /* DUSIME replay&initial
+        #
+        #     Exception in replay filer. Unknown cause, please report. */
+        #    
+        #                               """)
+        
+        parse_lmessage.parseString("""
+                                   
+            E_XTR("ReplayControl, exception " << e.what());
+              """)
+        print()
+        parse_comment.parseString(""" 
+                            /* DUSIME replay&initial
+
+      Exception in replay filer. Unknown cause, please reportx. */ and more
+      """)
+        print()
+        parse_combined.parseString(""" 
+                            /* DUSIME replay&initial
+
+      Exception in replay filer. Unknown cause, please report. */
+      
+      E_XTR("ReplayControl, exception " << e.what());""")
+                         
+        print()                           
+        parse_file.parseString("""catch (const std::exception& e) {
+   /* DUSIME replay&initial
+
+      Exception in replay filer. Unknown cause, please report. */
+   E_XTR("ReplayControl, exception " << e.what());
+   throw e;
+ }""")
+                                 
+        fname = '/home/repa/dueca/dusime/ReplayFiler.cxx'
+        fm = FileMessages(fname)
         fm.runparse()
         sys.exit(0)
 

@@ -345,10 +345,10 @@ public:
       marked_tick = ts.getValidityEnd();
     }
     else if (ts.getValidityEnd() > record_start_tick) {
-      /** DUSIME initial&replay
+      /* DUSIME replay&initial
 
-          Recording start is not aligned with data time spans; adjust
-          your intervals when starting the Environment. */
+         Recording start is not aligned with data time spans; adjust
+         your intervals when starting the Environment. */
       W_XTR("Omitting partial data span for recording, span=" << ts <<
             " recording start=" << record_start_tick);
     }

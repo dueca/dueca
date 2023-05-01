@@ -171,7 +171,7 @@ void ReplayMaster::followDusimeStates(const TimeSpec& ts)
           break;
 
         default:
-          /* DUSIME record&initial.
+          /* DUSIME replay&initial.
 
            Replay is invoked, but not prepared. This glitch should not
            be possible */
@@ -496,7 +496,7 @@ updateInfo(unsigned node_id,
     return n_answering == 0;
   }
   else {
-    /* DUSIME Replay.
+    /* DUSIME replay&initial
 
        Reports on available replay data from different nodes do not
        match; generally, data should be tagged with the same label, and
