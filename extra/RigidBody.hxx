@@ -213,8 +213,7 @@ public:
       \param xd      Resultant derivative vector
       \param unused  Unused variable, for compatibility with
                      integration functions.
-      \returns       Reference to the vector with the derivative
-                     state.  */
+  */
   void derivative(VectorE& xd, double unused = 0.0);
 
   /** Obtain and calculate the derivative, given sum of forces and moments

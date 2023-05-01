@@ -11,11 +11,17 @@ Created on Mon Jul 20 17:24:01 2020
 import os
 import sys
 from pyparsing import Literal, OneOrMore, printables, Combine, \
-    ParseException, Word, Regex
+    ParseException, Word, Regex, ParseResults, c_style_comment, \
+        ZeroOrMore, MatchFirst, LineEnd, LineStart
 import re
 from argparse import ArgumentParser
 import xlwt
 import html
+
+_debug = True
+def dprint(*args, **kwargs):
+    if _debug:
+        print(*args, **kwargs)
 
 class XLFile:
     """Excel file"""
@@ -201,10 +207,6 @@ logstart = Combine(
      Literal('INT') |
      Literal('XTR'))) + Literal('(')
 
-parse_comment = Literal('/*') + Regex(r".*?\*\/", re.DOTALL)
-parse_lmessage = logstart + Regex(r".*?\)[ ]*;", re.DOTALL)
-parse_file = parse_comment | parse_lmessage
-
 
 class FileMessages:
     """Inventory of messages in a file."""
@@ -226,29 +228,22 @@ class FileMessages:
         comment = ''
         self.messages = []
         self.fname = fname[fname.find('/dueca')+1:]
-        with open(fname, 'r') as f:
-            code = f.read()
-            for elts, i0, i1 in parse_file.scanString(code):
+        self._fname = fname
 
-                if elts[0] == '/*':
-                    comment = elts[1][:-2]
-                    commentline = code.count('\n', 0, i1)
+    def runparse(self):
 
-                else:
-                    logcode = elts[0]
-                    logline = code.count('\n', 0, i0)
-                    self.messages.append(
-                        (self.fname, logline+1, logcode,
-                         comment.split('\n')[0].strip(),
-                         '\n'.join(map(str.strip,
-                                       comment.strip().split('\n')[2:]))))
-                    if not comment:
-                        print(f"{fname}: missing comment for "
-                              f"{logcode} at line {logline}")
-                    elif logline - commentline > 1:
-                        print(f"{fname}: commentline "
-                              f"{commentline+1}, log line {logline+1}")
-                    comment = ''
+        with open(self._fname, 'r') as f:
+            #code = f.read()
+            parse_file.parseFile(f, parse_all=True)
+        #parse_file.parseString(code, True)
+
+    def combination(self, s: str, loc: int, toks: ParseResults):
+        global currentline
+        print(s)
+        if isinstance(toks[0], Comment) and isinstance(toks[1], LogMessage):
+            self.messages.append(
+                (self.fname, currentline, toks[1].logcode, toks[0].comment))
+        return toks
 
     def _parse(self, *args):
         print(args)
@@ -270,6 +265,71 @@ class FileMessages:
     def __str__(self):
         return str(self.messages)
 
+class Comment:
+    def __init__(self, line, lines):
+        self.comment = line
+        self.lines = lines
+
+class LogMessage:
+    def __init__(self, logcode, lines):
+        self.logcode = logcode
+        self.lines = lines
+
+currentline = 0
+def make_comment(s: str, loc: int, toks: ParseResults):
+    global currentline
+    #currentline += toks[0].count('\n') + 1
+    dprint("Comment", toks[0])
+    return Comment(toks[0], toks[0].count('\n')+1)
+
+def make_logmessage(s: str, loc: int, toks: ParseResults):
+    global currentline
+    #currentline += toks[1].count('\n') + 1
+    logcode = toks[0]
+    dprint("Logmesg", toks)
+    return LogMessage(logcode, toks[2].count('\n') + 1)
+
+def make_logmiss(s: str, loc: int, toks: ParseResults):
+    global currentline
+    print(f"Log message without comment in line {currentline+1}:\n{''.join(toks)}",
+          file=sys.stderr)
+    currentline += toks[1].count('\n') + 1
+    return None
+
+def read_otherline(s: str, loc: int, toks: ParseResults):
+    global currentline
+    currentline += 1
+    dprint("AnyLine", currentline, toks)
+    return None
+
+def read_emptyline(s: str, loc: int, toks: ParseResults):
+    global currentline
+    currentline += 1
+    dprint("EmptyLine", currentline, toks)
+    return None
+
+def read_combined(s: str, loc: int, toks: ParseResults):
+    global currentline
+    currentline += toks[0].lines + toks[1].lines
+    dprint("Combination", toks)
+    return "combination"
+
+parse_comment = c_style_comment.copy() # Literal('/*') + Regex(r".*?\*\/", re.DOTALL) + Literal('*/')
+parse_comment.add_parse_action(make_comment)
+parse_lmessage = logstart + Regex(r".*?\)[ ]*;", re.DOTALL)
+parse_lmiss = parse_lmessage.copy()
+parse_lmessage.add_parse_action(make_logmessage)
+parse_lmiss.set_parse_action(make_logmiss)
+parse_combined = parse_comment + parse_lmessage
+parse_combined.set_parse_action(read_combined)
+parse_otherline = Regex(r".+") + LineEnd()
+parse_otherline.add_parse_action(read_otherline)
+parse_emptyline = LineStart() + LineEnd()
+parse_emptyline.set_parse_action(read_emptyline)
+parse_elt = MatchFirst(
+    (parse_combined, parse_lmiss, parse_emptyline, parse_otherline))
+parse_file = OneOrMore(parse_elt)
+
 if __name__ == '__main__':
     parser = ArgumentParser(
         description="""Extract descriptions for debug and error messages.
@@ -286,13 +346,23 @@ if __name__ == '__main__':
 
     # default value helps in testing
     args = parser.parse_args(sys.argv[1:] or (
-        '--base', '/home/repa/dueca',
+        '--base', '/home/repa/dueca/dueca',
         '--output', '/tmp/messagelist.xlsx',
         '--outputdoc', '/tmp/messagelist.doc'))
 
+    if len(sys.argv) <= 1:
+
+        fm = FileMessages('/home/repa/dueca/dueca/XMLtoDCO.cxx')
+        fm.runparse()
+        sys.exit(0)
+
     allmsg = []
     for fname in args.base.getFiles():
+        currentline = 0
         fm = FileMessages(fname)
+        parse_combined.set_parse_action(fm.combination)
+        fm.runparse()
+
         if fm:
             args.output.extend(fm)
         if args.outputdoc:
