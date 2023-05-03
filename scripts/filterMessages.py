@@ -11,7 +11,7 @@ Created on Mon Jul 20 17:24:01 2020
 import os
 import sys
 from pyparsing import Literal, OneOrMore, printables, Combine, \
-    ParseException, Word, Regex, ParseResults, c_style_comment, \
+    ParseException, Word, Regex, ParseResults, \
         ZeroOrMore, MatchFirst, LineEnd, LineStart, SkipTo
 import re
 from argparse import ArgumentParser

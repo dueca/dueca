@@ -25,8 +25,6 @@
 
 DUECA_NS_START
 
-static void do_nothing() {}
-
 template<class T>
 InformationStash<T>::InformationStash(const char* name) :
   StateGuard(name, false),
@@ -37,7 +35,7 @@ InformationStash<T>::InformationStash(const char* name) :
   sequence(0),
   direct(false),
   service_id(0U),
-  work2(do_nothing)
+  work2(InformationStash_do_nothing)
   //srvc(NULL)
 {
 

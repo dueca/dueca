@@ -82,7 +82,7 @@ set(DUECASOURCES
   PythonCorrectedName.hxx PythonCorrectedName.cxx
   ListElementAllocator.hxx DCOtypeJSON.hxx DCOtypeJSON.cxx
   ChronoTimePoint.hxx ChronoTimePoint.cxx AssociateObject.hxx
-  EasyId.cxx EasyId.hxx)
+  EasyId.cxx EasyId.hxx InformationStash.cxx)
 
 
 set(SCRAMNETSOURCES
