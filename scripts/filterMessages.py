@@ -336,15 +336,15 @@ parse_oneline = Literal('/*') + Regex(r'.*') + Literal('*/')
 parse_oneline.setParseAction(read_emptyline)
 
 #parse_comment = c_style_comment.copy() # Literal('/*') + Regex(r".*?\*\/", re.DOTALL) + Literal('*/')
-parse_comment.add_parse_action(make_comment)
+parse_comment.setParseAction(make_comment)
 parse_lmessage = logstart + Regex(r".*?\)[ ]*;", re.DOTALL)
 parse_lmiss = parse_lmessage.copy()
-parse_lmessage.add_parse_action(make_logmessage)
+parse_lmessage.setParseAction(make_logmessage)
 parse_lmiss.setParseAction(make_logmiss)
 parse_combined = parse_comment + parse_lmessage
 parse_combined.setParseAction(read_combined)
 parse_otherline = Regex(r".+") + LineEnd()
-parse_otherline.add_parse_action(read_otherline)
+parse_otherline.setParseAction(read_otherline)
 parse_emptyline = LineStart() + LineEnd()
 parse_emptyline.setParseAction(read_emptyline)
 parse_elt = MatchFirst(
