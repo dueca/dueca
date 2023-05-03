@@ -327,26 +327,26 @@ def read_rest(s: str, loc: int, toks: ParseResults):
     return ' '.join(toks[0][:-2].split()), 1 + toks[0].count('\n')
     
 parse_chapter = SkipTo(LineEnd())
-parse_chapter.set_parse_action(read_chapter)
+parse_chapter.setParseAction(read_chapter)
 parse_rest = SkipTo(Literal('*/'), include=True, failOn=Literal('/*'))
 # parse_rest = Regex(r".*?\*\/", re.DOTALL)
-parse_rest.set_parse_action(read_rest)
+parse_rest.setParseAction(read_rest)
 parse_comment = Literal('/*') + parse_chapter + LineEnd() + parse_rest
 parse_oneline = Literal('/*') + Regex(r'.*') + Literal('*/')
-parse_oneline.set_parse_action(read_emptyline)
+parse_oneline.setParseAction(read_emptyline)
 
 #parse_comment = c_style_comment.copy() # Literal('/*') + Regex(r".*?\*\/", re.DOTALL) + Literal('*/')
 parse_comment.add_parse_action(make_comment)
 parse_lmessage = logstart + Regex(r".*?\)[ ]*;", re.DOTALL)
 parse_lmiss = parse_lmessage.copy()
 parse_lmessage.add_parse_action(make_logmessage)
-parse_lmiss.set_parse_action(make_logmiss)
+parse_lmiss.setParseAction(make_logmiss)
 parse_combined = parse_comment + parse_lmessage
-parse_combined.set_parse_action(read_combined)
+parse_combined.setParseAction(read_combined)
 parse_otherline = Regex(r".+") + LineEnd()
 parse_otherline.add_parse_action(read_otherline)
 parse_emptyline = LineStart() + LineEnd()
-parse_emptyline.set_parse_action(read_emptyline)
+parse_emptyline.setParseAction(read_emptyline)
 parse_elt = MatchFirst(
     (parse_oneline, parse_combined, parse_lmiss, 
      parse_emptyline, parse_otherline))
@@ -428,7 +428,7 @@ if __name__ == '__main__':
     for fname in args.base.getFiles():
         currentline = 0
         fm = FileMessages(fname)
-        parse_combined.set_parse_action(fm.combination)
+        parse_combined.setParseAction(fm.combination)
         fm.runparse()
 
         if fm:
