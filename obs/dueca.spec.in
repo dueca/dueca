@@ -36,6 +36,7 @@ Requires: cvs
 Requires: python3-GitPython
 Requires: python3-pyparsing
 Requires: python3-lxml
+Requires: msgpack-devel
 BuildRequires: python3-xlwt
 BuildRequires: wget
 BuildRequires: lsb-release
