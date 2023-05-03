@@ -234,7 +234,7 @@ class FileMessages:
 
         with open(self._fname, 'r') as f:
             #code = f.read()
-            parse_file.parseFile(f, parse_all=True)
+            parse_file.parseFile(f, True)
         #parse_file.parseString(code, True)
 
     def combination(self, s: str, loc: int, toks: ParseResults):
