@@ -1000,14 +1000,16 @@ PRINT_NS_END;
         if anyval:
             res = [ """
 {namespacecmd0}#if !defined(__CUSTOM_ENUMNAMES_{name})
-struct NameMatch_{mastername}_{name} {{
-  const char* mname;
-  {objprefix}{masterprefix}{name}      enumval;
-}};
+namespace {{
+  struct NameMatch_{name} {{
+    const char* mname;
+    {objprefix}{masterprefix}{name}      enumval;
+  }};
+}} // end anonymous namespace
 
-static const NameMatch_{mastername}_{name} __{name}_names [] = {{\n""".format(
+static const NameMatch_{name} __{name}_names [] = {{\n""".format(
     name=self.name, namespacecmd0=master.namespacecmd0,
-    objprefix=master.objprefix, mastername=master.name,
+    objprefix=master.objprefix,
     masterprefix=(master.name and f'{master.name}::') or ''
 )]
 
@@ -1095,11 +1097,12 @@ const char* getclassname<{masterprefix}{name}>()
             res = ["""
 #include <map>
 {namespacecmd0}#ifndef __CUSTOM_ENUMNAMES_{name}
-struct NameMatch_{name} {{
-  const char* mname;
-  {objprefix}{masterprefix}{name}      enumval;
-}};
-
+namespace {{
+  struct NameMatch_{name} {{
+    const char* mname;
+    {objprefix}{masterprefix}{name}      enumval;
+  }};
+}} // end anonymous namespace
 static const NameMatch_{name} __{name}_names [] = {{""".format(
     name=self.name, namespacecmd0=master.namespacecmd0,
     objprefix=master.objprefix,
