@@ -152,7 +152,8 @@ bool DDFFDataRecorder::isValid()
     /* DUSIME replay&initial
 
        A DataRecorder needs both entity and key defined. One or
-       both is empty */
+       both are empty.
+    */
     W_MOD("DataRecorder is not correctly initialized, entity=\"" <<
           entity << "\", key=\"" << key << "\"");
     return false;
@@ -205,7 +206,6 @@ bool DDFFDataRecorder::isValid()
      Attempt to connect a DataRecorder to a filer, but the associated
      filer cannot (yet) be found is is not yet complete. Check your
      configuration if this persists.
-
   */
   W_MOD("DataRecorder, replay filer not complete, entity=\"" <<
         entity << "\", key=\"" << key << "\"");

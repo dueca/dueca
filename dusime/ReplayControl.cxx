@@ -126,7 +126,7 @@ void ReplayControl::followDusime(const TimeSpec& ts)
     }
   }
   catch (std::exception& e) {
-    /* DUSIME replay.
+    /* DUSIME replay&initial.
 
        Error in following DUSIME states
     */

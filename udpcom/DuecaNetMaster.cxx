@@ -179,7 +179,8 @@ bool DuecaNetMaster::complete()
 
        A node id list defining the order of transmission has not been
        supplied in the configuration. An automatic order will now be
-       created. */
+       created.
+    */
     I_NET("Automatic send id / node id list");
     for (int ii = 0; ii < ObjectManager::single()->getNoOfNodes(); ii++) {
       if (ii != ObjectManager::single()->getLocation()) {
@@ -202,7 +203,8 @@ bool DuecaNetMaster::complete()
       /* DUECA network.
 
          The number of peer ID's need to match the number of nodes
-         configured. Adjust your configuration file. */
+         configured. Adjust your configuration file.
+      */
       E_CNF("send order list incorrect");
       return false;
     }
@@ -292,9 +294,10 @@ void DuecaNetMaster::whenUp(const TimeSpec &ts)
 void DuecaNetMaster::cbValid(const TimeSpec& ts, const std::string& name)
 {
   DEB("Token valid for " << name);
-  /* DUECA comm.
+  /* DUECA network.
 
-     Information on validating capacity data token 
+     Information on validating the channel token for sending timing
+     and capacity data.
   */
   W_MOD("Validated write token for net timing/capacity data " << name);
 }

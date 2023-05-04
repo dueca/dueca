@@ -55,11 +55,12 @@ createModuleCreator(const std::string& type_name,
                     const PrioritySpec& ps)
 {
   if (!hasType(type_name)) {
-    /* DUECA Scripting.
+    /* DUECA scripting.
 
        No code found to create a module that was specified in the
        start script. Did you make a typing error in the script, or did
-       you not yet compile or link this module? */
+       you not yet compile or link this module?
+    */
     W_CNF("Cannot create a module of undefined type " << type_name);
     return NULL;
   }

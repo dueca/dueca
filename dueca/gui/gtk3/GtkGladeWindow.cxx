@@ -867,7 +867,7 @@ bool GtkGladeWindow::fillOptions(const char* dcoclass,
 {
   auto eclass = DataClassRegistry::single().getEntryShared(dcoclass);
   if (!eclass.get()) {
-    /* DUECA Graphics.
+    /* DUECA graphics.
 
        When trying to fill selections for combobox entries in a GUI,
        (GtkGladeWindow::fillOptions), the specified dco data class is
@@ -907,7 +907,7 @@ bool GtkGladeWindow::fillOptions(const char* dcoclass,
           }
         }
         else {
-          /* DUECA Graphics.
+          /* DUECA graphics.
 
 	     There is an enum array specified, but no array format
 	     available for finding it in the interface.
