@@ -18,7 +18,7 @@ from argparse import ArgumentParser
 import xlwt
 import html
 
-_debug = False #or True
+_debug = False or True
 def dprint(*args, **kwargs):
     if _debug:
         print(*args, **kwargs)
@@ -240,9 +240,12 @@ class FileMessages:
     def combination(self, s: str, loc: int, toks: ParseResults):
         global currentline
         if isinstance(toks[0], Comment) and isinstance(toks[1], LogMessage):
+            dprint("Combination from ", toks[0], toks[1])
+            currentline += toks[0].lines
             self.messages.append(
-                (self.fname, currentline, toks[1].logcode, 
+                (self.fname, currentline+1, toks[1].logcode, 
                  toks[0].comment, toks[0].chapter))
+            currentline += toks[1].lines
         return toks
 
     def _parse(self, *args):
@@ -270,18 +273,22 @@ class Comment:
         self.comment = line
         self.chapter = chapter
         self.lines = lines
+    def __str__(self):
+        return f"Comment: {self.comment}/{self.chapter} {self.lines}"
 
 class LogMessage:
     def __init__(self, logcode, lines):
         self.logcode = logcode
         self.lines = lines
+    def __str__(self):
+        return f"LogMessage: {self.logcode} {self.lines}"
 
 currentline = 0
 def make_comment(s: str, loc: int, toks: ParseResults):
     global currentline
     #currentline += toks[0].count('\n') + 1
     dprint("Comment", toks)    
-    return Comment(toks[1], toks[3][0], toks[3][1]+1)
+    return Comment(toks[1], toks[3][0], toks[3][1]+2)
 
 def make_logmessage(s: str, loc: int, toks: ParseResults):
     global currentline
@@ -418,10 +425,13 @@ if __name__ == '__main__':
    E_XTR("ReplayControl, exception " << e.what());
    throw e;
  }""")
-                                 
-        fname = '/home/repa/dueca/dusime/ReplayFiler.cxx'
+
+        currentline = 0
+        fname = '/home/repa/dueca/dueca/CriticalActivity.cxx'
         fm = FileMessages(fname)
+        parse_combined.setParseAction(fm.combination)
         fm.runparse()
+        print(fm)
         sys.exit(0)
 
     allmsg = []
