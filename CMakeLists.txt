@@ -548,7 +548,7 @@ if (SCRIPT_PYTHON)
     if (${BPCOMP} MATCHES "^python.*3.*$")
       set(PYREQ 3)
     else()
-      message(FATAL "Python 2 is obsolete")
+      message(FATAL_ERROR "Python 2 is obsolete")
       # set(PYREQ 2)
     endif()
   endif()
@@ -635,35 +635,63 @@ if (SCRIPT_SCHEME)
 
 endif()
 
-
-# look for inkscape, for pixmaps and doc
-find_program(INKSCAPE inkscape
-  PATHS "/Applications/Inkscape.app/Contents/Resources/bin/inkscape"
-        "/opt/local/bin")
-
-if (NOT INSCAPE STREQUAL "INKSCAPE-NOTFOUND")
-
-  # new or old
-  set(INKSCAPE_EXPORT_PNG)
-  EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-filename="test.png"
-    RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
-  if (INKSCAPE_RESULT EQUAL 0)
-    set(INKSCAPE_EXPORT_PNG "--export-filename")
+# look for SVG converter
+set(SVG_PNGFILE_ARG )
+find_program(RSVGCONVERT rsvg-convert)
+message(STATUS "SVG conversion: ${RSVGCONVERT}")
+if (NOT RSVGCONVERT STREQUAL "RSVGCONVERT-NOTFOUND")
+  EXECUTE_PROCESS(COMMAND ${RSVGCONVERT}
+    --output=_dummy.png
+    ${CMAKE_SOURCE_DIR}/doc/images/threads.svg
+    RESULT_VARIABLE RSVG_RESULT OUTPUT_QUIET ERROR_QUIET)
+  if (RSVG_RESULT EQUAL 0)
+    message(STATUS "Using ${RSVG_CONVERT} for conversion to png")
+    set(SVG_CONVERSION_COMMAND ${RSVGCONVERT})
+    set(SVG_PNGFILE_ARG "--output")
+    set(SVG_ICON_SIZE_ARG --width=18 --height=18 --keep-aspect-ratio)
   else()
-    EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-png="test.png"
-    RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
+    message(WARNING "Test failed: ${RSVGCONVERT} --output=/dev/null ${CMAKE_SOURCE_DIR}/doc/images/threads.svg")
   endif()
-  if (NOT INKSCAPE_EXPORT_PNG AND INKSCAPE_RESULT EQUAL 0)
-    set(INKSCAPE_EXPORT_PNG "--export-png")
-  else()
-    EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-file="test.png"
-      RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
-  endif()
-  if (NOT INKSCAPE_EXPORT_PNG AND INKSCAPE_RESULT EQUAL 0)
-    message(FATAL "Cannot determine png export option for inkscape")
-  endif()
+else()
+  message(STATUS "Could not find rsvg-convert, trying inkscape")
 endif()
-message(STATUS "inkscape export PNG command ${INKSCAPE_EXPORT_PNG}")
+
+if (NOT SVG_PNGFILE_ARG)
+  # look for inkscape, for pixmaps and doc
+  find_program(INKSCAPE inkscape
+    PATHS "/Applications/Inkscape.app/Contents/Resources/bin/inkscape"
+    "/opt/local/bin")
+
+  if (NOT INSCAPE STREQUAL "INKSCAPE-NOTFOUND")
+
+    set(SVG_CONVERSION_COMMAND ${INKSCAPE})
+    set(SVG_ICON_SIZE_ARG
+      --export-area-page --export-width=18 --export-height=18)
+
+    # figure out the required argument for png export
+    EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-filename="test.png"
+      RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
+    if (INKSCAPE_RESULT EQUAL 0)
+      set(SVG_PNGFILE_ARG "--export-filename")
+    else()
+      EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-png="test.png"
+	RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
+    endif()
+    if (NOT SVG_PNGFILE_ARG AND INKSCAPE_RESULT EQUAL 0)
+      set(SVG_PNGFILE_ARG "--export-png")
+    else()
+      EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-file="test.png"
+	RESULT_VARIABLE INKSCAPE_RESULT OUTPUT_QUIET ERROR_QUIET)
+    endif()
+    if (NOT SVG_PNGFILE_ARG AND INKSCAPE_RESULT EQUAL 0)
+      set(SVG_PNGFILE_ARG "--export-file")
+    endif()
+    if (NOT SVG_PNGFILE_ARG)
+      message(FATAL "Cannot determine png export option for inkscape")
+    endif()
+  endif()
+  message(STATUS "inkscape export PNG command ${SVG_PNGFILE_ARG}")
+endif()
 
 # subdirs choice
 add_subdirectory(dueca)

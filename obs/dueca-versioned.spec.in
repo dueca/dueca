@@ -101,7 +101,7 @@ BuildRequires: graphviz-gd
 BuildRequires: doxygen
 BuildRequires: cmake
 BuildRequires: gtkglext-devel
-BuildRequires: inkscape
+BuildRequires: librsvg2-tools
 BuildRequires: python3-pyparsing
 BuildRequires: rapidjson-devel
 %if 0%{?gtkmm_config}

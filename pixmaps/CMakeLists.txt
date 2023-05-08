@@ -12,13 +12,13 @@ set(SVGIMG
 # convert svg files to png
 foreach(SVG ${SVGIMG})
   string(REPLACE .svg .png PNG ${SVG})
-  message(STATUS "Adding target ${PNG}, using ${INKSCAPE}")
+  message(STATUS "Adding target ${PNG}, using ${SVG_CONVERSION_COMMAND}")
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PNG}
     COMMAND
-    ${INKSCAPE} "${CMAKE_CURRENT_SOURCE_DIR}/${SVG}"
-    ${INKSCAPE_EXPORT_PNG}="${CMAKE_CURRENT_BINARY_DIR}/${PNG}"
-    --export-area-page --export-width=18 --export-height=18
-
+    ${SVG_CONVERSION_COMMAND}
+    ${SVG_PNGFILE_ARG}="${CMAKE_CURRENT_BINARY_DIR}/${PNG}"
+    ${SVG_ICON_SIZE_ARG}
+    "${CMAKE_CURRENT_SOURCE_DIR}/${SVG}"
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${SVG})
   list(APPEND PNGFILES ${CMAKE_CURRENT_BINARY_DIR}/${PNG})

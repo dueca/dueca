@@ -76,7 +76,8 @@ BuildRequires: graphviz-gd
 BuildRequires: doxygen
 BuildRequires: cmake
 BuildRequires: gtkglext-devel
-BuildRequires: inkscape
+# BuildRequires: inkscape
+BuildRequires: librsvg2-tools
 BuildRequires: python3-pyparsing
 BuildRequires: rapidjson-devel
 BuildRequires: python3-setuptools
