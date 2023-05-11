@@ -320,7 +320,7 @@ class DDFFDCOMetaFunctor: public dueca::ddff::DDFFDCOMetaFunctor
   static dueca::LoadMetaFunctor<DDFFDCOMetaFunctor>
     load_functor_msgpack({{ nsprefix }}functortable, "msgpack");
 #endif
-} // end namespace MyBlip_space
+} // end namespace {{ name }}_space
 #endif
 """
 
