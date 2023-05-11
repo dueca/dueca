@@ -93,9 +93,12 @@ bool DCOVirtualVisitor::visit_float64(double v)
  if (nest) return nest->visit_float64(v);
  return false; }
 
+  GobbleVisitor::GobbleVisitor(const char* klass) : classname(klass)
+  { }
+
   bool GobbleVisitor::visit_nil()
   { DEB1("Gobble visit_nil"); return true; }
-  
+
   bool GobbleVisitor::visit_boolean(bool v)
   { DEB1("Gobble visit_boolean v=" << v); return true; }
 
@@ -110,7 +113,7 @@ bool DCOVirtualVisitor::visit_float64(double v)
 
   bool GobbleVisitor::visit_float64(double v)
   { DEB1("Gobble visit_float64 v=" << v); return true; }
- 
+
   bool GobbleVisitor::visit_str(const char* v, unsigned len)
   { DEB1("Gobble visit_str v=" << v << " l=" << len); return true; }
 
@@ -119,7 +122,7 @@ bool DCOVirtualVisitor::visit_float64(double v)
 
   bool GobbleVisitor::visit_ext(const char* v, unsigned len)
   { DEB1("Gobble visit_ext l=" << len); return true; }
- 
+
   bool GobbleVisitor::start_array(uint32_t num_elements)
   { DEB1("Gobble start_array num_elements=" << num_elements); return true; }
 
@@ -149,13 +152,22 @@ bool DCOVirtualVisitor::visit_float64(double v)
 
   bool GobbleVisitor::end_map()
   { DEB1("Gobble end_map"); return true; }
-  
+
   void GobbleVisitor::parse_error(size_t parsed_offset, size_t error_offset)
   { DEB1("Gobble parse error");}
 
   void GobbleVisitor::insufficient_bytes(size_t parsed_offset, size_t error_offset)
   { DEB1("Gobble insifficient bytes");}
 
+  VirtualVisitor* GobbleVisitor::missingMember(const char* name)
+  {
+    std::string _name(name);
+    if (seen.count(_name)) return this;
+    seen.insert(_name);
+    W_MEM("msgpack visitor, object of type " << classname <<
+          " no member " << name);
+    return this;
+  }
 bool DCOVirtualVisitorArray::visit_str(const char* v, uint32_t size)
 { DEB1("A_DCO visit_str nest=" << bool(nest) << " v=" << v);
  if (nest) return nest->visit_str(v, size);

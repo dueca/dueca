@@ -12,6 +12,7 @@
 */
 
 #include <msgpack.hpp>
+#include <set>
 
 // other-file-specific
 
@@ -750,6 +751,9 @@ struct DCOVirtualVisitor: public VirtualVisitor
 
 struct GobbleVisitor: public VirtualVisitor
 {
+  std::set<std::string> seen;
+  const char* classname;
+  GobbleVisitor(const char* klass);
   bool visit_nil();
   bool visit_boolean(bool v);
   bool visit_positive_integer(uint64_t v);
@@ -771,8 +775,9 @@ struct GobbleVisitor: public VirtualVisitor
   bool end_map();
   void parse_error(size_t parsed_offset, size_t error_offset);
   void insufficient_bytes(size_t parsed_offset, size_t error_offset);
+  VirtualVisitor* missingMember(const char* name);
 };
-  
+
 
 struct DCOVirtualVisitorMap: public DCOVirtualVisitor
 {

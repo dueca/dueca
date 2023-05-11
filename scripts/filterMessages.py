@@ -18,7 +18,7 @@ from argparse import ArgumentParser
 import xlwt
 import html
 
-_debug = False or True
+_debug = False # or True
 def dprint(*args, **kwargs):
     if _debug:
         print(*args, **kwargs)

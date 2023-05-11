@@ -146,9 +146,10 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
     {%- for m in members %}
     v_{{ m.getName() }}(v.{{ m.getName() }}),
     {%- endfor %}
+    v_gobble("{{ name }}"),
     visitors{
       {%- for m in members %}
-      { "{{ m.getName() }}", &v_{{ m.getName() }} } {{ m != members|last and ',' or '' }}
+      { "{{ m.getName() }}", &v_{{ m.getName() }} }{{ m != members|last and ',' or '' }}
       {%- endfor %}
     }
   { }
@@ -160,7 +161,7 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
   virtual bool setVirtualVisitor(const char* name = NULL, bool isparent=false)
   {
     {%- if parent %}
-    if (this->UnpackVisitor<msgpack_container_dco,{{ ptoarent }}>::
+    if (this->UnpackVisitor<msgpack_container_dco,{{ parent }}>::
           setVirtualVisitor(name, true)) return true;
 
     {%- endif %}
@@ -172,9 +173,8 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
         if (!strcmp(v.name, name)) { nest = v.visitor; return true; }
         sel++;
       }
-      std::cerr << "In {{ name }}, could not find member " << name << std::endl;
       if (isparent) return false;
-      nest = &v_gobble;
+      nest = v_gobble.missingMember(name);
       return true;
     }
     if (sel < int(n_members)) {
