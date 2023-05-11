@@ -735,8 +735,7 @@ struct DCOVirtualVisitor: public VirtualVisitor
   VVMode mode;
 
   DCOVirtualVisitor();
-  virtual bool setVirtualVisitor(const char* key=NULL) = 0;
-
+  virtual bool setVirtualVisitor(const char* key=NULL, bool isparent=false) = 0;
   bool visit_nil();
   bool visit_boolean(bool v);
   bool visit_positive_integer(uint64_t v);
@@ -748,6 +747,32 @@ struct DCOVirtualVisitor: public VirtualVisitor
   void parse_error(size_t parsed_offset, size_t error_offset);
   void insufficient_bytes(size_t parsed_offset, size_t error_offset);
 };
+
+struct GobbleVisitor: public VirtualVisitor
+{
+  bool visit_nil();
+  bool visit_boolean(bool v);
+  bool visit_positive_integer(uint64_t v);
+  bool visit_negative_integer(int64_t v);
+  bool visit_float32(float v);
+  bool visit_float64(double v);
+  bool visit_str(const char* v, uint32_t size);
+  bool visit_bin(const char* v, uint32_t size);
+  bool visit_ext(const char* v, uint32_t size);
+  bool start_array(uint32_t num_elements);
+  bool start_array_item();
+  bool end_array_item();
+  bool end_array();
+  bool start_map(uint32_t num_kv_pairs);
+  bool start_map_key();
+  bool end_map_key();
+  bool start_map_value();
+  bool end_map_value();
+  bool end_map();
+  void parse_error(size_t parsed_offset, size_t error_offset);
+  void insufficient_bytes(size_t parsed_offset, size_t error_offset);
+};
+  
 
 struct DCOVirtualVisitorMap: public DCOVirtualVisitor
 {

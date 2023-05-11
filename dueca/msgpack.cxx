@@ -93,6 +93,69 @@ bool DCOVirtualVisitor::visit_float64(double v)
  if (nest) return nest->visit_float64(v);
  return false; }
 
+  bool GobbleVisitor::visit_nil()
+  { DEB1("Gobble visit_nil"); return true; }
+  
+  bool GobbleVisitor::visit_boolean(bool v)
+  { DEB1("Gobble visit_boolean v=" << v); return true; }
+
+  bool GobbleVisitor::visit_positive_integer(uint64_t v)
+  { DEB1("Gobble visit_positive_integer v=" << v); return true; }
+
+  bool GobbleVisitor::visit_negative_integer(int64_t v)
+  { DEB1("Gobble visit_negative_integer v=" << v); return true; }
+
+  bool GobbleVisitor::visit_float32(float v)
+  { DEB1("Gobble visit_float32 v=" << v); return true; }
+
+  bool GobbleVisitor::visit_float64(double v)
+  { DEB1("Gobble visit_float64 v=" << v); return true; }
+ 
+  bool GobbleVisitor::visit_str(const char* v, unsigned len)
+  { DEB1("Gobble visit_str v=" << v << " l=" << len); return true; }
+
+  bool GobbleVisitor::visit_bin(const char* v, unsigned len)
+  { DEB1("Gobble visit_bin l=" << len); return true; }
+
+  bool GobbleVisitor::visit_ext(const char* v, unsigned len)
+  { DEB1("Gobble visit_ext l=" << len); return true; }
+ 
+  bool GobbleVisitor::start_array(uint32_t num_elements)
+  { DEB1("Gobble start_array num_elements=" << num_elements); return true; }
+
+  bool GobbleVisitor::start_array_item()
+  { DEB1("Gobble start_array_item"); return true; }
+
+  bool GobbleVisitor::end_array_item()
+  { DEB1("Gobble end_array_item"); return true; }
+
+  bool GobbleVisitor::end_array()
+  { DEB1("Gobble end_array"); return true; }
+
+  bool GobbleVisitor::start_map(uint32_t num_elements)
+  { DEB1("Gobble start_map num_elements=" << num_elements); return true; }
+
+  bool GobbleVisitor::start_map_key()
+  { DEB1("Gobble start_map_key"); return true; }
+
+  bool GobbleVisitor::end_map_key()
+  { DEB1("Gobble end_map_key"); return true; }
+
+  bool GobbleVisitor::start_map_value()
+  { DEB1("Gobble start_map_value"); return true; }
+
+  bool GobbleVisitor::end_map_value()
+  { DEB1("Gobble end_map_value"); return true; }
+
+  bool GobbleVisitor::end_map()
+  { DEB1("Gobble end_map"); return true; }
+  
+  void GobbleVisitor::parse_error(size_t parsed_offset, size_t error_offset)
+  { DEB1("Gobble parse error");}
+
+  void GobbleVisitor::insufficient_bytes(size_t parsed_offset, size_t error_offset)
+  { DEB1("Gobble insifficient bytes");}
+
 bool DCOVirtualVisitorArray::visit_str(const char* v, uint32_t size)
 { DEB1("A_DCO visit_str nest=" << bool(nest) << " v=" << v);
  if (nest) return nest->visit_str(v, size);
@@ -120,6 +183,7 @@ bool DCOVirtualVisitor::visit_ext(const char* v, uint32_t size)
 { DEB1("DCO visit_ext nest=" << bool(nest) << " v=" << v);
  if (nest) return nest->visit_ext(v, size);
  return false; }
+
 
 DCOVirtualVisitorArray::DCOVirtualVisitorArray() :
   DCOVirtualVisitor() { DEB2("DCOVirtualVisitorArray constructor");}
@@ -163,6 +227,7 @@ bool DCOVirtualVisitorMap::start_array(uint32_t num_elements)
     DEB("A_DCO start_array_item, selecting member " << sel);
     return setVirtualVisitor();
   }
+
   bool DCOVirtualVisitorMap::start_array_item()
   {
     DEB1("M_DCO start_array_item mode=" << mode << " nest=" << bool(nest) <<
@@ -266,8 +331,10 @@ bool DCOVirtualVisitorMap::start_array(uint32_t num_elements)
     case VVMode::Key: {
       bool setting = setVirtualVisitor(key.c_str());
       DEB("M_DCO end_map_key, now selected member " << key << " #" << sel);
-      if (!setting)
-        msgpack_obj_mode_mismatch("end_map_key, no member found", mode);
+      if (!setting) {
+	DEB("Key " << key << " not in current object, need to gobble");
+        throw msgpack_obj_mode_mismatch("end_map_key, no member found", mode);
+      }
       return (depth == 0); }
     case VVMode::Value: return nest->end_map_key();
     default:

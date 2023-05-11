@@ -26,7 +26,7 @@ USING_DUECA_NS;
 
 int main()
 {
-#if 1
+#if 0
   {
     // a small one first
     PupilRemote2DEllipse eo, eoc;
@@ -47,7 +47,7 @@ int main()
     }
   }
 #endif
-#if 1
+#if 0
   {
     // this has int, strings, floats, a fixvector and two simple nested objects
     // all fixed-size
@@ -71,7 +71,7 @@ int main()
     buf.release();
   }
 #endif
-#if 1
+#if 0
   {
     // this has int, strings, floats, a fixvector and two simple nested objects
     // all fixed-size
@@ -96,7 +96,7 @@ int main()
     buf.release();
   }
 #endif
-#if 1
+#if 0
   {
     // this has int, strings, floats, a fixvector and two simple nested objects
     // all fixed-size
@@ -127,7 +127,7 @@ int main()
   }
 #endif
 
-#if 0
+#if 0 // keep
   {
     // alternative unpack
     PupilRemoteGaze2 eo, eoc;
@@ -155,5 +155,47 @@ int main()
   }
 #endif
   
+#if 1
+  {
+    // now add some data not in the original object
+    PupilRemote2DEllipse eo, eoc;
+    eo.angle = 3.0f;
+    eo.center[1] = 1.0f;
+    eo.axes[0] = 0.2f;
+    dueca::MessageBuffer buf(200);
+    {
+      msgpack::packer<dueca::MessageBuffer> pk(buf);
+      pk.pack_map(4);
+      pk.pack_str(strlen("angle"));
+      pk.pack_str_body("angle", strlen("angle"));
+      pk.pack(3.0f);
+      pk.pack_str(strlen("center"));
+      pk.pack_str_body("center", strlen("center"));
+      pk.pack_array(2);
+      pk.pack(0.0f);
+      pk.pack(1.0f);
+      pk.pack_str(strlen("extra"));
+      pk.pack_str_body("extra", strlen("extra"));
+      pk.pack_array(2);
+      pk.pack(1.0f);
+      pk.pack(1.0f);
+      pk.pack_str(strlen("axes"));
+      pk.pack_str_body("axes", strlen("axes"));
+      pk.pack_array(2);
+      pk.pack(0.2f);
+      pk.pack(0.0f);
+       dueca::messagepack::UnpackVisitor
+        <dueca::messagepack::msgpack_container_dco,PupilRemote2DEllipse> v(eoc);
+      std::size_t off = 0;
+      bool res = msgpack::v2::parse(buf.data(), buf.size(), off, v);
+      cout << "with additional stuff " << res << endl;
+      cout << "original" << eo << endl;
+      cout << "unpacked" << eoc << endl;
+    }
+  }
+#endif
+
+
+
   return 0;
 }
