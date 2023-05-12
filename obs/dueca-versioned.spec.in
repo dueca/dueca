@@ -24,6 +24,8 @@ Group: Development/Libraries/C and C++
 Requires: python3
 Requires: cvs
 Requires: python3-pyparsing
+Requires: python3-jinja2
+BuildRequires: python3-jinja2
 BuildRequires: python3-xlwt
 Requires: eigen3-devel
 Requires: freeglut-devel
@@ -96,12 +98,14 @@ BuildRequires: gcc-c++
 BuildRequires: freeglut-devel
 BuildRequires: graphviz
 %if 0%{?suse_version}
+BuildRequires: rsvg-convert
 BuildRequires: graphviz-gd
+%else
+BuildRequires: librsvg2-tools
 %endif
 BuildRequires: doxygen
 BuildRequires: cmake
 BuildRequires: gtkglext-devel
-BuildRequires: inkscape
 BuildRequires: python3-pyparsing
 BuildRequires: rapidjson-devel
 %if 0%{?gtkmm_config}

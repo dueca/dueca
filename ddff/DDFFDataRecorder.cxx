@@ -152,7 +152,8 @@ bool DDFFDataRecorder::isValid()
     /* DUSIME replay&initial
 
        A DataRecorder needs both entity and key defined. One or
-       both is empty */
+       both are empty.
+    */
     W_MOD("DataRecorder is not correctly initialized, entity=\"" <<
           entity << "\", key=\"" << key << "\"");
     return false;
@@ -205,7 +206,6 @@ bool DDFFDataRecorder::isValid()
      Attempt to connect a DataRecorder to a filer, but the associated
      filer cannot (yet) be found is is not yet complete. Check your
      configuration if this persists.
-
   */
   W_MOD("DataRecorder, replay filer not complete, entity=\"" <<
         entity << "\", key=\"" << key << "\"");
@@ -241,10 +241,10 @@ void DDFFDataRecorder::channelRecord(const DataTimeSpec& ts,
     marked_tick = ts.getValidityEnd();
   }
   else if (ts.getValidityEnd() > record_start_tick) {
-    /** DUSIME initial&replay
+    /* DUSIME replay&initial
 
-        Recording start is not aligned with data time spans; adjust
-        your intervals when starting the Environment. */
+       Recording start is not aligned with data time spans; adjust
+       your intervals when starting the Environment. */
     W_XTR("Omitting partial data span for recording, span=" << ts <<
           " recording start=" << record_start_tick);
   }

@@ -488,9 +488,6 @@ void NetCommunicatorPeer::unpackPeerData(MessageBuffer::ptr_type& buffer)
       // index are correct
       myturntosend = i_.peer_id == follow_id &&
         message_cycle == i_.cycle;
-
-        /* && message_cycle == i_.cycle */;
-
     }
     else {
       data_comm->returnBuffer(buffer);

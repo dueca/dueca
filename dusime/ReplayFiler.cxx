@@ -195,7 +195,10 @@ void ReplayFiler::runCommand(const TimeSpec& ts)
       break;
 
     case ReplayCommand::Command::FlushToDisk: {
-      auto nwrites = filer->processWrites();
+#if DEBPRINTLEVEL >= 0
+      auto nwrites =
+#endif
+	filer->processWrites();
       DEB("ReplayFiler " << entity << " processed writes: " << nwrites);
     }
       break;

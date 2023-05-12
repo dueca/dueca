@@ -38,7 +38,7 @@ ChannelWriteToken::ChannelWriteToken(const GlobalId& owner,
 {
   channel = ChannelManager::single()->findOrCreateChannel(this->getName());
 
-  /* DUECA Channels
+  /* DUECA channels
 
      Informational message on the issuing of a new write token.
    */

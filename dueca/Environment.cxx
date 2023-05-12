@@ -1190,8 +1190,7 @@ void Environment::proceed(int stage)
       /* DUECA system.
 
         Internal error, a run stage that has not been configured is
-        requested.
-      */
+        requested. */
     E_SYS("No stage " << stage << " to proceed to");
   }
 
@@ -1210,7 +1209,7 @@ void Environment::proceed(int stage)
 
   /* DUECA system.
 
-    Control returns to the scripting language interpretation.
+     Control returns to the scripting language interpretation.
   */
   I_SYS(getId() << "Returning to script");
 }

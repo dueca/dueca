@@ -104,7 +104,7 @@ public:
   inline const char* getName() const { return name; }
 
   /** Return information on the type; native, object, or enum */
-  virtual inline bool isEnum() const = 0;
+  virtual bool isEnum() const = 0;
 };
 
 /** Access object to a unitary member of class C, with type of the
@@ -197,6 +197,7 @@ public:
     return a;
   }
 
+  /** Return information on the type; native, object, or enum */
   bool isEnum() const final { return isEnum(dco_nested<T>()); }
 
 private:

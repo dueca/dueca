@@ -27,6 +27,8 @@
 
 DUECA_NS_START
 
+/** Placeholder function */
+void InformationStash_do_nothing();
 
 /** This is a helper object for dueca components, for sending
     information to central logging/information points. It keeps data

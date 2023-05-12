@@ -333,24 +333,24 @@ void ChannelOverview::processWriteInfo(const TimeSpec& ts, ChannelReadToken*& r)
       // add or remove the entry
       if (wi.data().clientid.validId()) {
 
-	if (infolist[chanid]->entries[entryid].get() != NULL) {
-	/** DUECA UI.
-	    
-	    For the ChannelOverview, a message is generated that
-	    indicates a new channel entry, but the entry is already
-	    reported as created. These glitches are sometimes
-	    introduced by incomplete creation and subsequent deletion
-	    of modules, due to errors in the start script. Check
-	    preceding messages.
-	*/
-	  W_STS("Double entry configuration detected " << entryid <<
-		" channel #" << chanid);
-	  
-	  // just in case, remove the monitor
-	  delete infolist[chanid]->entries[entryid]->monitor;
-	  infolist[chanid]->entries[entryid].reset();
-	}
-	
+        if (infolist[chanid]->entries[entryid].get() != NULL) {
+        /* DUECA UI.
+
+            For the ChannelOverview, a message is generated that
+            indicates a new channel entry, but the entry is already
+            reported as created. These glitches are sometimes
+            introduced by incomplete creation and subsequent deletion
+            of modules, due to errors in the start script. Check
+            preceding messages.
+        */
+          W_STS("Double entry configuration detected " << entryid <<
+                " channel #" << chanid);
+
+          // just in case, remove the monitor
+          delete infolist[chanid]->entries[entryid]->monitor;
+          infolist[chanid]->entries[entryid].reset();
+        }
+
         infolist[chanid]->entries[entryid].reset
           (new ChannelInfoSet::EntryInfoSet(wi.data()));
 
@@ -372,26 +372,26 @@ void ChannelOverview::processWriteInfo(const TimeSpec& ts, ChannelReadToken*& r)
       else {
         if (infolist[chanid]->entries[entryid].get() != NULL) {
 
-	  // just in case, remove the monitor
-	  delete infolist[chanid]->entries[entryid]->monitor;
-	  infolist[chanid]->entries[entryid].reset();
-	  
-	  // delete, add, replace the entry
-	  reflectChanges(chanid, entryid);
-	}
-	else {
-	  /** DUECA UI.
+          // just in case, remove the monitor
+          delete infolist[chanid]->entries[entryid]->monitor;
+          infolist[chanid]->entries[entryid].reset();
 
-	      For the ChannelOverview, a message is generated that
-	      indicates a disappearing channel entry, but the entry as
-	      such has not been reported as created. These glitches
-	      are sometimes introduced by incomplete creation and
-	      subsequent deletion of modules, due to errors in the
-	      start script. Check preceding messages indicating that.
-	  */
-	  W_STS("Cannot find dissappearing entry " << entryid <<
-		" channel #" << chanid);
-	}
+          // delete, add, replace the entry
+          reflectChanges(chanid, entryid);
+        }
+        else {
+          /* DUECA UI.
+
+              For the ChannelOverview, a message is generated that
+              indicates a disappearing channel entry, but the entry as
+              such has not been reported as created. These glitches
+              are sometimes introduced by incomplete creation and
+              subsequent deletion of modules, due to errors in the
+              start script. Check preceding messages indicating that.
+          */
+          W_STS("Cannot find dissappearing entry " << entryid <<
+                " channel #" << chanid);
+        }
       }
 
     }
@@ -512,7 +512,7 @@ void ChannelOverview::processCount(const TimeSpec& ts)
         /* DUECA UI.
 
            Received an old count result, not matching the current
-           request number, ignoring that. 
+           request number, ignoring that.
         */
         W_STS("Ignoring old count result, channel " <<
               pc.data().channelid << " for count " << pc.data().countid);

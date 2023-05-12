@@ -183,10 +183,13 @@ void UDPSocketCommunicator::configureHostAddress()
     }
   }
   else {
-    /* DUECA Network.
+    /* DUECA network.
 
-       Own interface address was not configured. Hope that the default
-       interface returned by the system is the correct one. */
+       The own network interface address was not configured. This will
+       work, as long as the default interface returned by the system
+       is the correct one. Verify this if your DUECA processess cannot
+       connect.
+    */
     W_NET("Using default interface address");
   }
 

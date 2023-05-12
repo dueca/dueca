@@ -323,12 +323,12 @@ endif()
 set(DEPCHAIN "")
 set(PREVIOUS)
 foreach(D ${PNGDATA})
-  message(STATUS "Adding target ${D}, using ${INKSCAPE}")
+  message(STATUS "Adding target ${D}, using ${SVG_CONVERSION_COMMAND}")
   string(REPLACE .png .svg SVG ${D})
   add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/images/${D}"
     COMMAND
-    ${INKSCAPE} "${CMAKE_CURRENT_SOURCE_DIR}/images/${SVG}"
-    ${INKSCAPE_EXPORT_PNG}="${CMAKE_CURRENT_BINARY_DIR}/images/${D}"
+    ${SVG_CONVERSION_COMMAND} ${SVG_PNGFILE_ARG}=${D}
+    "${CMAKE_CURRENT_SOURCE_DIR}/images/${SVG}"
     MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/images/${SVG}"
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/images)
   add_custom_target(${D} ALL

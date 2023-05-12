@@ -33,11 +33,11 @@ NamedObject::NamedObject(const GlobalId& id) :
   is_copy(true)
 {
   if (ObjectManager::single()->getObject(my_id) == NULL) {
-    /** DUECA system.
+    /* DUECA system.
 
-        Attempt to create an AssociateObject while the host object
-        has not yet been registered.
-     */
+       Attempt to create an AssociateObject while the host object
+       has not yet been registered.
+    */
     E_CNF("AssociateObject without host id=" << my_id);
   }
 }

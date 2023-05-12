@@ -190,7 +190,7 @@ void PythonScripting::initiate()
 #endif
   }
   catch(const bpy::error_already_set& e) {
-    /* DUECA Scripting.
+    /* DUECA scripting.
 
        Unspecified error in initializing the Python script language
        and starting the interpreter. Check the DUECA and Python

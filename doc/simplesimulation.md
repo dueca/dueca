@@ -1733,8 +1733,9 @@ run-data  simlab  solo
 This only added a folder to the run folder. We will define two nodes
 in this platform, giving them the names of `host` and `igtest`. We
 will assign node number zero to the host node, so the DUECA interface
-appear there, and also make it communication master, so it will drive
-the communication cycle.
+appear there. We will tell it to connect on a host on interface
+`127.0.0.1`, where it will find the "communication master", the
+computer that will drive the communication cycle.
 
 ~~~{.bash}
 [enter]$ dueca-gproject new-node --name host --platform simlab \
@@ -1833,8 +1834,11 @@ Added node igtest in simlab, script python
 graphics none, no 1/2 connecting None
 ~~~
 
-Note that here we don't supply the communication master (cmaster), so this
-node will become the master node for communication.
+Note that here we don't supply the communication master (cmaster), so
+this node will become the master node for communication. In the
+configuration file `dueca_cnf.py`, which you will find in the
+`run/simlab/igtest` folder, you can see this in the `send_order`
+parameter, which will be set to 0.
 
 Adding these nodes modified the file `.config/machinemapping.xml`,
 that file will be used when we ask `dueca-gproject` to check-out/clone

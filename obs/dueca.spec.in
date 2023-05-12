@@ -36,11 +36,14 @@ Requires: cvs
 Requires: python3-GitPython
 Requires: python3-pyparsing
 Requires: python3-lxml
+Requires: python3-jinja2
+Requires: msgpack-devel
 BuildRequires: python3-xlwt
 BuildRequires: wget
 BuildRequires: lsb-release
 BuildRequires: msgpack-devel
 BuildRequires: python3-pip
+BuildRequires: python3-jinja2
 
 %if 0%{?suse_version}
 BuildRequires: libguile1-devel
@@ -63,8 +66,10 @@ BuildRequires: libglade2-devel
 BuildRequires: python3-lxml
 %if 0%{?suse_version}
 BuildRequires: gtkmm2-devel pkg-config
+BuildRequires: rsvg-convert
 %else
 BuildRequires: gtkmm24-devel pkgconfig
+BuildRequires: librsvg2-tools
 %endif
 BuildRequires: gcc-c++
 BuildRequires: freeglut-devel
@@ -75,7 +80,6 @@ BuildRequires: graphviz-gd
 BuildRequires: doxygen
 BuildRequires: cmake
 BuildRequires: gtkglext-devel
-BuildRequires: inkscape
 BuildRequires: python3-pyparsing
 BuildRequires: rapidjson-devel
 BuildRequires: python3-setuptools

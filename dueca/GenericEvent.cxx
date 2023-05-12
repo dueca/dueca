@@ -55,10 +55,11 @@ std::ostream& GenericEvent::print(std::ostream& os) const
 void GenericEvent::assumeDataOwnership(const GlobalId& new_owner) const
 {
   if (!own_event_data) {
-    /* DUECA Channels.
+    /* DUECA channels.
 
        A really obsolete problem, with an old-style generic event passing
-       data ownership. */
+       data ownership.
+    */
     E_CHN("Event from " << maker_id
           << " cannot be transferred to " << new_owner);
     throw(CannotTransferOwnership(GlobalId(0,0), new_owner));

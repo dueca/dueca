@@ -30,9 +30,8 @@ int main()
   dueca::MessageBuffer buf(200);
   int ii = 1;
   msgpack::v1::adaptor::pack<dueca::MessageBuffer>(buf, ii);
-  unsigned off = 0u;
   int i2 = 0;
-  dueca::msgunpack::msg_unpack(buf, off, i2);
+  dueca::msgunpack::msg_unpack(buf.data(), buf.data()+buf.size(), i2);
   assert(ii == i2);
 #endif
 

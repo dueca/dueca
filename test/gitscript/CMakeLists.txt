@@ -2,10 +2,10 @@ find_package(Python3 COMPONENTS Interpreter)
 find_package(Git)
 find_program(XMLLINT xmllint)
 
-if (NOT Python3_Interpreter_FOUND)
+if(NOT Python3_Interpreter_FOUND)
   message(STATUS "No python3 interpreter, old cmake?")
   find_program(Python3_Interpreter python3)
-  if (Python3_Interpreter)
+  if(Python3_Interpreter)
     set(Python3_Interpreter_FOUND TRUE)
   endif()
 endif()
@@ -17,7 +17,7 @@ endif()
 # more test/gitscripts/test/Testing/Temporary/LastTest.log
 
 
-if (Python3_Interpreter_FOUND)
+if(Python3_Interpreter_FOUND)
 
   set(DUECA_GPROJECT
     ${CMAKE_SOURCE_DIR}/gitscripts/dueca-gproject.py --verbose)
@@ -29,7 +29,8 @@ if (Python3_Interpreter_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR}/testarea2
     ${CMAKE_CURRENT_BINARY_DIR}/testarea3
     ${CMAKE_CURRENT_BINARY_DIR}/TestProject1.git
-    ${CMAKE_CURRENT_BINARY_DIR}/TestProject2.git)
+    ${CMAKE_CURRENT_BINARY_DIR}/TestProject2.git
+    ${CMAKE_CURRENT_BINARY_DIR}/otherrepo)
 
   # make the folders
   add_test(NAME prepare_folders
@@ -37,17 +38,30 @@ if (Python3_Interpreter_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR}/testarea2
     ${CMAKE_CURRENT_BINARY_DIR}/testarea3
     ${CMAKE_CURRENT_BINARY_DIR}/TestProject1.git
-    ${CMAKE_CURRENT_BINARY_DIR}/TestProject2.git)
+    ${CMAKE_CURRENT_BINARY_DIR}/TestProject2.git
+    ${CMAKE_CURRENT_BINARY_DIR}/otherrepo
+    ${CMAKE_CURRENT_BINARY_DIR}/otherrepo/TestProject3.git)
 
   # let git init empty repos there
   add_test(NAME prepare_repo1
     COMMAND ${GIT_EXECUTABLE} init --bare
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/TestProject1.git")
   set(REPO1 "file://${CMAKE_CURRENT_BINARY_DIR}/TestProject1.git")
+
   add_test(NAME prepare_repo2
     COMMAND ${GIT_EXECUTABLE} init --bare
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/TestProject2.git")
   set(REPO2 "file://${CMAKE_CURRENT_BINARY_DIR}/TestProject2.git")
+
+  add_test(NAME prepare_repo3
+    COMMAND ${GIT_EXECUTABLE} init --bare
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/otherrepo/TestProject3.git")
+  set(REPO3 "file://${CMAKE_CURRENT_BINARY_DIR}/otherrepo/TestProject3.git")
+
+  # environment variable to be used with repo3
+  set(ENV{DAPPS_GITROOT} file://${CMAKE_CURRENT_BINARY_DIR}/otherrepo/)
+  # and a named one
+  set(ENV{DAPPS_GITROOT_try} file://${CMAKE_CURRENT_BINARY_DIR}/)
 
   # create a new project with the dueca-gproject script
   add_test(NAME gitscript_new
@@ -302,6 +316,39 @@ if (Python3_Interpreter_FOUND)
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR})
 
+  # create a project using a dgr shorthand url
+  add_test(NAME gitscript_new3
+    COMMAND
+    ${DUECA_GPROJECT} new --name TestProject3 --remote dgr:///TestProject3.git
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea)
+  set_property(TEST gitscript_new3 PROPERTY ENVIRONMENT
+    "DAPPS_GITROOT=file://${CMAKE_CURRENT_BINARY_DIR}/otherrepo/")
+
+  # first a borrow-project, will need for DCO
+  add_test(NAME gitscript_borrowproject3
+    COMMAND
+    ${DUECA_GPROJECT} borrow-project --remote dgrtry:///TestProject2.git
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject3/TestProject3)
+  set_property(TEST gitscript_borrowproject3 PROPERTY ENVIRONMENT
+    "DAPPS_GITROOT_try=file://${CMAKE_CURRENT_BINARY_DIR}/")
+
+  # and borrow with another shorthand url
+  add_test(NAME gitscript_borrowmodule3
+    COMMAND
+    ${DUECA_GPROJECT} borrow-module --name TestModule1
+    --remote dgrtry:///TestProject1.git
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject3/TestProject3)
+  set_property(TEST gitscript_borrowmodule3 PROPERTY ENVIRONMENT
+    "DAPPS_GITROOT_try=file://${CMAKE_CURRENT_BINARY_DIR}/")
+
+  # verify that the module has been added to the .config
+  add_test(NAME verify_newmodule3
+    COMMAND grep TestModule1
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject3/TestProject3/.config/class/solo/modules.xml)
+
   # check the base functionality for reading&interpreting comm-objects
   # files
   add_test(NAME scriptchange_readcommobjects
@@ -310,7 +357,7 @@ if (Python3_Interpreter_FOUND)
 
   # check for policies
   add_test(NAME gitscript_checkpolicies
-    COMMAND  ${DUECA_GPROJECT}
+    COMMAND ${DUECA_GPROJECT}
     policies --policiesurl
     file://${CMAKE_CURRENT_SOURCE_DIR}/example-policies.xml
     WORKING_DIRECTORY
@@ -323,7 +370,7 @@ if (Python3_Interpreter_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
 
   add_test(NAME gitscript_applypolicies
-    COMMAND  ${DUECA_GPROJECT}
+    COMMAND ${DUECA_GPROJECT}
     policies --policiesurl
     file://${CMAKE_CURRENT_SOURCE_DIR}/example-policies.xml
     --apply 21-001
@@ -331,7 +378,7 @@ if (Python3_Interpreter_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
 
   add_test(NAME gitscript_applypolicies2
-    COMMAND  ${DUECA_GPROJECT}
+    COMMAND ${DUECA_GPROJECT}
     policies --policiesurl
     file://${CMAKE_CURRENT_SOURCE_DIR}/example-policies.xml
     --apply 21-001
@@ -341,7 +388,7 @@ if (Python3_Interpreter_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
 
   add_test(NAME gitscript_ignorepolicies
-    COMMAND  ${DUECA_GPROJECT}
+    COMMAND ${DUECA_GPROJECT}
     policies --policiesurl
     file://${CMAKE_CURRENT_SOURCE_DIR}/example-policies.xml
     --skip 21-002
@@ -349,7 +396,7 @@ if (Python3_Interpreter_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
 
   add_test(NAME gitscript_remainingpolicies
-    COMMAND  ${DUECA_GPROJECT}
+    COMMAND ${DUECA_GPROJECT}
     policies --policiesurl
     file://${CMAKE_CURRENT_SOURCE_DIR}/example-policies.xml
     --apply-all
@@ -360,13 +407,13 @@ if (Python3_Interpreter_FOUND)
     COMMAND ${GIT_EXECUTABLE} commit -a -m "applied policies on policies branch"
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1
-    )
+  )
 
   add_test(NAME gitscript_pushbranch
     COMMAND ${GIT_EXECUTABLE} push --set-upstream origin policies
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1
-    )
+  )
 
   # clone the versioned/branched
   add_test(NAME gitscript_clone_branch
