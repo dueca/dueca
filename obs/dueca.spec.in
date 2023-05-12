@@ -66,8 +66,10 @@ BuildRequires: libglade2-devel
 BuildRequires: python3-lxml
 %if 0%{?suse_version}
 BuildRequires: gtkmm2-devel pkg-config
+BuildRequires: rsvg-convert
 %else
 BuildRequires: gtkmm24-devel pkgconfig
+BuildRequires: librsvg2-tools
 %endif
 BuildRequires: gcc-c++
 BuildRequires: freeglut-devel
@@ -78,8 +80,6 @@ BuildRequires: graphviz-gd
 BuildRequires: doxygen
 BuildRequires: cmake
 BuildRequires: gtkglext-devel
-# BuildRequires: inkscape
-BuildRequires: librsvg2-tools
 BuildRequires: python3-pyparsing
 BuildRequires: rapidjson-devel
 BuildRequires: python3-setuptools
