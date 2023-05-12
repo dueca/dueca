@@ -43,6 +43,7 @@ BuildRequires: wget
 BuildRequires: lsb-release
 BuildRequires: msgpack-devel
 BuildRequires: python3-pip
+BuildRequires: python3-jinja2
 
 %if 0%{?suse_version}
 BuildRequires: libguile1-devel
