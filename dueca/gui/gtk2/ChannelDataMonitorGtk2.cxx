@@ -118,7 +118,7 @@ gboolean ChannelDataMonitorGtk2::cbDelete(GtkWidget *window, GdkEvent *event,
 
 inline const char* print_string(const JValue &value)
 {
-  static char tmp[9];
+  static char tmp[22];
   if (value.GetStringLength() == 1) {
     const char * str = value.GetString();
     if (str[0] < 32 || str[0] > 126) {
