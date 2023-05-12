@@ -222,8 +222,7 @@ public:
       \param xd      Resultant derivative vector
       \param unused  Unused variable, for compatibility with
                      integration functions.
-      \returns       Reference to the vector with the derivative
-                     state.  */
+  */
   template<class V>
   void derivative(V& xd, double unused=0.0)
   {

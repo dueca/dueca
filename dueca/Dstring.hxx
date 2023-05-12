@@ -218,14 +218,20 @@ PRINT_NS_END
 
 #include "msgpack-unstream-iter.hxx"
 MSGPACKUS_NS_START;
+/** Unpack a DUECA dstring from a msgpack visitor
+
+    @param i0     Iterator current position
+    @param iend   Last item in the data
+    @param i      Resulting string
+*/
 template <typename S, unsigned mxsize>
-inline void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& i)
+inline void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& s)
 {
   uint32_t len = unstream<S>::unpack_strsize(i0, iend);
-  i.resize(len);
+  s.resize(len);
   for (size_t ii = 0; ii < len; ii++) {
     check_iterator_notend(i0, iend);
-    i.data()[ii] = *i0++;
+    s.data()[ii] = *i0++;
   }
 }
 MSGPACKUS_NS_END;

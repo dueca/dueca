@@ -196,10 +196,8 @@ FileWithSegments::findOffset(unsigned cycle,
     assert(stream_id >= 2U);
     return tags[cycle].offset[stream_id-2U];
   }
-  else if (cycle == tags.size()) {
-    return std::numeric_limits<pos_type>::max();
-  }
-  assert(0);
+  assert(cycle == tags.size());
+  return std::numeric_limits<pos_type>::max();
 }
 
 void FileWithSegments::startStretch
