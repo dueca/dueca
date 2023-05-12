@@ -12,6 +12,7 @@
 */
 
 #include <msgpack.hpp>
+#include "StateGuard.hxx"
 #include <set>
 
 // other-file-specific
@@ -753,6 +754,7 @@ struct GobbleVisitor: public VirtualVisitor
 {
   std::set<std::string> seen;
   const char* classname;
+  StateGuard missing_lock;
   GobbleVisitor(const char* klass);
   bool visit_nil();
   bool visit_boolean(bool v);

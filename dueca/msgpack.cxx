@@ -93,8 +93,11 @@ bool DCOVirtualVisitor::visit_float64(double v)
  if (nest) return nest->visit_float64(v);
  return false; }
 
-  GobbleVisitor::GobbleVisitor(const char* klass) : classname(klass)
-  { }
+  GobbleVisitor::GobbleVisitor(const char* klass) :
+    seen(),
+    classname(klass),
+    missing_lock("gobbler")
+  { missing_lock.leaveState(); }
 
   bool GobbleVisitor::visit_nil()
   { DEB1("Gobble visit_nil"); return true; }
@@ -161,10 +164,17 @@ bool DCOVirtualVisitor::visit_float64(double v)
 
   VirtualVisitor* GobbleVisitor::missingMember(const char* name)
   {
+    ScopeLock l(missing_lock);
     std::string _name(name);
     if (seen.count(_name)) return this;
     seen.insert(_name);
-    W_MEM("msgpack visitor, object of type " << classname <<
+    /* DUECA msgpack.
+
+       A mgpack message contained a data member that was not present
+       in your DCO type. This message is generated only once for this
+       type.
+     */
+    W_XTR("msgpack visitor, object of type " << classname <<
           " no member " << name);
     return this;
   }

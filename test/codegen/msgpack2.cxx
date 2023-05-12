@@ -26,7 +26,7 @@ USING_DUECA_NS;
 
 int main()
 {
-#if 0
+#if 1
   {
     // a small one first
     PupilRemote2DEllipse eo, eoc;
@@ -47,7 +47,7 @@ int main()
     }
   }
 #endif
-#if 0
+#if 1
   {
     // this has int, strings, floats, a fixvector and two simple nested objects
     // all fixed-size
@@ -71,7 +71,7 @@ int main()
     buf.release();
   }
 #endif
-#if 0
+#if 1
   {
     // this has int, strings, floats, a fixvector and two simple nested objects
     // all fixed-size
@@ -96,7 +96,7 @@ int main()
     buf.release();
   }
 #endif
-#if 0
+#if 1
   {
     // this has int, strings, floats, a fixvector and two simple nested objects
     // all fixed-size
@@ -127,7 +127,7 @@ int main()
   }
 #endif
 
-#if 0 // keep
+#if 0
   {
     // alternative unpack
     PupilRemoteGaze2 eo, eoc;
@@ -142,8 +142,9 @@ int main()
     {
       msgpack::packer<dueca::MessageBuffer> pk(buf);
       pk.pack(eo);
-      std::size_t off = 0;
-      dueca::msgunpack::msg_unpack(buf, off, eoc);
+      char* i0 = buf.data();
+      char* iend = buf.data()+buf.size();
+      msgunpack::msg_unpack(i0, iend, eoc);
       cout << "PupilRemoteGaze2 " << endl;
       cout << "original " << eo << endl;
       cout << "unpacked " << eoc << endl;

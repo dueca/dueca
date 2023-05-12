@@ -35,7 +35,7 @@ from jinja2 import Environment, BaseLoader
 env = Environment(loader=BaseLoader)
 
 headercode_tmpl = """
-# if defined(DUECA_CONFIG_MSGPACK) || defined(DUECA_CONFIG_DDFF)
+#if defined(DUECA_CONFIG_MSGPACK) || defined(DUECA_CONFIG_DDFF)
 
 {#- For any enum members, implement the msgpack conversion #}
 {%- for m in members %}
@@ -48,7 +48,7 @@ MSGPACK_ADD_ENUM_UNSTREAM({{ m.getType() }});
 {%- endif %}
 {%- endfor %}
 
-# ifndef __CUSTOM_MSGPACK_PACK_{{ name }}
+#ifndef __CUSTOM_MSGPACK_PACK_{{ name }}
 namespace msgpack {
 /// @cond
 MSGPACK_API_VERSION_NAMESPACE(v1) {
@@ -99,7 +99,11 @@ namespace messagepack {
 template<> struct msgpack_visitor<{{ nsprefix }}{{ name }}>
 { typedef msgpack_container_dco variant; };
 
-# ifndef __CUSTOM_MSGPACK_VISITOR_{{ name }}
+#ifndef __CUSTOM_MSGPACK_VISITOR_{{ name }}
+
+/** Gobble visitor, for uncoded "members" */
+GobbleVisitor& v_gobble_{{ name }}();
+
 /** Unpackvisitor class for {{ name }} */
 template<>
 struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
@@ -129,9 +133,6 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
     v_{{ m.getName() }};
   {%- endfor %}
 
-  /** Gobble visitor, for uncoded "members" */
-  GobbleVisitor v_gobble;
-
   /** Generic reference to the member variable visitors */
   MemberVisitorTable visitors[{{ members|length }}];
 
@@ -146,7 +147,6 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
     {%- for m in members %}
     v_{{ m.getName() }}(v.{{ m.getName() }}),
     {%- endfor %}
-    v_gobble("{{ name }}"),
     visitors{
       {%- for m in members %}
       { "{{ m.getName() }}", &v_{{ m.getName() }} }{{ m != members|last and ',' or '' }}
@@ -174,7 +174,7 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
         sel++;
       }
       if (isparent) return false;
-      nest = v_gobble.missingMember(name);
+      nest = v_gobble_{{ name }}().missingMember(name);
       return true;
     }
     if (sel < int(n_members)) {
@@ -208,6 +208,18 @@ void msg_unpack(S& i0, const S& iend, {{ nsprefix }}{{ name }}&i)
 """
 
 bodycode_tmpl = """
+#ifndef __CUSTOM_MSGPACK_VISITOR_{{ name }}
+namespace dueca {
+namespace messagepack {
+GobbleVisitor& v_gobble_{{ name }}()
+{
+  static GobbleVisitor _v("{{ name }}");
+  return _v;
+}
+} // namespace messagepack
+} // namespace dueca
+#endif
+
 #if defined(DUECA_CONFIG_MSGPACK) || defined(DUECA_CONFIG_DDFF)
 
 namespace {{ name }}_space {
