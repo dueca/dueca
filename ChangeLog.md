@@ -2,6 +2,14 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.10] - 2023-05-12
+
+- Ignore messagepack data for DCO members that are not present
+- Use rsvg-convert instead of inkscape for svg -> png
+- Improve the line counting for the message list documentation
+- Fixed a bug in websocket server; connected endpoints from
+  an info endpoint would also be listed as direct read endpoints
+
 ## [3.2.9] - 2023-04-19
 
 - Enable use of abbreviated url when creating projects
