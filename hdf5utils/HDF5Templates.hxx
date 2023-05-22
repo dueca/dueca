@@ -279,16 +279,6 @@ const H5::DataType* get_hdf5_elt_type(const smartstring& d);
 /** as element, it must be writeable */
 const H5::DataType* get_hdf5_elt_type(smartstring& d);
 
-#if 0
-/** Extract a element, of a map type */
-template<typename K, typename T>
-const H5::DataType* get_hdf5_elt_type(const std::map<K,T>& d)
-{ return NULL; }
-/** Extract a element, of a map type */
-template<typename K, typename T>
-const H5::DataType* get_hdf5_elt_type(std::map<K,T>& d)
-{ return NULL; }
-#else
 /** std::map works as member, written as extensible array with
     key,val pairs. These must be convertible in one go */
 template<typename K, typename T>
@@ -314,13 +304,28 @@ const H5::DataType* get_hdf5_elt_type(const std::map<K,T>& d)
   return data_type;
 }
 
+/** std::map works as member, written as extensible array with
+    key,val pairs. These must be convertible in one go */
+template<typename K, typename T>
+const H5::DataType* get_hdf5_elt_type(std::map<K,T>& d)
+{
+  const std::map<K,T>& _d = d;
+  return get_hdf5_elt_type(_d);
+}
+
 /** Return the length of a map */
 template<typename K, typename T>
 const hsize_t get_hdf5_elt_length(const std::map<K,T>& d)
 {
   return H5S_UNLIMITED;
 }
-#endif
+
+/** Return the length of a map */
+template<typename K, typename T>
+const hsize_t get_hdf5_elt_length(std::map<K,T>& d)
+{
+  return H5S_UNLIMITED;
+}
 
 /** generic element type */
 template<typename T>
