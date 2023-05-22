@@ -357,7 +357,7 @@ Simulation we commonly define:
 <tr><th>variable</th><th>value</th><th>replaces prefix</th><th>Description</th></tr>
 
 <tr><td>`DAPPS_GITROOT_pub`</td>
-<td>`git@github.tudelft.nl:dueca/`</td>
+<td>`git@github.com:dueca/`</td>
 <td>`dgrpub:///`</td>
 <td>Open-sourced DUECA modules on GitHub</td></td>
 
@@ -417,7 +417,7 @@ If you do not provide the remote url, you will be left with only a local
 project, git wizards know what to do with this.
 
 The script language is either python or scheme, where the more modern
-python option is default
+python option is default.
 
 The graphical user interface will be applied as option to the "solo"
 machine class. Unless you need compatibility with the aging "gtk2",
@@ -598,16 +598,18 @@ have already been written and can be re-used. You can add such a
 module to your project by (for example with FlexiStick):
 
     dueca-gproject borrow-module --name flexi-stick \
-                   --remote dgrbase:///FlexiStick.git
+                   --remote dgrpub:///FlexiStick.git
 
 In this example, a somewhat particular url is used for the location of
 the FlexiStick project from which we borrow. Since FlexiStick is one
-of the standard DUECA projects used in our group, the special URL
-`dgrbase:///` can be used. When interacting with git, this will be
-replaced by the value of the `DAPPS_GITROOT_base` environment variable.
+of the standard DUECA projects used, and housed with some other
+software in the project on `github`, the special URL `dgrpub:///` can
+be used. When interacting with git, this will be replaced by the value
+of the `DAPPS_GITROOT_pub` environment variable.
 
 Of course, if you borrow from a project not in that location, specify
-the full git url.
+the full git url, or a shortened url matching another environment
+variable.
 
 ### Creating a module
 
@@ -643,12 +645,14 @@ borrowed, must be listed here with their url's. These must be one of
 the many formats of git url that are possible, or use a shorthand
 prefix, e.g., the `dgr:///` prefix, or a `dgrbase:///` prefix to
 indicate a url based on the `DAPPS_GITROOT` or `DAPPS_GITROOT_base`
-environment variable.
+environment variable. The project you are working on uses a specific
+shorthand with the `origin:///` prefix. The location matching that
+prefix is extracted from the git information for the folder.
 
 Here is a small example from a `modules.xml` file.
 
     <project>
-      <url>dgr:///DrivingSimulator.git</url>
+      <url>origin:///DrivingSimulator.git</url>
       <module>ECI</module>
       <module>CarDynamics</module>
       <module>Dashboard</module>
@@ -835,5 +839,5 @@ computers/nodes of a platform:
 
 You might want to add a node to a platform later. You can simply add
 the node using the `new-node` command. When you have done that, verify
-that the node numbers do not conflict, and that the total number of
+that the node numbers do not conflict, and that the new total number of
 nodes is correct in all `dueca_cnf.py`/`dueca.cnf` files.
