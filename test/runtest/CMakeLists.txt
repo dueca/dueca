@@ -8,6 +8,7 @@ find_program(XVNCSERVER NAMES vncserver)
 find_program(WINDOWMANAGER NAMES openbox)
 find_program(WMCTRL NAMES wmctrl)
 find_package(LibXml2 REQUIRED)
+find_program(H5DUMP NAMES h5dump)
 
 # variables for running
 set(DISPLAYSIZE 1024x768)
@@ -31,11 +32,20 @@ execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/testpynput
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import attr"
   RESULT_VARIABLE PYTHON_HAVE_ATTRS)
 set(TESTRUN_BASE "/tmp/tmp.runner" CACHE PATH
-                           "Location for running test projects")
+  "Location for running test projects")
+set(TESTRUN_PROJ
+  ${TESTRUN_BASE}/DuecaTestCommunication/DuecaTestCommunication
+  CACHE PATH
+  "Location with base test project")
 
+# these names should occur in the hdf5 log file produced in the solo/solo
+# project
+set(LOGGROUPS entry child __parent__ coded drive fixvector limvector
+lists map mappedfixvector nestedmap second varvector)
 
 set(CONTROLFILES tmssolo tmsudptwo tmswsudpfour)
 
+# run these tests with enough python modules
 if (PYTHON_HAVE_PIL EQUAL 0 AND
     PYTHON_HAVE_WMCTRL EQUAL 0 AND
     PYTHON_HAVE_PYNPUT EQUAL 0 AND
@@ -44,12 +54,14 @@ if (PYTHON_HAVE_PIL EQUAL 0 AND
     NOT XVFB MATCHES ".*-NOTFOUND" AND
     NOT WINDOWMANAGER MATCHES ".*-NOTFOUND")
 
+  # remove the hdf log file if it is there
+  file(REMOVE ${TESTRUN_PROJ}/run/solo/solo/datalog.hdf5)
 
+  # for the different configurations
   foreach (CONTROLFILE ${CONTROLFILES})
 
+    # configure the script that runs the test
     configure_file(testrun.in test_run_${CONTROLFILE} @ONLY)
-    #file(CHMOD ${CMAKE_CURRENT_BINARY_DIR}/test_run_${CONTROLFILE}
-    #  PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
 
     # validate the test input file first
     add_test(NAME TEST_VAL_${CONTROLFILE}
@@ -63,6 +75,24 @@ if (PYTHON_HAVE_PIL EQUAL 0 AND
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
   endforeach()
+
+  # if H5DUMP is found, convert and check the log file
+  if (NOT H5DUMP MATCHES ".*-NOTFOUND")
+    execute_process(COMMAND ${H5DUMP}
+      ${TESTRUN_PROJ}/run/solo/solo/datalog.hdf5
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      OUTPUT_FILE datalog.dmp
+    )
+
+    # check that the given log groups are there. Might convert to a better
+    # check in the future.
+    foreach(LG ${LOGGROUPS})
+      add_test(NAME TEST_HDF5_LOG_${LG}
+	COMMAND grep "GROUP .${LG}. {" datalog.dmp
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    endforeach()
+
+  endif()
 
 else()
   if (NOT PYTHON_HAVE_PIL EQUAL 0)
