@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.11] - 2023-05-23
+
+- Fix in the appdevelopmentg.md documentation
+- Fix the hdf5 logging of std::map members as vararray of 
+  hdf5 composite objects
+
 ## [3.2.10] - 2023-05-12
 
 - Ignore messagepack data for DCO members that are not present
