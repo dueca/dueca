@@ -126,7 +126,7 @@ protected:
       }
     }
 
-    /** With iterable (stl vector & list) and c++ strings, needs
+    /** With iterable (stl vector & list) of c++ strings, needs
         copy of pointers */
     template<typename Alloc, template <typename, typename> class V >
     void writeNew(const void* data, hsize_t chunkidx,
