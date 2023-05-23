@@ -285,8 +285,10 @@ template<typename K, typename T>
 const H5::DataType* get_hdf5_elt_type(const std::map<K,T>& d)
 {
   static H5::CompType *data_type = NULL;
+  static H5::VarLenType *arr_type = NULL;
   static bool once = true;
-  struct pairlike { K first; T second; };
+  typedef std::pair<K,T> pairlike;
+  //struct pairlike { K first; T second; };
   if (once) {
     once = false;
     pairlike example;
@@ -299,9 +301,9 @@ const H5::DataType* get_hdf5_elt_type(const std::map<K,T>& d)
     data_type->insertMember
       ("val", HOFFSET(pairlike, second),
        *dueca::get_hdf5_type(example.second));
-    once = false;
+    arr_type = new H5::VarLenType(data_type);
   }
-  return data_type;
+  return arr_type;
 }
 
 /** std::map works as member, written as extensible array with
@@ -311,20 +313,6 @@ const H5::DataType* get_hdf5_elt_type(std::map<K,T>& d)
 {
   const std::map<K,T>& _d = d;
   return get_hdf5_elt_type(_d);
-}
-
-/** Return the length of a map */
-template<typename K, typename T>
-const hsize_t get_hdf5_elt_length(const std::map<K,T>& d)
-{
-  return H5S_UNLIMITED;
-}
-
-/** Return the length of a map */
-template<typename K, typename T>
-const hsize_t get_hdf5_elt_length(std::map<K,T>& d)
-{
-  return H5S_UNLIMITED;
 }
 
 /** generic element type */
