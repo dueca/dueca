@@ -33,6 +33,7 @@ echo "Python version ${PYVERSION}"
 
 cmake $BUILDER \
       -DCMAKE_CXX_FLAGS="-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_30" \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DCMAKE_INSTALL_PREFIX=/tmp \
       -DCMAKE_BUILD_TYPE=Debug \
       -DBUILD_DOC=ON \
@@ -62,8 +63,7 @@ cmake $BUILDER \
       -DFILLPACKER_SEND_ID=ON \
       -DTRY_INSTALL_PYTHON_BUILD=ON \
       ..
-
-
       # -DBUILD_FEXCEPT=ON \
 
 cd ..
+ln -sf build-linux/compile_commands.json .
