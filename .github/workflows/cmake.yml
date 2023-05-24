@@ -46,6 +46,7 @@ jobs:
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -DCMAKE_CXX_FLAGS="-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_30"
         -DCMAKE_INSTALL_PREFIX=${{env.PREFIX}}
+	-DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -DBUILD_DOC=ON
         -DDUECA_BUILD_SHARED=ON
         -DDUECA_BUILD_STATIC=OFF
@@ -88,3 +89,7 @@ jobs:
         git config --global user.email "ghtest@example.com"
         git config --global user.name  "example runner"
         source ${{env.PREFIX}}/dueca-env.sh && USER=example ctest -C ${{env.BUILD_TYPE}}
+
+    - name: Setup tmate session
+      if: success() || failure()
+      uses: mxschmitt/action-tmate@v3
