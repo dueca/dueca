@@ -126,7 +126,7 @@ protected:
       }
     }
 
-    /** With iterable (stl vector & list) and c++ strings, needs
+    /** With iterable (stl vector & list) of c++ strings, needs
         copy of pointers */
     template<typename Alloc, template <typename, typename> class V >
     void writeNew(const void* data, hsize_t chunkidx,
@@ -146,6 +146,29 @@ protected:
       for (typename V<std::string,Alloc>::const_iterator ii = conv.val->begin();
            ii != conv.val->end(); ii++) {
         varlen.data[idx++] = ii->c_str();
+      }
+      dset.write(&varlen, *datatype, memspace, filspace);
+    }
+
+    /** With map, treat as iterable with key and val types, assume pairs are
+	appropriately packed */
+    template<typename K, typename V>
+    void writeNew(const void* data, hsize_t chunkidx,
+		  const std::map<K, V>& dum)
+    {
+      if (datatype == NULL) return;
+      union {const char* ptr;  const std::map<K, V>* val;} conv;
+      conv.ptr = reinterpret_cast<const char*>(data)+offset;
+      struct {
+        size_t len;
+	std::pair<K,V>* data;
+      } varlen;
+      std::pair<K,V> cpointers[conv.val->size()];
+      varlen.len = conv.val->size();
+      varlen.data = cpointers;
+      unsigned idx = 0U;
+      for (const auto& vals: *conv.val) {
+	cpointers[idx++] = vals;
       }
       dset.write(&varlen, *datatype, memspace, filspace);
     }

@@ -248,29 +248,30 @@ ChannelReadToken::readAndStoreData(AmorphStore& s, TimeTickType& tsprev)
         !handle->entry->entry->isEventType()) {
       ::packData(s, ts_actual);
       converter->packData(s, data);
-      channel->releaseReadAccess(handle);
       tsprev = ts_actual.getValidityEnd();
+      channel->releaseReadAccess(handle);
       assert(handle->accessed == NULL);
       return TimeSkip;
     }
     else {
       ::packData(s, ts_actual.getValidityEnd());
       converter->packData(s, data);
-      channel->releaseReadAccess(handle);
       tsprev = ts_actual.getValidityEnd();
+      channel->releaseReadAccess(handle);
       assert(handle->accessed == NULL);
       return DataSuccess;
     }
   }
   catch (const AmorphStoreBoundary& e) {
+    channel->releaseReadAccess(handle);
     handle->accessed = NULL; //->resetDataAccess(handle);
     // revert the read index to previous element? Will this match with
     // gap?
     handle->entry->read_index = handle->entry->read_index->getPrevious();
     throw(e);
   }
-  assert(handle->accessed == NULL);
-  return DataSuccess;
+  //assert(handle->accessed == NULL);
+  //return DataSuccess;
 }
 
 bool
@@ -293,6 +294,7 @@ ChannelReadToken::readAndPack(AmorphStore& s, DataTimeSpec& ts_actual,
     channel->releaseReadAccess(handle);
   }
   catch (const AmorphStoreBoundary& e) {
+    channel->releaseReadAccess(handle);
     handle->accessed = NULL; //->resetDataAccess(handle);
     // revert the read index to previous element? Will this match with
     // gap?
@@ -321,6 +323,7 @@ bool ChannelReadToken::applyFunctor(DCOFunctor* fnct, TimeTickType time)
     channel->releaseReadAccess(handle);
   }
   catch (const std::exception &e) {
+    channel->releaseReadAccess(handle);
     handle->accessed = NULL;
     handle->entry->read_index = handle->entry->read_index->getPrevious();
     throw(e);

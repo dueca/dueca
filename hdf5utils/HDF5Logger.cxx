@@ -497,23 +497,7 @@ bool HDF5Logger::internalIsPrepared()
 
     // for valid tokens, and file opened, create the functor
     if (hfile && (*ii)->r_token.isValid() && (*ii)->functor.get() == NULL) {
-#if 0
-      // find the meta information
-      ChannelEntryInfo ei = (*ii)->r_token.getChannelEntryInfo();
-
-      // metafunctor can create the logging functor
-      std::weak_ptr<HDF5DCOMetaFunctor> metafunctor
-        ((*ii)->r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
-
-      // logging functor, supply file information. Label will be saved
-      // as attribute
-      (*ii)->functor.reset(metafunctor.lock()->getWriteFunctor
-                           (hfile, (*ii)->logpath, (*ii)->chunksize,
-                            ei.entry_label, getOpTime((*ii)->always_logging),
-                            (*ii)->compress));
-#else
       (*ii)->createFunctor(hfile, this, std::string(""));
-#endif
 
       /* DUECA hdf5.
 

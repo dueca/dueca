@@ -132,18 +132,16 @@ template<> const H5::DataType* get_hdf5_type<bool>()
   return &data_type;
 }
 
-#if 1
 template<> const H5::DataType* get_hdf5_type<std::string>()
 {
-  static const H5::StrType data_type(H5::PredType::NATIVE_CHAR, H5T_VARIABLE);
+  static const H5::StrType data_type(H5::PredType::C_S1, H5T_VARIABLE);
   return &data_type;
 }
+
 template<> const H5::DataType* get_hdf5_type<dueca::smartstring>()
 {
-  static const H5::StrType data_type(H5::PredType::NATIVE_CHAR, H5T_VARIABLE);
-  return &data_type;
+  return get_hdf5_type<std::string>();
 }
-#endif
 
 template<> const H5::DataType* get_hdf5_type<dueca::Dstring<8> >()
 {
@@ -192,7 +190,6 @@ template<> const H5::DataType* get_hdf5_type<dueca::Dstring<236> >()
   return &data_type;
 }
 
-
 const H5::DataType* get_hdf5_type(const std::string& d)
 {
   return NULL;
@@ -200,26 +197,30 @@ const H5::DataType* get_hdf5_type(const std::string& d)
 
 const H5::DataType* get_hdf5_elt_type(const std::string& d)
 {
-  static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
-  return &data_type;
+  //static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
+  //return &data_type;
+  return get_hdf5_type<std::string>();
 }
 
 const H5::DataType* get_hdf5_elt_type(std::string& d)
 {
-  static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
-  return &data_type;
+  //static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
+  //return &data_type;
+  return get_hdf5_type<std::string>();
 }
 
 const H5::DataType* get_hdf5_elt_type(const dueca::smartstring& d)
 {
-  static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
-  return &data_type;
+  //static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
+  //return &data_type;
+  return get_hdf5_type<std::string>();
 }
 
 const H5::DataType* get_hdf5_elt_type(dueca::smartstring& d)
 {
-  static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
-  return &data_type;
+  //static H5::StrType data_type(H5T_C_S1, H5T_VARIABLE);
+  //return &data_type;
+  return get_hdf5_type<std::string>();
 }
 
 

@@ -190,7 +190,7 @@ void HDF5DCOReadFunctor::LogDataSet::readObjectPart(void* data)
     dset.read(&conv.data[offset], *datatype, memspace, filspace);
   }
   catch(const H5::Exception& e) {
-    std::cerr << "Trying to write new data "
+    std::cerr << "Trying to read new data "
               << ", got " << e.getDetailMsg() << std::endl;
     throw(e);
   }
