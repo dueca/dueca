@@ -36,8 +36,9 @@ Note that the string argument given after defining GlobalId is simply
 emitted as code before the class for the communicatable object is
 created. In this case it defines the inclusion of a header, but in
 principle you can write any set of valid c++ or preprocessor
-statements here. You can also have a multi-line string, and if you need
-string quotes ("), you can escape these with a backslash \\".
+statements here. You can also have a multi-line string, and if you
+need string quotes in that string (\"), you enter these by escaping
+them with a backslash, like \\\".
 
 <li> Type definitions for enumerated types, for example:
 
@@ -104,7 +105,7 @@ more complex types:
 
     \code
          (IterableType std::list<int32_t> "#include <list>")
-         (IterableType std::vector<int32_t> "#include &lt;vector&gt;")
+         (IterableType std::vector<int32_t> "#include <vector>")
 
          (MyObject
           (std::list<int32_t> a)
@@ -125,7 +126,7 @@ more complex types:
      description of dueca::DataWriter for that.
 
     \code
-         (IterableVarSizeType std::vector<int32_t> "#include &lt;vector&gt;")
+         (IterableVarSizeType std::vector<int32_t> "#include <vector>")
 	 (IterableVarSizeType dueca::varvector<float>
 	    "#include <dueca/varvector.hxx>")
 
@@ -160,11 +161,11 @@ more complex types:
      \code
      (IterableVarSizeType dueca::varvector<std::string>
      "#include <dueca/varvector.hxx>
-     #include &lt;string&gt;")
+     #include <string>")
 
      (IterableVarSizeType dueca::limvector<5,std::string>
      "#include <dueca/limvector.hxx>
-     #include &lt;string&gt;")
+     #include <string>")
      \endcode
 
      Notice that limvector needs a specification of its size
@@ -215,8 +216,8 @@ more complex types:
 
 This will be written as a pair of files, MyClass.cxx and
 MyClass.hxx. MyClass will have a member num, of type MyEnum and a
-member f, of type double. It will also have a fixvector r, with size
-10. The fixvector elements may be accessed much as an std::vector is
+member f, of type double. It will also have a fixvector r, with
+size 10. The fixvector elements may be accessed much as an std::vector is
 used. Extending or shortening the vector is however not possible.
 
 Old code often used the following format:

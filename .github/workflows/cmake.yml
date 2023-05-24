@@ -91,5 +91,5 @@ jobs:
         source ${{env.PREFIX}}/dueca-env.sh && USER=example ctest -C ${{env.BUILD_TYPE}}
 
     - name: Setup tmate session
-      if: success() || failure()
+      if: ${{ failure() }}
       uses: mxschmitt/action-tmate@v3
