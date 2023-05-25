@@ -75,7 +75,7 @@ namespace msgpack {
           return o;
         }
       };
-   }
+    }
   }
 }
 #endif
