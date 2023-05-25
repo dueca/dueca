@@ -13,6 +13,10 @@
 
 #include <msgpack.hpp>
 #include "StateGuard.hxx"
+#include "smartstring.hxx"
+#include "varvector.hxx"
+#include "limvector.hxx"
+#include "fixvector.hxx"
 #include <set>
 
 // other-file-specific
@@ -261,6 +265,10 @@ struct MemberVisitorTable {
 DUECA_NS_START;
 namespace messagepack {
 
+/** Base structure for parsing msgpack data
+
+    See the msgpack documentation
+*/
 struct VirtualVisitor {
 
   virtual bool visit_nil()
@@ -282,19 +290,29 @@ struct VirtualVisitor {
   virtual bool visit_ext(const char* v, uint32_t size) { DEB("X visit_ext " << size);return false; }
   virtual bool start_array(uint32_t num_elements)
   { DEB("X start_array " << num_elements);return false; }
-  virtual bool start_array_item() { DEB("X start_array_item");return false; }
-  virtual bool end_array_item() { DEB("X end_array_item ");return false; }
-  virtual bool end_array() { DEB("X end_array ");return false; }
-  virtual bool start_map(uint32_t num_kv_pairs) { DEB("X start_map " << num_kv_pairs);return false; }
-  virtual bool start_map_key() { DEB("X start_map_key ");return false; }
-  virtual bool end_map_key() { DEB("X end_map_key ");return false; }
-  virtual bool start_map_value() { DEB("X start_map_value ");return false; }
-  virtual bool end_map_value() { DEB("X end_map_value " );return false; }
-  virtual bool end_map() { DEB("X end_map ");return false; }
-  virtual void parse_error(size_t parsed_offset, size_t error_offset) {DEB("X parse_error " << error_offset);}
-  virtual void insufficient_bytes(size_t parsed_offset, size_t error_offset) {DEB("X  insufficient_bytes" << error_offset);}
+  virtual bool start_array_item() 
+  { DEB("X start_array_item");return false; }
+  virtual bool end_array_item() 
+  { DEB("X end_array_item ");return false; }
+  virtual bool end_array() 
+  { DEB("X end_array ");return false; }
+  virtual bool start_map(uint32_t num_kv_pairs) 
+  { DEB("X start_map " << num_kv_pairs);return false; }
+  virtual bool start_map_key() 
+  { DEB("X start_map_key ");return false; }
+  virtual bool end_map_key() 
+  { DEB("X end_map_key ");return false; }
+  virtual bool start_map_value() 
+  { DEB("X start_map_value ");return false; }
+  virtual bool end_map_value() 
+  { DEB("X end_map_value " );return false; }
+  virtual bool end_map() 
+  { DEB("X end_map ");return false; }
+  virtual void parse_error(size_t parsed_offset, size_t error_offset) 
+  { DEB("X parse_error " << error_offset); }
+  virtual void insufficient_bytes(size_t parsed_offset, size_t error_offset) 
+  { DEB("X  insufficient_bytes" << error_offset); }
 };
-
 
 
 struct msgpack_obj_mode_mismatch: public std::exception
@@ -304,11 +322,13 @@ struct msgpack_obj_mode_mismatch: public std::exception
   const char* what() const noexcept;
 };
 
+
 struct msgpack_dco_key_too_long: public std::exception
 {
   std::stringstream msg;
   const char* what() const noexcept;
 };
+
 
 /** Trait struct indicating undefined objects for msgpack */
 struct msgpack_variant_none {};
@@ -522,6 +542,13 @@ struct UnpackVisitor<msgpack_container_push,A>:
     DEB("L created new object");
     new (&nest) typename UnpackVisitorArray<A>::nested_type(obj.back());
     return true; }
+
+  /** Callback for a NULL/NIL/None value, in this case clears the list.
+      @return true, always */
+  bool visit_nil() {
+    DEB1("L visit nil, depth=" << depth);
+    obj.clear();
+    return true; }
 };
 
 
@@ -540,19 +567,35 @@ struct UnpackVisitor<msgpack_container_stretch,A>:
   using UnpackVisitorArray<A>::nest;
   using UnpackVisitorArray<A>::obj;
   unsigned idx;
-  UnpackVisitor(A &obj) : UnpackVisitorArray<A>(obj), idx(0) {DEB2("visitof vector constructor"); }
+  UnpackVisitor(A &obj) : UnpackVisitorArray<A>(obj), idx(0) 
+  { DEB2("visitof vector constructor"); }
 
   bool start_array(uint32_t num_elements) {
     DEB1("Y start_array, depth=" << depth);
     if (++this->depth) return nest.start_array(num_elements);
     DEB("Y start_array, initial array");
     idx = 0; obj.resize(num_elements); return true; }
+
+  /** Callback to indicate item value will follow. 
+      
+      Either passes the callback on to a nested array, or places the next
+      element of the array onto the nest object location.
+      
+      @return true, or nested result
+  */
   bool start_array_item() {
     DEB1("Y start_array_item, depth=" << depth);
     if (depth) return nest.start_array_item();
     DEB("Y start_array_item, adding item " << obj.size());
     new (reinterpret_cast<unsigned char*>(&nest))
       typename UnpackVisitorArray<A>::nested_type(obj[idx++]);
+    return true; }
+
+  /** Callback for a NULL/NIL/None value, in this case clears the list.
+      @return true, always */
+  bool visit_nil() {
+    DEB1("Y visit nil, depth=" << depth);
+    obj.resize(0);
     return true; }
 };
 
@@ -578,7 +621,8 @@ struct UnpackVisitorMap: public VirtualVisitor
 
   UnpackVisitorMap(A &obj) : obj(obj), key(), val(),
                                nest_key(key), nest_val(val),
-                               depth(-1), mode(MMode::Init) {DEB2("visitof map constructor"); }
+                               depth(-1), mode(MMode::Init) 
+  { DEB2("visitof map constructor"); }
 
   bool visit_nil() {
     DEB1("m visit_nil, depth=" << depth << " mode=" << mode);
