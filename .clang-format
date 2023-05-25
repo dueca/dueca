@@ -1,0 +1,19 @@
+BasedOnStyle: LLVM
+IndentWidth: 2
+
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+
+AlignTrailingComments:
+  Kind: Leave
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: false
+  AfterStruct: true
+  AfterCaseLabel: false
+  AfterClass: true
+  AfterControlStatement: false
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeWhile: true
