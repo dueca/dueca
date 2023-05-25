@@ -28,9 +28,13 @@
 namespace dueca { namespace messagepack {
     template<typename C> struct msgpack_visitor;
     struct msgpack_container_fix;
+    struct msgpack_container_fix_default;
     template<size_t N, typename T>
     struct msgpack_visitor<dueca::fixvector<N,T> >
     { typedef msgpack_container_fix variant; };
+    template<size_t N, typename T, int DEFLT, unsigned BASE>
+    struct msgpack_visitor<dueca::fixvector_withdefault<N,T,DEFLT,BASE> >
+    { typedef msgpack_container_fix_default variant; };
   } }
 
 // support for packing adaptors of DUECA containers
@@ -55,7 +59,23 @@ namespace msgpack {
           return o;
         }
       };
-    }
+      /** packing adaptor for fixvector */
+      template <typename T, size_t N, int DEFLT, unsigned BASE>
+      struct pack<dueca::fixvector_withdefault<N,T,DEFLT,BASE> > {
+        template <typename Stream>
+        msgpack::packer<Stream>&
+        operator()(msgpack::packer<Stream>& o,
+                   const dueca::fixvector_withdefault<N,T,DEFLT,BASE>& v) const {
+          uint32_t size = checked_get_container_size(v.size());
+          o.pack_array(size);
+          for (typename dueca::fixvector_withdefault<N,T,DEFLT,BASE>::const_iterator
+                 it(v.begin()), it_end(v.end()); it != it_end; ++it) {
+            o.pack(*it);
+          }
+          return o;
+        }
+      };
+   }
   }
 }
 #endif
@@ -517,6 +537,43 @@ struct UnpackVisitor<msgpack_container_fix,A>: public UnpackVisitorArray<A>
       typename UnpackVisitorArray<A>::nested_type(obj[idx++]);
     return true; }
 };
+
+
+struct msgpack_container_fix_default {};
+template<typename A>
+struct UnpackVisitor<msgpack_container_fix_default,A>: public UnpackVisitorArray<A>
+{
+  using UnpackVisitorArray<A>::depth;
+  using UnpackVisitorArray<A>::nest;
+  using UnpackVisitorArray<A>::obj;
+
+  unsigned idx;
+  UnpackVisitor(A &obj) : UnpackVisitorArray<A>(obj), idx(0U)
+  { DEB2("visitof fixarray constructor"); }
+
+  bool start_array(uint32_t num_elements) {
+    DEB1("F start_array, depth=" << depth);
+    if (++this->depth) return nest.start_array(num_elements);
+    DEB("F start_array, resizing to " << num_elements);
+    idx = 0; obj.resize(num_elements); return true; }
+  bool start_array_item() {
+    DEB1("F start_array_item, depth=" << depth);
+    if (depth) return nest.start_array_item();
+    DEB("F start_array_item, selecting #" << idx);
+    new (reinterpret_cast<unsigned char*>(&nest))
+      typename UnpackVisitorArray<A>::nested_type(obj[idx++]);
+    return true; }
+
+  /** Callback for a NULL/NIL/None value, in this case clears the list.
+      @return true, always */
+  bool visit_nil() {
+    DEB1("L visit nil, depth=" << depth);
+    obj.setDefault();
+    return true; }
+
+};
+
+
 
 
 struct msgpack_container_push {};

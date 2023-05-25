@@ -11,8 +11,7 @@
         license         : EUPL-1.2
 */
 
-#ifndef msgpack_unstream_iter_hxx
-#define msgpack_unstream_iter_hxx
+#pragma once
 
 #include <dueca_ns.h>
 #include <msgpack.hpp>
@@ -659,6 +658,3 @@ void msg_unpack(S& i0, const S& iend, std::map<K,T> & i);
 MSGPACKUS_NS_END;
 
 #include <undebprint.h>
-
-
-#endif
