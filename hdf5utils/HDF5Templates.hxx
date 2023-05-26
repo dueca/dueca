@@ -18,6 +18,7 @@
 #include <H5Cpp.h>
 #include <inttypes.h>
 #include <fixvector.hxx>
+#include <fixvector_withdefault.hxx>
 #include <varvector.hxx>
 #include <limvector.hxx>
 #include <string>

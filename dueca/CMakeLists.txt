@@ -144,6 +144,7 @@ set(INSTALLHEADERS
   MultiStreamReader.hxx Logger.hxx LogCategory.hxx newlog.hxx
   newlog-macros.hxx LogString.hxx ActivityContext.hxx debug-direct.h
   ScriptCreatableDataHolder.hxx PackUnpackTemplates.hxx fixvector.hxx
+  fixvector_withdefault.hxx
   varvector.hxx limvector.hxx vectorexceptions.hxx
   DataClassRegistryPredef.hxx DataClassRegistry.hxx
   DataClassRegistrar.hxx CommObjectMemberAccess.hxx NameSetExtra.hxx

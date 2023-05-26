@@ -17,6 +17,7 @@
 #include "varvector.hxx"
 #include "limvector.hxx"
 #include "fixvector.hxx"
+#include "fixvector_withdefault.hxx"
 #include <set>
 
 // other-file-specific
