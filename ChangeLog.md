@@ -2,6 +2,16 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [3.2.12] - 2023-06-12
+
+- Add a fixvector_withdefault variant with default value option
+- Test hdf5 logging for various datatypes
+- Handle msgpack nil value for list or for resizing arrays
+- More flexibly handle msgpack reading:
+  * accept int, float and double for c++ float and double 
+  * accept nil to clear variable size arrays, lists and maps
+  * accept nil to fixvector_withdefault to set default value
+
 ## [3.2.11] - 2023-05-23
 
 - Fix in the appdevelopmentg.md documentation

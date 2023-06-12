@@ -35,11 +35,6 @@ execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/testpynput
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import attr"
   RESULT_VARIABLE PYTHON_HAVE_ATTRS)
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/h5dump-script
-  "${H5DUMP} ${TESTRUN_PROJ}/run/solo/solo/datalog.hdf5 >datalog.dmp")
-#file(CHMOD ${CMAKE_CURRENT_BINARY_DIR}/h5dump-script
-#  PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
-execute_process(COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/h5dump-script)
 
 set(TESTRUN_BASE "/tmp/tmp.runner" CACHE PATH
   "Location for running test projects")
@@ -47,6 +42,10 @@ set(TESTRUN_PROJ
   ${TESTRUN_BASE}/DuecaTestCommunication/DuecaTestCommunication
   CACHE PATH
   "Location with base test project")
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/h5dump-script
+  "${H5DUMP} ${TESTRUN_PROJ}/run/solo/solo/datalog.hdf5 >datalog.dmp")
+execute_process(COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/h5dump-script)
 
 # these names should occur in the hdf5 log file produced in the solo/solo
 # project

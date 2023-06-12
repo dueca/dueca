@@ -18,6 +18,7 @@
 #include <H5Cpp.h>
 #include <inttypes.h>
 #include <fixvector.hxx>
+#include <fixvector_withdefault.hxx>
 #include <varvector.hxx>
 #include <limvector.hxx>
 #include <string>
@@ -190,6 +191,22 @@ const H5::DataType* get_hdf5_type(dueca::fixvector<N,T>& t)
   return &data_type;
 }
 
+template<size_t N, typename T, int DEFLT, unsigned BASE>
+const H5::DataType* get_hdf5_type(const dueca::fixvector_withdefault<N,T,DEFLT,BASE>& t)
+{
+  static hsize_t dims[] = { N };
+  static H5::ArrayType data_type(*get_hdf5_type<T>(), 1, dims);
+  return &data_type;
+}
+/** HDF5 type for common container */
+template<size_t N, typename T, int DEFLT, unsigned BASE>
+const H5::DataType* get_hdf5_type(dueca::fixvector_withdefault<N,T,DEFLT,BASE>& t)
+{
+  static hsize_t dims[] = { N };
+  static H5::ArrayType data_type(*get_hdf5_type<T>(), 1, dims);
+  return &data_type;
+}
+
 /** HDF5 type for common container */
 template<typename T>
 const H5::DataType* get_hdf5_type(const dueca::varvector<T>& t)
@@ -249,6 +266,15 @@ const H5::DataType* get_hdf5_elt_type(const dueca::fixvector<N,D>& d)
 /** for fixed-length vector, becomes 2d dataset */
 template<size_t N, class D>
 const H5::DataType* get_hdf5_elt_type(dueca::fixvector<N,D>& d)
+{ return get_hdf5_type<D>(); }
+
+/** for fixed-length vector, becomes 2d dataset */
+template<size_t N, class D, int DEFLT, unsigned BASE>
+const H5::DataType* get_hdf5_elt_type(const dueca::fixvector_withdefault<N,D,DEFLT,BASE>& d)
+{ return get_hdf5_type<D>(); }
+/** for fixed-length vector, becomes 2d dataset */
+template<size_t N, class D, int DEFLT, unsigned BASE>
+const H5::DataType* get_hdf5_elt_type(dueca::fixvector_withdefault<N,D,DEFLT,BASE>& d)
 { return get_hdf5_type<D>(); }
 
 /** Ignore std::map if trying to write it nested */
@@ -328,6 +354,11 @@ const H5::DataType* get_hdf5_elt_type(T& o)
 /** Return the length of a fixed-size vector */
 template<size_t N, class D>
 const hsize_t get_hdf5_elt_length(const dueca::fixvector<N,D>& d)
+{ return N; }
+
+/** Return the length of a fixed-size vector */
+template<size_t N, class D, int DEFLT, unsigned BASE>
+const hsize_t get_hdf5_elt_length(const dueca::fixvector_withdefault<N,D,DEFLT,BASE>& d)
 { return N; }
 
 /** Return the length of any other element */

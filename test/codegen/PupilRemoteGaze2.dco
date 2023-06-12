@@ -10,8 +10,11 @@
 (IterableType bincoordinates
       "// gaze normals and eye center coordinates
 #include <map>
-#include <dueca/fixvector.hxx>
-typedef std::map<std::string,dueca::fixvector<3,float> > bincoordinates;")
+#include <dueca/stringoptions.h>
+#include <dueca/fixvector_withdefault.hxx>
+typedef
+  std::map<string8,dueca::fixvector_withdefault<3,float,-1> >
+  bincoordinates;")
 
 (Object PupilRemoteGaze2
 	(Inherits PupilRemoteGaze)

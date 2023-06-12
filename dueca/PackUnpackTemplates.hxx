@@ -18,6 +18,8 @@
 #include <PackTraits.hxx>
 #include <iostream>
 #include <map>
+#include <inttypes.h>
+#include "AmorphStore.hxx"
 
 template<typename A, typename B>
 void unPackData(DUECA_NS::AmorphReStore& s, std::pair<A,B>& x)
@@ -249,7 +251,7 @@ void checkandpackdiffiterable(const D& m, const D& r,
 */
 template<class D>
 void checkandpackdiffiterable(const D& m, const D& r,
-                                   AmorphStore& s, IndexMemory &im,
+                              AmorphStore& s, IndexMemory &im,
                                    const diffpack_vector&)
 {
   // first pack (or not) the length difference

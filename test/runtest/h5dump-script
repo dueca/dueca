@@ -1,0 +1,1 @@
+/usr/bin/h5dump /tmp/tmp.runner/DuecaTestCommunication/DuecaTestCommunication/run/solo/solo/datalog.hdf5 >datalog.dmp

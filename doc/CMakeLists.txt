@@ -108,6 +108,12 @@ string(REPLACE "\n" " \\\n        " apifiles1 "${apifiles1}")
 string(REPLACE "\n" " \\\n        " apifiles2 "${apifiles2}")
 string(CONCAT apifiles "${apifiles1}" "${apifiles2}")
 
+# local sources
+file(GLOB DOCSOURCES
+  "*.doc" "*.md" "*.html"
+  "${CMAKE_CURRENT_BINARY_DIR}/*.doc"
+  "${CMAKE_CURRENT_BINARY_DIR}/*.html")
+
 # these files generally carry the version information & need updating
 configure_file(mainpage-inspec.doc.in mainpage-inspec.doc @ONLY)
 configure_file(mainpage-api.doc.in mainpage-api.doc @ONLY)
@@ -290,6 +296,7 @@ add_custom_command(
   COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS ${DOXYGEN_INPUT} ${PNGDATA} schemefiles messagedoc dco_doc
+  ${DOCSOURCES}
 )
 
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")

@@ -15,109 +15,116 @@
 
 #pragma once
 #define fixvector_hxx
-#include <dueca_ns.h>
-#include <vectorexceptions.hxx>
+#include "AmorphStore.hxx"
 #include <CommObjectTraits.hxx>
 #include <PackTraits.hxx>
+#include <dueca_ns.h>
 #include <iterator>
-#include <type_traits>
 #include <string>
-#include "AmorphStore.hxx"
+#include <type_traits>
+#include <vectorexceptions.hxx>
 
 DUECA_NS_START;
 
 /** Fixed-sized vector
 
-    Implementing most stl-like interfaces
+    Implementing most stl-like interfaces, but using a fixed vector length;
+    efficiently packed in DCO objects.
 */
-template<size_t N, typename T>
-class fixvector
+template <size_t N, typename T> class fixvector
 {
+protected:
   /** Data space */
   T d[N];
+
 public:
-
   /** Type of the contained object */
-  typedef T                                    value_type;
+  typedef T value_type;
 
   /** Type of a pointer to the contained object */
-  typedef T*                                   pointer;
+  typedef T *pointer;
 
   /** Type of a reference to the contained object */
-  typedef T&                                   reference;
+  typedef T &reference;
 
   /** Type of a reference to the contained object */
-  typedef const T&                             const_reference;
+  typedef const T &const_reference;
 
   /** Type of a pointer to the contained object */
-  typedef const T*                             const_pointer;
+  typedef const T *const_pointer;
 
 #if defined(__GNUC__) && !defined(__clang__)
 
   /** Define the iterator type */
-  typedef __gnu_cxx::__normal_iterator<pointer,fixvector>  iterator;
+  typedef __gnu_cxx::__normal_iterator<pointer, fixvector> iterator;
 
   /** Define the const iterator type */
-  typedef __gnu_cxx::__normal_iterator<const_pointer,fixvector>  const_iterator;
+  typedef __gnu_cxx::__normal_iterator<const_pointer, fixvector>
+    const_iterator;
 
 #else
   /** Define the iterator type */
-  typedef pointer                              iterator;
+  typedef pointer iterator;
 
   /** Define the const iterator type */
-  typedef const_pointer                        const_iterator;
+  typedef const_pointer const_iterator;
 #endif
 
   /** Define the reverse const iterator type */
-  typedef ::std::reverse_iterator<const_iterator>  const_reverse_iterator;
+  typedef ::std::reverse_iterator<const_iterator> const_reverse_iterator;
   /** Define the reverse iterator type */
-  typedef ::std::reverse_iterator<iterator>      reverse_iterator;
+  typedef ::std::reverse_iterator<iterator>       reverse_iterator;
   /** Show random access is possible */
-  typedef ::std::random_access_iterator_tag      iterator_category;
+  typedef ::std::random_access_iterator_tag       iterator_category;
   /** Size of the underlying thing */
-  typedef ::size_t                               size_type;
+  typedef ::size_t                                size_type;
   /** Pointer difference */
-  typedef ::std::ptrdiff_t                       difference_type;
+  typedef ::std::ptrdiff_t                        difference_type;
 
   /** constructor with default value for the data
       @param defval default fill value
   */
-  fixvector(const T& defval)
-  { for (int ii = N; ii--; ) this->d[ii] = defval; }
+  fixvector(const T &defval)
+  {
+    for (int ii = N; ii--;)
+      this->d[ii] = defval;
+  }
 
   /** constructor without default value for the data
    */
-  fixvector()
-  { }
+  fixvector() {}
+
   /** copy constructor; copies the data */
-  fixvector(const fixvector<N,T>& other)
-  { for (int ii = N; ii--; ) this->d[ii] = other.d[ii]; }
+  fixvector(const fixvector<N, T> &other)
+  {
+    for (int ii = N; ii--;)
+      this->d[ii] = other.d[ii];
+  }
 
   /** construct from iterators */
-  template<class InputIt>
-  fixvector(InputIt first, InputIt last)
-  { for (size_type ii = 0; ii < N; ii++) {
-      if (first == last) throw indexexception();
+  template <class InputIt> fixvector(InputIt first, InputIt last)
+  {
+    for (size_type ii = 0; ii < N; ii++) {
+      if (first == last)
+        throw indexexception();
       this->d[ii] = *first++;
     }
-    if (first != last) throw indexexception();
+    if (first != last)
+      throw indexexception();
   }
 
   /** destructor */
-  ~fixvector()
-  { }
+  ~fixvector() {}
 
   /** obtain a pointer directly to the data */
-  inline operator pointer(void)
-  { return d; }
+  inline operator pointer(void) { return d; }
   /** obtain a const pointer directly to the data */
-  inline operator const_pointer(void) const
-  { return d; }
+  inline operator const_pointer(void) const { return d; }
 
   /** more-or-less stl-compatible iterator */
-  inline iterator begin() { return iterator(this->d); }
+  inline iterator       begin() { return iterator(this->d); }
   /** more-or-less stl-compatible iterator */
-  inline iterator end() { return iterator(this->d + N); }
+  inline iterator       end() { return iterator(this->d + N); }
   /** more-or-less stl-compatible iterator */
   inline const_iterator begin() const { return const_iterator(this->d); }
   /** more-or-less stl-compatible iterator */
@@ -127,36 +134,40 @@ public:
   inline size_t size() const { return N; }
 
   /** assignment operator */
-  inline fixvector<N,T>& operator = (const fixvector<N,T>& other)
-  { if (this == &other) return *this;
-    for (int ii = N; ii--; ) this->d[ii] = other.d[ii];
+  inline fixvector<N, T> &operator=(const fixvector<N, T> &other)
+  {
+    if (this == &other)
+      return *this;
+    for (int ii = N; ii--;)
+      this->d[ii] = other.d[ii];
     return *this;
   }
 
   /** assignment operator, to value type */
-  inline fixvector<N,T>& operator = (const T& val)
+  inline fixvector<N, T> &operator=(const T &val)
   {
-    for (int ii = N; ii--; ) this->d[ii] = val;
+    for (int ii = N; ii--;)
+      this->d[ii] = val;
     return *this;
   }
 
   /** equality test */
-  inline bool operator == (const fixvector<N,T>& other) const
+  inline bool operator==(const fixvector<N, T> &other) const
   {
-    for (int ii = N; ii--; )
-      if (this->d[ii] != other.d[ii]) return false;
+    for (int ii = N; ii--;)
+      if (this->d[ii] != other.d[ii])
+        return false;
     return true;
   }
 
   /** inequality test */
-  inline bool operator != (const fixvector<N,T>& other) const
+  inline bool operator!=(const fixvector<N, T> &other) const
   {
     return !(*this == other);
   }
 
   /** access elements of the vector. Note that indexing is checked */
-  template<typename idx_t>
-  inline const T& operator[] (idx_t ii) const
+  template <typename idx_t> inline const T &operator[](idx_t ii) const
   {
     if (size_t(ii) >= N) {
       throw indexexception();
@@ -165,8 +176,7 @@ public:
   }
 
   /** access elements of the vector. Note that indexing is checked */
-  template<typename idx_t>
-  inline T& operator [] (idx_t ii)
+  template <typename idx_t> inline T &operator[](idx_t ii)
   {
     if (size_t(ii) >= N) {
       throw indexexception();
@@ -177,48 +187,51 @@ public:
   /** forced resize of the vector, is seldom possible, so may throw */
   inline void resize(size_t s)
   {
-    if (s != N) throw indexexception();
+    if (s != N)
+      throw indexexception();
   }
 
   /** access as const pointer */
-  inline const T* ptr() const {return d;}
+  inline const T *ptr() const { return d; }
 
   /** access as pointer */
-  inline T* ptr() {return d;}
+  inline T *ptr() { return d; }
 
   /** access first element */
-  inline reference front() { return *begin(); }
+  inline reference       front() { return *begin(); }
   /** access first element */
   inline const_reference front() const { return *begin(); }
   /** access last element */
-  inline reference back() { return *(end() - 1); }
+  inline reference       back() { return *(end() - 1); }
   /** access last element */
   inline const_reference back() const { return *(end() - 1); }
 };
 
 /** Helper, for DCO object handling */
 template <size_t N, typename D>
-struct dco_traits<fixvector<N,D> >: public dco_traits_iterablefix {
+struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
 };
 
 /** Helper, for DCO object handling */
 template <size_t N, typename D>
-struct pack_traits<fixvector<N, D> >: public pack_constant_size { };
+struct pack_traits<fixvector<N, D>> : public pack_constant_size {};
 
 /** Helper, for DCO object handling */
 template <size_t N, typename D>
-struct diffpack_traits<fixvector<N, D> >: public diffpack_fixedsize { };
+struct diffpack_traits<fixvector<N, D>> : public diffpack_fixedsize {};
 
 DUECA_NS_END;
 
 PRINT_NS_START;
 /** Print a fixvector */
 template <size_t N, typename D>
-ostream& operator << (ostream& os, const dueca::fixvector<N,D>& v)
+ostream &operator<<(ostream &os, const dueca::fixvector<N, D> &v)
 {
-  os << "{"; for (const auto x: v) os << x << ",";
+  os << "{";
+  for (const auto x : v)
+    os << x << ",";
   return os << "}";
 }
 PRINT_NS_END;
@@ -226,7 +239,7 @@ PRINT_NS_END;
 #include "msgpack-unstream-iter.hxx"
 MSGPACKUS_NS_START;
 template <typename S, size_t N, typename T>
-inline void msg_unpack(S& i0, const S& iend, dueca::fixvector<N,T> & i)
+inline void msg_unpack(S &i0, const S &iend, dueca::fixvector<N, T> &i)
 {
   uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
   i.resize(len);

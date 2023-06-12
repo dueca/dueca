@@ -22,6 +22,7 @@
 #include <vector>
 #include <exception>
 #include <boost/endian/conversion.hpp>
+#include "msgpack-unstream-iter.hxx"
 
 #ifndef msgpack_unstream_iter_ixx
 #define msgpack_unstream_iter_ixx

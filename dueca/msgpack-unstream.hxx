@@ -422,6 +422,15 @@ void msg_unpack(S& s, O& o, dueca::fixvector<N,T> & i)
   for (unsigned ii = 0; ii < len; ++ii)
     msg_unpack(s, o, i[ii]);
 }
+
+template <typename S, typename O, size_t N, typename T, int DEFLT, unsigned BASE>
+void msg_unpack(S& s, O& o, dueca::fixvector_withdefault<N,T,DEFLT,BASE>& i)
+{
+  uint32_t len = unstream<S,O>::unpack_arraysize(s, o);
+  i.resize(len);
+  for (unsigned ii = 0; ii < len; ++ii)
+    msg_unpack(s, o, i[ii]);
+}
 #endif
 
 #ifdef limvector_hxx
