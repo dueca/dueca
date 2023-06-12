@@ -235,7 +235,7 @@ void GobbleVisitor::parse_error(size_t parsed_offset, size_t error_offset)
 void GobbleVisitor::insufficient_bytes(size_t parsed_offset,
                                        size_t error_offset)
 {
-  DEB1("Gobble insifficient bytes");
+  DEB1("Gobble insufficient bytes");
 }
 
 VirtualVisitor *GobbleVisitor::missingMember(const char *name)
@@ -304,6 +304,7 @@ DCOVirtualVisitorArray::DCOVirtualVisitorArray() : DCOVirtualVisitor()
 {
   DEB2("DCOVirtualVisitorArray constructor");
 }
+
 DCOVirtualVisitorMap::DCOVirtualVisitorMap() : DCOVirtualVisitor(), key()
 {
   DEB2("DCOVirtualVisitorMap constructor");
@@ -374,6 +375,7 @@ bool DCOVirtualVisitorArray::end_array_item()
   nest = NULL;
   return true;
 }
+
 bool DCOVirtualVisitorMap::end_array_item()
 {
   DEB1("M_DCO end_array_item mode=" << mode << " nest=" << bool(nest)
@@ -396,6 +398,7 @@ bool DCOVirtualVisitorArray::end_array()
   mode = VVMode::Exit;
   return true;
 }
+
 bool DCOVirtualVisitorMap::end_array()
 {
   DEB1("M_DCO end_array mode=" << mode << " nest=" << bool(nest)
@@ -422,6 +425,7 @@ bool DCOVirtualVisitorMap::start_map(uint32_t num_kv_pairs)
   if (++depth) {
     switch (mode) {
     case VVMode::Value:
+      DEB("M_DCO start_map, passing start_map");
       return nest->start_map(num_kv_pairs);
     default:
       throw msgpack_obj_mode_mismatch("M_DCO start_map, depth!=0", mode);
@@ -490,8 +494,8 @@ bool DCOVirtualVisitorMap::end_map_key()
 
 bool DCOVirtualVisitorArray::start_map_value()
 {
-  DEB1("A_DCO start_map_value mode=" << mode << " nest=" << bool(nest)
-                                     << " depth=" << depth);
+  DEB1("A_DCO start_map_value oldmode=" << mode << " nest=" << bool(nest)
+       << " depth=" << depth);
   if (mode != VVMode::Value)
     throw msgpack_obj_mode_mismatch("start_map_value", mode);
   return nest->start_map_value();
