@@ -15,6 +15,7 @@
 #include <cassert>
 
 //#define MSGPACK_USE_DEFINE_MAP
+#define DUECA_CONFIG_MSGPACK
 #include <vector>
 #include "Object11.hxx"
 #include <AmorphStore.hxx>

@@ -447,7 +447,7 @@ inline void unpackiterable(AmorphReStore& s, D& a,
   if (a.valid) {
     unpackiterable(s, a.value, pack_traits<typename D::value_type>());
   }
-}   
+}
 
 DUECA_NS_END;
 

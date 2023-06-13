@@ -13,7 +13,10 @@
 */
 
 #pragma once
-#include <dueca_ns.h>
+#define fix_optional_hxx
+#include <dueca/dueca_ns.h>
+#include <dueca/PackTraits.hxx>
+#include <dueca/CommObjectTraits.hxx>
 
 DUECA_NS_START;
 
@@ -25,13 +28,15 @@ DUECA_NS_START;
 template <typename T>
 class fix_optional
 {
+public:
+
   /** Value objects type */
-  typedef typename T value_type;
+  typedef T value_type;
   
   /** Object is valid, filled, non-null */
   bool valid;
 
-public:
+
   /** Encapsulated value */
   value_type value;
 
@@ -59,6 +64,14 @@ public:
     value(other.value)
   {  }
 
+  /** copy constructor with a conversion to value */
+  template<typename D>
+  fix_optional(const D &defval) :
+  valid(true)
+  {
+    value = T(defval);
+  }
+
   /** construct from iterators */
   template <class InputIt> fix_optional(InputIt first, InputIt last) :
     valid(true),
@@ -66,14 +79,13 @@ public:
   { }
 
   /** assignment operator */
-  inline fix_optional<T> &operator=
-    (const fix_optional<T> &other)
+  inline fix_optional<T> &operator= (const fix_optional<T> &other)
   {
     if (this == &other)
       return *this;
-    this.valid = other.valid;
-    if (this.valid) {
-      this.value = other.value;
+    this->valid = other.valid;
+    if (this->valid) {
+      this->value = other.value;
     }
     return *this;
   }
@@ -81,23 +93,26 @@ public:
   /** assignment operator, to value type */
   inline fix_optional<T> &operator=(const T &val)
   {
-    this.valid = true;
-    this.value = val;
+    this->valid = true;
+    this->value = val;
+  }
+
+  /** Assignment operator, with conversion to value */
+  template<typename D>
+  inline fix_optional<T> &operator=(const D &val)
+  {
+    this->valid = true;
+    this->value = T(val);
   }
 
   /** equality test */
   inline bool operator==(const fix_optional<T> &other) const
-  { return (this.valid && other.valid) && (this.value == other.value); }
+  { return (this->valid && other.valid) && (this->value == other.value); }
 
   /** inequality test */
   inline bool operator!=(const fix_optional<T> &other) const
   {
     return !(*this == other);
-  }
-
-  inline bool is_valid() const
-  {
-    return valid;
   }
 };
 
@@ -106,18 +121,17 @@ public:
 template <typename T>
 struct dco_traits<fix_optional<T> > :
   public dco_traits<T>
-{
-};
+{ };
 
 /** Template specialization, indicates how data should be packed. */
 template <typename T>
 struct pack_traits<fix_optional<T> > :
-public pack_traits<T> {};
+public pack_traits<T> { };
 
 /** Template specialization, indicates how data should be diff-packed. */
 template <typename T>
 struct diffpack_traits<fix_optional<T> > :
-public diffpack_traits<T> {};
+public diffpack_traits<T> { };
 
 DUECA_NS_END;
 
@@ -134,6 +148,7 @@ ostream &operator<< (ostream &os,
   else {
     os << "(nil)";
   }
+  return os;
 }
 
 PRINT_NS_END;

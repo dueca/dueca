@@ -16,6 +16,8 @@
 
 #ifndef AmorphStore_hh
 #define AmorphStore_hh
+#include "GlobalId.hxx"
+#include "fix_optional.hxx"
 #define HAVE_NUMERIC_LIMITS
 #include <stringoptions.h>
 // HACK
@@ -336,41 +338,17 @@ public:
       again. */
   void packData(const char* c, const unsigned length);
 
+  /// Object with validity
+  template<class T>
+  inline void packData(const fix_optional<T>& obj)
+  {
+    packData(obj.valid);
+    if (obj.valid) packData(obj.value);
+  }
+
   /** Print to stream, just for debugging purposed. */
   ostream& print(ostream& o) const;
 };
-
-#if 0
-/** Object that reserves a spot in a store, and can fill in the final
-    value at a later stage */
-template<class T>
-class StoreFlag
-{
-  /** Store index at the time of packing */
-  unsigned index;
-
-public:
-  /** Constructor, can pack a default value and remembers the location */
-  StoreFlag(AmorphStore& s, T defval = 0) :
-    index (s.getSize())
-  {
-    s.packData(defval);
-  }
-
-  /** Destructor, no special action */
-  ~StoreFlag() { }
-
-  /** finalize the flag value */
-  void finalize(AmorphStore& s, T finval)
-  {
-#ifdef HAVE_NUMERIC_LIMITS
-    if ( finval > std::numeric_limits<T>::max() ||
-         finval < std::numeric_limits<T>::min() ) throw(MarkRange());
-#endif
-    s.packData(finval, index);
-  }
-};
-#endif
 
 DUECA_NS_END
 
@@ -407,6 +385,10 @@ inline void packData(DUECA_NS ::AmorphStore &s, const char* i,
 { s.packData(i, length); }
 inline void packData(DUECA_NS ::AmorphStore &s, const char* c)
 { s.packData(c); }
+template<class T>
+inline void packData(DUECA_NS ::AmorphStore &s, 
+                     const DUECA_NS ::fix_optional<T>& obj)
+{ s.packData(obj); }
 
 void packData(DUECA_NS ::AmorphStore& s, const timeval& tv);
 
@@ -606,6 +588,18 @@ public:
 
   /// Print to stream, for debugging purposes
   ostream& print(ostream& o) const;
+
+  /// Object with validity
+  template<class T>
+  inline void unPackData(fix_optional<T>& obj)
+  {
+    unPackData(obj.valid);
+    if (obj.valid) unPackData(obj.value);
+  }
+
+  template<class T>
+  inline operator fix_optional<T>() 
+  { fix_optional<T> obj; unPackData(obj); return obj; }
 };
 
 
@@ -643,7 +637,9 @@ inline void unPackData(DUECA_NS ::AmorphReStore &s, char *i,
 inline void unPackData(DUECA_NS ::AmorphReStore &s, char * &i)
 { s.unPackData(i); }
 void unPackData(DUECA_NS ::AmorphReStore& s, timeval& tv);
-
+template<class T>
+inline void unPackData(DUECA_NS ::AmorphReStore &s, DUECA_NS ::fix_optional<T>& obj)
+{ s.unPackData(obj); }
 /** Generic, templated prototype for unpacking only a difference
     transmission. */
 template<class D>
