@@ -25,6 +25,7 @@
 #ifdef fixvector_hxx
 #ifndef msgpack_fixvector_hxx
 #define msgpack_fixvector_hxx
+
 // provide a clue on how to pack/unpack
 namespace dueca { namespace messagepack {
     template<typename C> struct msgpack_visitor;
@@ -249,20 +250,18 @@ DUECA_NS_START;
 namespace messagepack {
 struct VirtualVisitor;
 
-  /** Map unpack mode */
+  /** DCO Visitor unpack mode */
+  enum class VVMode {
+    Init,
+    Map,
+    Array,
+    Exit
+  };
+
   enum class MMode {
     Init,
     Key,
     Value,
-    Exit
-  };
-
-  /** DCO Visitor unpack mode */
-  enum class VVMode {
-    Init,
-    Key,
-    Value,
-    Next,
     Exit
   };
 
@@ -271,10 +270,9 @@ DUECA_NS_END;
 
 PRINT_NS_START;
 /** Print function */
-ostream& operator<<(ostream&os, const dueca::messagepack::MMode mode);
-
-/** Print function */
 ostream& operator<<(ostream&os, const dueca::messagepack::VVMode mode);
+/** Print function */
+ostream& operator<<(ostream&os, const dueca::messagepack::MMode mode);
 PRINT_NS_END;
 
 /** Auxiliary struct for visitor-based DCO unpack */
@@ -346,10 +344,15 @@ struct msgpack_obj_mode_mismatch: public std::exception
 
 struct msgpack_dco_key_too_long: public std::exception
 {
-  std::stringstream msg;
   const char* what() const noexcept;
 };
 
+struct msgpack_excess_array_members: public std::exception
+{
+  std::string msg;
+  msgpack_excess_array_members(const char* dconame);
+  const char* what() const noexcept;
+};
 
 /** Trait struct indicating undefined objects for msgpack */
 struct msgpack_variant_none {};
@@ -864,7 +867,7 @@ template<typename K, typename T> struct msgpack_visitor<std::map<K,T> >
 { typedef msgpack_container_map variant; };
 
 /** Base unpack visitor for DCO objects. */
-struct DCOVirtualVisitor: public VirtualVisitor
+struct DCOUnpackVisitor: public VirtualVisitor
 {
   /** Selected element within the DCO object, -1 if no element selected */
   int sel;
@@ -880,7 +883,24 @@ struct DCOVirtualVisitor: public VirtualVisitor
   /** Visitor mode. */
   VVMode mode;
 
-  DCOVirtualVisitor();
+  /** Key, for when unpacking from map type spec */
+  typedef Dstring<128> key_type;
+
+  /** Key, for when unpacking from map type spec */
+  key_type key;
+
+  DCOUnpackVisitor();
+  bool visit_str(const char* v, uint32_t size);
+  bool start_array(uint32_t num_elements);
+  bool start_array_item();
+  bool end_array_item();
+  bool end_array();
+  bool start_map(uint32_t num_kv_pairs);
+  bool start_map_key();
+  bool end_map_key();
+  bool start_map_value();
+  bool end_map_value();
+  bool end_map();
   virtual bool setVirtualVisitor(const char* key=NULL, bool isparent=false) = 0;
   bool visit_nil();
   bool visit_boolean(bool v);
@@ -922,41 +942,6 @@ struct GobbleVisitor: public VirtualVisitor
   void parse_error(size_t parsed_offset, size_t error_offset);
   void insufficient_bytes(size_t parsed_offset, size_t error_offset);
   VirtualVisitor* missingMember(const char* name);
-};
-
-
-struct DCOVirtualVisitorMap: public DCOVirtualVisitor
-{
-  typedef Dstring<128> key_type;
-  key_type key;
-  DCOVirtualVisitorMap();
-  bool visit_str(const char* v, uint32_t size);
-  bool start_array(uint32_t num_elements);
-  bool start_array_item();
-  bool end_array_item();
-  bool end_array();
-  bool start_map(uint32_t num_kv_pairs);
-  bool start_map_key();
-  bool end_map_key();
-  bool start_map_value();
-  bool end_map_value();
-  bool end_map();
-};
-
-struct DCOVirtualVisitorArray: public DCOVirtualVisitor
-{
-  DCOVirtualVisitorArray();
-  bool visit_str(const char* v, uint32_t size);
-  bool start_array(uint32_t num_elements);
-  bool start_array_item();
-  bool end_array_item();
-  bool end_array();
-  bool start_map(uint32_t num_kv_pairs);
-  bool start_map_key();
-  bool end_map_key();
-  bool start_map_value();
-  bool end_map_value();
-  bool end_map();
 };
 
 struct msgpack_container_dco {};
