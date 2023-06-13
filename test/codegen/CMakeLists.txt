@@ -22,6 +22,7 @@ add_test(CODEGEN8 test8.x)
 add_test(CODEGEN9 test9.x)
 add_test(CODEGEN10 test10.x)
 add_test(CODEGEN11 test11.x)
+add_test(CODEGEN12 test12.x)
 
 add_test(MSGPACK msgpack.x)
 add_test(MSGPACK2 msgpack2.x)
@@ -54,6 +55,7 @@ DUECACODEGEN_TARGET(OUTPUT DCO8 INDUECA DCOSOURCE Object8.dco
 DUECACODEGEN_TARGET(OUTPUT DCO9 INDUECA DCOSOURCE Object9.dco)
 DUECACODEGEN_TARGET(OUTPUT DCO10 DCOSOURCE Enum10.dco)
 DUECACODEGEN_TARGET(OUTPUT DCO11 DCOSOURCE Object11.dco)
+DUECACODEGEN_TARGET(OUTPUT DCO12 DCOSOURCE Object12.dco)
 
 DUECACODEGEN_TARGET(OUTPUT DCOMSG DCOSOURCE PupilRemote2DEllipse.dco
 PupilRemoteConfig.dco PupilRemotePupil.dco PupilRemote3DCircle.dco
@@ -75,6 +77,7 @@ add_executable(test8.x test8.cxx ${DCO8_OUTPUTS} Object8Extra.hxx)
 add_executable(test9.x test9.cxx ${DCO9_OUTPUTS})
 add_executable(test10.x test10.cxx ${DCO10_OUTPUTS})
 add_executable(test11.x test11.cxx ${DCO11_OUTPUTS} ${DCO10_OUTPUTS})
+add_executable(test12.x test12.cxx ${DCO12_OUTPUTS})
 add_executable(msgpack.x msgpack.cxx ${DCO1_OUTPUTS} ${DCO2_OUTPUTS}
   ${DCO3_OUTPUTS} ${DCO4_OUTPUTS} ${DCO5_OUTPUTS})
 add_executable(msgpack2.x msgpack2.cxx ${DCOMSG_OUTPUTS})

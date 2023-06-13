@@ -43,6 +43,8 @@ struct unpack_extend { };
 /** at unpacking, the size is unpacked first, the map is
     cleared, key/value elements are added to the container */
 struct unpack_extend_map { };
+/** at unpacking, it is first checked whether the object is valid */
+struct pack_optional { };
 
 template <typename T>
 struct pack_traits: public pack_var_size, unpack_extend { };
@@ -62,6 +64,8 @@ struct diffpack_fixedsize { };
 /** No specific method, simply do a complete pack or not */
 struct diffpack_complete { };
 
+/** Default, if we do not know anything, simply unpack the complete object
+    if any difference is observed */
 template <typename T>
 struct diffpack_traits: public diffpack_complete { };
 template <typename D>

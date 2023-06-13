@@ -252,7 +252,7 @@ void checkandpackdiffiterable(const D& m, const D& r,
 template<class D>
 void checkandpackdiffiterable(const D& m, const D& r,
                               AmorphStore& s, IndexMemory &im,
-                                   const diffpack_vector&)
+			      const diffpack_vector&)
 {
   // first pack (or not) the length difference
   checkandpackdiffsingle(uint32_t(m.size()), uint32_t(r.size()), s, im);
@@ -279,6 +279,21 @@ void checkandpackdiffiterable(const D& m, const D& r,
   }
   else {
     im.changed(s, false);
+  }
+}
+
+template<class D>
+void checkandpackdiffiterable(const D& m, const D& r,
+                              AmorphStore& s, IndexMemory &im,
+                              const pack_optional&)
+{
+  if (m.valid != r.valid) {
+    im.changed(s);
+    ::packData(s, m.valid);
+  }
+  if (m.valid) {
+    checkandpackdiffiterable(m.value, r.value, s, im,
+			     pack_traits<typename D::value_type>());
   }
 }
 
@@ -333,7 +348,7 @@ void checkandunpackdiffiterable(D& m,
 
     \param m      Current values, to be modified if there is a difference
     \param s      ReStore object from which differences are unpacked
-    \param mi     Member index for this array
+    \param im     Member index for this array
 */
 template<class D>
 void checkandunpackdiffiterable(D& m,
@@ -345,6 +360,16 @@ void checkandunpackdiffiterable(D& m,
   }
 }
 
+template<class D>
+void checkandunpackdiffiterable(D& m,
+                                AmorphReStore& s, IndexRecall &im,
+                                const pack_optional&)
+{
+  checkandunpackdiffsingle(m.valid, s, im);
+  if (m.valid) {
+    checkandunpackdiffiterable(m.value, s, im, pack_traits<typename D::value_type>());
+  }
+}
 
 template<typename D>
 inline void packiterable(AmorphStore& s, const D& a, const pack_constant_size&)
@@ -359,6 +384,15 @@ inline void packiterable(AmorphStore& s, const D& a, const pack_var_size&)
 {
   ::packData(s, uint32_t(a.size()));
   packiterable(s, a, pack_constant_size());
+}
+
+template<typename D>
+inline void packiterable(AmorphStore& s, const D& a, const pack_optional&)
+{
+  ::packData(s, a.valid);
+  if (a.valid) {
+    packiterable(s, a.value, pack_traits<D>());
+  }
 }
 
 template<typename D>
@@ -404,6 +438,16 @@ inline void unpackiterable(AmorphReStore& s, D& a,
     a.insert(tmp);
   }
 }
+
+template<typename D>
+inline void unpackiterable(AmorphReStore& s, D& a,
+			   const pack_optional&)
+{
+  ::unPackData(s, a.valid);
+  if (a.valid) {
+    unpackiterable(s, a.value, pack_traits<typename D::value_type>());
+  }
+}   
 
 DUECA_NS_END;
 

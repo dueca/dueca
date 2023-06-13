@@ -588,8 +588,32 @@ struct unstream {
     }
     throw  msgpack_unpack_mismatch("wrong type, cannot convert to double");
   }
+
+  static bool test_isnil(S& i0, const S& iend)
+  {
+    check_iterator_notend(i0, iend);
+    uint8_t flag = uint8_t(*i0);
+    return (flag == 0xc0);
+  }
+
+  static void unpack_nil(S& i0, const S& iend)
+  {
+    check_iterator_notend(i0, iend);
+    uint8_t flag = uint8_t(*i0); ++i0;
+    if (flag != 0xc0) {
+      throw  msgpack_unpack_mismatch("wrong type, expected nil");
+    }
+  }
 };
 
+template<typename S>
+inline bool msg_isnil(S& i0, const S& iend)
+{ return unstream<S>::test_isnil(i0, iend); }
+
+template<typename S>
+inline void msg_unpack(S& i0, const S& iend)
+{ return unstream<S>::unpack_nil(i0, iend); }
+  
 template<typename S>
 inline void msg_unpack(S& i0, const S& iend, uint8_t& i)
 { unstream<S>::unpack_int(i0, iend, i); }

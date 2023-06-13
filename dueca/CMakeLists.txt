@@ -167,7 +167,7 @@ set(INSTALLHEADERS
   msgpack-unstream.hxx PythonCorrectedName.hxx ChronoTimePoint.hxx
   msgpack-unstream-iter.hxx msgpack-unstream-iter.ixx
   ListElementAllocator.hxx DCOtypeJSON.hxx undebug.h
-  AssociateObject.hxx EasyId.hxx)
+  AssociateObject.hxx EasyId.hxx fix_optional.hxx)
 
 DUECACODEGEN_TARGET(OUTPUT DCO INDUECA DCOSOURCE ${DCOSOURCES})
 
