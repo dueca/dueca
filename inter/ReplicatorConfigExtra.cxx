@@ -12,7 +12,7 @@
 */
 
 // compatibility with build generation
-#define __CUSTOM_COMPATLEVEL_110
+#define __CUSTOM_COMPATLEVEL_111
 
 #define __CUSTOM_AMORPHRESTORE_CONSTRUCTOR
 ReplicatorConfig::ReplicatorConfig(dueca::AmorphReStore& s) :
@@ -54,10 +54,10 @@ void ReplicatorConfig::unPackData(::dueca::AmorphReStore& s)
     arity = dueca::Channel::EntryArity(uint8_t(s));
     packmode = dueca::Channel::PackingMode(uint8_t(s));
     tclass = dueca::Channel::TransportClass(uint8_t(s));
-    ::dueca::unpackiterable(s, this->dataclass,
-                            dueca::pack_traits<classlist_t >());
-    ::dueca::unpackiterable(s, this->data_magic,
-                            dueca::pack_traits<magiclist_t >());
+    ::dueca::unpackobject(s, this->dataclass,
+                          dueca::dco_traits<classlist_t >());
+    ::dueca::unpackobject(s, this->data_magic,
+                          dueca::dco_traits<magiclist_t >());
   }
     break;
   case RemoveEntry:
@@ -111,10 +111,10 @@ void ReplicatorConfig::packData(::dueca::AmorphStore& s) const
     s.packData(uint8_t(arity));
     s.packData(uint8_t(packmode));
     s.packData(uint8_t(tclass));
-    ::dueca::packiterable(s, this->dataclass,
-                          dueca::pack_traits<classlist_t >());
-    ::dueca::packiterable(s, this->data_magic,
-                          dueca::pack_traits<magiclist_t >());
+    ::dueca::packobject(s, this->dataclass,
+                        dueca::dco_traits<classlist_t >());
+    ::dueca::packobject(s, this->data_magic,
+                        dueca::dco_traits<magiclist_t >());
   }
     break;
   case RemoveEntry:

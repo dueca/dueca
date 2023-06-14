@@ -93,7 +93,8 @@ struct elementdata<dco_read_map,T>
 template<typename T>
 struct elementdata<dco_read_optional,T>
 {
-  bool *valid;
+  const T *object;
+  bool have_read;
   elementdata<dco_traits<typename T::value_type>, typename T::value_type> value;
   typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::value_type value_type;
   typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::elt_value_type elt_value_type;
@@ -118,7 +119,7 @@ private:
   void constructor(const T& data, const dco_read_map&)
   { par::ii = data.begin(); par::object = &data; }
   void constructor(const T& data, const dco_read_optional&)
-  { par::valid = &data.valid; par::value.object = &data; par::value.have_read = false; }
+  { par::object = &data; par::have_read = false; }
 
 public:
   bool isEnd() const final
@@ -132,7 +133,7 @@ private:
   inline bool _isEnd(const dco_read_map&) const
   { return par::ii == par::object->end(); }
   inline bool _isEnd(const dco_read_optional&) const
-  { return true; }
+  { return par::have_read; }
 
 public:
   MemberArity getArity() const
@@ -160,7 +161,7 @@ private:
   inline size_t size(const dco_read_map&) const
   { return par::object->size(); }
   inline size_t size(const dco_read_optional&) const
-  { return 0; }
+  { return size_t(1); }
 
 public:
   bool isNested() const
@@ -176,7 +177,7 @@ private:
   inline void step(const dco_read_single&) { par::have_read = true; }
   inline void step(const dco_read_iterable&) { ++par::ii; }
   inline void step(const dco_read_map&) { ++par::ii; }
-  inline void step(const dco_read_optional&) {  }
+  inline void step(const dco_read_optional&) { par::have_read = true; }
 
 public:
   CommObjectReader recurse(std::string& key)
@@ -210,7 +211,8 @@ private:
   { const typename par::elt_value_type *tmp = &(par::ii->second);
     step(x); return *tmp; }
   const typename par::elt_value_type& get_object(const dco_read_optional& x)
-  { return NULL; }
+  { const typename par::value_type *tmp = &(par::object->value);
+    step(x); return *tmp; }
 
   const typename par::elt_value_type& peek_object(const dco_read_single& x)
   { const typename par::elt_value_type *tmp = par::object;
@@ -221,15 +223,22 @@ private:
   const typename par::elt_value_type& peek_object(const dco_read_map& x)
   { const typename par::elt_value_type *tmp = &(par::ii->second);
     return *tmp; }
+  const typename par::elt_value_type& peek_object(const dco_read_optional& x)
+  { const typename par::value_type *tmp = &(par::object->value);
+    return *tmp; }
 
   void get_key(std::string&, const dco_read_single&) { }
   void get_key(std::string&, const dco_read_iterable&) { }
   void get_key(std::string& key, const dco_read_map&)
   { key = boost::any_cast<std::string>(par::ii->first); }
+  void get_key(std::string& key, const dco_read_optional&) 
+  { key = boost::lexical_cast<std::string>(par::object->valid); } 
   void get_key(boost::any&, const dco_read_single&) { }
   void get_key(boost::any&, const dco_read_iterable&) { }
   void get_key(boost::any& key, const dco_read_map&)
   { key = par::ii->first; }
+  void get_key(boost::any& key, const dco_read_optional&) 
+  { key = par::object->value; } 
 
 public:
   void read(std::string& res, std::string& key)

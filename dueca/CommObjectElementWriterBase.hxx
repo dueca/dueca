@@ -123,13 +123,15 @@ struct elementdataw<dco_write_fixed_it,T>
 };
 
 template<typename T>
-struct elementdata<dco_write_optional,T>
+struct elementdataw<dco_write_optional,T>
 {
-  bool *valid;
-  elementdata<dco_traits<typename T::value_type>, typename T::value_type> value;
-  typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::value_type value_type;
-  typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::elt_value_type elt_value_type;
-  typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::elt_key_type elt_key_type;
+  T *object;
+  bool have_written;
+  elementdataw<dco_traits<typename T::value_type>, typename T::value_type> value;
+  typedef typename elementdataw<dco_traits<typename T::value_type>, typename T::value_type>::value_type value_type;
+  typedef typename elementdataw<dco_traits<typename T::value_type>, typename T::value_type>::elt_value_type elt_value_type;
+  typedef typename elementdataw<dco_traits<typename T::value_type>, typename T::value_type>::elt_key_type elt_key_type;
+  constexpr static const MemberArity arity = Single;
 };
 
 
@@ -158,7 +160,7 @@ private:
   void constructor(T& data, const dco_write_fixed_it&)
   { par::ii = data.begin(); par::object = &data; }
   void constructor(T& data, const dco_write_optional&)
-  { par::ii = data.begin(); par::object = &data; }
+  { par::object = &data; }
 
 public:
 
@@ -253,12 +255,21 @@ private:
       (&(*(par::object->emplace
            (*keycast, typename par::elt_value_type()).first))); }
 
+  inline void* get_object(const dco_write_optional&,
+                          const boost::any& key=boost::any())
+  { return reinterpret_cast<void*>(par::object); }
+
   inline void* get_object(const dco_write_fixed_it&,
                           const boost::any& key=boost::any())
   { if (par::ii == par::object->end()) throw IndexExceeded();
     return reinterpret_cast<void*>(&(*par::ii++)); }
 
   inline void* get_object(const dco_write_single&,
+                          unsigned idx)
+  { if (idx != 0) throw IndexExceeded();
+    return reinterpret_cast<void*>(par::object); }
+  
+  inline void* get_object(const dco_write_optional&,
                           unsigned idx)
   { if (idx != 0) throw IndexExceeded();
     return reinterpret_cast<void*>(par::object); }
@@ -290,6 +301,13 @@ private:
       boost::any_cast<const typename par::elt_value_type>(&val);
     if (valcast == NULL) { throw(ConversionNotDefined()); }
     *par::object = *valcast; }
+
+  void write(const dco_isdirect&, const dco_write_optional&,
+             const boost::any& val, const boost::any& key)
+  { typename par::elt_value_type const *valcast =
+      boost::any_cast<const typename par::value_type>(&val);
+    if (valcast == NULL) { throw(ConversionNotDefined()); }
+    par::object->value = *valcast; par::object->valid = true; }
 
   void write(const dco_isenum&, const dco_write_iterable&,
              const boost::any& val, const boost::any& key)
@@ -352,6 +370,14 @@ private:
       boost::any_cast<const typename par::value_type>(&val);
     if (valcast == NULL) { throw(ConversionNotDefined()); }
     *par::object = *valcast; }
+
+  void write(const dco_isdirect&, const dco_write_optional&,
+             const boost::any& val, unsigned idx)
+  { if (idx != 0) throw IndexExceeded();
+    typename par::elt_value_type const *valcast =
+      boost::any_cast<const typename par::value_type>(&val);
+    if (valcast == NULL) { throw(ConversionNotDefined()); }
+    par::object->value = *valcast; par::object->valid = true; }
 
   void write(const dco_isdirect&, const dco_write_map&,
              const boost::any& key, const boost::any& val)
@@ -433,7 +459,9 @@ private:
   { return par::ii == par::object->end(); }
   bool _isEnd(const dco_write_single&) const
   { throw(ConversionNotDefined()); }
-  template<typename Dum>
+  bool _isEnd(const dco_write_optional&) const
+  { throw(ConversionNotDefined()); }
+ template<typename Dum>
   bool _isEnd(const Dum&) const
   { return false; }
 };

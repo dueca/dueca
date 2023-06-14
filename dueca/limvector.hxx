@@ -22,6 +22,7 @@
 #include <vectorexceptions.hxx>
 #include <iterator>
 #include <inttypes.h>
+#include <sstream>
 
 DUECA_NS_START;
 
@@ -245,7 +246,18 @@ public:
 template <size_t N, typename D>
 struct dco_traits<limvector<N,D> > : dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector
-{ };
+{ 
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "limvector<" << N << "," 
+            << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
+
+};
 
 DUECA_NS_END;
 

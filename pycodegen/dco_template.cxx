@@ -90,9 +90,12 @@ static ::dueca::DataClassRegistrar registrar
 #if !defined(__CUSTOM_AMORPHRESTORE_CONSTRUCTOR) && !defined(__DCO_NOPACK)
 {{ name }}::{{ name }}({{ inclassprefix }}AmorphReStore& s) //{ amorphconstructorlist }
 {
-  this->unPackData(s);
   // { amorphconstructorbody }
   DOBS("amorph constructor {{ name }}");
+  {%- for m in datamembers %}
+  ::dueca::unpackobject(s, this->{{ m.name }},
+                        dueca::dco_traits<{{ m.klass }}>());
+  {%- endfor %}
 }
 #endif
 
@@ -128,10 +131,13 @@ void {{ name }}::operator delete(void* v)
 void {{ name }}::packDataDiff(::dueca::AmorphStore& s, const {{ name }}& ref) const
 {
   DOBS("packDataDiff {{ name }}");
+  {%- if parent %}
+  {{ parent }}::packDataDiff(s, ref);
+  {%- endif %}
   ::dueca::IndexMemory im;// { amorphpackdiff }
-  {%- for m in members %}
+  {%- for m in datamembers %}
   ::dueca::checkandpackdiff(this->{{ m.name }}, ref.{{ m.name }}, s, im,
-			    dueca::dco_traits<{{ m.klass }}>());
+                            dueca::dco_traits<{{ m.klass }}>());
   {%- endfor %}
   im.closeoff(s);
 }
@@ -143,9 +149,12 @@ void {{ name }}::unPackData(::dueca::AmorphReStore& s)
   DOBS("unPackData {{ name }}");
   //{ amorphunpackfirst }
   //{ amorphunpacksecond }
-  {%- for m in members %}
+  {%- if parent %}
+  {{ parent }}::unPackData(s);
+  {%- endif %}
+  {%- for m in datamembers %}
   ::dueca::unpackobject(s, this->{{ m.name }},
-			dueca::dco_traits<{{ m.klass }}>());
+                        dueca::dco_traits<{{ m.klass }}>());
   {%- endfor %}
 }
 #endif
@@ -154,10 +163,13 @@ void {{ name }}::unPackData(::dueca::AmorphReStore& s)
 void {{ name }}::unPackDataDiff({{ inclassprefix }}AmorphReStore& s)
 {
   DOBS("unPackDataDiff {{ name }}");
+  {%- if parent %}
+  {{ parent }}::unPackDataDiff(s);
+  {%- endif %}
   ::dueca::IndexRecall im;// { amorphunpackdiff }
-  {%- for m in members %}
+  {%- for m in datamembers %}
   ::dueca::checkandunpackdiff(this->{{ m.name }}, s, im,
-			      dueca::dco_traits<{{ m.klass }}>());
+                              dueca::dco_traits<{{ m.klass }}>());
   {%- endfor %}
 }
 #endif
@@ -185,9 +197,12 @@ void {{ name }}::packData(::dueca::AmorphStore& s) const
 {
   DOBS("packData {{ name }}");
   //{ amorphpackfirst }{ amorphpacksecond }
-  {%- for m in members %}
+  {%- if parent %}
+  {{ parent }}::packData(s);
+  {%- endif %}
+  {%- for m in datamembers %}
   ::dueca::packobject(s, this->{{ m.name }},
-		      dueca::dco_traits<{{ m.klass }}>());
+                      dueca::dco_traits<{{ m.klass }}>());
   {%- endfor %}
 }
 #endif
@@ -196,11 +211,14 @@ void {{ name }}::packData(::dueca::AmorphStore& s) const
 std::ostream & {{ name }}::print(std::ostream& s) const
 {
   s << "{{ name }}(";
-  {%- for m in members %}
+  {%- if parent %}
+  {{ parent }}::print(s);
+  {%- endif %}
+  {%- for m in datamembers %}
   s << "{{ m.name }}=";
-  ::dueca::dcoprint(s, {{ m.name }},
-		    typename ::dueca::dco_traits<{{ m.klass }}>::ptype());
-  s << {{ '")"' if loop.last else '","' }};
+  ::dueca::dcoprint(s, this->{{ m.name }},
+                    typename ::dueca::dco_traits<{{ m.klass }}>::ptype());
+  s << {{ '")"' if loop.last else '","' }};  
   {%- endfor %}
   return s;
 }

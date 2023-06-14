@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <inttypes.h>
 #include <type_traits>
+#include <sstream>
 
 DUECA_NS_START;
 
@@ -258,7 +259,18 @@ public:
 template <typename D>
 struct dco_traits<varvector<D> > : dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector
-{ };
+{ 
+  /** Representative name */
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "varvector<" 
+            << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
+};
 
 DUECA_NS_END;
 

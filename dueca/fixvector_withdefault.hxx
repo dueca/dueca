@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <vectorexceptions.hxx>
 #include <fixvector.hxx>
+#include <sstream>
 
 DUECA_NS_START;
 
@@ -134,6 +135,17 @@ struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE> > :
 {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
+  /** Representative name */
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "fixvector_withdefault<" << N << "," 
+            << dco_traits<D>::getclassname() << "," 
+            << DEFLT << "," << BASE << ">";
+    }
+    return cname.str().c_str();
+  }
 };
 
 DUECA_NS_END;

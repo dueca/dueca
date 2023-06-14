@@ -31,6 +31,36 @@
 
 DUECA_NS_START;
 
+template <typename T>
+const char* getclassname();
+
+/* and when called with an object */
+template<typename T>
+constexpr inline const char* getclassname(const T& a)
+{ return getclassname<T>(); }
+
+/* specialization for some common types */
+template<> const char* getclassname<double>();
+template<> const char* getclassname<float>();
+template<> const char* getclassname<int8_t>();
+template<> const char* getclassname<char>();
+template<> const char* getclassname<int16_t>();
+template<> const char* getclassname<int32_t>();
+template<> const char* getclassname<int64_t>();
+template<> const char* getclassname<uint8_t>();
+template<> const char* getclassname<uint16_t>();
+template<> const char* getclassname<uint32_t>();
+template<> const char* getclassname<uint64_t>();
+template<> const char* getclassname<bool>();
+template<> const char* getclassname<std::string>();
+template<> const char* getclassname<string8>();
+template<> const char* getclassname<string16>();
+template<> const char* getclassname<string32>();
+template<> const char* getclassname<string64>();
+template<> const char* getclassname<string128>();
+template<> const char* getclassname<LogString>();
+template<> const char* getclassname<void*>();
+
 /* pre-define */
 class smartstring;
 
@@ -76,7 +106,11 @@ struct dco_traits_optional {
 };
 
 /* The default assumes single-element members */
-template <typename T> struct dco_traits: public dco_traits_single { };
+template <typename T> struct dco_traits: public dco_traits_single {   
+  /** Classname? */
+  static const char* getclassname()
+  { return ::dueca::getclassname<T>(); }
+};
 
 /* Multiple elements, variable size communication type */
 struct dco_traits_iterable {
@@ -99,7 +133,9 @@ struct dco_traits_iterablefix {
 /* list is iterable, has a variable length */
 template <typename D>
 struct dco_traits<std::list<D> > : public dco_traits_iterable,
-  pack_var_size, unpack_extend, diffpack_complete { };
+  pack_var_size, unpack_extend, diffpack_complete { 
+
+  };
 
 /* vector is iterable, has a variable length */
 template <typename D>
@@ -142,35 +178,8 @@ struct dco_nested: public dco_isdirect { };
 /* classname function, default for DCO objects */
 template <typename T>
 const char* getclassname()
-{ return const_cast<const char*>(T::classname); }
+{ return dco_traits<T>::getclassname(); }
 
-/* and when called with an object */
-template<typename T>
-constexpr inline const char* getclassname(const T& a)
-{ return getclassname<T>(); }
-
-/* specialization for some common types */
-template<> const char* getclassname<double>();
-template<> const char* getclassname<float>();
-template<> const char* getclassname<int8_t>();
-template<> const char* getclassname<char>();
-template<> const char* getclassname<int16_t>();
-template<> const char* getclassname<int32_t>();
-template<> const char* getclassname<int64_t>();
-template<> const char* getclassname<uint8_t>();
-template<> const char* getclassname<uint16_t>();
-template<> const char* getclassname<uint32_t>();
-template<> const char* getclassname<uint64_t>();
-template<> const char* getclassname<bool>();
-template<> const char* getclassname<std::string>();
-template<> const char* getclassname<string8>();
-template<> const char* getclassname<string16>();
-template<> const char* getclassname<string32>();
-template<> const char* getclassname<string64>();
-template<> const char* getclassname<string128>();
-template<> const char* getclassname<LogString>();
-template<> const char* getclassname<smartstring>();
-template<> const char* getclassname<void*>();
 
 DUECA_NS_END;
 

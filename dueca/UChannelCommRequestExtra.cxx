@@ -13,6 +13,7 @@
 
 // code originally written for this codegen version
 #define __CUSTOM_COMPATLEVEL_110
+#define __CUSTOM_COMPATLEVEL_111
 
 #define __CUSTOM_AMORPHRESTORE_CONSTRUCTOR
 UChannelCommRequest::UChannelCommRequest(AmorphReStore& s):

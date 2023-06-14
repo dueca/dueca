@@ -13,6 +13,7 @@
 
 // compatibility with build generation
 #define __CUSTOM_COMPATLEVEL_110
+#define __CUSTOM_COMPATLEVEL_111
 
 #define __CUSTOM_AMORPHRESTORE_CONSTRUCTOR
 UDPPeerConfig::UDPPeerConfig(dueca::AmorphReStore& s) :

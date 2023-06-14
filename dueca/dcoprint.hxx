@@ -51,8 +51,8 @@ template<typename S, typename T>
 inline S &dcoprint(S& s, const T& obj, const dco_print_pair&)
 {
   s << "(";
-  dcoprint(s, obj.first, typename dco_traits<typename T::key_type>::ptype()) << ":";
-  dcoprint(s, obj.second, typename dco_traits<typename T::mapped_type>::ptype());
+  dcoprint(s, obj.first, typename dco_traits<typename T::first_type>::ptype()) << ":";
+  dcoprint(s, obj.second, typename dco_traits<typename T::second_type>::ptype());
   return s << ")";
 }
 

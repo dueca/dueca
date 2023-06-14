@@ -23,6 +23,7 @@
 #include <string>
 #include <type_traits>
 #include <vectorexceptions.hxx>
+#include <sstream>
 
 DUECA_NS_START;
 
@@ -214,6 +215,15 @@ struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix,
 {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "fixvector<" << N << "," 
+            << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
 };
 
 DUECA_NS_END;
