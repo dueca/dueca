@@ -21,6 +21,7 @@ from __future__ import print_function
 from pyparsing import Literal, Regex, QuotedString, ZeroOrMore, Word, \
     Optional, nestedExpr, Combine, OneOrMore, CharsNotIn, ParserElement, Or, \
     White
+from jinja2 import Environment, PackageLoader
 import sys
 import copy
 import traceback
@@ -107,18 +108,22 @@ class CodegenImproperConfig(CodegenException):
 
 
 codegen_version = None
+head_template = None
+body_template = None
 
 # extend the search path if not in dueca
 def setup_vars():
     global codegen_version, plugins, enum_plugins
     global summarise_member
-
+    global head_template, body_template
+    
     # check that we are not called from dueca build
     filepath = os.path.dirname(os.path.abspath(__file__))
     if not os.path.isfile(filepath + os.sep + 'generation.py.in'):
         try:
             fsdp = os.popen('dueca-config --path-datafiles 2>/dev/null')
-            sys.path.append(fsdp.readline().strip())
+            datafilepath = fsdp.readline().strip()
+            sys.path.append(datafilepath)
             fsdp.close()
             # add support files
             from pycodegen import codegen_version
@@ -143,6 +148,14 @@ def setup_vars():
                         plist[mname] = importlib.util.module_from_spec(spec)
 
             from duecautils.codegen import summarise_member
+
+            # load the jinja templates
+            environment = Environment(
+                loader=PackageLoader("dueca-codegen", datafilepath)
+            )
+            body_template = environment.get_template("dco_template.cxx")
+            head_template = environment.get_template("dco_template.hxx")
+            
             # print(plugins)
             return
         except Exception as e:
@@ -166,6 +179,12 @@ def setup_vars():
     from EnumPlugins import plugins as enum_plugins
     from src.codegen import summarise_member
 
+    # load the jinja templates
+    environment = Environment(
+        loader=PackageLoader("dueca-codegen", filepath)
+    )
+    body_template = environment.get_template("dco_template.cxx")
+    head_template = environment.get_template("dco_template.hxx")
 
 # holder of the current item
 current = None
@@ -2360,12 +2379,15 @@ class EventAndStream(Channel):
         pass
 
     def complete(self):
+        global head_template, body_template
         super(EventAndStream, self).complete()
-        header = c_header % self.__dict__
+        # header = c_header % self.__dict__
+        header = head_template.render(**self.__dict__)
         f = open(self.name+'.hxx', 'w', encoding='utf-8')
         f.write(header)
         f.close()
-        body = c_body % self.__dict__
+        # body = c_body % self.__dict__
+        body = body_template.render(**self.__dict__)
         f = open(self.name+'.cxx', 'w', encoding='utf-8')
         f.write(body)
         f.close()
@@ -3081,6 +3103,9 @@ if __name__ == "__main__":
 
     #do_debug = True
     from platform import python_version
+
+    # find the location of
+    
 
     if pvals.dcofile:
         for fname in pvals.dcofile:

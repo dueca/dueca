@@ -17,6 +17,7 @@
 #include <dueca/dueca_ns.h>
 #include <dueca/PackTraits.hxx>
 #include <dueca/CommObjectTraits.hxx>
+#include <dueca/CommObjectMemberArity.hxx>
 
 DUECA_NS_START;
 
@@ -120,18 +121,14 @@ public:
     objects should accessed through the CommObjects interfaces. */
 template <typename T>
 struct dco_traits<fix_optional<T> > :
-  public dco_traits<T>
-{ };
-
-/** Template specialization, indicates how data should be packed. */
-template <typename T>
-struct pack_traits<fix_optional<T> > :
-public pack_traits<T> { };
-
-/** Template specialization, indicates how data should be diff-packed. */
-template <typename T>
-struct diffpack_traits<fix_optional<T> > :
-public diffpack_traits<T> { };
+  public dco_traits_optional,
+  pack_optional
+{
+  typedef dco_read_optional rtype;
+  typedef dco_write_optional wtype;
+  constexpr const static MemberArity arity = dco_traits<T>::arity;
+  constexpr const static size_t nelts = dco_traits<T>::nelts;
+};
 
 DUECA_NS_END;
 

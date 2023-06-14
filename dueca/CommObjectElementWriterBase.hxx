@@ -122,6 +122,17 @@ struct elementdataw<dco_write_fixed_it,T>
   constexpr static const MemberArity arity = FixedIterable;
 };
 
+template<typename T>
+struct elementdata<dco_write_optional,T>
+{
+  bool *valid;
+  elementdata<dco_traits<typename T::value_type>, typename T::value_type> value;
+  typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::value_type value_type;
+  typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::elt_value_type elt_value_type;
+  typedef typename elementdata<dco_traits<typename T::value_type>, typename T::value_type>::elt_key_type elt_key_type;
+};
+
+
 /** Templated implementation of the WriteElementBase functionalities */
 template<class T>
 class WriteElement: public elementdataw< typename dco_traits<T>::wtype, T>,
@@ -145,6 +156,8 @@ private:
   void constructor(T& data, const dco_write_map&)
   { par::object = &data; }
   void constructor(T& data, const dco_write_fixed_it&)
+  { par::ii = data.begin(); par::object = &data; }
+  void constructor(T& data, const dco_write_optional&)
   { par::ii = data.begin(); par::object = &data; }
 
 public:

@@ -16,6 +16,11 @@ install(PROGRAMS dueca-codegen.py DESTINATION ${CMAKE_INSTALL_BINDIR}
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/generation.py __init__.py
   DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca/pycodegen)
 
+install(FILES dco_template.cxx dco_template.hxx
+  enum_template.cxx enum_template.hxx
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca/pycodegen)
+
+
 install(FILES
 
   DCOplugins/__init__.py

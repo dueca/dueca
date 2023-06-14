@@ -256,14 +256,9 @@ public:
 
 /** Helper, for DCO object handling */
 template <typename D>
-struct dco_traits<varvector<D> > : dco_traits_iterable { };
-
-/** Helper, for DCO object handling */
-template <typename D>
-struct pack_traits<varvector<D> >: public pack_var_size, unpack_resize { };
-/** Helper, for DCO object handling */
-template <typename D>
-struct diffpack_traits<varvector<D> >: public diffpack_vector { };
+struct dco_traits<varvector<D> > : dco_traits_iterable,
+  pack_var_size, unpack_resize, diffpack_vector
+{ };
 
 DUECA_NS_END;
 

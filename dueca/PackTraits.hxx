@@ -34,6 +34,8 @@ DUECA_NS_START;
 struct pack_constant_size { };
 /** iterable size is variable and has to be packed */
 struct pack_var_size { };
+/** non-iterable, direct single pack/unpack */
+struct pack_single { };
 /** at unpacking, the size is unpacked first and a resize is
     performed */
 struct unpack_resize { };
@@ -46,16 +48,6 @@ struct unpack_extend_map { };
 /** at unpacking, it is first checked whether the object is valid */
 struct pack_optional { };
 
-template <typename T>
-struct pack_traits: public pack_var_size, unpack_extend { };
-
-template <typename D>
-struct pack_traits<std::vector<D> >: public pack_var_size, unpack_resize { };
-
-template <typename K, typename D>
-struct pack_traits<std::map<K,D> >: public pack_var_size, unpack_extend_map
-{ };
-
 /** Compare elements and size, insert/modify/contract
     as needed */
 struct diffpack_vector { };
@@ -63,13 +55,6 @@ struct diffpack_vector { };
 struct diffpack_fixedsize { };
 /** No specific method, simply do a complete pack or not */
 struct diffpack_complete { };
-
-/** Default, if we do not know anything, simply unpack the complete object
-    if any difference is observed */
-template <typename T>
-struct diffpack_traits: public diffpack_complete { };
-template <typename D>
-struct diffpack_traits<std::vector<D> >: public diffpack_vector { };
 
 DUECA_NS_END;
 

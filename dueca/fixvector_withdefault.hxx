@@ -129,21 +129,12 @@ public:
     objects should accessed through the CommObjects interfaces. */
 template <size_t N, typename D, int DEFLT, unsigned BASE>
 struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE> > :
-  public dco_traits_iterablefix
+  public dco_traits_iterablefix,
+  pack_constant_size, diffpack_fixedsize
 {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
 };
-
-/** Template specialization, indicates how data should be packed. */
-template <size_t N, typename D, int DEFLT, unsigned BASE>
-struct pack_traits<fixvector_withdefault<N, D, DEFLT, BASE>> :
-public pack_constant_size {};
-
-/** Template specialization, indicates how data should be diff-packed. */
-template <size_t N, typename D, int DEFLT, unsigned BASE>
-struct diffpack_traits<fixvector_withdefault<N, D, DEFLT, BASE>> :
-public diffpack_fixedsize {};
 
 DUECA_NS_END;
 

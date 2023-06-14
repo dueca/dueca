@@ -209,18 +209,12 @@ public:
 
 /** Helper, for DCO object handling */
 template <size_t N, typename D>
-struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix {
+struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix,
+  pack_constant_size, diffpack_fixedsize
+{
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
 };
-
-/** Helper, for DCO object handling */
-template <size_t N, typename D>
-struct pack_traits<fixvector<N, D>> : public pack_constant_size {};
-
-/** Helper, for DCO object handling */
-template <size_t N, typename D>
-struct diffpack_traits<fixvector<N, D>> : public diffpack_fixedsize {};
 
 DUECA_NS_END;
 
