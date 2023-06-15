@@ -1429,12 +1429,12 @@ class BuildProject(OnExistingProject):
                       file=sys.stderr)
         else:
             try:
-               if len(os.listdir('.')) == 1:
-                   options = [ (o[0] == '-' and o) or f'-D{o}' for
-                               o in ns.option ]
-                   if ns.debug:
-                       options.append('-DCMAKE_BUILD_TYPE=Debug')
-                       options.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
+                if len(os.listdir('.')) == 1:
+                    options = [ (o[0] == '-' and o) or f'-D{o}' for
+                                 o in ns.option ]
+                    if ns.debug:
+                        options.append('-DCMAKE_BUILD_TYPE=Debug')
+                    options.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
                     print("Configuring the build dir with options\n  ",
                           ' '.join(options))
                     cm = subprocess.run(
