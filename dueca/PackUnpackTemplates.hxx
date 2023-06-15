@@ -14,12 +14,33 @@
 #ifndef PackUnpackTemplates_hxx
 #define PackUnpackTemplates_hxx
 
+/** @file PackUnpackTemplates.hxx 
+
+  This file contains (largely templated) functions and classes for DUECA
+  pack and unpack.
+
+  Packing and unpacking is based on the following principles:
+  
+  - Available functions for basic c++ types, and for generated
+    objects; ::packData and ::unPackData
+
+  - Template specializations using the dco_traits templated flagging 
+    struct, to indicate particular packing methods, e.g., for lists, vector, 
+    map, etc.
+
+  - Multiple function definitions using the template flagging, called
+    packobject and unpackobject, to find the correct match for packing 
+    schemes.
+*/
+
+
 #include <dueca_ns.h>
 #include <PackTraits.hxx>
 #include <iostream>
 #include <map>
 #include <inttypes.h>
 #include "AmorphStore.hxx"
+#include "CommObjectTraits.hxx"
 
 template<typename A, typename B>
 void unPackData(DUECA_NS::AmorphReStore& s, std::pair<A,B>& x)
@@ -171,7 +192,7 @@ void checkandpackdiffsingle(const T& m, const T& r,
   }
   else {
     im.changed(s);
-    ::packData(s, m);
+    packobject(s, m, dco_traits<T>());
   }
 }
 
@@ -227,7 +248,7 @@ inline void checkandunpackdiff(T& m, AmorphReStore& s, IndexRecall& im,
 */
 template<class D>
 void checkandpackdiff(const D& m, const D& r,
-		      AmorphStore& s, IndexMemory &im,
+		                  AmorphStore& s, IndexMemory &im,
                               const diffpack_fixedsize&)
 {
   bool nodiff = true;
@@ -247,7 +268,7 @@ void checkandpackdiff(const D& m, const D& r,
       else {
         arrayidx.changed(s);
       }
-      ::packData(s, *m_it);
+      packobject(s, *m_it, dco_traits<typename D::value_type>());
     }
     else {
       if (!nodiff) {
@@ -313,10 +334,7 @@ void checkandpackdiff(const D& m, const D& r,
 		      AmorphStore& s, IndexMemory &im,
 		      const pack_optional&)
 {
-  if (m.valid != r.valid) {
-    im.changed(s);
-    ::packData(s, m.valid);
-  }
+  checkandpackdiffsingle(m.valid, r.valid, s, im);
   if (m.valid) {
     checkandpackdiff(m.value, r.value, s, im,
 		     dco_traits<typename D::value_type>());
@@ -340,7 +358,7 @@ void checkandunpackdiff(D& m,
     IndexRecall arridx;
     for (; m_it != m.end(); m_it++) {
       if (arridx.changed(s)) {
-       ::unPackData(s, *m_it);
+       unpackobject(s, *m_it, dco_traits<typename D::value_type>());
       }
     }
   }
@@ -407,7 +425,7 @@ template<typename D>
 inline void packobject(AmorphStore& s, const D& a, const pack_constant_size&)
 {
   for (auto const &it: a) {
-    ::dueca::packobject(s, it, dco_traits<typename D::value_type>());
+    packobject(s, it, dco_traits<typename D::value_type>());
   }
 }
 
@@ -429,7 +447,7 @@ inline void packobject(AmorphStore& s, const D& a, const pack_optional&)
 
 template<typename D>
 inline void unpackobject(AmorphReStore& s, D& a,
-                           const pack_single&)
+                         const pack_single&)
 {
   ::unPackData(s, a);
 }
@@ -440,7 +458,7 @@ inline void unpackobject(AmorphReStore& s, D& a,
                            const pack_constant_size&)
 {
   for (typename D::iterator it = a.begin(); it != a.end(); it++) {
-    ::unPackData(s, *it);
+    unpackobject(s, *it, dco_traits<typename D::value_type>());
   }
 }
 
@@ -452,7 +470,7 @@ inline void unpackobject(AmorphReStore& s, D& a,
   a.resize(l);
 
   for (typename D::iterator it = a.begin(); it != a.end(); it++) {
-    ::unPackData(s, *it);
+    unpackobject(s, *it, dco_traits<typename D::value_type>());
   }
 }
 
@@ -462,7 +480,8 @@ inline void unpackobject(AmorphReStore& s, D& a,
 {
   a.clear();
   for (uint32_t l(s); l--; ) {
-    typename D::value_type tmp(s);
+    typename D::value_type tmp;
+    unpackobject(s, tmp, dco_traits<typename D::value_type>());
     a.push_back(tmp);
   }
 }
@@ -474,14 +493,14 @@ inline void unpackobject(AmorphReStore& s, D& a,
   std::pair<typename D::key_type, typename D::mapped_type> tmp;
   a.clear();
   for (uint32_t l(s); l--; ) {
-    ::unPackData(s, tmp);
+    unpackobject(s, tmp, dco_traits<typename D::value_type>());
     a.insert(tmp);
   }
 }
 
 template<typename D>
 inline void unpackobject(AmorphReStore& s, D& a,
-			   const pack_optional&)
+                         const pack_optional&)
 {
   ::unPackData(s, a.valid);
   if (a.valid) {

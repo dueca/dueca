@@ -2,6 +2,20 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.0] - 2023-06-15
+
+- add a fix_optional object, to accomodate optional / nil values from
+  msgpack unpacks
+- re-write of code generator to:
+  * use jinja2 templates
+  * change the packing, so that members are always packed in the order
+    in which they appear in the object
+  * use template magic to pack/unpack different types, no more need for
+    IterableType/FixIterableType distinctions
+- test for "incomplete + nil" msgpack unpack
+- elaborated templating with dco_traits
+- improved/updated printing of dco objects
+
 ## [3.2.12] - 2023-06-12
 
 - Add a fixvector_withdefault variant with default value option

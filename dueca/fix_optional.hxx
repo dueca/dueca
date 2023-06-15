@@ -108,7 +108,8 @@ public:
 
   /** equality test */
   inline bool operator==(const fix_optional<T> &other) const
-  { return (this->valid && other.valid) && (this->value == other.value); }
+  { return ((this->valid && other.valid) && (this->value == other.value)) ||
+           (!this->valid && !other.valid); }
 
   /** inequality test */
   inline bool operator!=(const fix_optional<T> &other) const

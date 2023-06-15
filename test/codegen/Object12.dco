@@ -28,7 +28,7 @@ typedef dueca::fix_optional<dueca::varvector<float> > optional_vv;")
 (Object Object12
 	(Option hdf5nest)
 	(Option msgpack)
-	(optional_vv v3 (Default dueca::varvector<float>()))
+	(optional_vv v3)
       (optional_int i1 (DefaultArg 1))
 	(optional_fv f2 (DefaultArg 1.0))
 	)

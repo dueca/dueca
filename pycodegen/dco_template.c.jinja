@@ -32,6 +32,12 @@
 #include <dueca/DataSetSubsidiary.hxx>
 #endif{{ plug_body_include }}
 
+// getclassname implementation, always namespace dueca
+namespace dueca {
+  template<>
+  const char* getclassname<::{{ objprefix }}{{ name }}>()
+  { return "{{ name }}"; }
+}
 
 {{ namespacecmd0 }}{{ arraydimsimp }}{{ extraincludebody }}
 
@@ -88,7 +94,10 @@ static ::dueca::DataClassRegistrar registrar
 #endif
 
 #if !defined(__CUSTOM_AMORPHRESTORE_CONSTRUCTOR) && !defined(__DCO_NOPACK)
-{{ name }}::{{ name }}({{ inclassprefix }}AmorphReStore& s) //{ amorphconstructorlist }
+{{ name }}::{{ name }}({{ inclassprefix }}AmorphReStore& s){{ parent and " :" or ''}}
+{%- if parent %}
+  {{ parent }}(s)
+{%- endif %}
 {
   // { amorphconstructorbody }
   DOBS("amorph constructor {{ name }}");

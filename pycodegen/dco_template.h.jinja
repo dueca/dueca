@@ -141,6 +141,10 @@ operator << (std::ostream& s, const {{ objprefix }}{{ name }}& o)
 { return o.print(s); }
 };
 
+// specialization of classname
+template<>
+const char* dueca::getclassname<{{ objprefix }}{{ name }}>();
+
 #if !defined(__DCO_STANDALONE)
 namespace dueca {
 /** Template specialization, defines a trait that is needed if
@@ -148,6 +152,7 @@ namespace dueca {
 template <>
 struct dco_nested<{{ objprefix }}{{ name }}> : public dco_isnested { };{{ enumtraits }}
 };
+
 #endif
 {{ plug_header_code }}
 

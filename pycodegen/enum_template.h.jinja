@@ -9,8 +9,7 @@
         language        : C++{{ headercomments }}
 */
 
-#ifndef {{ name }}_hxx
-#define {{ name }}_hxx
+#pragma once
 
 #include <inttypes.h>
 
@@ -45,5 +44,3 @@ namespace dueca {
 };
 #endif
 {{ plug_header_code }}
-
-#endif

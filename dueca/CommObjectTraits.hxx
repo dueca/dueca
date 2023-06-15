@@ -18,6 +18,7 @@
 #ifndef CommObjectTraits_hxx
 #define CommObjectTraits_hxx
 
+#include "ScriptCreatable.hxx"
 #include <vector>
 #include <list>
 #include <map>
@@ -31,13 +32,40 @@
 
 DUECA_NS_START;
 
+class Module;
+
 template <typename T>
 const char* getclassname();
 
-/* and when called with an object */
+/* Handle the special case for "Module", which have a classname member */
 template<typename T>
-constexpr inline const char* getclassname(const T& a)
-{ return getclassname<T>(); }
+inline const char* getclassname(const T* a, const Module*)
+{ return T::classname; }
+
+/* Handle the special case for "ScriptCreatable", which have a classname member */
+template<typename T>
+inline const char* getclassname(const T* a, const ScriptCreatable*)
+{ return T::classname; }
+
+template<typename T>
+inline const char* getclassname(const T* a, const void*)
+{ return "unknown"; }
+
+/* To be called when not module, or scriptcreatable. */
+//template<typename T>
+//inline const char* getclassname(const T* a, const void*)
+//{ return getclassname<T>(); }
+
+/* Old function, classname when called with an object */
+template<typename T>
+inline const char* getclassname(const T& a)
+{ 
+  if (dynamic_cast<const Module*>(&a) || 
+      dynamic_cast<const ScriptCreatable*>(&a)) {
+    return getclassname(&a, &a);
+  }   
+  return getclassname<T>(); 
+}
 
 /* specialization for some common types */
 template<> const char* getclassname<double>();
@@ -105,11 +133,13 @@ struct dco_traits_optional {
   constexpr const static MemberArity arity = Iterable;
 };
 
+
 /* The default assumes single-element members */
 template <typename T> struct dco_traits: public dco_traits_single {   
   /** Classname? */
   static const char* getclassname()
-  { return ::dueca::getclassname<T>(); }
+  { return ::dueca::getclassname(reinterpret_cast<T*>(NULL), 
+                                 reinterpret_cast<T*>(NULL)); }
 };
 
 /* Multiple elements, variable size communication type */
@@ -179,7 +209,6 @@ struct dco_nested: public dco_isdirect { };
 template <typename T>
 const char* getclassname()
 { return dco_traits<T>::getclassname(); }
-
 
 DUECA_NS_END;
 

@@ -21,7 +21,7 @@ from __future__ import print_function
 from pyparsing import Literal, Regex, QuotedString, ZeroOrMore, Word, \
     Optional, nestedExpr, Combine, OneOrMore, CharsNotIn, ParserElement, Or, \
     White
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, PackageLoader, FileSystemLoader
 import sys
 import copy
 import traceback
@@ -154,49 +154,43 @@ def setup_vars():
 
             # load the jinja templates
             environment = Environment(
-                loader=PackageLoader("dueca-codegen", datafilepath)
+                loader=FileSystemLoader(f'{datafilepath}/pycodegen')
             )
-            body_template = environment.get_template("dco_template.cxx")
-            head_template = environment.get_template("dco_template.hxx")
-            enum_head_template = environment.get_template("enum_template.hxx")
-            enum_body_template = environment.get_template("enum_template.cxx")
             # print(plugins)
-            return
         except Exception as e:
             print("cannot find helper files")
             raise e
+    else:
+        # called from dueca build
+        sys.path.append(filepath)   # for fixedhash.py
+        sys.path.insert(0, filepath+'/../gitscripts/duecautils')
+        pathelts = os.getcwd().split(os.sep)[:-1]
+        while pathelts and not \
+            os.path.isfile(os.sep.join(pathelts)+os.sep + 'pycodegen' +
+                           os.sep+'generation.py'):
+            pathelts = pathelts[:-1]
+        genpath = os.sep.join(pathelts + ['pycodegen'])
+        sys.path.append(genpath)
+        from generation import codegen_version
+        from DCOplugins import plugins
+        from EnumPlugins import plugins as enum_plugins
+        from src.codegen import summarise_member
 
-    # called from dueca build
-    sys.path.append(filepath)   # for fixedhash.py
-    sys.path.insert(0, filepath+'/../gitscripts/duecautils')
-    # print(sys.path)
-    # path for fresh generated generation.py
-    pathelts = os.getcwd().split(os.sep)[:-1]
-    while pathelts and not \
-        os.path.isfile(os.sep.join(pathelts)+os.sep + 'pycodegen' +
-                       os.sep+'generation.py'):
-        pathelts = pathelts[:-1]
-    genpath = os.sep.join(pathelts + ['pycodegen'])
-    sys.path.append(genpath)
-    from generation import codegen_version
-    from DCOplugins import plugins
-    from EnumPlugins import plugins as enum_plugins
-    from src.codegen import summarise_member
+        # for loading the jinja templates
+        environment = Environment(
+            loader=PackageLoader("dueca-codegen", filepath)
+        )
 
-    # load the jinja templates
-    environment = Environment(
-        loader=PackageLoader("dueca-codegen", filepath)
-    )
-    body_template = environment.get_template("dco_template.cxx")
-    head_template = environment.get_template("dco_template.hxx")
-    enum_head_template = environment.get_template("enum_template.hxx")
-    enum_body_template = environment.get_template("enum_template.cxx")
+    # load the templates
+    body_template = environment.get_template("dco_template.c.jinja")
+    head_template = environment.get_template("dco_template.h.jinja")
+    enum_head_template = environment.get_template("enum_template.h.jinja")
+    enum_body_template = environment.get_template("enum_template.c.jinja")
 
 # holder of the current item
 current = None
 # current list of comments
 comments = []
-# comments for the general header
 headercommentstring = ''
 # array dimension
 arraydims = {}
