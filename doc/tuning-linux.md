@@ -562,3 +562,47 @@ Selecting specific cards, if needed, at
 https://unix.stackexchange.com/questions/473846/how-does-pulseaudio-determine-which-alsa-devices-to-make-available-or-not
 
 This requires a reboot before it works.
+
+## Bluetooth devices
+
+### Exploration and checking
+
+For exploration and checking of the connection with a bluetooth
+device, the `bluetoothctl` and `hcitool` command line tools and small
+python scripts are useful. To get these to work properly when not
+running them as root, set up the required permissions:
+
+	sudo setcap 'cap_net_raw,cap_net_admin+eip' $(readlink -f $(which python3))
+	sudo setcap 'cap_net_raw+ep' $(readlink -f $(which hcitool))
+
+In many cases, you will need the mac address of a sensor for
+connection. To scan for sensors in range:
+
+	bluetoothctl scan on
+
+	...
+
+	[NEW] Device 20:1B:88:03:85:AC 20-1B-88-03-85-AC
+	[CHG] Device A4:C1:38:E8:8D:79 RSSI: -52
+	[CHG] Device 20:1B:88:03:85:AC RSSI: -83
+	[CHG] Device 20:1B:88:03:85:AC Name: Mi True Wireless EBs Basic 2
+	[CHG] Device 20:1B:88:03:85:AC Alias: Mi True Wireless EBs Basic 2
+
+The example here is for a Mi wireless humidity and temperature sensor. 
+
+When using python scripts to communicate with bluetooth low energy
+devices, the `bleak` module is quite succesful.
+
+`hcitool` can be used to modify latency of bluetooth connections, see this 
+(discussion on an archlinus forum)[https://bbs.archlinux.org/viewtopic.php?id=248133]
+
+### Control from DUECA
+
+For IO with bluetooth devices from a DUECA module, the `libblepp`
+library can be used. The latest versions have a configurable receive
+buffer, which is needed for some devices that send large (usually
+fragmented in packages) messages. The python3 scripts seem to have no
+problem there, so if you tested a communication with python, and it
+does not seem to work with libblepp, check with Wireshark what the
+message size used by the device is.
+
