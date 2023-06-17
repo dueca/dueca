@@ -270,6 +270,8 @@ struct dco_traits<varvector<D> > : dco_traits_iterable,
     }
     return cname.str().c_str();
   }
+  /** Value type for the elements of a trait's target */
+  typedef D value_type;
 };
 
 DUECA_NS_END;

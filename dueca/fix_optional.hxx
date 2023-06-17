@@ -131,6 +131,8 @@ struct dco_traits<fix_optional<T> > :
   constexpr const static size_t nelts = dco_traits<T>::nelts;
 };
 
+template <size_t N, typename T> class fixvector;
+
 DUECA_NS_END;
 
 PRINT_NS_START;
@@ -151,9 +153,15 @@ ostream &operator<< (ostream &os,
 
 PRINT_NS_END;
 
+
+
 #include "msgpack-unstream-iter.hxx"
 
+
+
 MSGPACKUS_NS_START;
+template <typename S, size_t N, typename T>
+inline void msg_unpack(S &i0, const S &iend, dueca::fixvector<N, T> &i);
 
 /** unstream/unpack a fixvector_default */
 template <typename S, typename T>
@@ -162,11 +170,10 @@ inline void msg_unpack(S &i0, const S &iend,
 {
   if (msg_isnil(i0, iend)) {
     i.valid = false;
-    msg_unpack(i0, iend);
+    msg_unpack(i0, iend); // remove the nil
   }
   else {
     msg_unpack(i0, iend, i.value);
   }
 }
-
 MSGPACKUS_NS_END;

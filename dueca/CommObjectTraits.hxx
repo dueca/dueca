@@ -59,12 +59,12 @@ inline const char* getclassname(const T* a, const void*)
 /* Old function, classname when called with an object */
 template<typename T>
 inline const char* getclassname(const T& a)
-{ 
-  if (dynamic_cast<const Module*>(&a) || 
+{
+  if (dynamic_cast<const Module*>(&a) ||
       dynamic_cast<const ScriptCreatable*>(&a)) {
     return getclassname(&a, &a);
-  }   
-  return getclassname<T>(); 
+  }
+  return getclassname<T>();
 }
 
 /* specialization for some common types */
@@ -128,18 +128,20 @@ struct dco_traits_single: pack_single {
 };
 
 struct dco_traits_optional {
-  
+
   typedef dco_print_optional ptype;
   constexpr const static MemberArity arity = Iterable;
 };
 
 
 /* The default assumes single-element members */
-template <typename T> struct dco_traits: public dco_traits_single {   
+template <typename T> struct dco_traits: public dco_traits_single {
   /** Classname? */
   static const char* getclassname()
-  { return ::dueca::getclassname(reinterpret_cast<T*>(NULL), 
+  { return ::dueca::getclassname(reinterpret_cast<T*>(NULL),
                                  reinterpret_cast<T*>(NULL)); }
+  /** Value type for the element of a trait's target */
+  typedef T value_type;
 };
 
 /* Multiple elements, variable size communication type */
@@ -163,14 +165,17 @@ struct dco_traits_iterablefix {
 /* list is iterable, has a variable length */
 template <typename D>
 struct dco_traits<std::list<D> > : public dco_traits_iterable,
-  pack_var_size, unpack_extend, diffpack_complete { 
-
-  };
+  pack_var_size, unpack_extend, diffpack_complete {
+  /** Value type for the elements of a list */
+  typedef D value_type;
+};
 
 /* vector is iterable, has a variable length */
 template <typename D>
 struct dco_traits<std::vector<D> > : public dco_traits_iterable,
-  pack_var_size, unpack_resize, diffpack_vector { };
+  pack_var_size, unpack_resize, diffpack_vector {
+  typedef D value_type;
+};
 
 struct dco_traits_mapped {
   typedef dco_read_map rtype;
@@ -183,7 +188,9 @@ struct dco_traits_mapped {
 /* map needs special typing, also has variable length */
 template <typename K, typename D>
 struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
-  pack_var_size, unpack_extend_map, diffpack_complete { };
+  pack_var_size, unpack_extend_map, diffpack_complete {
+  typedef typename std::map<K,D>::value_type value_type;
+  };
 
 struct dco_traits_pair {
   typedef dco_read_pair rtype;
@@ -194,7 +201,10 @@ struct dco_traits_pair {
 };
 
 template <typename K, typename D>
-struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single { };
+struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single {
+
+  typedef std::pair<K,D> value_type;
+};
 
 /* Information on nested objects (themselves DCO) or not */
 struct dco_isnested {};

@@ -3,8 +3,7 @@
         made by         : Rene' van Paassen
         date            : 121229
         category        : header file
-        description     : variable-size vector like object, that can be
-                          included in a channel
+        description     : variable-size vector like object
         notes           :
         language        : C++
         copyright       : (c) 2016 TUDelft-AE-C&S

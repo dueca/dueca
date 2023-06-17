@@ -70,7 +70,9 @@ public:
   /** constructor without default value for the data
    */
   fixvector_withdefault() {
-    for (auto& v: fixvector<N,T>::d) { v = T(DEFLT)/T(BASE); }
+    for (auto& v: fixvector<N,T>::d) { 
+      v = typename dco_traits<T>::value_type(DEFLT)/
+        typename dco_traits<T>::value_type(BASE); }
   }
 
   /** copy constructor; copies the data */
@@ -122,7 +124,9 @@ public:
   /** Set all elements to the default value. */
   void setDefault()
   {
-    for (auto &v : this->d) { v = T(DEFLT)/T(BASE); }
+    for (auto &v : this->d) { 
+      v = typename dco_traits<T>::value_type(DEFLT)/
+        typename dco_traits<T>::value_type(BASE); }
   }
 };
 
@@ -146,6 +150,8 @@ struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE> > :
     }
     return cname.str().c_str();
   }
+  /** Value type for the elements of a trait's target */
+  typedef D value_type;
 };
 
 DUECA_NS_END;
