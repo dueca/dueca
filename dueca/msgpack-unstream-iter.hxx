@@ -27,19 +27,6 @@
 #include <debprint.h>
 
 
-#ifdef MSGPACK_USE_DEFINE_MAP
-#define MSGPACK_CHECK_DCO_SIZE( N ) \
-  unstream<S>::unpack_mapsize(i0, iend);
-#define MSGPACK_UNPACK_MEMBER( A ) \
-  for (size_t ii = unstream<S>::unpack_strsize(i0, iend); ii--; ) { ++i0; } \
-  msg_unpack(i0, iend, A )
-#else
-#define MSGPACK_CHECK_DCO_SIZE( N ) \
-  unstream<S>::unpack_arraysize(i0, iend);
-#define MSGPACK_UNPACK_MEMBER( A ) \
-  msg_unpack(i0, iend, A )
-#endif
-
 #define MSGPACK_ADD_ENUM_UNSTREAM( A ) \
 namespace msgunpack { \
   template<typename S> \
@@ -679,6 +666,34 @@ void msg_unpack(S& i0, const S& iend, std::list<T> & i);
 template <typename S, typename K, typename T>
 void msg_unpack(S& i0, const S& iend, std::map<K,T> & i);
 
+// helper, unpacking id from map
+template<typename I>
+inline void unpack_member_id_inmap(I& i0, const I& iend, const char* mid)
+{ 
+  for (size_t ii = unpack_strsize(i0, iend); ii--; ) { ++i0; }
+}
+
+// same from array
+template<typename I>
+inline void unpack_member_id_inarray(I& i0, const I& iend, const char* mid)
+{ }
+
+
 MSGPACKUS_NS_END;
+
+
+#ifdef MSGPACK_USE_DEFINE_MAP
+#define MSGPACK_CHECK_DCO_SIZE( N ) \
+  unstream<S>::unpack_mapsize(i0, iend);
+#define MSGPACK_UNPACK_MEMBERID unpack_member_id_inmap
+#else
+#define MSGPACK_CHECK_DCO_SIZE( N ) \
+  unstream<S>::unpack_arraysize(i0, iend);
+#define MSGPACK_UNPACK_MEMBERID unpack_member_id_inarray
+#endif
+
+#define MSGPACK_UNPACK_MEMBER( A ) \
+  MSGPACK_UNPACK_MEMBERID(i0, iend, #A); \
+  msg_unpack(i0, iend, A )
 
 #include <undebprint.h>
