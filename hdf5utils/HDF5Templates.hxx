@@ -29,7 +29,7 @@
 
 DUECA_NS_START;
 
-/** @file HDF5Templates.hxx 
+/** @file HDF5Templates.hxx
 
     Template functions and classes to extract HDF5-relevant information about
     different data types. */

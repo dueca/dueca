@@ -264,21 +264,30 @@ namespace msgpack {
 #include <debprint.h>
 
 /** @group Utilities for generated code */
+template<typename O>
+inline void pack_member_id_inmap(O & o, const char* mid)
+{ 
+  o.pack_str( strlen( mid ) );
+  o.pack_str_body( mid, strlen( mid ) );
+}
+template<typename O>
+inline void pack_member_id_inarray(O& o, const char* mid)
+{ }
 
 #ifdef MSGPACK_USE_DEFINE_MAP
+#define MSGPACK_PACK_MEMBER_ID pack_member_id_inmap
 /// Packing macro for use in DCO objects
 #define MSGPACK_DCO_OBJECT(N) o.pack_map( (N) )
-/// Packing macro for use in DCO objects
-#define MSGPACK_DCO_MEMBER(A) \
-  o.pack_str( strlen( #A ) ); \
-  o.pack_str_body( #A, strlen( #A ) ); \
-  o.pack( v. A )
 #else
+#define MSGPACK_PACK_MEMBER_ID pack_member_id_inarray
 /// Packing macro for use in DCO objects
 #define MSGPACK_DCO_OBJECT(N) o.pack_array( (N) )
-/// Packing macro for use in DCO objects
-#define MSGPACK_DCO_MEMBER(A) o.pack( v. A )
 #endif
+
+#define MSGPACK_DCO_MEMBER(A) \
+MSGPACK_PACK_MEMBER_ID( o, #A); \
+o.pack( v. A );
+
 
 struct msgpack_variant_enum {};
 #define MSGPACK_ADD_ENUM_VISITOR( A ) \
