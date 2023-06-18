@@ -21,7 +21,7 @@ from __future__ import print_function
 from pyparsing import Literal, Regex, QuotedString, ZeroOrMore, Word, \
     Optional, nestedExpr, Combine, OneOrMore, CharsNotIn, ParserElement, Or, \
     White
-from jinja2 import Environment, PackageLoader, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 import sys
 import copy
 import traceback
@@ -119,7 +119,7 @@ def setup_vars():
     global summarise_member
     global head_template, body_template
     global enum_head_template, enum_body_template
-    
+
     # check that we are not called from dueca build
     filepath = os.path.dirname(os.path.abspath(__file__))
     if not os.path.isfile(filepath + os.sep + 'generation.py.in'):
@@ -178,7 +178,7 @@ def setup_vars():
 
         # for loading the jinja templates
         environment = Environment(
-            loader=PackageLoader("dueca-codegen", filepath)
+            loader=FileSystemLoader(filepath)
         )
 
     # load the templates
