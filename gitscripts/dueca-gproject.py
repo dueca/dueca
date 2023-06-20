@@ -1393,6 +1393,65 @@ class SearchProject:
 SearchProject.args(subparsers)
 
 
+class BuildProject(OnExistingProject):
+    command = 'build'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(BuildProject.command, *args, **kwargs)
+
+    @classmethod
+    def args(cls, subparsers):
+        parser = subparsers.add_parser(
+            BuildProject.command,
+            help='Configures a project (if not configured yet) and builds'
+            ' the code')
+        parser.add_argument(
+            '--clean', type=bool, default=False, const=True, nargs='?',
+            help="Clean all code from the build folder, don't configure")
+        parser.add_argument(
+            '--option', type=str, nargs='*', default=[],
+            help='Provide additional options for the configure stage')
+        parser.add_argument(
+            '--debug', type=bool, default=False, const=True, nargs='?',
+            help='Configure with debug mode')
+        parser.set_defaults(handler=BuildProject)
+
+    def __call__(self, ns):
+
+        self.pushDir(f'{self.projectdir}/build')
+        if ns.clean:
+            try:
+                cm = subprocess.run(
+                    [ 'rm', '-rf', '*'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            except Exception as e:
+                print(f"Could not clean out the build folder, {e}",
+                      file=sys.stderr)
+        else:
+            try:
+                if len(os.listdir('.')) == 1:
+                    options = [ (o[0] == '-' and o) or f'-D{o}' for
+                                 o in ns.option ]
+                    if ns.debug:
+                        options.append('-DCMAKE_BUILD_TYPE=Debug')
+                    options.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
+                    print("Configuring the build dir with options\n  ",
+                          ' '.join(options))
+                    cm = subprocess.run(
+                        [ 'cmake', '..' ] + options,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        check=True)
+
+                print("Running the build")
+                cm = subprocess.run(
+                    [ 'make', '-j8' ], check=True)
+            except Exception as e:
+                print(f"Failed to run configure or build, {e}",
+                      file=sys.stderr)
+        self.popDir()
+
+BuildProject.args(subparsers)
+
 # parse arguments
 #testargs = [
 #    'policies',

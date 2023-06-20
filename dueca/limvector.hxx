@@ -22,6 +22,7 @@
 #include <vectorexceptions.hxx>
 #include <iterator>
 #include <inttypes.h>
+#include <sstream>
 
 DUECA_NS_START;
 
@@ -243,14 +244,21 @@ public:
 
 /** Helper, for DCO object handling */
 template <size_t N, typename D>
-struct dco_traits<limvector<N,D> > : dco_traits_iterable { };
-
-/** Helper, for DCO object handling */
-template <size_t N, typename D>
-struct pack_traits<limvector<N,D> >: public pack_var_size, unpack_resize { };
-/** Helper, for DCO object handling */
-template <size_t N, typename D>
-struct diffpack_traits<limvector<N,D> >: public diffpack_vector { };
+struct dco_traits<limvector<N,D> > : dco_traits_iterable,
+  pack_var_size, unpack_resize, diffpack_vector
+{ 
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "limvector<" << N << "," 
+            << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
+  /** Value type for the elements of a trait's target */
+  typedef D value_type; 
+};
 
 DUECA_NS_END;
 

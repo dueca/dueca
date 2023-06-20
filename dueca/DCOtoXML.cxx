@@ -176,13 +176,22 @@ void writeAnyValue(pugi::xml_node& writer,
     wmap[TYPEID(Dstring<LSSIZE>)] = avfunction(writeAnyDstring<LSSIZE>);
   }
   try {
-    wmap[val.type()](writer, val);
+    wmap.at(val.type())(writer, val);
   }
   catch (const boost::bad_any_cast & e) {
     /* DUECA XML.
 
-       Failure to serialize a DCO object to XML due to a bad any_cast. */
+       Failure to serialize a part of DCO object to XML due to a bad
+       any_cast. */
     E_XTR("cannot serialize to XML, bad cast " << e.what());
+  }
+  catch (const std::out_of_range& e) {
+    /* DUECA XML.
+
+       Have no mapping to serialize a member of a DCO object of this datatype 
+       to XML. Use other datatypes in your DCO, or try to get the serialize
+       expanded. */
+    E_XTR("No mapping to serialize type '" << val.type().name());
   }
   catch (const std::exception &e) {
     /* DUECA XML.

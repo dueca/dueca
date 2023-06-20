@@ -14,12 +14,33 @@
 #ifndef PackUnpackTemplates_hxx
 #define PackUnpackTemplates_hxx
 
+/** @file PackUnpackTemplates.hxx 
+
+  This file contains (largely templated) functions and classes for DUECA
+  pack and unpack.
+
+  Packing and unpacking is based on the following principles:
+  
+  - Available functions for basic c++ types, and for generated
+    objects; ::packData and ::unPackData
+
+  - Template specializations using the dco_traits templated flagging 
+    struct, to indicate particular packing methods, e.g., for lists, vector, 
+    map, etc.
+
+  - Multiple function definitions using the template flagging, called
+    packobject and unpackobject, to find the correct match for packing 
+    schemes.
+*/
+
+
 #include <dueca_ns.h>
 #include <PackTraits.hxx>
 #include <iostream>
 #include <map>
 #include <inttypes.h>
 #include "AmorphStore.hxx"
+#include "CommObjectTraits.hxx"
 
 template<typename A, typename B>
 void unPackData(DUECA_NS::AmorphReStore& s, std::pair<A,B>& x)
@@ -171,9 +192,24 @@ void checkandpackdiffsingle(const T& m, const T& r,
   }
   else {
     im.changed(s);
-    ::packData(s, m);
+    packobject(s, m, dco_traits<T>());
   }
 }
+
+/** Template, for checking the difference and packing a single object
+    \param m      Modified or new object to be packed
+    \param r      Reference object, packing only done when different
+    \param s      Amorphous store for packing
+    \param mi     Index for this member
+    \param store_idx State of flagging in the store, if -1, not flagged, and
+                  a flag will be packed when the member has changed, otherwise
+                  a previous member was already changed, and an end flag
+                  will be placed when member is same.
+*/
+template<class T>
+inline void checkandpackdiff(const T& m, const T& r, AmorphStore& s, IndexMemory& im,
+			     const pack_single&)
+{ checkandpackdiffsingle(m, r, s, im); }
 
 /** Template, for unpacking a single object
     \param m      Modified or new object to be unpacked
@@ -191,6 +227,17 @@ void checkandunpackdiffsingle(T& m,
   }
 }
 
+/** Template, for unpacking a single object
+    \param m      Modified or new object to be unpacked
+    \param s      Amorphous store for unpacking
+    \param mi     Index for this member
+    \returns      true if unpacking done, false if more is left
+*/
+template<class T>
+inline void checkandunpackdiff(T& m, AmorphReStore& s, IndexRecall& im,
+			       const pack_single&)
+{ checkandunpackdiffsingle(m, s, im); }
+
 /** Templated method that takes iterable types of equal or unequal size and
     packs the difference between the two in an AmorphStore object
 
@@ -200,8 +247,8 @@ void checkandunpackdiffsingle(T& m,
     \param mi     Member index for this array
 */
 template<class D>
-void checkandpackdiffiterable(const D& m, const D& r,
-                              AmorphStore& s, IndexMemory &im,
+void checkandpackdiff(const D& m, const D& r,
+		                  AmorphStore& s, IndexMemory &im,
                               const diffpack_fixedsize&)
 {
   bool nodiff = true;
@@ -221,7 +268,7 @@ void checkandpackdiffiterable(const D& m, const D& r,
       else {
         arrayidx.changed(s);
       }
-      ::packData(s, *m_it);
+      packobject(s, *m_it, dco_traits<typename D::value_type>());
     }
     else {
       if (!nodiff) {
@@ -250,14 +297,14 @@ void checkandpackdiffiterable(const D& m, const D& r,
     \param mi     Member index for this array
 */
 template<class D>
-void checkandpackdiffiterable(const D& m, const D& r,
-                              AmorphStore& s, IndexMemory &im,
-                                   const diffpack_vector&)
+void checkandpackdiff(const D& m, const D& r,
+		      AmorphStore& s, IndexMemory &im,
+		      const diffpack_vector&)
 {
   // first pack (or not) the length difference
   checkandpackdiffsingle(uint32_t(m.size()), uint32_t(r.size()), s, im);
   // now use the previous method to pack the difference between vectors
-  checkandpackdiffiterable(m, r, s, im, diffpack_fixedsize());
+  checkandpackdiff(m, r, s, im, diffpack_fixedsize());
 }
 
 /** Default templated method for packing the difference between iterables.
@@ -269,16 +316,28 @@ void checkandpackdiffiterable(const D& m, const D& r,
     \param mi     Member index for this array
 */
 template<class D>
-void checkandpackdiffiterable(const D& m, const D& r,
-                              AmorphStore& s, IndexMemory &im,
-                              const diffpack_complete&)
+void checkandpackdiff(const D& m, const D& r,
+		      AmorphStore& s, IndexMemory &im,
+		      const diffpack_complete&)
 {
   if (m != r) {
     im.changed(s);
-    packiterable(s, m, pack_traits<D>());
+    packobject(s, m, dco_traits<D>());
   }
   else {
     im.changed(s, false);
+  }
+}
+
+template<class D>
+void checkandpackdiff(const D& m, const D& r,
+		      AmorphStore& s, IndexMemory &im,
+		      const pack_optional&)
+{
+  checkandpackdiffsingle(m.valid, r.valid, s, im);
+  if (m.valid) {
+    checkandpackdiff(m.value, r.value, s, im,
+		     dco_traits<typename D::value_type>());
   }
 }
 
@@ -290,16 +349,16 @@ void checkandpackdiffiterable(const D& m, const D& r,
     \param mi     Member index for this array
 */
 template<class D>
-void checkandunpackdiffiterable(D& m,
-                                AmorphReStore& s, IndexRecall &im,
-                                const diffpack_fixedsize&)
+void checkandunpackdiff(D& m,
+			AmorphReStore& s, IndexRecall &im,
+			const diffpack_fixedsize&)
 {
   typename D::iterator m_it = m.begin();
   if (im.changed(s)) {
     IndexRecall arridx;
     for (; m_it != m.end(); m_it++) {
       if (arridx.changed(s)) {
-       ::unPackData(s, *m_it);
+       unpackobject(s, *m_it, dco_traits<typename D::value_type>());
       }
     }
   }
@@ -314,9 +373,9 @@ void checkandunpackdiffiterable(D& m,
     \param mi     Member index for this array
 */
 template<class D>
-void checkandunpackdiffiterable(D& m,
-                                AmorphReStore& s, IndexRecall &im,
-                                const diffpack_vector&)
+void checkandunpackdiff(D& m,
+			AmorphReStore& s, IndexRecall &im,
+			const diffpack_vector&)
 {
   // first unpack (or not) the length difference
   uint32_t ms = m.size();
@@ -325,7 +384,7 @@ void checkandunpackdiffiterable(D& m,
     m.resize(ms);
   }
   // now use the previous method to unpack the difference between vectors
-  checkandunpackdiffiterable(m, s, im, diffpack_fixedsize());
+  checkandunpackdiff(m, s, im, diffpack_fixedsize());
 }
 
 /** Default templated method for unpacking the difference between iterables.
@@ -333,75 +392,119 @@ void checkandunpackdiffiterable(D& m,
 
     \param m      Current values, to be modified if there is a difference
     \param s      ReStore object from which differences are unpacked
-    \param mi     Member index for this array
+    \param im     Member index for this array
 */
 template<class D>
-void checkandunpackdiffiterable(D& m,
-                                AmorphReStore& s, IndexRecall &im,
-                                const diffpack_complete&)
+void checkandunpackdiff(D& m,
+			AmorphReStore& s, IndexRecall &im,
+			const diffpack_complete&)
 {
   if (im.changed(s)) {
-    unpackiterable(s, m, pack_traits<D>());
+    unpackobject(s, m, dco_traits<D>());
   }
 }
 
-
-template<typename D>
-inline void packiterable(AmorphStore& s, const D& a, const pack_constant_size&)
+template<class D>
+void checkandunpackdiff(D& m,
+			AmorphReStore& s, IndexRecall &im,
+			const pack_optional&)
 {
-  for (typename D::const_iterator it = a.begin(); it != a.end(); it++) {
-    ::packData(s, *it);
+  checkandunpackdiffsingle(m.valid, s, im);
+  if (m.valid) {
+    checkandunpackdiff(m.value, s, im, dco_traits<typename D::value_type>());
   }
 }
 
 template<typename D>
-inline void packiterable(AmorphStore& s, const D& a, const pack_var_size&)
+inline void packobject(AmorphStore& s, const D& a, const pack_single&)
+{
+  ::packData(s, a);
+}
+
+template<typename D>
+inline void packobject(AmorphStore& s, const D& a, const pack_constant_size&)
+{
+  for (auto const &it: a) {
+    packobject(s, it, dco_traits<typename D::value_type>());
+  }
+}
+
+template<typename D>
+inline void packobject(AmorphStore& s, const D& a, const pack_var_size&)
 {
   ::packData(s, uint32_t(a.size()));
-  packiterable(s, a, pack_constant_size());
+  packobject(s, a, pack_constant_size());
 }
 
 template<typename D>
-inline void unpackiterable(AmorphReStore& s, D& a,
+inline void packobject(AmorphStore& s, const D& a, const pack_optional&)
+{
+  ::packData(s, a.valid);
+  if (a.valid) {
+    packobject(s, a.value, dco_traits<typename D::value_type>());
+  }
+}
+
+template<typename D>
+inline void unpackobject(AmorphReStore& s, D& a,
+                         const pack_single&)
+{
+  ::unPackData(s, a);
+}
+
+
+template<typename D>
+inline void unpackobject(AmorphReStore& s, D& a,
                            const pack_constant_size&)
 {
   for (typename D::iterator it = a.begin(); it != a.end(); it++) {
-    ::unPackData(s, *it);
+    unpackobject(s, *it, dco_traits<typename D::value_type>());
   }
 }
 
 template<typename D>
-inline void unpackiterable(AmorphReStore& s, D& a,
+inline void unpackobject(AmorphReStore& s, D& a,
                            const unpack_resize&)
 {
   uint32_t l(s);
   a.resize(l);
 
   for (typename D::iterator it = a.begin(); it != a.end(); it++) {
-    ::unPackData(s, *it);
+    unpackobject(s, *it, dco_traits<typename D::value_type>());
   }
 }
 
 template<typename D>
-inline void unpackiterable(AmorphReStore& s, D& a,
+inline void unpackobject(AmorphReStore& s, D& a,
                            const unpack_extend&)
 {
   a.clear();
   for (uint32_t l(s); l--; ) {
-    typename D::value_type tmp(s);
+    typename D::value_type tmp;
+    unpackobject(s, tmp, dco_traits<typename D::value_type>());
     a.push_back(tmp);
   }
 }
 
 template<typename D>
-inline void unpackiterable(AmorphReStore& s, D& a,
-                           const unpack_extend_map&)
+inline void unpackobject(AmorphReStore& s, D& a,
+			 const unpack_extend_map&)
 {
   std::pair<typename D::key_type, typename D::mapped_type> tmp;
   a.clear();
   for (uint32_t l(s); l--; ) {
-    ::unPackData(s, tmp);
+    unpackobject(s, tmp, dco_traits<typename D::value_type>());
     a.insert(tmp);
+  }
+}
+
+template<typename D>
+inline void unpackobject(AmorphReStore& s, D& a,
+                         const pack_optional&)
+{
+  ::unPackData(s, a.valid);
+  if (a.valid) {
+    unpackobject(s, a.value, dco_traits<typename D::value_type>());
   }
 }
 

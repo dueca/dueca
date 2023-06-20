@@ -15,6 +15,7 @@
 
 // code originally written for this codegen version
 #define __CUSTOM_COMPATLEVEL_110
+#define __CUSTOM_COMPATLEVEL_111
 
 // these constructors will not be used
 #define __CUSTOM_FULL_CONSTRUCTOR
@@ -58,14 +59,30 @@ ActivityLog::ActivityLog(const ActivityLog& o) :
   }
 }
 
+#define __CUSTOM_FUNCTION_UNPACKDATA
+void ActivityLog::unPackData(::dueca::AmorphReStore& s)
+{
+  DOBS("unPackData ActivityLog");
+  //{ amorphunpackfirst }
+  //{ amorphunpacksecond }
+  ::dueca::unpackobject(s, this->node_id,
+                        dueca::dco_traits<uint8_t>());
+  ::dueca::unpackobject(s, this->manager_number,
+                        dueca::dco_traits<uint8_t>());
+  ::dueca::unpackobject(s, this->base_tick,
+                        dueca::dco_traits<TimeTickType>());
+  ::dueca::unpackobject(s, this->fraction_mult,
+                        dueca::dco_traits<double>());
+  ::unPackData(s, no_of_bits);
+}
+
+
 #define __CUSTOM_AMORPHRESTORE_CONSTRUCTOR
 ActivityLog::ActivityLog(AmorphReStore& s) :
-  node_id(s),
-  manager_number(s),
-  base_tick(s),
-  fraction_mult(s),
-  no_of_bits(s)
+  bit_list(NULL),
+  bit_tail(NULL)
 {
+  unPackData(s);
   if (!no_of_bits) {
     bit_list = NULL;
     return;

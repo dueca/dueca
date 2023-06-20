@@ -20,12 +20,12 @@ enable_language(CXX)
 include(GNUInstallDirs)
 
 # version information, please update accordingly
-set(VERMAJOR 3)
-set(VERMINOR 2)
-set(REVISION 12)
-set(GENCODEGEN 110)
+set(VERMAJOR 4)
+set(VERMINOR 0)
+set(REVISION 0)
+set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "12 Jun 2023")
+set(VERSION_DATE "15 Jun 2023")
 string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
 set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 

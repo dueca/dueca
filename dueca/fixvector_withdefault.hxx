@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <vectorexceptions.hxx>
 #include <fixvector.hxx>
+#include <sstream>
 
 DUECA_NS_START;
 
@@ -69,7 +70,9 @@ public:
   /** constructor without default value for the data
    */
   fixvector_withdefault() {
-    for (auto& v: fixvector<N,T>::d) { v = T(DEFLT)/T(BASE); }
+    for (auto& v: fixvector<N,T>::d) { 
+      v = typename dco_traits<T>::value_type(DEFLT)/
+        typename dco_traits<T>::value_type(BASE); }
   }
 
   /** copy constructor; copies the data */
@@ -121,7 +124,9 @@ public:
   /** Set all elements to the default value. */
   void setDefault()
   {
-    for (auto &v : this->d) { v = T(DEFLT)/T(BASE); }
+    for (auto &v : this->d) { 
+      v = typename dco_traits<T>::value_type(DEFLT)/
+        typename dco_traits<T>::value_type(BASE); }
   }
 };
 
@@ -129,21 +134,25 @@ public:
     objects should accessed through the CommObjects interfaces. */
 template <size_t N, typename D, int DEFLT, unsigned BASE>
 struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE> > :
-  public dco_traits_iterablefix
+  public dco_traits_iterablefix,
+  pack_constant_size, diffpack_fixedsize
 {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
+  /** Representative name */
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "fixvector_withdefault<" << N << "," 
+            << dco_traits<D>::getclassname() << "," 
+            << DEFLT << "," << BASE << ">";
+    }
+    return cname.str().c_str();
+  }
+  /** Value type for the elements of a trait's target */
+  typedef D value_type;
 };
-
-/** Template specialization, indicates how data should be packed. */
-template <size_t N, typename D, int DEFLT, unsigned BASE>
-struct pack_traits<fixvector_withdefault<N, D, DEFLT, BASE>> :
-public pack_constant_size {};
-
-/** Template specialization, indicates how data should be diff-packed. */
-template <size_t N, typename D, int DEFLT, unsigned BASE>
-struct diffpack_traits<fixvector_withdefault<N, D, DEFLT, BASE>> :
-public diffpack_fixedsize {};
 
 DUECA_NS_END;
 

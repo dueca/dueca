@@ -16,6 +16,7 @@
 
 #ifndef AmorphStore_hh
 #define AmorphStore_hh
+#include "GlobalId.hxx"
 #define HAVE_NUMERIC_LIMITS
 #include <stringoptions.h>
 // HACK
@@ -340,38 +341,6 @@ public:
   ostream& print(ostream& o) const;
 };
 
-#if 0
-/** Object that reserves a spot in a store, and can fill in the final
-    value at a later stage */
-template<class T>
-class StoreFlag
-{
-  /** Store index at the time of packing */
-  unsigned index;
-
-public:
-  /** Constructor, can pack a default value and remembers the location */
-  StoreFlag(AmorphStore& s, T defval = 0) :
-    index (s.getSize())
-  {
-    s.packData(defval);
-  }
-
-  /** Destructor, no special action */
-  ~StoreFlag() { }
-
-  /** finalize the flag value */
-  void finalize(AmorphStore& s, T finval)
-  {
-#ifdef HAVE_NUMERIC_LIMITS
-    if ( finval > std::numeric_limits<T>::max() ||
-         finval < std::numeric_limits<T>::min() ) throw(MarkRange());
-#endif
-    s.packData(finval, index);
-  }
-};
-#endif
-
 DUECA_NS_END
 
 // the packData non-member functions are in global namespace, to keep
@@ -407,7 +376,6 @@ inline void packData(DUECA_NS ::AmorphStore &s, const char* i,
 { s.packData(i, length); }
 inline void packData(DUECA_NS ::AmorphStore &s, const char* c)
 { s.packData(c); }
-
 void packData(DUECA_NS ::AmorphStore& s, const timeval& tv);
 
 // generic pack diff

@@ -92,6 +92,10 @@ macro(DUECACODEGEN_TARGET)
           ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${DCG_TCFLAGS}
           ${CMAKE_CURRENT_SOURCE_DIR}/${DCO} ${DCG_CCFLAGS}
           DEPENDS ${CMAKE_SOURCE_DIR}/pycodegen/dueca-codegen.py ${DCO}
+          ${CMAKE_SOURCE_DIR}/pycodegen/dco_template.h.jinja
+          ${CMAKE_SOURCE_DIR}/pycodegen/dco_template.c.jinja
+          ${CMAKE_SOURCE_DIR}/pycodegen/enum_template.h.jinja
+          ${CMAKE_SOURCE_DIR}/pycodegen/enum_template.c.jinja
           COMMENT "[DuecaCodegen][${DCG_OUTPUT}] Code generation ${DCO}"
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
       else()

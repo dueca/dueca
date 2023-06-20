@@ -11,6 +11,7 @@
         license         : EUPL-1.2
 */
 
+#include <stdexcept>
 #define DCOtoJSON_cxx
 #include "DCOtoJSON.hxx"
 
@@ -228,19 +229,29 @@ void writeAnyValue(json::Writer<json::StringBuffer>& writer,
       avfunction(writeAny<dueca::ActivityContext>);
   }
   try {
-    wmap[val.type()](writer, val);
+    wmap.at(val.type())(writer, val);
   }
   catch (const boost::bad_any_cast & e) {
     /* DUECA JSON.
 
-       Failure to serialize a DCO object to JSON due to a bad any_cast. */
+       Failure to serialize a DCO object member to JSON due to a bad
+       any_cast. */
     E_XTR("cannot serialize to JSON, bad cast " << e.what());
+    writer.Null();
+  }
+  catch (const std::out_of_range& e) {
+    /* DUECA JSON.
+
+       Have no mapping to serialize a DCO object member of this datatype 
+       to JSON. Use other datatypes in your DCO, or try to get
+       the serialize expanded. */
+    E_XTR("No mapping to serialize type '" << val.type().name());
     writer.Null();
   }
   catch (const std::exception &e) {
     /* DUECA JSON.
 
-       Generic failure to serialize a DCO object to JSON. */
+       Generic failure to serialize a part of a DCO object to JSON. */
     E_XTR("Cannot serialize to JSON " << e.what());
     writer.Null();
   }

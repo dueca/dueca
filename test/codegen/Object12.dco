@@ -1,0 +1,34 @@
+;; -*-scheme-*-
+(Header "
+        original item   : Object12.dco
+        made by         : Rene' van Paassen
+        date            : 20230613
+        description     : Test optional object encapsulation
+        copyright       : (c) 2023 René van Paassen
+        license         : EUPL-1.2")
+
+(Type optional_int
+      "
+#include <fix_optional.hxx>
+typedef dueca::fix_optional<int> optional_int;")
+
+(Type optional_fv
+      "
+#include <fix_optional.hxx>
+#include <fixvector.hxx>
+typedef dueca::fix_optional<dueca::fixvector<3U,double> > optional_fv;")
+
+(Type optional_vv
+      "
+#include <fix_optional.hxx>
+#include <varvector.hxx>
+typedef dueca::fix_optional<dueca::varvector<float> > optional_vv;")
+
+
+(Object Object12
+	(Option hdf5nest)
+	(Option msgpack)
+	(optional_vv v3)
+      (optional_int i1 (DefaultArg 1))
+	(optional_fv f2 (DefaultArg 1.0))
+	)

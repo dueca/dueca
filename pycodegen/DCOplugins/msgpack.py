@@ -110,7 +110,7 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
   {%- if parent %}
   public UnpackVisitor<msgpack_container_dco,{{ parent }}>
   {%- else %}
-  public DCO_VIRTUAL_VISITOR_BASE
+  public DCOUnpackVisitor
   {%- endif %}
 {
   /** Reference to the object currently being filled */
@@ -118,7 +118,7 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
 
   /** How many members in the parent */
   {%- if parent %}
-  static constexpr unsigned parent_n_members = 
+  static constexpr unsigned parent_n_members =
     msgpack::v1::adaptor::pack<{{ parent }}>::n_members();
   {%- else %}
   static constexpr unsigned parent_n_members = 0U;
@@ -141,7 +141,7 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
     {%- if parent %}
     UnpackVisitor<msgpack_container_dco,{{ parent }}>(v),
     {%- else %}
-    DCO_VIRTUAL_VISITOR_BASE(),
+    DCOUnpackVisitor(),
     {%- endif %}
     v(v),
     {%- for m in members %}
@@ -181,7 +181,8 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
       nest = visitors[sel - parent_n_members].visitor;
       return true;
     }
-    return false;
+    if (isparent) return false;
+    throw msgpack_excess_array_members("{{ name }}");
   }
 };
 # endif

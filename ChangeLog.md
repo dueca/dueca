@@ -2,6 +2,27 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.0] - 2023-06-15
+
+- add a fix_optional object, to accomodate optional / nil values from
+  msgpack unpacks
+- re-write of code generator to:
+  * use jinja2 templates
+  * change the packing, so that members are always packed in the order
+    in which they appear in the object
+  * use template magic to pack/unpack different types, no more need for
+    IterableType/FixIterableType distinctions
+- test for "incomplete + nil" msgpack unpack
+- elaborated templating with dco_traits
+- improved/updated printing of dco objects
+- New codegen version, to account for changes in packing order. If you have
+  dco objects that have an "Extra.?xx" include, check the following:
+  * You have either NOT redefined the "packData" "unPackData", 
+    "amorphrestore constructor", and/or the pair of "packDataDiff",
+    and "unPackDataDiff", or you redefined them ALL and they still compile:
+    - Add "#define __CUSTOM_COMPATLEVEL_111" to your .cxx include file
+    In other cases, adjust or update the packing/unpacking code.
+
 ## [3.2.12] - 2023-06-12
 
 - Add a fixvector_withdefault variant with default value option

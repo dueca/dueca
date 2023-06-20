@@ -68,6 +68,8 @@ class ReplayFiler:
   ddff::FileWithSegments::pointer    filer;
 
 public:
+  static constexpr const char *classname = "ReplayFiler";
+
   /** Pointer type */
   typedef  boost::intrusive_ptr<ReplayFiler> pointer;
 

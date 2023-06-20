@@ -1,27 +1,23 @@
 /* ------------------------------------------------------------------   */
-/*      item            : test9.cxx
+/*      item            : test12.cxx
         made by         : Rene' van Paassen
-        date            : 121230
+        date            : 230613
         category        : body file
         description     :
-        changes         : 121230 first version
+        changes         : 230613 first version
         language        : C++
-        copyright       : (c) 2016 TUDelft-AE-C&S
-        copyright       : (c) 2022 René van Paassen
+        copyright       : (c) 2023 René van Paassen
         license         : EUPL-1.2
 */
 
-#define test9_cxx
+#define test12_cxx
 #include <cassert>
 
-//#define MSGPACK_USE_DEFINE_MAP
 #define DUECA_CONFIG_MSGPACK
-#include <vector>
-#include "Object11.hxx"
-#include <AmorphStore.hxx>
+#include "Object12.hxx"
 #include <dueca/msgpack.hxx>
+#include <AmorphStore.hxx>
 #include <dueca/MessageBuffer.hxx>
-
 
 USING_DUECA_NS;
 
@@ -31,13 +27,21 @@ int main()
 
   AmorphStore st(buff, 1000);
 
-  Object11 o1(Enum10::One);
+  Object12 o1(2, -0.1);
+  assert(o1.i1.valid == true);
+  assert(o1.f2.valid == true);
+  assert(o1.v3.valid == false);
+  assert(o1.i1.value == 2);
+  
+  // pack the object
   packData(st, o1);
-  Object11 o2(Enum10::Two);
+  
+  // create a second, resembling
+  Object12 o2(1);
   packDataDiff(st, o2, o1);
   AmorphReStore re(buff, st.getSize());
-  Object11 o1c(re);
-  Object11 o2c(o1c);
+  Object12 o1c(re);
+  Object12 o2c(o1c);
   unPackDataDiff(re, o2c);
   assert(o1 == o1c);
   assert(o2 == o2c);
@@ -47,9 +51,9 @@ int main()
   msgpack::packer<dueca::MessageBuffer> pk(buf);
   pk.pack(o2);
   std::size_t off = 0;
-  Object11 o1d;
+  Object12 o1d;
   dueca::messagepack::UnpackVisitor
-    <dueca::messagepack::msgpack_container_dco,Object11> v(o1d);
+    <dueca::messagepack::msgpack_container_dco,Object12> v(o1d);
   bool res = msgpack::v2::parse(buf.data(), buf.size(), off, v);
   assert(o2 == o1d);
   cout << o2 << o1d << std::endl;

@@ -23,6 +23,7 @@
 #include <string>
 #include <type_traits>
 #include <vectorexceptions.hxx>
+#include <sstream>
 
 DUECA_NS_START;
 
@@ -209,18 +210,23 @@ public:
 
 /** Helper, for DCO object handling */
 template <size_t N, typename D>
-struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix {
+struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix,
+  pack_constant_size, diffpack_fixedsize
+{
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "fixvector<" << N << ","
+            << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
+  /** Value type for the elements of a trait's target */
+  typedef D value_type;
 };
-
-/** Helper, for DCO object handling */
-template <size_t N, typename D>
-struct pack_traits<fixvector<N, D>> : public pack_constant_size {};
-
-/** Helper, for DCO object handling */
-template <size_t N, typename D>
-struct diffpack_traits<fixvector<N, D>> : public diffpack_fixedsize {};
 
 DUECA_NS_END;
 

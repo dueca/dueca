@@ -53,7 +53,7 @@ Snapshot::Snapshot(size_t data_size, const NameSet& originator,
 }
 
 
-#define __CUSTOM_COMPATLEVEL_110
+#define __CUSTOM_COMPATLEVEL_111
 // #define __CUSTOM_DEFAULT_CONSTRUCTOR
 
 Snapshot::Snapshot(DataWriterArraySize data_size, SnapCoding coding):
@@ -358,9 +358,9 @@ void Snapshot::unPackDataDiff(AmorphReStore& s)
   IndexRecall im;
   //checkandunpackdiffiterable(this->data, s, im,
   //                           diffpack_traits<varvector<char> >());
-  checkandunpackdiffsingle(this->data, s, im);
-  checkandunpackdiffsingle(this->originator, s, im);
-  checkandunpackdiffsingle(this->coding, s, im);
+  checkandunpackdiff(this->data, s, im, dco_traits<dueca::smartstring>());
+  checkandunpackdiff(this->originator, s, im, dco_traits<NameSet>());
+  checkandunpackdiff(this->coding, s, im, dco_traits<SnapCoding>());
   data_size = data.size();
 }
 
