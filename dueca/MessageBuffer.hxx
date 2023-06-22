@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include <cstddef>
 #include "DAtomics.hxx"
+#include <iterator>
 
 DUECA_NS_START;
 
@@ -63,6 +64,70 @@ struct MessageBuffer
   unsigned creation_id;
 
 public:
+  
+  /** Reading iterator; forward only */
+  struct Iterator {
+
+    /// Input iterator, only writing to stream
+    using iterator_category  = std::input_iterator_tag;
+
+    /// Difference
+    using difference_type    = std::ptrdiff_t;
+
+    /// Value, char
+    using value_type         = char;
+
+    /// Pointer to char
+    using pointer            = char*;
+
+    /// Pointer to char
+    using const_pointer      = const char*;
+
+    /// Reference
+    using reference          = char&;
+
+    /// Reference
+    using const_reference    = const char&;
+
+    /// Construct one
+    Iterator(const char *val);
+
+    /// Copy constructor
+    Iterator(const Iterator& other);
+
+    /// Destructor
+    ~Iterator();
+
+    /// Assignment
+    Iterator& operator=(const Iterator& other);
+
+    /// De-reference operation
+    inline const_reference operator*() const { return *m_ptr; }
+
+    /// Raw pointer
+    inline const_pointer operator->() { return m_ptr; }
+
+    /// Prefix increment
+    inline Iterator& operator++() { m_ptr++; return *this; }
+
+    /// comparison
+    inline friend bool operator == (const Iterator&a, const Iterator& b)
+    { return a.m_ptr == b.m_ptr; }
+
+    /// comparison
+    inline friend bool operator != (const Iterator&a, const Iterator& b)
+    { return a.m_ptr != b.m_ptr; }
+
+    /// Postfix increment
+    inline Iterator operator++(int)
+    { auto tmp = *this; m_ptr++; return tmp; }
+    
+  private:
+    /// pointer to the current byte in buffer
+    const_pointer m_ptr;
+  };
+  
+public:
   /** Constructor */
   MessageBuffer(size_t size, size_t offset = 0);
 
@@ -96,6 +161,12 @@ public:
   /** Zero remainder, usually for cleanly writing */
   void zeroUnused();
 
+  /** Begin iterator */
+  Iterator begin() const { return Iterator(buffer + offset); }
+
+  /** End iterator */
+  Iterator end() const { return Iterator(buffer + fill); }
+  
 private:
   /** Copy constructor */
   MessageBuffer(const MessageBuffer& o);

@@ -36,10 +36,12 @@ template<typename S, typename T>
 inline S &dcoprint(S& s, const T& obj, const dco_print_iterable&)
 {
   s << "{";
+  size_t size = obj.size();
   for (const auto &e: obj) {
-    dcoprint(s, e, typename dco_traits<typename T::value_type>::ptype()) << ",";
+    dcoprint(s, e, typename dco_traits<typename T::value_type>::ptype());
+    if (--size) { s << ","; }
   }
-  return s << ",";
+  return s << "}";
 }
 
 /** Print a pair

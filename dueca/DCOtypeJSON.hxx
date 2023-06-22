@@ -28,7 +28,7 @@
 
 DUECA_NS_START;
 
-/** Print the type infromation on a DCO defined type to JSON
+/** Print the type information on a DCO defined type to JSON
 
     @param writer    Writer object
     @param dcoclass  DCO type class name
@@ -36,7 +36,7 @@ DUECA_NS_START;
 void DCOtypeJSON(rapidjson::Writer<rapidjson::StringBuffer> &writer,
                  const char* dcoclass);
 
-/** Print the type infromation on a DCO defined type to JSON
+/** Print the type information on a DCO defined type to JSON
 
     @param doc       Stringbuffer
     @param dcoclass  DCO type class name

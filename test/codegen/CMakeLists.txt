@@ -28,6 +28,7 @@ add_test(MSGPACK msgpack.x)
 add_test(MSGPACK2 msgpack2.x)
 add_test(MSGPACK3 msgpack3.x)
 add_test(MSGPACKX msgpackx.x)
+add_test(MSGPACK4 msgpack4.x)
 
 set_tests_properties(MSGPACKX PROPERTIES DEPENDS PupilRemoteGaze2.msgpack)
 
@@ -60,7 +61,7 @@ DUECACODEGEN_TARGET(OUTPUT DCO12 DCOSOURCE Object12.dco)
 DUECACODEGEN_TARGET(OUTPUT DCOMSG DCOSOURCE PupilRemote2DEllipse.dco
 PupilRemoteConfig.dco PupilRemotePupil.dco PupilRemote3DCircle.dco
 PupilRemoteGaze2.dco PupilRemoteStatus.dco PupilRemote3DSphere.dco
-PupilRemoteGaze.dco)
+PupilRemoteGaze.dco PupilRemoteHeadPose.dco)
 
 
 
@@ -83,6 +84,7 @@ add_executable(msgpack.x msgpack.cxx ${DCO1_OUTPUTS} ${DCO2_OUTPUTS}
 add_executable(msgpack2.x msgpack2.cxx ${DCOMSG_OUTPUTS})
 add_executable(msgpack3.x msgpack3.cxx)
 add_executable(msgpackx.x msgpackx.cxx ${DCOMSG_OUTPUTS})
+add_executable(msgpack4.x msgpack4.cxx ${DCOMSG_OUTPUTS})
 
 
 #execute_process(
@@ -114,6 +116,7 @@ target_link_libraries(msgpack.x dueca${STATICSUFFIX} dueca-ddff${STATICSUFFIX})
 target_link_libraries(msgpack2.x dueca${STATICSUFFIX} dueca-ddff${STATICSUFFIX})
 target_link_libraries(msgpack3.x dueca${STATICSUFFIX} dueca-ddff${STATICSUFFIX})
 target_link_libraries(msgpackx.x dueca${STATICSUFFIX} dueca-ddff${STATICSUFFIX})
+target_link_libraries(msgpack4.x dueca${STATICSUFFIX} dueca-ddff${STATICSUFFIX})
 
 target_compile_options(test1.x PRIVATE -DDUECA_CONFIG_MSGPACK)
 target_compile_options(test2.x PRIVATE -DDUECA_CONFIG_MSGPACK)
@@ -126,6 +129,7 @@ target_compile_options(msgpack.x PRIVATE -DDUECA_CONFIG_MSGPACK)
 target_compile_options(msgpack2.x PRIVATE -DDUECA_CONFIG_MSGPACK)
 target_compile_options(msgpack3.x PRIVATE -DDUECA_CONFIG_MSGPACK)
 target_compile_options(msgpackx.x PRIVATE -DDUECA_CONFIG_MSGPACK)
+target_compile_options(msgpack4.x PRIVATE -DDUECA_CONFIG_MSGPACK)
 
 #target_link_libraries(test8.x ${DUECA_LDFLAGS})
 

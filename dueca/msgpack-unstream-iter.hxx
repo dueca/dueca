@@ -667,15 +667,15 @@ template <typename S, typename K, typename T>
 void msg_unpack(S& i0, const S& iend, std::map<K,T> & i);
 
 // helper, unpacking id from map
-template<typename I>
-inline void unpack_member_id_inmap(I& i0, const I& iend, const char* mid)
+template<typename S>
+inline void unpack_member_id_inmap(S& i0, const S& iend, const char* mid)
 { 
-  for (size_t ii = unpack_strsize(i0, iend); ii--; ) { ++i0; }
+  for (size_t ii = unstream<S>::unpack_strsize(i0, iend); ii--; ) { ++i0; }
 }
 
 // same from array
-template<typename I>
-inline void unpack_member_id_inarray(I& i0, const I& iend, const char* mid)
+template<typename S>
+inline void unpack_member_id_inarray(S& i0, const S& iend, const char* mid)
 { }
 
 
