@@ -36,11 +36,39 @@ class AmorphReStore;
 {{ enumdec }}
 {{ namespacecmd1 }}{{ extrainclude }}
 
-{{ publicfunctionsdec }}
+namespace dueca {
+  const char* const getString(const {{ objprefix }}{{ name }} &o);
+  void readFromString({{ objprefix }}{{ name }} &o, const std::string& s);
+  void getFirst({{ objprefix }}{{ name }} &o);
+  bool getNext({{ objprefix }}{{ name }} &o);
+
+  /** This function retrieves the classname of {{ name }} */
+  template <>
+  const char* getclassname<{{objprefix}}{{name}}>();
+}; // end namespace dueca
+
+#if !defined(__DCO_NOPACK)
+void packData(::dueca::AmorphStore& s,
+              const {{ objprefix }}{{ name }} &o);
+void unPackData(::dueca::AmorphReStore& s,
+                {{ objprefix }}{{ name }} &o);
+#endif
+
+PRINT_NS_START;
+/** Print an object of type {{ name }} */
+inline std::ostream&
+operator << (std::ostream& s, const {{ objprefix }}{{ name }}& o)
+{ return s << dueca::getString(o); }
+/** Read an enum of type {{ name }} */
+inline std::istream&
+operator >> (std::istream& s, {{ objprefix }}{{ name }}& o)
+{ std::string tmp; s >> tmp; dueca::readFromString(o, tmp); return s; }
+PRINT_NS_END;
 
 #if !defined(__DCO_STANDALONE)
 namespace dueca {
-{{ enumtraits }}
+template <>
+struct dco_nested<{{ objprefix }}{{ name}}> : public dco_isenum { };
 };
 #endif
 {{ plug_header_code }}
