@@ -83,11 +83,6 @@ public:
   template <class InputIt> fixvector_withdefault(InputIt first, InputIt last) :
     fixvector<N,T>(first, last) { }
 
-  /** obtain a pointer directly to the data */
-  inline operator pointer(void) { return this->d; }
-  /** obtain a const pointer directly to the data */
-  inline operator const_pointer(void) const { return this->d; }
-
   /** assignment operator */
   inline fixvector_withdefault<N,T,DEFLT,BASE> &operator=
     (const fixvector_withdefault<N, T, DEFLT, BASE> &other)
@@ -112,14 +107,6 @@ public:
   {
     return !(*this == other);
   }
-
-  /** access elements of the vector. Note that indexing is checked */
-  template <typename idx_t> inline const T &operator[](idx_t ii) const
-  { return fixvector<N,T>::operator[](ii); }
-
-  /** access elements of the vector. Note that indexing is checked */
-  template <typename idx_t> inline T &operator[](idx_t ii)
-  { return fixvector<N,T>::operator[](ii); }
 
   /** Set all elements to the default value. */
   void setDefault()

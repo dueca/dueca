@@ -89,13 +89,23 @@ void readAny<int64_t>(const JValue &doc, boost::any& val)
 template<>
 void readAny<float>(const JValue &doc, boost::any& val)
 {
-  val = float(doc.GetDouble());
+  if (!doc.IsNull()) {
+    val = float(doc.GetDouble());
+  }
+  else {
+    val = std::numeric_limits<float>::quiet_NaN();
+  }
 }
 
 template<>
 void readAny<double>(const JValue &doc, boost::any& val)
 {
-  val = double(doc.GetDouble());
+  if (!doc.IsNull()) {
+    val = double(doc.GetDouble());
+  }
+  else {
+    val = std::numeric_limits<double>::quiet_NaN();
+  }
 }
 
 template<>

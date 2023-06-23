@@ -1,0 +1,49 @@
+;; -*-scheme-*-
+(Header "
+        original item   : PupilRemoteHeadPose.dco
+        made by         : René van Paassen
+        date            : 210917
+        description     : Gaze for simple PupilRemote use")
+
+(Type double)
+(Type string16 "#include <dueca/stringoptions.h>")
+(IterableType vector6double 
+	      "
+#include <dueca/fixvector_withdefault.hxx>
+typedef dueca::fixvector_withdefault<6,double,-1> vector6double;")
+(IterableType vector3double 
+	      "
+#include <dueca/fixvector_withdefault.hxx>
+typedef dueca::fixvector_withdefault<3,double,-1> vector3double;")
+(IterableType matrix44double
+              "
+#include <dueca/fixvector_withdefault.hxx>
+#include <dueca/fixvector.hxx>
+typedef dueca::fixvector_withdefault<16,double,-1> matrix44double;
+typedef dueca::fixvector_withdefault<4,dueca::fixvector<4,double>,-1>
+        matrix44double2;")
+
+;; Head pose data
+(Object PupilRemoteHeadPose
+        (Option hdf5)
+        (Option msgpack)
+	(IncludeFile PupilRemoteHeadPoseExtra)
+	
+        ;; reported topic
+	(string16 topic)
+
+	;; ?? (can be None)
+	(vector6double camera_extrinsics (Default 0.0))
+
+	;; camera pose (can be all nan)
+	(vector6double camera_poses (Default 0.0))
+
+	;; camera trace? (can be 3 nan)
+	(vector3double camera_trace (Default 0.0))
+	
+	;; camera pose matrix (can be None or 4x4)
+	(matrix44double camera_pose_matrix (Default 0.0))
+
+	;; lastly the timestamp
+	(double timestamp)
+	)

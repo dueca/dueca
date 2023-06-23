@@ -518,7 +518,7 @@ def cnize(pref):
 def appendNameSpace(upto, line, c):
     global objectnamespace
     debugprint("addnamespace", c)
-    objectnamespace.append(c[-1])
+    objectnamespace.append(c[-2])
 
 @catchguard
 def setPackAlignment(upto, line, c):
@@ -717,7 +717,7 @@ Explanation: long type variables have 4 byte versus 8 byte
     def publicFunctionsImp(self, master):
         return None
 
-    def enumTraits(self, master):
+    def enumTraits(self, master, objprefix):
         return None
 
     def staticAccessObject(self, mastername, dname):
@@ -977,32 +977,34 @@ enum {name} {{
             # this might have to move to publicFunctionsImp???
             return None
         res = [ """
-%(namespacecmd0)sconst char* const getString(const %(objprefix)s%(masterprefix)s%(name)s &o);
-void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s);
-void getFirst(%(objprefix)s%(masterprefix)s%(name)s &o);
-bool getNext(%(objprefix)s%(masterprefix)s%(name)s &o);%(namespacecmd1)s
+namespace dueca {
+  const char* const getString(const %(objprefix)s%(masterprefix)s%(name)s &o);
+  void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s);
+  void getFirst(%(objprefix)s%(masterprefix)s%(name)s &o);
+  bool getNext(%(objprefix)s%(masterprefix)s%(name)s &o);
+
+  /** This function retrieves the classname of an %(masterprefix)s%(name)s */
+  template <>
+  const char* getclassname<%(objprefix)s%(masterprefix)s%(name)s>();
+}; // end namespace dueca
+
 #if !defined(__DCO_NOPACK)
 void packData(::dueca::AmorphStore& s,
               const %(objprefix)s%(masterprefix)s%(name)s &o);
 void unPackData(::dueca::AmorphReStore& s,
                 %(objprefix)s%(masterprefix)s%(name)s &o);
 #endif
-namespace dueca {
-  /** This function retrieves the classname of an %(masterprefix)s%(name)s */
-  template <>
-  const char* getclassname<%(masterprefix)s%(name)s>();
-};
 
 PRINT_NS_START;
 /** Print an object of type %(masterprefix)s%(name)s */
 inline std::ostream&
 operator << (std::ostream& s, const %(objprefix)s%(masterprefix)s%(name)s& o)
-{ return s << getString(o); }
+{ return s << dueca::getString(o); }
 /** Read an object of type %(masterprefix)s%(name)s */
 inline std::istream&
 /** Read an enum of type %(masterprefix)s%(name)s */
 operator >> (std::istream& s, %(objprefix)s%(masterprefix)s%(name)s& o)
-{ std::string tmp; s >> tmp; readFromString(o, tmp); return s; }
+{ std::string tmp; s >> tmp; dueca::readFromString(o, tmp); return s; }
 PRINT_NS_END;
 """ % joindict(self.__dict__, { 'mastername' : master.name,
                                 'masterprefix' :
@@ -1018,15 +1020,14 @@ PRINT_NS_END;
         anyval = [ 1 for i in self.members if i.value is not None]
         if anyval:
             res = [ """
-{namespacecmd0}#if !defined(__CUSTOM_ENUMNAMES_{name})
+#if !defined(__CUSTOM_ENUMNAMES_{name})
 namespace {{
   struct NameMatch_{name} {{
     const char* mname;
     {objprefix}{masterprefix}{name}      enumval;
   }};
-}} // end anonymous namespace
 
-static const NameMatch_{name} __{name}_names [] = {{\n""".format(
+  static const NameMatch_{name} __{name}_names [] = {{\n""".format(
     name=self.name, namespacecmd0=master.namespacecmd0,
     objprefix=master.objprefix,
     masterprefix=(master.name and f'{master.name}::') or ''
@@ -1034,17 +1035,19 @@ static const NameMatch_{name} __{name}_names [] = {{\n""".format(
 
             # append all values
             for m in self.members:
-                res.append('  {{ "{m.name}", {objprefix}{masterprefix}{prefix}{m.name} }},\n'.format(
+                res.append('    {{ "{m.name}", {objprefix}{masterprefix}{prefix}{m.name} }},\n'.format(
                     m=m,
                     prefix=(self.classenum and f'{self.name}::') or '',
                     objprefix=master.objprefix,
                     masterprefix=(master.name and f'{master.name}::') or ''))
 
             # complete and add the functions
-            res.append("""  {{ NULL }}
-}};
+            res.append("""    {{ NULL }}
+  }};
+}} // end anonymous namespace
 #endif
 
+namespace dueca {{
 #ifndef __CUSTOM_GETSTRING_{name}
 const char* const getString(const {objprefix}{masterprefix}{name} &o)
 {{
@@ -1088,7 +1091,8 @@ bool getNext({objprefix}{masterprefix}{name} &o)
   }}
   return false;
 }}
-#endif{namespacecmd1}
+#endif
+}}; // end namespace dueca
 
 #if !defined(__CUSTOM_PACKDATA_{name}) && !defined(__DCO_NOPACK)
 void packData(::dueca::AmorphStore& s,
@@ -1104,7 +1108,7 @@ void unPackData(::dueca::AmorphReStore& s,
 
 namespace dueca {{
 template <>
-const char* getclassname<{masterprefix}{name}>()
+const char* getclassname<{objprefix}{masterprefix}{name}>()
 {{ return "{masterprefix}{name}"; }}
 }};
 """.format(name=self.name, objprefix=master.objprefix,
@@ -1115,31 +1119,32 @@ const char* getclassname<{masterprefix}{name}>()
         else:
             res = ["""
 #include <map>
-{namespacecmd0}#ifndef __CUSTOM_ENUMNAMES_{name}
+#ifndef __CUSTOM_ENUMNAMES_{name}
 namespace {{
   struct NameMatch_{name} {{
     const char* mname;
     {objprefix}{masterprefix}{name}      enumval;
   }};
-}} // end anonymous namespace
-static const NameMatch_{name} __{name}_names [] = {{""".format(
+  static const NameMatch_{name} __{name}_names [] = {{""".format(
     name=self.name, namespacecmd0=master.namespacecmd0,
     objprefix=master.objprefix,
     masterprefix=(master.name and f'{master.name}::') or ''
 )]
             for m in self.members:
                 res.append('''
-  {{ "{m.name}", {objprefix}{masterprefix}{prefix}{m.name} }},'''.format(
+    {{ "{m.name}", {objprefix}{masterprefix}{prefix}{m.name} }},'''.format(
                     m=m,
                     prefix=(self.classenum and f'{self.name}::') or '',
                     objprefix=master.objprefix,
                     masterprefix=(master.name and f'{master.name}::') or ''))
 
             res.append('''
-  {{ NULL }}
-}};
+    {{ NULL }}
+  }};
+}} // end anonymous namespace
 #endif
 
+namespace dueca {{
 #ifndef __CUSTOM_GETSTRING_{name}
 const char* const getString(const {objprefix}{masterprefix}{name} &o)
 {{
@@ -1183,7 +1188,8 @@ bool getNext({objprefix}{masterprefix}{name} &o)
   }}
   return false;
 }}
-#endif{namespacecmd1}
+#endif
+}} // end namespace dueca
 
 #if !defined(__CUSTOM_PACKDATA_{name}) && !defined(__DCO_NOPACK)
 void packData(::dueca::AmorphStore& s,
@@ -1199,7 +1205,7 @@ void unPackData(::dueca::AmorphReStore& s,
 
 namespace dueca {{
 template <>
-const char* getclassname<{masterprefix}{name}>()
+const char* getclassname<{objprefix}{masterprefix}{name}>()
 {{ return "{masterprefix}{name}"; }}
 }};
 '''.format(name=self.name,
@@ -1212,14 +1218,15 @@ const char* getclassname<{masterprefix}{name}>()
            ctype=self.ctype))
         return ''.join(res)
 
-    def enumTraits(self, mastername):
+    def enumTraits(self, mastername, objprefix=''):
         if not self.members:
             return None
         return """
 template <>
-struct dco_nested< %(masterprefix)s%(name)s > : public dco_isenum { };""" % \
+struct dco_nested<%(objprefix)s%(masterprefix)s%(name)s> : public dco_isenum { };""" % \
     joindict(self.__dict__, {'masterprefix' :
-                             (mastername and f'{mastername}::') or ''})
+                             (mastername and f'{mastername}::') or '',
+                             'objprefix': objprefix } )
 
     def staticAccessObject(self, mastername, dname):
         if self.members:
@@ -2202,8 +2209,8 @@ const dueca::ParameterTable* %(name)s::getParameterTable()
 
         # traits definitions for enum defined types
         self.enumtraits = ''.join(
-            [ r.enumTraits(self.name) for r in iter(self.types.values())
-              if r.enumTraits(self.name) ])
+            [ r.enumTraits(self.name, self.objprefix) for r in iter(self.types.values())
+              if r.enumTraits(self.name, self.objprefix) ])
 
         # access objects to get the relative addresses and names of members
         self.accessstatics = ''.join(

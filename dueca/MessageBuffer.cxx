@@ -132,4 +132,13 @@ void MessageBuffer::zeroUnused()
   }
 }
 
+MessageBuffer::Iterator::Iterator(const char *val) : m_ptr(val) {} 
+MessageBuffer::Iterator::Iterator(const Iterator& other) : m_ptr(other.m_ptr) {}
+MessageBuffer::Iterator& MessageBuffer::Iterator::operator=(const Iterator& other)
+{
+  if (&other != this) this->m_ptr = other.m_ptr;
+  return *this;
+}
+MessageBuffer::Iterator::~Iterator() {}
+
 DUECA_NS_END;
