@@ -61,6 +61,7 @@ DUECA_NS_START;
 /* pre-define */
 class smartstring;
 
+/** Standard templated function */
 template <typename T>
 const char* getclassname();
 
@@ -88,6 +89,7 @@ template<> const char* getclassname<void*>();
 template<> const char* getclassname<void>();
 template<> const char* getclassname<smartstring>();
 
+/* const variants return the very same names */
 template<> inline const char* getclassname<const double>()
 { return getclassname<double>(); }
 template<> inline const char* getclassname<const float>()
@@ -191,24 +193,25 @@ struct test_classname: has_no_classname {};
 template<typename T>
 struct test_classname<T, decltype((void) T::classname, 0)>: has_a_classname {}; 
 
-/* classname function, default when no specialization defined on
-   the object itself */
+/** classname function, default when no specialization defined on
+    the object itself */
 template<typename T>
 inline const char* find_classname(const has_a_classname&)
 {
   return T::classname;
 }
 
+/** Classname function, used for all others, and relies on an implementation
+    of a templated function */
 template<typename T>
 inline const char* find_classname(const has_no_classname&)
 {
   return getclassname<T>();
 }
 
-
-/* The default assumes single-element members */
+/** The default object/member traits assumes single-element members */
 template <typename T> struct dco_traits: public dco_traits_single {
-  /** Classname? */
+  /** Classname */
   static const char* _getclassname()
   { return find_classname<T>(test_classname<T>()); }
 
@@ -219,7 +222,8 @@ template <typename T> struct dco_traits: public dco_traits_single {
   typedef void key_type;
 };
 
-/* Multiple elements, variable size communication type */
+/** Base collection for multiple elements, variable size communication
+    type */
 struct dco_traits_iterable {
 typedef dco_read_iterable rtype;
   typedef dco_write_iterable wtype;
@@ -228,7 +232,8 @@ typedef dco_read_iterable rtype;
   constexpr const static size_t nelts = 0;
 };
 
-/* Multiple elements, fixed size communication type */
+/* Base collection for Multiple elements, but with fixed size
+   communication type */
 struct dco_traits_iterablefix {
   typedef dco_read_iterable rtype;
   typedef dco_write_fixed_it wtype;
@@ -260,6 +265,7 @@ struct dco_traits<std::list<D> > : public dco_traits_iterable,
 template <typename D>
 struct dco_traits<std::vector<D> > : public dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector {
+  /** Calculate the class name */
   static const char* _getclassname()
   {
     static std::stringstream cname;
@@ -285,6 +291,7 @@ struct dco_traits_mapped {
 template <typename K, typename D>
 struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
   pack_var_size, unpack_extend_map, diffpack_complete {
+  /** Calculate the class name */
   static const char* _getclassname()
   {
     static std::stringstream cname;
