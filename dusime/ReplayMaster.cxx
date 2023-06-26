@@ -41,7 +41,8 @@
 DUECA_NS_START;
 
 // class/module name
-const char* const ReplayMaster::classname = "replay-master";
+template<> const char* getclassname<ReplayMaster>()
+{ return "replay-master"; }
 
 std::map<std::string,ReplayMaster::pointer> ReplayMaster::replaymasters;
 

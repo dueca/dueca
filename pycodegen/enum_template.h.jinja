@@ -41,10 +41,6 @@ namespace dueca {
   void readFromString({{ objprefix }}{{ name }} &o, const std::string& s);
   void getFirst({{ objprefix }}{{ name }} &o);
   bool getNext({{ objprefix }}{{ name }} &o);
-
-  /** This function retrieves the classname of {{ name }} */
-  template <>
-  const char* getclassname<{{objprefix}}{{name}}>();
 }; // end namespace dueca
 
 #if !defined(__DCO_NOPACK)
@@ -64,6 +60,13 @@ inline std::istream&
 operator >> (std::istream& s, {{ objprefix }}{{ name }}& o)
 { std::string tmp; s >> tmp; dueca::readFromString(o, tmp); return s; }
 PRINT_NS_END;
+
+/** This function retrieves the classname of {{ name }} */
+template <>
+const char* dueca::getclassname<{{objprefix}}{{name}}>();
+template <>
+inline const char* dueca::getclassname<const {{objprefix}}{{name}}>()
+{ return dueca::getclassname<{{objprefix}}{{name}}>(); }
 
 #if !defined(__DCO_STANDALONE)
 namespace dueca {

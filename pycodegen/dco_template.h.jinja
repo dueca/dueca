@@ -144,6 +144,9 @@ operator << (std::ostream& s, const {{ objprefix }}{{ name }}& o)
 // specialization of classname
 template<>
 const char* dueca::getclassname<{{ objprefix }}{{ name }}>();
+template <>
+inline const char* dueca::getclassname<const {{objprefix}}{{name}}>()
+{ return dueca::getclassname<{{objprefix}}{{name}}>(); }
 
 #if !defined(__DCO_STANDALONE)
 namespace dueca {

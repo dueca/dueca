@@ -45,6 +45,8 @@ template <>
 const char* getclassname<std::string>() { return "std::string"; }
 template <>
 const char* getclassname<void*>() { return "void*"; }
+template <>
+const char* getclassname<void>() { return "void"; }
 
 template<> const char* getclassname<string8>() { return "string8"; }
 template<> const char* getclassname<string16>() { return "string16"; }

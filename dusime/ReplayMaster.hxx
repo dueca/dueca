@@ -309,8 +309,6 @@ private:
   void setState(ReplayMasterMode newstate);
 
 public:
-  /** Name of the module. */
-  static const char* const           classname;
 
   /** Constructor */
   ReplayMaster(const char* e);
@@ -384,6 +382,8 @@ public:
   /** Find a matching inventory, or possibly create one */
   static const pointer findReplayMaster(const std::string& entity);
 };
+
+template<> const char* getclassname<ReplayMaster>();
 
 DUECA_NS_END;
 

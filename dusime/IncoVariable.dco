@@ -15,7 +15,8 @@
 (IterableType std::map<IncoMode,IncoRole>
 "#include <map>
 #include <IncoMode.hxx>
-#include <IncoRole.hxx>")
+#include <IncoRole.hxx>
+namespace dueca { typedef IncoMode TrimMode; }")
 
 ;; This defines a variable that may be involved in trim condition
 ;; calculation. For different trim modes, this variable may have

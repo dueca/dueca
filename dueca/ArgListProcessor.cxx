@@ -414,7 +414,7 @@ static T findValue(const bpy::object& current)
   bpy::extract<T> getval(current);
   if (getval.check()) return getval();
   throw(ScriptDataError("expect single value of type \"",
-                        getclassname<T>(), "\""));
+                        dco_traits<T>::_getclassname(), "\""));
 }
 
 

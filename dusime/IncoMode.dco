@@ -1,0 +1,26 @@
+;; -*-scheme-*-
+
+(Header "
+        item            : IncoMode.dco
+        made by         : Rene' van Paassen
+        date            : 230626
+        description     : Generated from a hard-coded version
+        copyright       : (c) 2023 René van Paassen
+        license         : EUPL-1.2")
+
+(Enum IncoMode uint8_t
+      ;; specify the flight path+speed, get power, etc.
+      FlightPath
+      ;; specify the speed and power, get flight path
+      Speed
+      ;; ground inco calculation, gear down, speed 0
+      Ground
+      ;; count, maximum, not a real mode
+      NoIncoModes)
+
+;;  IncoMode defines the type of inco calculation.
+;;
+;;  Note that the IncoMode definition given here is fairly
+;;  haphazard. If you feel that a more elaborated IncoMode is needed,
+;;  please contact me 
+(Enumerator IncoMode)

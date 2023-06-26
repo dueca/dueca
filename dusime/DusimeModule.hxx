@@ -36,6 +36,7 @@ struct IncoTable;
 class ActivityCallback;
 class ChannelWriteToken;
 class ChannelReadToken;
+typedef IncoMode TrimMode;
 
 /** A class "in-between" the dueca Module class, and
     Simulation/HardwareModule.

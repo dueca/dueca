@@ -62,6 +62,10 @@ std::map<std::string,SnapshotInventory::pointer> SnapshotInventory::inventories;
 
 const char* const SnapshotInventory::classname = "initial-inventory";
 
+template<> const char* getclassname<SnapshotInventory>()
+{ return "initial-inventory"; }
+
+
 SnapshotInventory::SnapshotInventory(const char* entity_name) :
   NamedObject(NameSet("dueca", "SnapshotInventory", entity_name)),
   state(StartFiles),

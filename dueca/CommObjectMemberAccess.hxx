@@ -140,14 +140,22 @@ public:
 
   /** Return a string representation of the data member's class */
   const char* getClassname() const
+#if 1
+  { return dco_traits<typename dco_traits<T>::value_type>::_getclassname(); }
+#else
   { return getclassname<typename elementdata
                         <typename dco_traits<T>::rtype,T>::elt_value_type>(); }
+#endif
 
   /** Return a string representation of the data member's key class */
   const char* getKeyClassname() const
+#if 1
+  { return dco_traits<typename dco_traits<T>::key_type>::_getclassname(); }
+#else
   { return getclassname<typename elementdata
                         <typename dco_traits<T>::rtype,T>::elt_key_type>(); }
-
+#endif
+  
   /** Return the arity enum of the member */
   MemberArity getArity() const
   { return dco_traits<T>::arity; }
