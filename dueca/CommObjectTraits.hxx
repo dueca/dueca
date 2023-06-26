@@ -35,8 +35,8 @@
 /** @file DUECA class name facilities
 
     To support meaningfull error messaging and meta-information on
-    data classes/types, the "getclassname(const T&) function may be
-    used.
+    data classes/types, both for Modules, and DCO objects, the
+    "getclassname(const T&) function may be used.
 
     This returns the datatype through the following:
 
@@ -44,20 +44,22 @@
       specialization, uses the getclassname static function defined in
       that type.
 
-    - A non-composity type will fall back to the most generic
-      dco_traits<T> form. It will use the getclassname<T>()
+    - A non-composite type will fall back to the most generic
+      dco_traits<T> form. It will use a find_classname<T>()
       specialization.
 
-    - If no specialization of getclassname<T> exists, it is assumed
-      that T is a module / scriptcreatable, for which a classname
-      static member exists, accessable as T::classname.
+    - If the class T has a static member classname, that name
+      will be used. It has to be static, and compatible with a
+      const char* type. Otherwise, a function getclassname<T>() is
+      called. That function has been defined for (most) basic
+      types, for types that are provided by DUECA, and for
+      generated types/objects
  */
 
 DUECA_NS_START;
 
-class Module;
-class NamedObject;
-class ScriptCreatable;
+/* pre-define */
+class smartstring;
 
 template <typename T>
 const char* getclassname();
@@ -84,10 +86,52 @@ template<> const char* getclassname<string128>();
 template<> const char* getclassname<LogString>();
 template<> const char* getclassname<void*>();
 template<> const char* getclassname<void>();
-
-/* pre-define */
-class smartstring;
 template<> const char* getclassname<smartstring>();
+
+template<> inline const char* getclassname<const double>()
+{ return getclassname<double>(); }
+template<> inline const char* getclassname<const float>()
+{ return getclassname<float>(); }
+template<> inline const char* getclassname<const int8_t>()
+{ return getclassname<int8_t>(); }
+template<> inline const char* getclassname<const char>()
+{ return getclassname<char>(); }
+template<> inline const char* getclassname<const int16_t>()
+{ return getclassname<int16_t>(); }
+template<> inline const char* getclassname<const int32_t>()
+{ return getclassname<int32_t>(); }
+template<> inline const char* getclassname<const int64_t>()
+{ return getclassname<int64_t>(); }
+template<> inline const char* getclassname<const uint8_t>()
+{ return getclassname<uint8_t>(); }
+template<> inline const char* getclassname<const uint16_t>()
+{ return getclassname<uint16_t>(); }
+template<> inline const char* getclassname<const uint32_t>()
+{ return getclassname<uint32_t>(); }
+template<> inline const char* getclassname<const uint64_t>()
+{ return getclassname<uint64_t>(); }
+template<> inline const char* getclassname<const bool>()
+{ return getclassname<bool>(); }
+template<> inline const char* getclassname<const std::string>()
+{ return getclassname<std::string>(); }
+template<> inline const char* getclassname<const string8>()
+{ return getclassname<string8>(); }
+template<> inline const char* getclassname<const string16>()
+{ return getclassname<string16>(); }
+template<> inline const char* getclassname<const string32>()
+{ return getclassname<string32>(); }
+template<> inline const char* getclassname<const string64>()
+{ return getclassname<string64>(); }
+template<> inline const char* getclassname<const string128>()
+{ return getclassname<string128>(); }
+template<> inline const char* getclassname<const LogString>()
+{ return getclassname<LogString>(); }
+template<> inline const char* getclassname<const void*>()
+{ return getclassname<void*>(); }
+template<> inline const char* getclassname<const void>()
+{ return getclassname<void>(); }
+template<> inline const char* getclassname<const smartstring>()
+{ return getclassname<smartstring>(); }
 
 /* traits, capturing an element for reading */
 struct dco_read_single {};

@@ -56,43 +56,4 @@ template<> const char* getclassname<string128>() { return "string128"; }
 template<> const char* getclassname<LogString>() { return "LogString"; }
 template<> const char* getclassname<smartstring>() { return "smartstring"; }
 
-template <>
-const char* getclassname<const double>() { return "const double"; }
-template <>
-const char* getclassname<const float>() { return "const float"; }
-template <>
-const char* getclassname<const int8_t>() { return "const int8_t"; }
-template <>
-const char* getclassname<const char>() { return "const char"; }
-template <>
-const char* getclassname<const int16_t>() { return "const int16_t"; }
-template <>
-const char* getclassname<const int32_t>() { return "const int32_t"; }
-template <>
-const char* getclassname<const int64_t>() { return "const int64_t"; }
-template <>
-const char* getclassname<const uint8_t>() { return "const uint8_t"; }
-template <>
-const char* getclassname<const uint16_t>() { return "const uint16_t"; }
-template <>
-const char* getclassname<const uint32_t>() { return "const uint32_t"; }
-template <>
-const char* getclassname<const uint64_t>() { return "const uint64_t"; }
-template <>
-const char* getclassname<const bool>() { return "const bool"; }
-template <>
-const char* getclassname<const std::string>() { return "const std::string"; }
-template <>
-const char* getclassname<const void*>() { return "const void*"; }
-template <>
-const char* getclassname<const void>() { return "const void"; }
-
-template<> const char* getclassname<const string8>() { return "const string8"; }
-template<> const char* getclassname<const string16>() { return "const string16"; }
-template<> const char* getclassname<const string32>() { return "const string32"; }
-template<> const char* getclassname<const string64>() { return "const string64"; }
-template<> const char* getclassname<const string128>() { return "const string128"; }
-template<> const char* getclassname<const LogString>() { return "const LogString"; }
-template<> const char* getclassname<const smartstring>() { return "const smartstring"; }
-
 DUECA_NS_END;
