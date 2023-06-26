@@ -261,17 +261,18 @@ struct dco_traits<varvector<D> > : dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector
 { 
   /** Representative name */
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
       cname << "varvector<" 
-            << dco_traits<D>::getclassname() << ">";
+            << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
   /** Value type for the elements of a trait's target */
   typedef D value_type;
+  typedef void key_type;
 };
 
 DUECA_NS_END;

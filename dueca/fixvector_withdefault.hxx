@@ -127,18 +127,19 @@ struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE> > :
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
   /** Representative name */
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
       cname << "fixvector_withdefault<" << N << "," 
-            << dco_traits<D>::getclassname() << "," 
+            << dco_traits<D>::_getclassname() << "," 
             << DEFLT << "," << BASE << ">";
     }
     return cname.str().c_str();
   }
   /** Value type for the elements of a trait's target */
   typedef D value_type;
+  typedef void key_type;
 };
 
 DUECA_NS_END;

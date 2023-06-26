@@ -247,17 +247,18 @@ template <size_t N, typename D>
 struct dco_traits<limvector<N,D> > : dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector
 { 
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
       cname << "limvector<" << N << "," 
-            << dco_traits<D>::getclassname() << ">";
+            << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
   /** Value type for the elements of a trait's target */
   typedef D value_type; 
+  typedef void key_type;
 };
 
 DUECA_NS_END;

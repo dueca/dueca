@@ -9,6 +9,7 @@
                           summarise these, and are used for template
                           adaptation
         changes         : 131220 first version
+	api             : DUECA_API
         language        : C++
         copyright       : (c) 2016 TUDelft-AE-C&S
         copyright       : (c) 2022 René van Paassen
@@ -18,54 +19,48 @@
 #ifndef CommObjectTraits_hxx
 #define CommObjectTraits_hxx
 
-#include "ScriptCreatable.hxx"
+//#include "ScriptCreatable.hxx"
 #include <vector>
 #include <list>
 #include <map>
 #include <string>
 #include <inttypes.h>
 #include <dueca_ns.h>
+#include <sstream>
 #include <dueca/stringoptions.h>
 #include <dueca/LogString.hxx>
 #include <dueca/CommObjectMemberArity.hxx>
 #include <dueca/PackTraits.hxx>
 
+/** @file DUECA class name facilities
+
+    To support meaningfull error messaging and meta-information on
+    data classes/types, the "getclassname(const T&) function may be
+    used.
+
+    This returns the datatype through the following:
+
+    - Any "composite" type, as defined by its dco_traits<type>
+      specialization, uses the getclassname static function defined in
+      that type.
+
+    - A non-composity type will fall back to the most generic
+      dco_traits<T> form. It will use the getclassname<T>()
+      specialization.
+
+    - If no specialization of getclassname<T> exists, it is assumed
+      that T is a module / scriptcreatable, for which a classname
+      static member exists, accessable as T::classname.
+ */
+
 DUECA_NS_START;
 
 class Module;
+class NamedObject;
+class ScriptCreatable;
 
 template <typename T>
 const char* getclassname();
-
-/* Handle the special case for "Module", which have a classname member */
-template<typename T>
-inline const char* getclassname(const T* a, const Module*)
-{ return T::classname; }
-
-/* Handle the special case for "ScriptCreatable", which have a classname member */
-template<typename T>
-inline const char* getclassname(const T* a, const ScriptCreatable*)
-{ return T::classname; }
-
-template<typename T>
-inline const char* getclassname(const T* a, const void*)
-{ return "unknown"; }
-
-/* To be called when not module, or scriptcreatable. */
-//template<typename T>
-//inline const char* getclassname(const T* a, const void*)
-//{ return getclassname<T>(); }
-
-/* Old function, classname when called with an object */
-template<typename T>
-inline const char* getclassname(const T& a)
-{
-  if (dynamic_cast<const Module*>(&a) ||
-      dynamic_cast<const ScriptCreatable*>(&a)) {
-    return getclassname(&a, &a);
-  }
-  return getclassname<T>();
-}
 
 /* specialization for some common types */
 template<> const char* getclassname<double>();
@@ -88,9 +83,11 @@ template<> const char* getclassname<string64>();
 template<> const char* getclassname<string128>();
 template<> const char* getclassname<LogString>();
 template<> const char* getclassname<void*>();
+template<> const char* getclassname<void>();
 
 /* pre-define */
 class smartstring;
+template<> const char* getclassname<smartstring>();
 
 /* traits, capturing an element for reading */
 struct dco_read_single {};
@@ -133,20 +130,54 @@ struct dco_traits_optional {
   constexpr const static MemberArity arity = Iterable;
 };
 
+/** No classname instruct */
+struct has_no_classname {};
+
+/** Classname is there */
+struct has_a_classname {};
+
+/** Test for having a classname member */
+template<typename T, typename U=int>
+struct test_classname: has_no_classname {};
+
+/** SFINAE, see:
+
+    https://stackoverflow.com/questions/1005476/how-to-detect-whether-there-is-a-specific-member-variable-in-class
+ */
+template<typename T>
+struct test_classname<T, decltype((void) T::classname, 0)>: has_a_classname {}; 
+
+/* classname function, default when no specialization defined on
+   the object itself */
+template<typename T>
+inline const char* find_classname(const has_a_classname&)
+{
+  return T::classname;
+}
+
+template<typename T>
+inline const char* find_classname(const has_no_classname&)
+{
+  return getclassname<T>();
+}
+
 
 /* The default assumes single-element members */
 template <typename T> struct dco_traits: public dco_traits_single {
   /** Classname? */
-  static const char* getclassname()
-  { return ::dueca::getclassname(reinterpret_cast<T*>(NULL),
-                                 reinterpret_cast<T*>(NULL)); }
+  static const char* _getclassname()
+  { return find_classname<T>(test_classname<T>()); }
+
   /** Value type for the element of a trait's target */
   typedef T value_type;
+
+  /** No key */
+  typedef void key_type;
 };
 
 /* Multiple elements, variable size communication type */
 struct dco_traits_iterable {
-  typedef dco_read_iterable rtype;
+typedef dco_read_iterable rtype;
   typedef dco_write_iterable wtype;
   typedef dco_print_iterable ptype;
   constexpr const static MemberArity arity = Iterable;
@@ -166,31 +197,36 @@ struct dco_traits_iterablefix {
 template <typename D>
 struct dco_traits<std::list<D> > : public dco_traits_iterable,
   pack_var_size, unpack_extend, diffpack_complete {
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
-      cname << "std::list<" << dco_traits<D>::getclassname() << ">";
+      cname << "std::list<" << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
   /** Value type for the elements of a list */
   typedef D value_type;
+
+  /** No key */
+  typedef void key_type;
 };
 
 /* vector is iterable, has a variable length */
 template <typename D>
 struct dco_traits<std::vector<D> > : public dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector {
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
-      cname << "std::vector<" << dco_traits<D>::getclassname() << ">";
+      cname << "std::vector<" << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
   typedef D value_type;
+  /** No key */
+  typedef void key_type;
 };
 
 struct dco_traits_mapped {
@@ -205,16 +241,18 @@ struct dco_traits_mapped {
 template <typename K, typename D>
 struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
   pack_var_size, unpack_extend_map, diffpack_complete {
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
-      cname << "std::map<" << dco_traits<K>::getclassname() << ","
-	    << dco_traits<D>::getclassname() << ">";
+      cname << "std::map<" << dco_traits<K>::_getclassname() << ","
+	    << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
   typedef typename std::map<K,D>::value_type value_type;
+  /**  */
+  typedef typename std::map<K,D>::key_type key_type;
   };
 
 struct dco_traits_pair {
@@ -228,12 +266,12 @@ struct dco_traits_pair {
 template <typename K, typename D>
 struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single {
 
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
-      cname << "std::pair<" << dco_traits<K>::getclassname() << ","
-	    << dco_traits<D>::getclassname() << ">";
+      cname << "std::pair<" << dco_traits<K>::_getclassname() << ","
+	    << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
@@ -250,10 +288,12 @@ struct dco_isenum : public dco_isdirect {};
 template <typename T>
 struct dco_nested: public dco_isdirect { };
 
-/* classname function, default for DCO objects */
-template <typename T>
-const char* getclassname()
-{ return dco_traits<T>::getclassname(); }
+/* Old function, classname when called with an object */
+template<typename T>
+inline const char* getclassname(const T& a)
+{
+  return dco_traits<T>::_getclassname();
+}
 
 DUECA_NS_END;
 

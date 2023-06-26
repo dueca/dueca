@@ -129,6 +129,8 @@ struct dco_traits<fix_optional<T> > :
   typedef dco_write_optional wtype;
   constexpr const static MemberArity arity = dco_traits<T>::arity;
   constexpr const static size_t nelts = dco_traits<T>::nelts;
+  typedef T value_type;
+  typedef void key_type;
 };
 
 template <size_t N, typename T> class fixvector;

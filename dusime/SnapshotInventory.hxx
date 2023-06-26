@@ -281,6 +281,9 @@ private:
   const std::string findUniqueName();
 };
 
+template<> const char* getclassname<SnapshotInventory>();
+
+
 DUECA_NS_END;
 
 #endif

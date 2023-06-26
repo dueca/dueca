@@ -8,13 +8,13 @@
 find_package(DuecaCodegen)
 
 
-set(DCOSOURCES Snapshot.dco XmlSnapshot.dco IncoNotice.dco
-  IncoSpec.dco IncoVariable.dco IndexValuePair.dco
+set(DCOSOURCES Snapshot.dco XmlSnapshot.dco IncoMode.dco
+  IncoNotice.dco IncoSpec.dco IncoVariable.dco IndexValuePair.dco
   ReplayCommand.dco ReplayReport.dco IncoVarType.dco)
 
 set(SOURCES SimulationModule.cxx SimulationModule.hxx
   HardwareModule.cxx HardwareModule.hxx DusimeModule.cxx
-  DusimeModule.hxx RTWModule.cxx RTWModule.hxx IncoMode.cxx
+  DusimeModule.hxx RTWModule.cxx RTWModule.hxx 
   IncoCalculator.cxx Interval.cxx IntervalCalculation.cxx
   IncoCollaborator.cxx TrimId.cxx TrimId.hxx TrimLink.hxx TrimLink.cxx
   TrimView.cxx TrimView.hxx TrimSummary.cxx IncoVariableWork.cxx
@@ -24,7 +24,7 @@ set(SOURCES SimulationModule.cxx SimulationModule.hxx
   ReplayMaster.cxx SnapshotInventory.hxx SnapshotInventory.cxx )
 
 set(HEADERS SimulationModule.hxx RTWModule.hxx HardwareModule.hxx
-  DusimeModule.hxx dusime.h IncoMode.hxx IncoTable.hxx
+  DusimeModule.hxx dusime.h IncoTable.hxx
   DusimeController.hxx SnapshotExtra.hxx
   XmlSnapshotExtra.hxx IncoNoticeExtra.hxx IncoRole.hxx
   IncoVariableExtra.hxx ReplayFiler.hxx

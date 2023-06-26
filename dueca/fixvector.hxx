@@ -215,17 +215,18 @@ struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix,
 {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
-  static const char* getclassname()
+  static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
       cname << "fixvector<" << N << ","
-            << dco_traits<D>::getclassname() << ">";
+            << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
   /** Value type for the elements of a trait's target */
   typedef D value_type;
+  typedef void key_type;
 };
 
 DUECA_NS_END;
