@@ -166,6 +166,14 @@ struct dco_traits_iterablefix {
 template <typename D>
 struct dco_traits<std::list<D> > : public dco_traits_iterable,
   pack_var_size, unpack_extend, diffpack_complete {
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "std::list<" << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
   /** Value type for the elements of a list */
   typedef D value_type;
 };
@@ -174,6 +182,14 @@ struct dco_traits<std::list<D> > : public dco_traits_iterable,
 template <typename D>
 struct dco_traits<std::vector<D> > : public dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector {
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "std::vector<" << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
   typedef D value_type;
 };
 
@@ -189,6 +205,15 @@ struct dco_traits_mapped {
 template <typename K, typename D>
 struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
   pack_var_size, unpack_extend_map, diffpack_complete {
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "std::map<" << dco_traits<K>::getclassname() << ","
+	    << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
   typedef typename std::map<K,D>::value_type value_type;
   };
 
@@ -203,6 +228,16 @@ struct dco_traits_pair {
 template <typename K, typename D>
 struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single {
 
+  static const char* getclassname()
+  {
+    static std::stringstream cname;
+    if (cname.str().size() == 0) {
+      cname << "std::pair<" << dco_traits<K>::getclassname() << ","
+	    << dco_traits<D>::getclassname() << ">";
+    }
+    return cname.str().c_str();
+  }
+  
   typedef std::pair<K,D> value_type;
 };
 
