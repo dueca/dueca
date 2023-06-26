@@ -9,7 +9,6 @@
                           summarise these, and are used for template
                           adaptation
         changes         : 131220 first version
-	api             : DUECA_API
         language        : C++
         copyright       : (c) 2016 TUDelft-AE-C&S
         copyright       : (c) 2022 René van Paassen
@@ -65,7 +64,10 @@ class smartstring;
 template <typename T>
 const char* getclassname();
 
-/* specialization for some common types */
+/** @name Class name return for common types
+    @retval String with classname
+*/
+///@{
 template<> const char* getclassname<double>();
 template<> const char* getclassname<float>();
 template<> const char* getclassname<int8_t>();
@@ -88,8 +90,13 @@ template<> const char* getclassname<LogString>();
 template<> const char* getclassname<void*>();
 template<> const char* getclassname<void>();
 template<> const char* getclassname<smartstring>();
+///@}
 
-/* const variants return the very same names */
+/** @name Class name return for common types
+    @brief Const types return the same name
+    @retval String with classname
+*/
+///@{
 template<> inline const char* getclassname<const double>()
 { return getclassname<double>(); }
 template<> inline const char* getclassname<const float>()
@@ -134,26 +141,53 @@ template<> inline const char* getclassname<const void>()
 { return getclassname<void>(); }
 template<> inline const char* getclassname<const smartstring>()
 { return getclassname<smartstring>(); }
+///@}
 
-/* traits, capturing an element for reading */
+/** @name Trait defining struct for read access to DCO members
+
+    @brief Defines different treatments of members for reading */
+///@{
+/** Read as a sinle value/variable */
 struct dco_read_single {};
+/** Do iteration over values. */
 struct dco_read_iterable {};
+/** Read as a mapped type */
 struct dco_read_map {};
+/** Read as a pair, has first / second members */
 struct dco_read_pair {};
+/** A nullable value, read only possible if not null */
 struct dco_read_optional {};
+///@}
 
-/* traits, capturing an element for writing */
+/** @name Trait defining struct for write access to DCO members
+
+    @brief Defines different treatments of members for writing */
+///@
+/** Write as a single value */
 struct dco_write_single {};
+/** Iterate when writing, iterate to current size and do push_back, allow clear. */
 struct dco_write_iterable {};
+/** Fixed size iteration, no push_back/resizing */
 struct dco_write_fixed_it {};
+/** Write as a pair, has first / second members. */
 struct dco_write_pair {};
+/** Write as a map, enter, insert pairs, allow clear */
 struct dco_write_map {};
+/** A nullable value, will be non-nul after a write */
 struct dco_write_optional {};
+///@
 
-/* traits, capturing an element for printing */
+/** @name Trait defining struct for print modes of DCO members
+
+    @brief Defines different treatments of members for printing */
+///@
+/** Print as a single value */
 struct dco_print_single {};
+/** Print as an iterable, between array brackets */
 struct dco_print_iterable {};
+/** Print as a pair */
 struct dco_print_pair {};
+/** Optionally NULL */
 struct dco_print_optional {};
 
 /* Simple, single-element members of a communication type */
@@ -191,7 +225,7 @@ struct test_classname: has_no_classname {};
     https://stackoverflow.com/questions/1005476/how-to-detect-whether-there-is-a-specific-member-variable-in-class
  */
 template<typename T>
-struct test_classname<T, decltype((void) T::classname, 0)>: has_a_classname {}; 
+struct test_classname<T, decltype((void) T::classname, 0)>: has_a_classname {};
 
 /** classname function, default when no specialization defined on
     the object itself */
@@ -222,8 +256,7 @@ template <typename T> struct dco_traits: public dco_traits_single {
   typedef void key_type;
 };
 
-/** Base collection for multiple elements, variable size communication
-    type */
+/** Trait combining iterable properties */
 struct dco_traits_iterable {
 typedef dco_read_iterable rtype;
   typedef dco_write_iterable wtype;
@@ -246,6 +279,7 @@ struct dco_traits_iterablefix {
 template <typename D>
 struct dco_traits<std::list<D> > : public dco_traits_iterable,
   pack_var_size, unpack_extend, diffpack_complete {
+  /** Classname */
   static const char* _getclassname()
   {
     static std::stringstream cname;
@@ -297,7 +331,7 @@ struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
     static std::stringstream cname;
     if (cname.str().size() == 0) {
       cname << "std::map<" << dco_traits<K>::_getclassname() << ","
-	    << dco_traits<D>::_getclassname() << ">";
+            << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
@@ -316,17 +350,17 @@ struct dco_traits_pair {
 
 template <typename K, typename D>
 struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single {
-
+  /** Classname */
   static const char* _getclassname()
   {
     static std::stringstream cname;
     if (cname.str().size() == 0) {
       cname << "std::pair<" << dco_traits<K>::_getclassname() << ","
-	    << dco_traits<D>::_getclassname() << ">";
+            << dco_traits<D>::_getclassname() << ">";
     }
     return cname.str().c_str();
   }
-  
+
   typedef std::pair<K,D> value_type;
 };
 
