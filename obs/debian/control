@@ -2,13 +2,13 @@ Source: dueca
 Section: unknown
 Priority: extra
 Maintainer: Rene van Paassen <Rene.vanPaassen@gmail.com>
-Build-Depends: debhelper (>= 9), cdbs, g++, libeigen3-dev, libfltk1.3-dev, flex, bison, doxygen, guile-2.0-dev, libglade2-dev, graphviz, libgtkmm-2.4-dev, freeglut3-dev, libgtkglext1-dev, libglui-dev, python3-pyparsing, libboost-dev, librsvg2-bin, cmake, libgtk-3-dev, libgtkmm-3.0-dev, libhdf5-dev, libboost-python-dev, python3-dev, lsb-release, rapidjson-dev, libssl-dev, simple-websocket-server-dev, simple-web-server-dev, python3-xlwt, wget, python3-git, python3-setuptools, libpugixml-dev, python3-pip, python3-wheel, libatomic-ops-dev, python3-lxml, libmsgpack-dev, libdate-dev, libtoml11-dev, python3-venv, python3-jinja2, hdf5-tools
+Build-Depends: debhelper (>= 9), cdbs, g++, libeigen3-dev, libfltk1.3-dev, flex, bison, doxygen, guile-2.0-dev, libglade2-dev, graphviz, libgtkmm-2.4-dev, freeglut3-dev, libgtkglext1-dev, libglui-dev, python3-pyparsing, libboost-dev, librsvg2-bin, cmake, libgtk-3-dev, libgtkmm-3.0-dev, libhdf5-dev, libboost-python-dev, python3-dev, lsb-release, rapidjson-dev, libssl-dev, simple-websocket-server-dev, simple-web-server-dev, python3-xlwt, wget, python3-git, python3-setuptools, libpugixml-dev, python3-pip, python3-wheel, libatomic-ops-dev, python3-lxml, libmsgpack-dev, libdate-dev, libtoml11-dev, python3-venv, python3-jinja2, hdf5-tools, python3-h5py
 Standards-Version: 3.8.1
 Homepage:
 
 Package: dueca
 Architecture: any
-Depends: cvs, python3, python3-pyparsing, g++, libeigen3-dev, libfltk1.3-dev, doxygen, guile-2.0-dev, libglade2-dev, graphviz, libgtkmm-2.4-dev, freeglut3-dev, libgtkglext1-dev, libglui-dev, libboost-dev, libboost-python-dev, libboost-filesystem-dev, python3-dev, rapidjson-dev, libgtkmm-3.0-dev, python3-pygraphviz, libhdf5-dev, libssl-dev, python3-git, libpugixml-dev, python3-lxml, libmsgpack-dev, python3-jinja2
+Depends: cvs, python3, python3-pyparsing, g++, libeigen3-dev, libfltk1.3-dev, doxygen, guile-2.0-dev, libglade2-dev, graphviz, libgtkmm-2.4-dev, freeglut3-dev, libgtkglext1-dev, libglui-dev, libboost-dev, libboost-python-dev, libboost-filesystem-dev, python3-dev, rapidjson-dev, libgtkmm-3.0-dev, python3-pygraphviz, libhdf5-dev, libssl-dev, python3-git, libpugixml-dev, python3-lxml, libmsgpack-dev, python3-jinja2, python3-msgpack, python3-crcmod
 Description: Middleware for real-time distributed systems
  DUECA is a middleware library for the implementation of real-time data
  flow processes on distributed hardware. It is currently used for the

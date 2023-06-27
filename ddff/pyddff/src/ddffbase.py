@@ -16,12 +16,20 @@ import os
 crc16 = crcmod.predefined.mkPredefinedCrcFun('crc-ccitt-false')
 
 def dprint(*args, **kwargs):
-    print(*args, **kwargs)
+    """Debug print function
+
+       When activated, prints all kinds of debug messages
+    """
+    pass
+    #print(*args, **kwargs)
 
 
 class DDFFBuffer(io.BytesIO):
+    """Buffer back-end, reading and writing a base DDFF structured file
+    """
 
-    def __init__(self, streamid, offset, blocksize):
+    def __init__(self, streamid, offset, blocksize, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.blocksize = blocksize
         self.streamid = streamid
         self.blockcount = 0
@@ -95,6 +103,8 @@ class DDFFBlock:
 class DDFFStream(list):
 
     def __init__(self, *args, **kwargs):
+        """Single stream in a DDFF data file
+        """
 
         block = None
         if len(args) > 0:
@@ -164,6 +174,15 @@ class DDFFStream(list):
 class DDFF:
 
     def __init__(self, fname, mode='r', blocksize=128):
+        """Access a DDFF encoded data file
+
+        Arguments:
+            fname -- file name
+
+        Keyword Arguments:
+            mode -- read/write mode (default: {'r'})
+            blocksize -- size of data blocks in the file (default: {128})
+        """
 
         self.file = open(fname, mode+'b')
         self.streams = None
@@ -171,6 +190,8 @@ class DDFF:
         self.blocksize = blocksize
 
     def _scanStreams(self):
+        """Internal method to parse and decode streams
+        """
 
         if self.streams is not None:
             return
@@ -189,6 +210,15 @@ class DDFF:
             pass
 
     def createStream(self):
+        """Create a new DDFF stream
+
+        Raises:
+            ValueError: exception to indicate the previous/read file is not
+            correct
+
+        Returns:
+            The new data stream
+        """
         if len(self.streams) in self.streams:
             raise ValueError("DDFF streams not contiguous")
         newid = len(self.streams)
@@ -196,6 +226,11 @@ class DDFF:
         return self.streams[newid]
 
     def write(self, blocksize:int=0) -> None:
+        """Write current streams from memory back to file space
+
+        Keyword Arguments:
+            blocksize -- Size of blocks (default: {0})
+        """
         # this writes the streams in order, not randomly scattered like
         # in real-time writing (since we cannot know the timing)
         for ids in sorted(self.streams.keys()):
@@ -206,9 +241,7 @@ class DDFF:
 if __name__ == '__main__':
 
     prj = 'DuecaTestCommunication'
-    recdata = DDFF(os.getenv('HOME') + 
-                   f'/gdapps/{prj}/{prj}/run/solo/solo' + 
-                   '/recordings-PHLAB.ddff', mode='r')
+    recdata = DDFF('../recordings-PHLAB-new.ddff', mode='r')
     print(recdata.streams[0], recdata.streams[1])
 
 

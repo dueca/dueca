@@ -53,11 +53,12 @@ struct ReplayCommand;
     - A stream with the inventory of the file (stream 0), inherited from
       the FileWithInventory
 
-    - A stream with data on recordings (Tag data, stream 1). This tag
-      data includes some metadata, and records at which offset in the
-      file data from each of the following streams starts.
+    - A stream with data on recordings (Tag data, stream 1, not labeled in 
+      the inventory). This tag data includes some metadata, and records at 
+      which offset in the file, the data from each of the following 
+      streams starts.
 
-    - Further streams, labeled
+    - Further streams, labeled in the inventory
 
  */
 class ReplayFiler:

@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+initfunc=-Wl,@ldundef@InitDDFFLog
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-ddfflog@scriptsuffix@
+Description: HDDFF logging tools for dueca
+Version: ${version}
+Libs: -L${libdir} ${initfunc} -ldueca-ddfflog@scriptsuffix@
+Cflags:
+Requires: dueca-ddfflog = ${version}

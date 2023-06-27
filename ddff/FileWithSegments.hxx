@@ -57,10 +57,19 @@ typedef std::list<DDFFDataRecorder*> recorderlist_t;
 
     - A stream with data on recordings (Tag data, stream 1). This tag
       data includes some metadata, and records at which offset in the
-      file data from each of the following streams starts.
+      file data from each of the following streams starts. Tag data is
+      written in msgpack array format, with the following contents:
+      - array of int, giving the offset values of the first written
+        data in a recording, in bytes from the start of the file.
+      - integer cycle, basically the recording number (unique)
+      - integer index0, in DUECA a time tick for the start of recording
+      - integer index1, a time tick for the end of recording
+      - string with the absolute wall clock time of the recording
+      - string with a name for an initial condition/state, if applicable
+      - string with a label
+      - float granule, value of a time tick, to check for timing compatibility
 
-    - Further streams, labeled
-
+    - Further streams, as defined in the stream #0 inventory.
  */
 class FileWithSegments:
   public ddff::FileWithInventory
@@ -148,6 +157,13 @@ protected:
   FileWithSegments(const std::string& entity);
 
 public:
+
+  /** "Nameless" constructor, for direct use of FileWithSegments, not as
+      recording/restore for replay facilities */
+  FileWithSegments(const std::string& filename,
+                   Mode mode,
+                   unsigned blocksize=4096U);
+
   /** Destructor */
   ~FileWithSegments();
 

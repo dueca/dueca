@@ -1406,24 +1406,28 @@ class BuildProject(OnExistingProject):
             help='Configures a project (if not configured yet) and builds'
             ' the code')
         parser.add_argument(
-            '--clean', type=bool, default=False, const=True, nargs='?',
+            '--clean', dest='clean', action='store_true', default=False,
             help="Clean all code from the build folder, don't configure")
         parser.add_argument(
             '--option', type=str, nargs='*', default=[],
             help='Provide additional options for the configure stage')
         parser.add_argument(
-            '--debug', type=bool, default=False, const=True, nargs='?',
+            '--debug', dest='debug', action='store_true', default=False,
             help='Configure with debug mode')
         parser.set_defaults(handler=BuildProject)
 
     def __call__(self, ns):
 
         self.pushDir(f'{self.projectdir}/build')
+        dprint(f"Build, arguments {ns}")
         if ns.clean:
             try:
+                files = [ str(f) for f in os.listdir('.') if f != '.gitignore' ]
+                # dprint([ 'rm', '-rf'] + files)
                 cm = subprocess.run(
-                    [ 'rm', '-rf', '*'],
+                    [ 'rm', '-rf'] + files,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                dprint(f"Clean result {cm}")
             except Exception as e:
                 print(f"Could not clean out the build folder, {e}",
                       file=sys.stderr)
@@ -1441,10 +1445,11 @@ class BuildProject(OnExistingProject):
                         [ 'cmake', '..' ] + options,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                         check=True)
-
+                    dprint(f"CMake result {cm}")
                 print("Running the build")
                 cm = subprocess.run(
                     [ 'make', '-j8' ], check=True)
+                dprint(f"Build result {cm}")
             except Exception as e:
                 print(f"Failed to run configure or build, {e}",
                       file=sys.stderr)

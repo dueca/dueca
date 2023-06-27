@@ -23,7 +23,7 @@ set(DCOSOURCES
   UChannelCommRequest.dco ChannelReadInfo.dco ChannelWriteInfo.dco
   TokenCountResult.dco EntryCountResult.dco ChannelCountResult.dco
   ChannelCountRequest.dco ChannelMonitorResult.dco
-  ChannelMonitorRequest.dco )
+  ChannelMonitorRequest.dco DUECALogConfig.dco DUECALogStatus.dco)
 
 set(DUECASOURCES
 
@@ -167,7 +167,8 @@ set(INSTALLHEADERS
   msgpack-unstream.hxx PythonCorrectedName.hxx ChronoTimePoint.hxx
   msgpack-unstream-iter.hxx msgpack-unstream-iter.ixx
   ListElementAllocator.hxx DCOtypeJSON.hxx undebug.h
-  AssociateObject.hxx EasyId.hxx dcoprint.hxx fix_optional.hxx)
+  AssociateObject.hxx EasyId.hxx dcoprint.hxx fix_optional.hxx
+)
 # fix_optional.hxx
 
 DUECACODEGEN_TARGET(OUTPUT DCO INDUECA DCOSOURCE ${DCOSOURCES})

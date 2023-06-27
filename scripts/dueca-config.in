@@ -33,7 +33,7 @@ Component selection options:
         --dusime           # DUSIME objects
         --inter            # DUECA process intercommunication
         --hdf5             # HDF5 logging utilities
-	--ddff             # DDFF data file format
+	--ddff             # DDFF data file format logging
         --rtw53 / --rtwv30 # Real-time workshop 3.0, from Matlab 5.3
         --rtw60 / --rtwv40 # Real-time workshop 4.0, from Matlab 6.0
         --rtw61 / --rtwv41 # Real-time workshop 4.1, from Matlab 6.1
@@ -305,6 +305,9 @@ case $OPTION in
                     ;;
                 --hdf5)
                     PKGS="$PKGS dueca-hdf\${SCRIPTSUFFIX}"
+                    ;;
+                --ddff)
+                    PKGS="$PKGS dueca-ddfflog\${SCRIPTSUFFIX}"
                     ;;
                 --dusime)
                     PKGS="$PKGS dueca-dusime\${SCRIPTSUFFIX}"

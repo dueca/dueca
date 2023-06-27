@@ -575,7 +575,7 @@ class Modules:
             rrepo.remote().fetch()
         except git.GitCommandError as e:
             print(
-                f'Failing to get code for borrowed project {prj.name}'
+                f'Failing to get code for borrowed project {prj.name}\n'
                 f'from url {prj.url}, fixes / to check:\n'
                 '- Is this url valid, if not, maybe set a DAPPS_GITROOT_xxx\n'
                 '  variable.\n'
@@ -587,10 +587,15 @@ class Modules:
 
         # create a branch if needed
         if version not in rrepo.heads:
-            dprint(f"In {prj.name}, creating branch {version}, adding to {rrepo.heads}")
-            branch = rrepo.create_head(version, rrepo.remote().refs[version])
-            branch.set_tracking_branch(rrepo.remote().refs[version])
-
+            try:
+                dprint(f"In {prj.name}, creating branch {version}, adding to {rrepo.heads}")
+                branch = rrepo.create_head(version, rrepo.remote().refs[version])
+                branch.set_tracking_branch(rrepo.remote().refs[version])
+            except Exception as e:
+                print(
+                    f'Cannot create requested branch {version} in {prj.name}\n'
+                    f'Error {e}')
+                raise e
 
         # and check it out
         rrepo.git.checkout(version)

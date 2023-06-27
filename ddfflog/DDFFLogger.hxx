@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------   */
-/*      item            : HDF5Logger.hxx
+/*      item            : DDFFLogger.hxx
         made by         : repa
         from template   : DuecaModuleTemplate.hxx
         template made by: Rene van Paassen
@@ -17,61 +17,54 @@
         license         : EUPL-1.2
 */
 
-#ifndef HDF5Logger_hxx
-#define HDF5Logger_hxx
+#ifndef DDFFLogger_hxx
+#define DDFFLogger_hxx
 
 // include the dusime header
-#include <dusime.h>
+#include <dusime/IndexValuePair.hxx>
+#include <dusime/IncoNotice.hxx>
+#include <dusime/dusime.h>
 
 // This includes headers for the objects that are sent over the channels
 #include <DUECALogConfig.hxx>
 #include <DUECALogStatus.hxx>
 
 // additional helpers and includes
-#include "ChannelWatcher.hxx"
-#include <H5Cpp.h>
+#include "EntryWatcher.hxx"
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 // include headers for functions/classes you need in the module
-#include "HdfLogNamespace.hxx"
-#include "HDF5DCOWriteFunctor.hxx"
-#include "HDF5DCOReadFunctor.hxx"
-#include "HDF5DCOMetaFunctor.hxx"
+#include "FileWithSegments.hxx"
+#include "DDFFDCOWriteFunctor.hxx"
+#include "DDFFDCOReadFunctor.hxx"
+#include "DDFFDCOMetaFunctor.hxx"
+#include "ddff_ns.h"
 #include <map>
 #include <list>
 #include <string>
 #include <memory>
 #include <boost/scoped_ptr.hpp>
 
-STARTHDF5LOG;
+DDFF_NS_START;
 
 USING_DUECA_NS;
 
-/** Generic HDF5 file format logging.
+/** Generic DDFF file format logging.
 
     The instructions to create an module of this class from the Scheme
     script are:
 
-    \verbinclude hdf5-logger.scm
+    \verbinclude DDFF-logger.scm
  */
-class HDF5Logger: public SimulationModule
+class DDFFLogger: public SimulationModule
 {
   /** self-define the module type, to ease writing parameter table */
-  typedef HDF5Logger _ThisModule_;
+  typedef DDFFLogger _ThisModule_;
 
 private: // simulation data
 
   // file for logging
-  std::shared_ptr<H5::H5File> hfile;
-
-  // file access properties
-  H5::FileAccPropList         access_proplist;
-
-  // chunk size
-  unsigned chunksize;
-
-  // compress datasets
-  bool compress;
+  std::shared_ptr<ddff::FileWithSegments> hfile;
 
   // filename template
   std::string lftemplate;
@@ -102,12 +95,6 @@ private: // simulation data
     /** name of the channel */
     std::string channelname;
 
-    /** chunk size */
-    unsigned chunksize;
-
-    /** compress dataset */
-    bool compress;
-
     /** always logging or not? */
     bool always_logging;
 
@@ -118,26 +105,24 @@ private: // simulation data
     ChannelReadToken r_token;
 
     /** Metafunctor for creating the working functor */
-    std::weak_ptr<HDF5DCOMetaFunctor> metafunctor;
+    std::weak_ptr<ddff::DDFFDCOMetaFunctor> metafunctor;
 
     /** Functor for the access */
-    boost::scoped_ptr<HDF5DCOWriteFunctor> functor;
+    boost::scoped_ptr<ddff::DDFFDCOReadFunctor> functor;
 
     /** Constructor 1 */
     TargetedLog(const std::string& channelname, const std::string& dataclass,
                 const std::string& label, const std::string& logpath,
                 const GlobalId &masterid, bool always_logging,
-                const DataTimeSpec *reduction, unsigned chunksize,
-                bool compress);
+                const DataTimeSpec *reduction);
     /** Constructor 2 */
     TargetedLog(const std::string& channelname, const std::string& dataclass,
                 const std::string& logpath, const GlobalId &masterid,
-                bool always_logging, const DataTimeSpec *reduction,
-                unsigned chunksize, bool compress);
+                bool always_logging, const DataTimeSpec *reduction);
 
     /** create the functor, e.g. when logging new file or new location */
-    void createFunctor(std::weak_ptr<H5::H5File> nfile,
-                       const HDF5Logger *master,
+    void createFunctor(std::weak_ptr<ddff::FileWithSegments> nfile,
+                       const DDFFLogger *master,
                        const std::string &prefix);
 
     /** Access channel and log */
@@ -193,7 +178,7 @@ private: // activity allocation
   PeriodicAlarm         myclock;
 
   /** Callback object for simulation calculation. */
-  Callback<HDF5Logger>  cb1;
+  Callback<DDFFLogger>  cb1;
 
   /** Activity for simulation calculation. */
   ActivityCallback      do_calc;
@@ -207,7 +192,7 @@ public: // class name and trim/parameter tables
 
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
-  HDF5Logger(Entity* e, const char* part, const PrioritySpec& ts);
+  DDFFLogger(Entity* e, const char* part, const PrioritySpec& ts);
 
   /** Continued construction. This is called after all script
       parameters have been read and filled in, according to the
@@ -219,7 +204,7 @@ public: // construction and further specification
   bool complete();
 
   /** Destructor. */
-  ~HDF5Logger();
+  ~DDFFLogger();
 
   // add here the member functions you want to be called with further
   // parameters. These are then also added in the parameter table
@@ -264,10 +249,7 @@ private: // the member functions that are called for activities
   friend class EntryWatcher;
 
   /** access the file object */
-  inline std::weak_ptr<H5::H5File> getFile() const { return hfile; }
-
-  /** get the chunk size */
-  inline unsigned getChunkSize() const { return chunksize; }
+  inline std::weak_ptr<FileWithSegments> getFile() const { return hfile; }
 
   /** get a pointer to the operation time, for limiting logging */
   inline const DataTimeSpec* getOpTime(bool always=true) const
@@ -281,5 +263,5 @@ private: // the member functions that are called for activities
   void setLoggingActive(bool act);
 };
 
-ENDHDF5LOG;
+DDFF_NS_END;
 #endif

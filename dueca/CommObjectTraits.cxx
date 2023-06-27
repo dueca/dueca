@@ -56,4 +56,12 @@ template<> const char* getclassname<string128>() { return "string128"; }
 template<> const char* getclassname<LogString>() { return "LogString"; }
 template<> const char* getclassname<smartstring>() { return "smartstring"; }
 
+const char* PrintToChars::getNewCString() const 
+{
+  size_t len = this->str().size();
+  char* result = new char[len+1];
+  std::strncpy(result, this->str().c_str(), len+1);
+  return result;
+}
+
 DUECA_NS_END;

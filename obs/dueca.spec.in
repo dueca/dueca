@@ -258,6 +258,7 @@ Summary: Connect DUECA instances
 Group: Development/Libraries/C and C++
 BuildRequires: hdf5-devel
 BuildRequires: zlib-devel
+Requires: python3-h5py
 
 %description -n libdueca-hdf%{sosuffix}
 HDF is an addition to DUECA that provides hdf logging
@@ -644,11 +645,14 @@ getent group rtdueca || groupadd rtdueca
 # for now always included
 %files -n libdueca-ddff%{sosuffix}
 %{_libdir}/libdueca-ddff.so.*
+%{_libdir}/libdueca-ddfflog.so.*
 
 %files ddff-devel
 %{_libdir}/libdueca-ddff.%{so_or_a}
+%{_libdir}/libdueca-ddfflog.%{so_or_a}
+%{_libdir}/libdueca-ddfflog-??.%{startsoa}
 %{_includedir}/dueca/ddff
-%{_libdir}/pkgconfig/dueca-ddff.pc
+%{_libdir}/pkgconfig/dueca-ddff*.pc
 %{python3_sitelib}/pyddff*
 
 %if 0%{?websock_config}

@@ -11,11 +11,11 @@
 
 (Type string32 "#include <stringoptions.h>")
 (Type double)
-(Enum IncoVarType uint8_t "#include <IncoVarType.hxx>")
+(Enum IncoVarType uint8_t "#include \"IncoVarType.hxx\"")
 (IterableType std::map<IncoMode,IncoRole>
 "#include <map>
-#include <IncoMode.hxx>
-#include <IncoRole.hxx>
+#include \"IncoMode.hxx\"
+#include \"IncoRole.hxx\"
 namespace dueca { typedef IncoMode TrimMode; }")
 
 ;; This defines a variable that may be involved in trim condition

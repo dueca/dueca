@@ -217,7 +217,7 @@ inline void msg_unpack(S& i0, const S& iend, dueca::smartstring& i)
   i.resize(len);
   for (size_t ii = 0; ii < len; ii++) {
     check_iterator_notend(i0, iend);
-    i.data()[ii] = *i0++;
+    i[ii] = *i0; ++i0;
   }
 }
 MSGPACKUS_NS_END;
