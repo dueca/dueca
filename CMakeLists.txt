@@ -168,7 +168,7 @@ message(STATUS "Length of source path: ${SOURCE_PATH_SIZE}")
 
 # guile version
 find_program(GUILECONFIG NAMES guile-config3.0 guile-config2.2
-  guile1.8-config guile18-config guile1-config)
+  guile-config guile1.8-config guile18-config guile1-config)
 
 if (NOT GUILECONFIG)
    message(FATAL_ERROR "No suitable guile-config found")
