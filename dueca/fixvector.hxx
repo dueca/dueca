@@ -215,6 +215,8 @@ struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix,
 {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
+
+  /** Helper function, creates a representative classname. */
   static const char* _getclassname()
   {
     static std::stringstream cname;
@@ -226,6 +228,7 @@ struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix,
   }
   /** Value type for the elements of a trait's target */
   typedef D value_type;
+  /** Value type for the keys of a trait's target, not used. */
   typedef void key_type;
 };
 

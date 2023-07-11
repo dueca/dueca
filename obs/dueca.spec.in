@@ -45,7 +45,11 @@ BuildRequires: msgpack-devel
 BuildRequires: python3-pip
 BuildRequires: python3-jinja2
 
-%if 0%{?suse_version}
+%if 0%{?is_opensuse} && 0%{?sle_version} >= 150500
+BuildRequires: libguile3-devel
+BuildRequires: guile3
+%endif
+%if 0%{?is_opensuse} && 0%{?sle_version} < 150500
 BuildRequires: libguile1-devel
 BuildRequires: guile1
 %endif

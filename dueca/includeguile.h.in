@@ -23,7 +23,7 @@
 /* Define to 1 if you have the <libguile18.h> header file. */
 #cmakedefine HAVE_LIBGUILE18_H
 
-/* Define to 1 if you have the <libguile.h> header file. */
+/* Define to 1 if you have a <libguile.h> header file. */
 #cmakedefine HAVE_LIBGUILE_H
 
 #if defined(SCRIPT_SCHEME)
