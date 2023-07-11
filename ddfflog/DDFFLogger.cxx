@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------   */
-/*      item            : HDF5Logger.cxx
+/*      item            : DDFFLogger.cxx
         made by         : repa
         from template   : DuecaModuleTemplate.cxx
         template made by: Rene van Paassen
@@ -17,11 +17,15 @@
 */
 
 
-#define HDF5Logger_cxx
+#include "FileHandler.hxx"
+#include <ddff/FileWithSegments.hxx>
+#include <ddff/ddff_ns.h>
+#define DDFFLogger_cxx
 
 // include the definition of the module class
-#include "HDF5Logger.hxx"
+#include "DDFFLogger.hxx"
 #include "EntryWatcher.hxx"
+#include <dueca/DCOtypeJSON.hxx>
 
 // include the debug writing header, by default, write warning and
 // error messages
@@ -38,13 +42,13 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-STARTHDF5LOG;
+DDFF_NS_START;
 
 // class/module name
-const char* const HDF5Logger::classname = "hdf5-logger";
+const char* const DDFFLogger::classname = "ddff-logger";
 
 // Parameters to be inserted
-const ParameterTable* HDF5Logger::getMyParameterTable()
+const ParameterTable* DDFFLogger::getMyParameterTable()
 {
   static const ParameterTable parameter_table[] = {
     { "set-timing",
@@ -73,7 +77,7 @@ const ParameterTable* HDF5Logger::getMyParameterTable()
       new VarProbe<_ThisModule_,std::string>
       (&_ThisModule_::lftemplate),
       "Template for file name; check boost time_facet for format strings\n"
-      "Default name: datalog-%Y%m%d_%H%M%S.hdf5" },
+      "Default name: datalog-%Y%m%d_%H%M%S.ddff" },
 
     { "log-always",
       new VarProbe<_ThisModule_,bool>(&_ThisModule_::always_logging),
@@ -84,16 +88,6 @@ const ParameterTable* HDF5Logger::getMyParameterTable()
     { "immediate-start",
       new VarProbe<_ThisModule_,bool>(&_ThisModule_::immediate_start),
       "Immediately start the logging module, do not wait for DUECA control\n" },
-
-    { "chunksize",
-      new VarProbe<_ThisModule_,unsigned>(&_ThisModule_::chunksize),
-      "Size of logging chunks (no of data points) for the log file,\n"
-      "in effect for all following entries."},
-
-    { "compress",
-      new VarProbe<_ThisModule_,bool>(&_ThisModule_::compress),
-      "Log compressed data sets; reduces file size and may increase\n"
-      "computation time. In effect for all following entries" },
 
     { "reduction",
       new MemberCall<_ThisModule_,TimeSpec>(&_ThisModule_::setReduction),
@@ -117,12 +111,12 @@ const ParameterTable* HDF5Logger::getMyParameterTable()
        name and MemberCall/VarProbe object. The description is used to
        give an overall description of the module. */
     { NULL, NULL,
-      "Generic logging facilities for channel data to HDF5 data files.\n"
+      "Generic logging facilities for channel data to DDFF data files.\n"
       "The logger may be controlled with DUECALogConfig events, but may\n"
       "also be run without control.\n"
-      "Note that hdf5 may sometimes take unpredictable time (when it\n"
+      "Note that DDFF may sometimes take unpredictable time (when it\n"
       "needs to flush data to disk). DUECA has no problem with that, but\n"
-      "you are advised to configure a separate priority for the hdf5\n"
+      "you are advised to configure a separate priority for the DDFF\n"
       "modules." }
   };
 
@@ -130,7 +124,7 @@ const ParameterTable* HDF5Logger::getMyParameterTable()
 }
 
 // constructor
-HDF5Logger::HDF5Logger(Entity* e, const char* part, const
+DDFFLogger::DDFFLogger(Entity* e, const char* part, const
                        PrioritySpec& ps) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
@@ -139,10 +133,7 @@ HDF5Logger::HDF5Logger(Entity* e, const char* part, const
 
   // initialize the data you need in your simulation or process
   hfile(),
-  access_proplist(),
-  chunksize(500),
-  compress(false),
-  lftemplate("datalog-%Y%m%d_%H%M%S.hdf5"),
+  lftemplate("datalog-%Y%m%d_%H%M%S.ddff"),
   always_logging(false),
   immediate_start(false),
   prepared(false),
@@ -167,32 +158,17 @@ HDF5Logger::HDF5Logger(Entity* e, const char* part, const
   do_calc.setTrigger(myclock);
 }
 
-bool HDF5Logger::complete()
+bool DDFFLogger::complete()
 {
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
   // file name
-  /* DUECA hdf5.
-
-     Information on the block sizes of datasets.
-   */
-  I_XTR("sizes, metablock " << access_proplist.getMetaBlockSize() <<
-        " sieve " << access_proplist.getSieveBufSize());
-  int mdc_nelmts; size_t rdcc_nelmts; size_t rdcc_nbytes; double rdcc_w0;
-  access_proplist.getCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
-  /* DUECA hdf5.
-
-     Information on number of elements in a dataset.
-   */
-  I_XTR("sizes, mdc_nelmts "<< mdc_nelmts << " rdcc_nelmts " << rdcc_nelmts <<
-        " rdcc_nbytes " << rdcc_nbytes << " rdcc_w0 " << rdcc_w0);
-  access_proplist.setStdio();
-
+  
   if (r_config) {
     // wait for hdf file name or start command
-    /* DUECA hdf5.
+    /* DUECA ddff.
 
-       A configuration channel has been configured. The hdf5 file will
+       A configuration channel has been configured. The DDFF file will
        be opened when on command from the configuration channel.
    */
     I_XTR("Configuration channel specified, file opened later");
@@ -200,9 +176,8 @@ bool HDF5Logger::complete()
   else {
     current_filename =
       FormatTime(boost::posix_time::second_clock::universal_time());
-    hfile = std::shared_ptr<H5::H5File>
-      (new H5::H5File(current_filename, H5F_ACC_EXCL, H5::FileCreatPropList::DEFAULT,
-                      access_proplist));
+    hfile = std::shared_ptr<FileWithSegments>
+      (new FileWithSegments(current_filename, FileHandler::Mode::New));
 
     sendStatus(string("opened log file ") + current_filename, false,
                SimTime::getTimeTick());
@@ -215,7 +190,7 @@ bool HDF5Logger::complete()
   return true;
 }
 
-void HDF5Logger::setLoggingActive(bool act)
+void DDFFLogger::setLoggingActive(bool act)
 {
   loggingactive = act;
   if (loggingactive) {
@@ -228,7 +203,7 @@ void HDF5Logger::setLoggingActive(bool act)
 }
 
 // destructor
-HDF5Logger::~HDF5Logger()
+DDFFLogger::~DDFFLogger()
 {
   if (immediate_start) {
     do_calc.switchOff(0);
@@ -236,7 +211,7 @@ HDF5Logger::~HDF5Logger()
 }
 
 // as an example, the setTimeSpec function
-bool HDF5Logger::setTimeSpec(const TimeSpec& ts)
+bool DDFFLogger::setTimeSpec(const TimeSpec& ts)
 {
   // a time span of 0 is not acceptable
   if (ts.getValiditySpan() == 0) return false;
@@ -253,7 +228,7 @@ bool HDF5Logger::setTimeSpec(const TimeSpec& ts)
 
 // the checkTiming function installs a check on the activity/activities
 // of the module
-bool HDF5Logger::checkTiming(const vector<int>& i)
+bool DDFFLogger::checkTiming(const vector<int>& i)
 {
   if (i.size() == 3) {
     new TimingCheck(do_calc, i[0], i[1], i[2]);
@@ -267,15 +242,13 @@ bool HDF5Logger::checkTiming(const vector<int>& i)
   return true;
 }
 
-HDF5Logger::TargetedLog::
+DDFFLogger::TargetedLog::
 TargetedLog(const std::string& channelname, const std::string& dataclass,
             const std::string& label, const std::string& logpath,
             const GlobalId &masterid, bool always_logging,
-            const DataTimeSpec *reduction, unsigned chunksize, bool compress) :
+            const DataTimeSpec *reduction) :
   logpath(logpath),
   channelname(channelname),
-  chunksize(chunksize),
-  compress(compress),
   always_logging(always_logging),
   reduction(reduction ? new PeriodicTimeSpec(*reduction) : NULL),
   r_token(masterid, NameSet(channelname), dataclass, label,
@@ -285,15 +258,13 @@ TargetedLog(const std::string& channelname, const std::string& dataclass,
   //
 }
 
-HDF5Logger::TargetedLog::
+DDFFLogger::TargetedLog::
 TargetedLog(const std::string& channelname, const std::string& dataclass,
             const std::string& logpath, const GlobalId &masterid,
             bool always_logging,
-            const DataTimeSpec *reduction, unsigned chunksize, bool compress) :
+            const DataTimeSpec *reduction) :
   logpath(logpath),
   channelname(channelname),
-  chunksize(chunksize),
-  compress(compress),
   always_logging(always_logging),
   reduction(reduction ? new PeriodicTimeSpec(*reduction) : NULL),
   r_token(masterid, NameSet(channelname), dataclass, 0,
@@ -303,37 +274,56 @@ TargetedLog(const std::string& channelname, const std::string& dataclass,
   //
 }
 
-void HDF5Logger::TargetedLog::createFunctor(std::weak_ptr<H5::H5File> nfile,
-                                            const HDF5Logger *master,
+void DDFFLogger::TargetedLog::createFunctor(std::weak_ptr<FileWithSegments> nfile,
+                                            const DDFFLogger *master,
                                             const std::string &prefix)
 {
   // find the meta information
   ChannelEntryInfo ei = r_token.getChannelEntryInfo();
+  FileStreamWrite::pointer wstream;
+  try {
+    // get a description of the data for the stream label
+    rapidjson::StringBuffer doc;
+    DCOtypeJSON(doc, ei.data_class.c_str());
+   
+    // request a stream in the file
+    wstream = nfile.lock()->createNamedWrite
+      (prefix+logpath, doc.GetString());
+  } catch (const std::exception& e) {
+    /* DUECA ddff.
+    
+       Could not create an entry in the ddff file for logging, may be related
+       to the datatype not being known, or related to file access.
+    */
+    E_XTR("Failed to create a logging stream in the file named \"" <<
+          prefix + logpath << "\", datatype \"" << ei.data_class <<
+          "\" :" << e.what());
+    throw(e);
+  }
+
 
   try {
 
     // metafunctor can create the logging functor
-    std::weak_ptr<HDF5DCOMetaFunctor> metafunctor
-      (r_token.getMetaFunctor<HDF5DCOMetaFunctor>("hdf5"));
+    std::weak_ptr<DDFFDCOMetaFunctor> metafunctor
+      (r_token.getMetaFunctor<DDFFDCOMetaFunctor>("msgpack"));
 
-    functor.reset(metafunctor.lock()->getWriteFunctor
-                  (nfile, prefix + logpath, chunksize,
-                   ei.entry_label, master->getOpTime(always_logging),
-                   compress));
+    functor.reset(metafunctor.lock()->getReadFunctor
+                  (wstream, master->getOpTime(always_logging)));
   }
   catch (const std::exception& e) {
-    /* DUECA hdf5.
+    /* DUECA ddff.
 
-       Failure creating a functor for writing channel data in hdf5 log.
-       Check the hdf5 option on the datatype. */
-    W_XTR("Failing to create hdf5 functor for logging channel " <<
+       Failure creating a functor for writing channel data in DDFF log.
+       Check the DDFF option on the datatype. */
+    W_XTR("Failing to create msgpack functor for logging channel " <<
           r_token.getName() << " entry " << ei.entry_id <<
-          " datatype " << ei.data_class);
+          " datatype " << ei.data_class << ": " << e.what());
     throw(e);
   }
 }
 
-void HDF5Logger::TargetedLog::accessAndLog(const TimeSpec& ts)
+void DDFFLogger::TargetedLog::accessAndLog(const TimeSpec& ts)
 {
   if (reduction) {
     DataTimeSpec tsc0 = r_token.getOldestDataTime();
@@ -365,23 +355,23 @@ void HDF5Logger::TargetedLog::accessAndLog(const TimeSpec& ts)
   }
 }
 
-void HDF5Logger::TargetedLog::spool(const TimeSpec& ts)
+void DDFFLogger::TargetedLog::spool(const TimeSpec& ts)
 {
   //unsigned idx = 0;
   r_token.flushOlderSets(ts.getValidityStart());
 }
 
-HDF5Logger::TargetedLog::~TargetedLog()
+DDFFLogger::TargetedLog::~TargetedLog()
 {
   //
 }
 
-bool HDF5Logger::logChannel(const vector<string>& i)
+bool DDFFLogger::logChannel(const vector<string>& i)
 {
   targeted_list_t::value_type newtarget;
 
   if (i.size() < 3) {
-    /* DUECA hdf5.
+    /* DUECA ddff.
 
        Configuration error. Check dueca.mod */
     E_CNF("need three strings for logChannel");
@@ -391,16 +381,16 @@ bool HDF5Logger::logChannel(const vector<string>& i)
     if (i.size() == 4) {
       newtarget = std::shared_ptr<TargetedLog>
         (new TargetedLog(i[0], i[1], i[2], i[3], getId(),
-                         always_logging, reduction, chunksize, compress));
+                         always_logging, reduction));
     }
     else {
       newtarget = std::shared_ptr<TargetedLog>
         (new TargetedLog(i[0], i[1], i[2], getId(),
-                         always_logging, reduction, chunksize, compress));
+                         always_logging, reduction));
     }
   }
   catch (const std::exception& e) {
-    /* DUECA hdf5.
+    /* DUECA ddff.
 
        Configuration error opening a log channel. Check dueca.mod */
     E_CNF("could not open channel " << i[0] << " : " << e.what());
@@ -412,10 +402,10 @@ bool HDF5Logger::logChannel(const vector<string>& i)
   return true;
 }
 
-bool HDF5Logger::watchChannel(const vector<string>& i)
+bool DDFFLogger::watchChannel(const vector<string>& i)
 {
   if (i.size() != 2) {
-    /* DUECA hdf5.
+    /* DUECA ddff.
 
        Configuration error. Check dueca.mod */
     E_CNF("need two strings for watchChannel");
@@ -424,11 +414,11 @@ bool HDF5Logger::watchChannel(const vector<string>& i)
   try {
     watched.push_back
       (std::shared_ptr<EntryWatcher>
-       (new EntryWatcher(i[0], i[1], this, always_logging, compress,
-                         reduction, chunksize)));
+       (new EntryWatcher(i[0], i[1], this, always_logging,
+                         reduction)));
   }
   catch (const std::exception& e) {
-    /* DUECA hdf5.
+    /* DUECA ddff.
 
        Configuration error monitoring a watch channel. Check dueca.mod */
     E_CNF("could not watch channel " << i[0] << " : " << e.what());
@@ -439,17 +429,17 @@ bool HDF5Logger::watchChannel(const vector<string>& i)
 }
 
 
-bool HDF5Logger::setReduction(const TimeSpec& red)
+bool DDFFLogger::setReduction(const TimeSpec& red)
 {
   delete reduction;
   reduction = new DataTimeSpec(red);
   return true;
 }
 
-bool HDF5Logger::setConfigChannel(const std::string& cname)
+bool DDFFLogger::setConfigChannel(const std::string& cname)
 {
   if (r_config) {
-    /* DUECA hdf5.
+    /* DUECA ddff.
 
        Attempt to re-configure the configuration channel
        ignored. Check your dueca.mod file.
@@ -464,7 +454,7 @@ bool HDF5Logger::setConfigChannel(const std::string& cname)
   return true;
 }
 
-std::string HDF5Logger::FormatTime(const boost::posix_time::ptime& now,
+std::string DDFFLogger::FormatTime(const boost::posix_time::ptime& now,
                                    const std::string& lft)
 {
   using namespace boost::posix_time;
@@ -479,14 +469,14 @@ std::string HDF5Logger::FormatTime(const boost::posix_time::ptime& now,
 }
 
 // tell DUECA you are prepared
-bool HDF5Logger::isPrepared()
+bool DDFFLogger::isPrepared()
 {
   if (immediate_start) return true;
   prepared = internalIsPrepared();
   return prepared;
 }
 
-bool HDF5Logger::internalIsPrepared()
+bool DDFFLogger::internalIsPrepared()
 {
   bool res = true;
 
@@ -499,9 +489,9 @@ bool HDF5Logger::internalIsPrepared()
     if (hfile && (*ii)->r_token.isValid() && (*ii)->functor.get() == NULL) {
       (*ii)->createFunctor(hfile, this, std::string(""));
 
-      /* DUECA hdf5.
+      /* DUECA ddff.
 
-         Information on the creation of a hdf5 read functor for a
+         Information on the creation of a DDFF read functor for a
          specific channel.
        */
       I_XTR("created functor for " << (*ii)->channelname);
@@ -517,7 +507,7 @@ bool HDF5Logger::internalIsPrepared()
 }
 
 // start the module
-void HDF5Logger::startModule(const TimeSpec &time)
+void DDFFLogger::startModule(const TimeSpec &time)
 {
   if (!immediate_start) {
     do_calc.switchOn(time);
@@ -525,7 +515,7 @@ void HDF5Logger::startModule(const TimeSpec &time)
 }
 
 // stop the module
-void HDF5Logger::stopModule(const TimeSpec &time)
+void DDFFLogger::stopModule(const TimeSpec &time)
 {
   if (!immediate_start) {
     do_calc.switchOff(time);
@@ -535,7 +525,7 @@ void HDF5Logger::stopModule(const TimeSpec &time)
 // this routine contains the main simulation process of your module. You
 // should read the input channels here, and calculate and write the
 // appropriate output
-void HDF5Logger::doCalculation(const TimeSpec& ts)
+void DDFFLogger::doCalculation(const TimeSpec& ts)
 {
   if (!prepared) {
     prepared = internalIsPrepared();
@@ -572,7 +562,7 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
   if (r_config && r_config->getNumVisibleSets(ts.getValidityStart())) {
 
     DataReader<DUECALogConfig> cnf(*r_config, ts);
-    std::shared_ptr<H5::H5File> nfile;
+    std::shared_ptr<FileWithSegments> nfile;
     std::string filename = FormatTime
       (boost::posix_time::second_clock::universal_time(),
        cnf.data().filename);
@@ -582,30 +572,17 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
         cnf.data().prefix.size() == 0) {
 
       try {
-        H5::Exception::dontPrint();
-
         // create the file
-        nfile.reset(new H5::H5File(filename, H5F_ACC_EXCL));
-
-        // attach attribute to root if no prefix
-        if (cnf.data().prefix.size() == 0 && cnf.data().attribute.size() > 0) {
-          H5::Group bpath = nfile->openGroup("/");
-          H5::DataSpace attr_dataspace = H5::DataSpace(H5S_SCALAR);
-          H5::StrType strdatatype
-            (H5::PredType::C_S1, cnf.data().attribute.size());
-          H5::Attribute labeldata = bpath.createAttribute("label", strdatatype,
-                                                          attr_dataspace);
-          labeldata.write(strdatatype, cnf.data().attribute.c_str());
-        }
+        nfile.reset(new FileWithSegments(filename, FileHandler::Mode::New));
       }
-      catch (const H5::Exception &e) {
-        /* DUECA hdf5.
+      catch (const std::exception &e) {
+        /* DUECA ddff.
 
-           Unforeseen error in opening an hdf5 log file.
+           Unforeseen error in opening an DDFF log file.
         */
-        E_XTR("HDF5 exception opening file '" << filename <<
-              "', " << e.getDetailMsg());
-        sendStatus(std::string("HDF5 File open failure, ") + e.getDetailMsg(),
+        E_XTR("DDFF exception opening file '" << filename <<
+              "', " << e.what());
+        sendStatus(std::string("DDFF File open failure, ") + e.what(),
                    true, ts.getValidityStart());
         setLoggingActive(false);
         return;
@@ -620,46 +597,11 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
       filename = current_filename;
     }
 
-    // create a new base group if applicable
-    if (cnf.data().prefix.size()) {
-      try {
-        H5::Exception::dontPrint();
 
-        H5::Group bpath = nfile->createGroup(cnf.data().prefix);
-        // attach attribute to base group
-        if (cnf.data().attribute.size()) {
-          H5::DataSpace attr_dataspace = H5::DataSpace(H5S_SCALAR);
-          H5::StrType strdatatype
-            (H5::PredType::C_S1, cnf.data().attribute.size());
-          H5::Attribute labeldata = bpath.createAttribute
-            ("label", strdatatype, attr_dataspace);
-          labeldata.write(strdatatype, cnf.data().attribute.c_str());
-        }
-        {
-          sendStatus(string("logging under ") + filename +
-                     string(" ") + cnf.data().prefix, false,
-                     ts.getValidityStart());
-        }
-      }
-      catch(const H5::Exception &e) {
-        /* DUECA hdf5.
-
-           Unforeseen error in specifying a base path for an hdf5 log
-           set.
-         */
-        E_XTR("HDF5 exception setting base path, " << e.getDetailMsg());
-        sendStatus(std::string("HDF5 File base path, ") + e.getDetailMsg(),
-                   true, ts.getValidityStart());
-        setLoggingActive(false);
-        return;
-      }
-    }
-
-#ifndef HDF5_NOCATCH
+#ifndef DDFF_NOCATCH
     try
 #endif
       {
-        H5::Exception::dontPrint();
         // create or re-create all functors
         for (targeted_list_t::iterator ii = targeted.begin();
              ii != targeted.end(); ii++) {
@@ -671,14 +613,14 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
           (*ww)->createFunctors(nfile, cnf.data().prefix);
         }
       }
-#ifndef HDF5_NOCATCH
-    catch(const H5::Exception &e) {
-      /* DUECA hdf5.
+#ifndef DDFF_NOCATCH
+    catch(const std::exception &e) {
+      /* DUECA ddff.
 
          Unforeseen error in creating a functor.
        */
-      E_XTR("HDF5 exception creating functors, " << e.getDetailMsg());
-      sendStatus(std::string("HDF5 creating functors, ") + e.getDetailMsg(),
+      E_XTR("DDFF exception creating functors, " << e.what());
+      sendStatus(std::string("DDFF creating functors, ") + e.what(),
                  true, ts.getValidityStart());
       setLoggingActive(false);
       return;
@@ -704,20 +646,20 @@ void HDF5Logger::doCalculation(const TimeSpec& ts)
       (*ww)->accessAndLog(ts);
     }
   }
-  catch (const H5::Exception& e) {
-    /* DUECA hdf5.
+  catch (const std::exception& e) {
+    /* DUECA ddff.
 
-       Unforeseen Input/Output error when interacting with an HDF5 log
+       Unforeseen Input/Output error when interacting with an DDFF log
        file. Check your disk sanity. Are you trying to log over NFS?
      */
-    W_XTR("HDF5 File IO failure, " << e.getDetailMsg());
-    sendStatus(std::string("HDF5 File IO failure, ") + e.getDetailMsg(),
+    W_XTR("DDFF File IO failure, " << e.what());
+    sendStatus(std::string("DDFF File IO failure, ") + e.what(),
                true, ts.getValidityStart());
     setLoggingActive(false);
   }
 }
 
-void HDF5Logger::sendStatus(const std::string& msg, bool error,
+void DDFFLogger::sendStatus(const std::string& msg, bool error,
                             TimeTickType moment)
 {
   if (w_status.isValid()) {
@@ -739,5 +681,5 @@ void HDF5Logger::sendStatus(const std::string& msg, bool error,
 // Make a TypeCreator object for this module, the TypeCreator
 // will check in with the script code, and enable the
 // creation of modules of this type
-//static TypeCreator<HDF5Logger> a(HDF5Logger::getMyParameterTable());
-ENDHDF5LOG;
+//static TypeCreator<DDFFLogger> a(DDFFLogger::getMyParameterTable());
+DDFF_NS_END;

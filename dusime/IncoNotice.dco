@@ -9,9 +9,9 @@
         license         : EUPL-1.2")
 
 (Type string32 "#include <stringoptions.h>")
-(Enum IncoMode uint8_t "#include <IncoMode.hxx>")
+(Enum IncoMode uint8_t "#include \"IncoMode.hxx\"")
 (IterableType std::list<IndexValuePair> "#include <list>
-#include <IndexValuePair.hxx>" )
+#include \"IndexValuePair.hxx\"" )
 (Type uint32_t)
 
 ;; Object to send initial condition data between modules and the trim

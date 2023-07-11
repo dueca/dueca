@@ -243,6 +243,12 @@ inline const char* find_classname(const has_no_classname&)
   return getclassname<T>();
 }
 
+/** Small helper struct, can return a newly allocated string */
+struct PrintToChars: public std::stringstream
+{
+  const char* getNewCString() const;
+};
+
 /** The default object/member traits assumes single-element members */
 template <typename T> struct dco_traits: public dco_traits_single {
   /** Classname */
@@ -282,11 +288,13 @@ struct dco_traits<std::list<D> > : public dco_traits_iterable,
   /** Classname */
   static const char* _getclassname()
   {
-    static std::stringstream cname;
-    if (cname.str().size() == 0) {
-      cname << "std::list<" << dco_traits<D>::_getclassname() << ">";
+    static const char* cname = NULL;
+    if (!cname) {
+      PrintToChars _n; 
+      _n << "std::list<" << dco_traits<D>::_getclassname() << ">";
+      cname = _n.getNewCString();
     }
-    return cname.str().c_str();
+    return cname;
   }
   /** Value type for the elements of a list */
   typedef D value_type;
@@ -295,6 +303,7 @@ struct dco_traits<std::list<D> > : public dco_traits_iterable,
   typedef void key_type;
 };
 
+
 /* vector is iterable, has a variable length */
 template <typename D>
 struct dco_traits<std::vector<D> > : public dco_traits_iterable,
@@ -302,11 +311,13 @@ struct dco_traits<std::vector<D> > : public dco_traits_iterable,
   /** Calculate the class name */
   static const char* _getclassname()
   {
-    static std::stringstream cname;
-    if (cname.str().size() == 0) {
-      cname << "std::vector<" << dco_traits<D>::_getclassname() << ">";
+    static const char* cname = NULL;
+    if (!cname) {
+      PrintToChars _n; 
+      _n << "std::vector<" << dco_traits<D>::_getclassname() << ">";
+      cname = _n.getNewCString();
     }
-    return cname.str().c_str();
+    return cname;
   }
   typedef D value_type;
   /** No key */
@@ -328,14 +339,16 @@ struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
   /** Calculate the class name */
   static const char* _getclassname()
   {
-    static std::stringstream cname;
-    if (cname.str().size() == 0) {
-      cname << "std::map<" << dco_traits<K>::_getclassname() << ","
-            << dco_traits<D>::_getclassname() << ">";
+    static const char* cname = NULL;
+    if (!cname) {
+      PrintToChars _n; 
+      _n << "std::map<" << dco_traits<K>::_getclassname() << ","
+         << dco_traits<D>::_getclassname() << ">";
+      cname = _n.getNewCString();
     }
-    return cname.str().c_str();
+    return cname;
   }
-  typedef typename std::map<K,D>::value_type value_type;
+  typedef typename std::map<K,D>::mapped_type value_type;
   /**  */
   typedef typename std::map<K,D>::key_type key_type;
   };
@@ -353,12 +366,14 @@ struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single {
   /** Classname */
   static const char* _getclassname()
   {
-    static std::stringstream cname;
-    if (cname.str().size() == 0) {
-      cname << "std::pair<" << dco_traits<K>::_getclassname() << ","
-            << dco_traits<D>::_getclassname() << ">";
+    static const char* cname = NULL;
+    if (!cname) {
+      PrintToChars _n; 
+      _n << "std::pair<" << dco_traits<K>::_getclassname() << ","
+         << dco_traits<D>::_getclassname() << ">";
+      cname = _n.getNewCString();
     }
-    return cname.str().c_str();
+    return cname;
   }
 
   typedef std::pair<K,D> value_type;

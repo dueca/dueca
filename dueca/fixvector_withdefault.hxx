@@ -14,7 +14,7 @@
 */
 
 #pragma once
-#define fixvector_hxx
+#define fixvector_withdefault_hxx
 #include "AmorphStore.hxx"
 #include <CommObjectTraits.hxx>
 #include <PackTraits.hxx>

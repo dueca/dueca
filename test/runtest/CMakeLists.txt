@@ -53,7 +53,7 @@ set(LOGGROUPS entry child __parent__ coded drive fixvector limvector
 lists map mappedfixvector nestedmap second varvector)
 
 set(CONTROLFILES
-  tmssolo tmsudptwo tmswsudpfour
+  tmssolo tmsudptwo tmswsudpfour replayscenario
 )
 
 # run these tests with enough python modules

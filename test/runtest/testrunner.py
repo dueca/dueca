@@ -181,6 +181,55 @@ class Click:
         else:
             the_mouse.release(self.button)
 
+class KeyPress:
+
+    def __init__(self, xmlroot=None, xmlnode=None, x=0, y=0, window=None,
+                 key=None, wait=0.1):
+        if xmlroot is not None:
+            xmlnode = etree.SubElement(xmlroot, 'key')
+            if window is not None:
+                x, y = translation.toWindow(x, y, window)
+                xmlnode.set('window', window.wm_name)
+            xmlnode.set('x', str(x))
+            xmlnode.set('y', str(y))
+            xmlnode.set('key', str(key))
+            xmlnode.set('wait', str(wait))
+        elif xmlnode is not None:
+            self.window = xmlnode.get('window', '')
+            self.x = int(xmlnode.get('x', '0'))
+            self.y = int(xmlnode.get('y', '0'))
+            keystring = xmlnode.get('key')
+            if keystring.startswith('Key.'):
+                try:
+                    self.key = Key[keystring[4:]]
+                except KeyError:
+                    self.key = keystring[4]
+            elif keystring[0] == "'" and keystring[-1] == "'":
+                self.key = keystring[1]
+            self.wait = float(xmlnode.get('wait', 0.1))
+
+    async def execute(self):
+        global the_mouse
+        global the_keyboard
+        global translation
+
+        print(f"key {self.window} {self.x},{self.y} '{self.key}'")
+
+        if self.window:
+            w = findWindow(self.window)
+            if w is None:
+                raise ValueError(f"Cannot find window {self.window}")
+            x, y = translation.toScreen(self.x, self.y, w)
+        else:
+            x, y = self.x, self.y
+
+        the_mouse.position = x, y
+        if self.wait:
+            await asyncio.sleep(self.wait)
+
+        the_keyboard.press(self.key)
+        the_keyboard.release(self.key)
+
 
 class Check:
 
@@ -318,6 +367,8 @@ class Scenario:
                 self.actions.append(Click(xmlnode=node))
             elif XML_tag(node, 'snap'):
                 self.actions.append(Snap(xmlnode=node))
+            elif XML_tag(node, 'key'):
+                self.actions.append(KeyPress(xmlnode=node))
             else:
                 raise ValueError(f"Cannot process node {node.tag}")
 
@@ -409,6 +460,12 @@ class Scenario:
 
         elif key in (Key.esc, ):
             return False
+
+        else:
+            window = findWindowUnder(self.project.windows, self.x, self.y, True)
+            self.actions.append(KeyPress(xmlroot=self.actionnode, key=key,
+                                         x=self.x, y=self.y, window=window))
+            return True
 
     async def run(self, runner, record: bool=False):
 

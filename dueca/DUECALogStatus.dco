@@ -1,23 +1,21 @@
 ;; -*-scheme-*-
 (Header "
-        original item   : HDFLogStatus.dco
+        original item   : DUECALogStatus.dco
         made by         : Rene' van Paassen
         date            : 170521
         api             : DUECA_API
         description     : Status feedback hdf logging
         copyright       : (c) 2017-2022 TUDelft-AE-C&S
-                        : (c) 2022 René van Paassen
+                        : (c) 2023 René van Paassen
         license         : EUPL-1.2")
 
 (Type vstring "#include <stringoptions.h>")
 (Type bool)
 
 ;; Status feedback for hdf logging
-(Event HDFLogStatus
-       ;; file name for creating an HDF log, if empty, use previous
-       ;; or default file name
+(Event DUECALogStatus
+       ;; Status report on a logging action
        (vstring status)
-       ;; path prefix for the logging. Can be used to log multiple
-       ;; sets in a single file. If empty, no prefix
+       ;; Error flag, indicating an error or problem
        (bool error (Default false))
        )

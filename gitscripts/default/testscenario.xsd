@@ -41,6 +41,7 @@
       <xs:element name="click" type="click_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="check" type="check_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="snap" type="snap_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="key" type="key_t" minOccurs="1" maxOccurs="1"/>
     </xs:choice>
   </xs:complexType>
 
@@ -61,6 +62,15 @@
     <xs:attribute name="y" type="xs:integer"/>
     <xs:attribute name="button" type="xs:string"/>
     <xs:attribute name="pressed" type="xs:boolean"/>
+    <xs:attribute name="wait" type="xs:decimal"/>
+  </xs:complexType>
+
+  <xs:complexType name="key_t">
+    <xs:attribute name="window" type="xs:string"/>
+    <xs:attribute name="x" type="xs:integer"/>
+    <xs:attribute name="y" type="xs:integer"/>
+    <xs:attribute name="key" type="xs:string"/>
+    <xs:attribute name="wait" type="xs:decimal"/>
   </xs:complexType>
 
   <xs:complexType name="snap_t">

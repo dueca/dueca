@@ -28,6 +28,15 @@ DDFF_NS_START
 
     With this, data sets can be named in the DDFF file, and additional
     information, such as type information, can be added.
+
+    The inventory is written as msgpack blocks, each block with the following
+    content:
+    - A key, which must be a unique string, resulting in the name of the
+      data stream
+    - An integer ID, linking it to the stream number (2 .. n)
+    - A free-text label. Commonly, information about the data written in 
+      the stream is given there, in the form of a JSON variable. From DUECA.
+      this can be created with the DCOtypeJSON function. 
  */
 class FileWithInventory: public FileHandler
 {

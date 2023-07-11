@@ -11,7 +11,7 @@
 (Type NameSet "#include <NameSet.hxx>")
 (IterableType std::vector<IncoVariable>
 "#include <vector>
-#include <IncoVariable.hxx>")
+#include \"IncoVariable.hxx\"")
 
 ;; This is a class that specifies the initial condition calculation
 ;; requested by a Module. It contains a list of IncoVariable

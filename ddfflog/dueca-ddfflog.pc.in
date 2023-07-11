@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+dueca_includedir=@dueca_includedir@
+libdir=@libdir@
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-ddfflog
+Description: DDFF logging tools for dueca
+Version: ${version}
+Libs: -L${libdir} -ldueca-ddfflog${staticsuffix}
+Cflags: -I${dueca_includedir}/ddfflog -DDUECA_CONFIG_DDFF
+Requires: dueca = ${version}, dueca-ddff = ${version}

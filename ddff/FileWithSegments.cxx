@@ -101,6 +101,15 @@ FileWithSegments::FileWithSegments(const std::string& entity) :
   DEB("New FileWithSegments");
 }
 
+FileWithSegments::FileWithSegments(const std::string& filename,
+                                   Mode mode,
+                                   unsigned blocksize) :
+  FileWithInventory(filename, mode, blocksize)
+{
+  // now create the tag writer, and read any existing tags
+  w_tags = attachWrite(1, blocksize);
+}
+
 FileWithSegments::~FileWithSegments()
 {
   //

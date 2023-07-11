@@ -17,7 +17,8 @@ set(HEADERS DDFFExceptions.hxx FileHandler.hxx FileStreamRead.hxx
   FileStreamWrite.hxx ControlBlock.hxx AQMTMessageBufferAlloc.hxx
   FileWithInventory.hxx DDFFDCOWriteFunctor.hxx DDFFDCOReadFunctor.hxx
   DDFFDCOMetaFunctor.hxx ddff_ns.h DDFFMessageBuffer.hxx
-  FileWithSegments.hxx DDFFDataRecorder.hxx)
+  FileWithSegments.hxx DDFFDataRecorder.hxx
+)
 
 set(SOURCES
 

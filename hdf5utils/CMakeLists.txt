@@ -5,7 +5,7 @@ mylinker_arguments(OUTPUT HDF5_LINKLIBS LIBLIST ${HDF5_LIBRARIES})
 
 set(DCOSOURCES
 
-  HDFLogConfig.dco HDFLogStatus.dco HDFReplayConfig.dco
+  HDFReplayConfig.dco
   )
 
 set(SOURCES
@@ -21,9 +21,8 @@ set(INSTALLHEADERS
 
   HDF5Templates.hxx HDF5DCOMetaFunctor.hxx HDF5DCOWriteFunctor.hxx
   HDF5DCOReadFunctor.hxx HDF5Exceptions.hxx HdfLogNamespace.hxx
-  ${CMAKE_CURRENT_BINARY_DIR}/HDFLogConfig.hxx
   ${CMAKE_CURRENT_BINARY_DIR}/HDFReplayConfig.hxx
-  ${CMAKE_CURRENT_BINARY_DIR}/HDFLogStatus.hxx)
+  HDFLogConfig.hxx HDFLogStatus.hxx)
 
 DUECACODEGEN_TARGET(OUTPUT DCO INDUECA DCOSOURCE ${DCOSOURCES})
 
