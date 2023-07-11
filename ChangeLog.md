@@ -2,6 +2,16 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.1] - 2023-07-11
+
+- Add "dueca-gproject build" command, to configure and build projects
+- Some corrections to automatic classname calculation
+- Added a test case with snapshot, recording and replay using 
+  DuecaTestCommunication
+- Extend the ddff python code, and add a script for ddff conversion
+- Create and add a ddff logger python program
+- Improve workflow run, upload LastTest.log as build artifact
+
 ## [4.0.0] - 2023-06-15
 
 - add a fix_optional object, to accomodate optional / nil values from
