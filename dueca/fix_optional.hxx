@@ -125,11 +125,17 @@ struct dco_traits<fix_optional<T> > :
   public dco_traits_optional,
   pack_optional
 {
+  /** Flag indicating how to read this as a DCO type */
   typedef dco_read_optional rtype;
+  /** Flag indicating how to write this as a DCO type */
   typedef dco_write_optional wtype;
+  /** Inherit the number multiplicity from the wrapped type */
   constexpr const static MemberArity arity = dco_traits<T>::arity;
+  /** Inherit number of elements (first dimension) from wrapped type */
   constexpr const static size_t nelts = dco_traits<T>::nelts;
+  /** Value type for the elements of a trait's target. */
   typedef T value_type;
+  /** Value type for the keys of a trait's target, not used. */
   typedef void key_type;
 };
 

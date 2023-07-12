@@ -1,4 +1,4 @@
 usr/lib/*/libdueca-ddff*
 usr/lib/*/pkgconfig/dueca-ddff*.pc
-
+usr/bin/ddff-convert
 usr/lib/python*/*/pyddff*

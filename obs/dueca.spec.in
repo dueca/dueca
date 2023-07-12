@@ -45,7 +45,10 @@ BuildRequires: msgpack-devel
 BuildRequires: python3-pip
 BuildRequires: python3-jinja2
 
-%if 0%{?suse_version}
+%if 0%{?is_opensuse} && 0%{?sle_version} >= 150500
+BuildRequires: guile-devel
+%endif
+%if 0%{?is_opensuse} && 0%{?sle_version} < 150500
 BuildRequires: libguile1-devel
 BuildRequires: guile1
 %endif
@@ -493,13 +496,13 @@ getent group rtdueca || groupadd rtdueca
 %endif
 
 # run scripts
-%{_prefix}/bin/moveandnumber
-%{_prefix}/bin/clean-dueca-rundir
-%{_prefix}/bin/rrundueca
-%{_prefix}/bin/rrunduecaX
-%{_prefix}/bin/rrunduecaXmwm
-%{_prefix}/bin/rrunduecaXxf
-%{_prefix}/bin/rrunduecaXfvwm
+%{_bindir}/moveandnumber
+%{_bindir}/clean-dueca-rundir
+%{_bindir}/rrundueca
+%{_bindir}/rrunduecaX
+%{_bindir}/rrunduecaXmwm
+%{_bindir}/rrunduecaXxf
+%{_bindir}/rrunduecaXfvwm
 
 # data files
 %{_prefix}/share/dueca
@@ -580,23 +583,23 @@ getent group rtdueca || groupadd rtdueca
 %endif
 
 # scripts relevant for development
-%{_prefix}/bin/dueca-codegen
-%{_prefix}/bin/dueca-config
-%{_prefix}/bin/dueca-filtmods
-%{_prefix}/bin/dueca-gencommh
-%{_prefix}/bin/dueca-listdco
-%{_prefix}/bin/dueca-project
-%{_prefix}/bin/dueca-copy-project
-%{_prefix}/bin/dueca-scriptcommands
-%{_prefix}/bin/dueca-tagfiles
-%{_prefix}/bin/dueca-rtwparser
-%{_prefix}/bin/makemycvsdir
-%{_prefix}/bin/new-module
-%{_prefix}/bin/new-dco
-%{_prefix}/bin/dueca-channeldot
-%{_prefix}/bin/dueca-gproject
-%{_prefix}/bin/dueca-cvs-to-git
-%{_prefix}/bin/dueca-scheme-to-python
+%{_bindir}/dueca-codegen
+%{_bindir}/dueca-config
+%{_bindir}/dueca-filtmods
+%{_bindir}/dueca-gencommh
+%{_bindir}/dueca-listdco
+%{_bindir}/dueca-project
+%{_bindir}/dueca-copy-project
+%{_bindir}/dueca-scriptcommands
+%{_bindir}/dueca-tagfiles
+%{_bindir}/dueca-rtwparser
+%{_bindir}/makemycvsdir
+%{_bindir}/new-module
+%{_bindir}/new-dco
+%{_bindir}/dueca-channeldot
+%{_bindir}/dueca-gproject
+%{_bindir}/dueca-cvs-to-git
+%{_bindir}/dueca-scheme-to-python
 
 # python package
 %{python3_sitelib}/duecautils*
@@ -646,6 +649,7 @@ getent group rtdueca || groupadd rtdueca
 %files -n libdueca-ddff%{sosuffix}
 %{_libdir}/libdueca-ddff.so.*
 %{_libdir}/libdueca-ddfflog.so.*
+%{_bindir}/ddff-convert
 
 %files ddff-devel
 %{_libdir}/libdueca-ddff.%{so_or_a}

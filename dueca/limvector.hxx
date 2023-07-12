@@ -246,7 +246,8 @@ public:
 template <size_t N, typename D>
 struct dco_traits<limvector<N,D> > : dco_traits_iterable,
   pack_var_size, unpack_resize, diffpack_vector
-{ 
+{
+  /** Helper function, creates a representative classname. */
   static const char* _getclassname()
   {
     static std::stringstream cname;
@@ -256,8 +257,9 @@ struct dco_traits<limvector<N,D> > : dco_traits_iterable,
     }
     return cname.str().c_str();
   }
-  /** Value type for the elements of a trait's target */
+  /** Value type for the elements of a trait's target. */
   typedef D value_type; 
+  /** Value type for the keys of a trait's target, not used. */
   typedef void key_type;
 };
 

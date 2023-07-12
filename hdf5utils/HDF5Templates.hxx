@@ -191,6 +191,7 @@ const H5::DataType* get_hdf5_type(dueca::fixvector<N,T>& t)
   return &data_type;
 }
 
+/** HDF5 type for common container */
 template<size_t N, typename T, int DEFLT, unsigned BASE>
 const H5::DataType* get_hdf5_type(const dueca::fixvector_withdefault<N,T,DEFLT,BASE>& t)
 {
