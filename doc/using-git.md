@@ -1,13 +1,21 @@
 # Some hints for using git with dueca-gproject {#githints}
 
-The [`dueca-gproject`](appdevelg) script supports creation of new
-dueca projects and modification of these projects. To keep track of
-developments, the `git` version control system is used by
-dueca-gproject. In the development work on a project, the developer
-will use a few `dueca-gproject` commands that interact with the
-version control system, for further version control interaction `git`
-will be directly used. This chapter gives some recipes for managing
-the version control of a DUECA project.
+## Introduction
+
+The files for a DUECA project are in most cases arranged in a specific
+structure, so that standard build tools supplied with DUECA can
+compile and link the code, and (distributed) simulations can easily be
+set-up and run. The structure of these projects, and the use of the
+`dueca-gproject` script to create and update such a structure, is
+described in a [chapter on application development](appdevelg). To
+keep track of changes in a project, the `git` version control system
+is used by `dueca-gproject`. In the development work on a project, the
+developer will use a few `dueca-gproject` commands that interact with
+the version control system, for further version control interaction,
+`git` will be directly used. This chapter gives some recipes for
+managing the version control of a DUECA project.
+
+
 
 ## Git interaction through dueca-gproject
 
@@ -63,7 +71,10 @@ completely controlled by the `git` version control system.
 
 ## Branches, repositories, development tree
 
-Git is a very powerful tool for version control, having a lot of flexibity in its set-up. This can make using git for version control daunting at first. As a developer, you interact with a number of different copies of your file:
+Git is a very powerful tool for version control, having a lot of
+flexibity in its set-up. This can make using git for version control
+daunting at first. As a developer, you interact with a number of
+different copies of your file:
 
 - The files you edit, in the project tree. These files are "checked
   out". Note that you may also have files there that are not known to
@@ -77,7 +88,9 @@ Git is a very powerful tool for version control, having a lot of flexibity in it
 
 - The remote repository, typically on a server.
 
-Each repository can have several branches; a branch is usually used to separate different paths in the development of software. The main branch is commonly called "master".
+Each repository can have several branches; a branch is usually used to
+separate different paths in the development of software. The main
+branch is commonly called "master".
 
 There are some git steps to take to keep all these software versions
 aligned, first we discuss the interaction between your local
@@ -93,7 +106,7 @@ repository and the files in your project tree:
       git checkout -b <my new branch>
 
   That starts a new branch from the point that you had currently checked
-  out, by default branch `master`.
+  out, for example from default branch `master`.
 
 - To mark a new file for inclusion in the branch, do:
 
@@ -103,8 +116,11 @@ repository and the files in your project tree:
 
       git commit -a
 
-  Git will ask you for a commit message, if you want to give that on the
-  command line, add an option: `-m "some commit message"`.
+  Git will ask you for a commit message, if you want to give that on
+  the command line, add an option: `-m "some commit
+  message"`. Properly read git's output, it might inform you of files
+  that it sees in your local file tree, but that are not included in
+  the branch. 
 
 
 Note that this is by no means complete, and there is a wealth of
@@ -145,7 +161,10 @@ If the project is already there, use git, from the project folder:
 
     git fetch origin
 
-This will retrieve the latest changes from the remote repository. Git will tell you that there is a new branch since you last compared your copy and the remote repository, now ensure that you also have this branch in your checked-out folder:
+This will retrieve the latest changes from the remote repository. Git
+will tell you that there is a new branch since you last compared your
+copy and the remote repository, now ensure that you also have this
+branch in your checked-out folder:
 
     git checkout --track origin/deploy-on-simona
 
@@ -157,7 +176,12 @@ It is important to keep these changes synchronized, so `commit` and
 
 ### Pull versus fetch and merge
 
-A `git fetch` will only affect your copy of a remote repository. Your checked out files, and your local branches, will remain the same. To bring your local branches and checked-out copy in line with the remote, you would need to combine those changes, typically with a `git merge`, or with a `git rebase`; from your checked-out local branch, and using the previous example:
+A `git fetch` will only affect your copy of a remote repository. Your
+checked out files, and your local branches, will remain the same. To
+bring your local branches and checked-out copy in line with the
+remote, you would need to combine those changes, typically with a `git
+merge`, or with a `git rebase`; from your checked-out local branch,
+and using the previous example:
 
     git merge origin/deploy-on-simona
 
