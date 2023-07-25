@@ -470,7 +470,12 @@ class CloneProject:
                          'CMakeLists.txt\nREADME.md\n.gitignore\nbuild/*\n')
 
         # pull the existing code, and create master/selected branches
-        orig.fetch()
+        try:
+            orig.fetch()
+        except git.GitCommandError as e:
+            print(f"Cannot fetch from {RootMap().urlToAbsolute(ns.remote)}\n"
+                  "Clone failed, check url and access rights")
+            sys.exit(-1)
         dprint("check out on branch", ns.version)
         branch = repo.create_head('master', orig.refs.master)
         branch.set_tracking_branch(orig.refs.master)
