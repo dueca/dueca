@@ -137,7 +137,12 @@ function create_debfiles()
                 ../../../dueca-versioned-xUbuntu_22.04.dsc
     sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
             s/debian\.tar/debian-xUbuntu_22\.04.tar/' ${NAME}.dsc > \
-         ../../../$NAME-xUbuntu_22.04.dsc
+		../../../$NAME-xUbuntu_22.04.dsc
+
+    # same for Debian_12, only regular dsc file
+    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
+            s/debian\.tar/debian-Debian_12.tar/' ${NAME}.dsc > \
+		../../../$NAME-Debian_12.dsc
 
     # now hack/adapt for xUbuntu_18.04
     sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
@@ -176,6 +181,9 @@ function create_debfiles()
         debian/control
     tar cvf ../../debian-xUbuntu_22.04.tar \
         debian
+
+    # same pack for Debian_12
+    tar cvf ../../debian-Debian_12.tar debian
 
     # now hack/adapt for xUbuntu_18.04
     sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
