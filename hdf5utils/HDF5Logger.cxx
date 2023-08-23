@@ -77,7 +77,7 @@ const ParameterTable* HDF5Logger::getMyParameterTable()
 
     { "log-always",
       new VarProbe<_ThisModule_,bool>(&_ThisModule_::always_logging),
-      "For watched channels or channel entries created with always_logging,\n"
+      "For watched channels or channel entries created with log_always,\n"
       "logging also is done in HoldCurrent mode. Default off, toggles\n"
       "this capability for logging defined hereafter."},
 
