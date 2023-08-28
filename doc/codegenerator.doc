@@ -95,17 +95,17 @@ an integer constant) must evaluate to an integer. A small C++ program
 will be generated and then run by the code generator to determine the
 size of NOUTPUTS at the time of code generation.
 
-<li> A few variants of the "Type" declaration can be used to include
+<li> The "Type" declaration can be used to include
 more complex types:
 
   <ol>
 
-    <li> IterableType. This can be used to include a standard stl or stl-like
-    iterable type, for example with:
+    <li> It is possible to use standard standard stl or stl-like
+    containers, for example with:
 
     \code
-         (IterableType std::list<int32_t> "#include <list>")
-         (IterableType std::vector<int32_t> "#include <vector>")
+         (Type std::list<int32_t> "#include <list>")
+         (Type std::vector<int32_t> "#include <vector>")
 
          (MyObject
           (std::list<int32_t> a)
@@ -117,24 +117,24 @@ more complex types:
      The lists or vectors will be correctly packed and unpacked. Their
      size is coded in a 4 byte unsigned number.
 
-     <li> IterableVarSizeType. This can be used with vector-like
-     containers that accept an integer (and possibly a value
-     corresponding to their content), to initialise to a size. The
-     vectors from the standard template library will also do that. The
-     advantage of declaring the type like this is that you can later
-     specify the vector size just before writing the data, see the
-     description of dueca::DataWriter for that.
+     Note that in old code (code generator version 110), this needed
+     to be specified explicitly as an iterable type:
 
-    \code
-         (IterableVarSizeType std::vector<int32_t> "#include <vector>")
+     \code	  
+         (IterableType std::list<int32_t> "#include <list>")
+     \endcode
+
+     Or, if you wanted to specify the length of the object beforehand:
+     \code
 	 (IterableVarSizeType dueca::varvector<float>
 	    "#include <dueca/varvector.hxx>")
+     \endcode
+     
+     This code is still accepted, but it is no longer necessary to
+     mark types as iterable.
+     </li>
 
-         (MyObject
-          (dueca::varvector<float> a)
-          (std::vector<int32_t> b (Default 0))
-    \endcode
-
+     <li> 
      DUECA also provides three simplified vector types that in some
      cases may be more appropriate. The varvector type defines a type
      that is efficiently given a length once, and can then be
@@ -159,11 +159,11 @@ more complex types:
      Some examples:
 
      \code
-     (IterableVarSizeType dueca::varvector<std::string>
+     (Type dueca::varvector<std::string>
      "#include <dueca/varvector.hxx>
      #include <string>")
 
-     (IterableVarSizeType dueca::limvector<5,std::string>
+     (Type dueca::limvector<5,std::string>
      "#include <dueca/limvector.hxx>
      #include <string>")
      \endcode
@@ -185,7 +185,7 @@ more complex types:
      Here is an example of an stl-like type
      that has a fixed size.
     \code
-    (IterableType dueca::fixvector<6,int> "#include <dueca/fixvector.hxx>")
+    (Type dueca::fixvector<6,int> "#include <dueca/fixvector.hxx>")
 
     ;; with in the object definition
     (Object MyObject
@@ -198,7 +198,7 @@ more complex types:
     generator. For example:
 
     \code
-    (IterableType dueca::fixvector<6,dueca::GlobalId>
+    (Type dueca::fixvector<6,dueca::GlobalId>
     "#include <dueca/fixvector.hxx>
     #include <dueca/GlobalId.hxx>")
     \endcode
@@ -310,7 +310,7 @@ version of its code. To guard against that, you must also add a define
 that acknowledges the code generation version you are writing custom
 code for. So somewhere in your MyClassExtra.cxx, define:
 \verbatim
-#define __CUSTOM_COMPATLEVEL_110
+#define __CUSTOM_COMPATLEVEL_111
 \endverbatim
 
 If the code generation version changes in the future, you should check
