@@ -25,7 +25,7 @@ include file where the type is defined, for example:
 (Type GlobalId "#include <GlobalId.hxx>")
 \endverbatim
 
-With this you can send objects of the the GlobalId class of DUECA
+With this you can send objects of the GlobalId class of DUECA
 around. The GlobalId objects are sent around by DUECA as well, and
 therefore the methods to pack their data, unpack their data and create
 them from amorphous storage are defined. Because a GlobalId is itself
@@ -260,7 +260,7 @@ leads to reduced real-time performance.
 
 There is also an option to expand your generated class with methods
 that you have programmed in C++. I must stress here that these must be
-methods (functions) only, not data, since data you add yourself cannot
+methods (functions) only, not data, since data you add yourself will not
 be packed by the code generator. For example, you might want to send
 over quaternions (as a four-element dueca::fixvector), and add the
 operations for the quaternions to the class. You must supply a .hxx
