@@ -12,6 +12,7 @@ from pyparsing import pyparsing_common as ppcom
 import os
 import sys
 from itertools import accumulate
+import numpy as np
 
 _debprint = False
 _values = {}
@@ -70,7 +71,7 @@ def smallerTest(x):
     return lookup(x[0]) < lookup(x[1])
 
 _evaluate = {
-    '*': lambda x: list(accumulate(lookupValues(x), lambda x, y: x*y))[-1],
+    '*': lambda x: np.prod(lookupValues(x)),
     '+': lambda x: sum(lookupValues(x)),
     'list': lambda x: list(lookupValues(x)),
     'define': defineValue,
@@ -92,6 +93,10 @@ def convert(level, pool, arg):
         return arg.convert(level, pool)
     except AttributeError:
         return str(arg)
+    except Exception as e:
+        print(f"Unhandled error {e}\n"
+            f"{level}, {arg}")
+        raise
 
 class ALiteral:
     def __init__(self, v):
@@ -203,10 +208,12 @@ contents = ZeroOrMore(expression | comment)
 
 if __name__ == '__main__':
 
+    tryme = ('gdapps/JNDexperiment/JNDexperiment/run/solo/solo',)
+    tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/SRS/srsecs',)
     # define print for debug
     _debprint = True
 
-    for l in ('gdapps/JNDexperiment/JNDexperiment/run/solo/solo',):
+    for l in tryme:
         with open(f"{os.environ['HOME']}/{l}/dueca.mod", 'r') as f:
             res = contents.parseFile(f)
 

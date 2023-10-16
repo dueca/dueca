@@ -117,12 +117,26 @@ class Equal:
         return self.line
 
 class And:
-    def __init__(self, level, pool, v1, v2):
-        vl = convert(level, pool, v1)
-        vr = convert(level, pool, v2)
-        self.line = f"{str(vl)} and {str(vr)}"
+    def __init__(self, level, pool, *args):
+        self.line = " and ".join(
+            [ f"( {str(convert(level, pool, v))} )" for v in args ])
     def __str__(self):
         return self.line
+
+class Or:
+    def __init__(self, level, pool, *args):
+        self.line = " or ".join(
+            [ f"( {str(convert(level, pool, v))} )" for v in args ])
+    def __str__(self):
+        return self.line
+
+class Multiplication:
+    def __init__(self, level, pool, *args):
+        self.line = " * ".join(
+            [ str(convert(level, pool, v)) for v in args ])
+    def __str__(self):
+        return self.line
+
 class If:
     def __init__(self, level, pool, test, cmdtrue, cmdfalse=None):
         self.lines = [
@@ -222,6 +236,12 @@ class Apply:
     def __str__(self):
         return '\n'.join(self.lines)
 
+class LoadExternal:
+    def __init__(self, level, pool, fname):
+        self.line = f"import {fname.split('.')[0]}"
+    def __str__(self):
+        return self.line
+
 class DuecaBlurp:
     def __str__(self):
         return """
@@ -280,11 +300,14 @@ _pool = {
     'make-time-spec': lambda l, p, *c: TimeSpec(l, p, *c),
     'equal?': lambda l, p, *c: Equal(l, p, *c),
     'and': lambda l, p, *c: And(l, p, *c),
+    'or': lambda l, p, *c: Or(l, p, *c),
+    '*': lambda l, p, *c: Multiplication(l, p, *c),
     'make-entity': lambda l, p, *c: Entity(l, p, *c),
     'make-module': lambda l, p, *c: Module(l, p, *c),
     'make-stick-value': lambda l, p, *c: Creatable('MultiStickValue', l, p, *c),
     'apply': lambda l, p, *c: Apply(l, p, *c),
     'dueca-list': lambda l, p, *c: DuecaBlurp(),
+    'load': lambda l, p, *c: LoadExternal(l, p, *c),
     Comment: lambda l, p, c: ' '*l+f"# {c}",
     Identifier: lambda l, p, c: safeName(c),
     ALiteral: lambda l, p, c: c,
@@ -294,7 +317,9 @@ _pool = {
 
 if __name__ == '__main__':
 
-    for l in ('gdapps/JNDexperiment/JNDexperiment/run/solo/solo',):
+    tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/SRS/srsecs',)
+
+    for l in tryme:
         with open(f"{os.environ['HOME']}/{l}/dueca.mod", 'r') as f:
             res = contents.parseFile(f)
 

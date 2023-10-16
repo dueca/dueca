@@ -2,6 +2,7 @@
 
 import os
 import pyparsing as pp
+import argparse
 
 # When the following conditions are present
 #
@@ -11,8 +12,9 @@ import pyparsing as pp
 #
 # Then a symbolic link is created from the ${HOME}/scripts to the start file
 
-# default
+# default 
 node_number = None
+number_of_nodes = None
 
 def nodeNumber(upto, line, c):
     global node_number
@@ -21,11 +23,21 @@ def nodeNumber(upto, line, c):
     except:
         print(f"Cannot read node number from '{c[0]}', line {line}")
 
+def numberOfNodes(upto, line, c):
+    global number_of_nodes
+    try:
+        number_of_nodes = int(c[0])
+    except:
+        print(f"Cannot read node number from '{c[0]}', line {line}")
+
+
 def parsepy():
 
     # pyparsing string to check
     nodecheck = pp.Literal('this_node_id') + pp.Literal('=') + \
         pp.Word(pp.nums).addParseAction(nodeNumber)
+    numbernodescheck = pp.Literal('no_of_nodes') + pp.Literal('=') + \
+        pp.Word(pp.nums).addParseAction(numberOfNodes)
 
     # run through all lines
     with open('dueca_cnf.py', 'r') as fn:
@@ -67,6 +79,19 @@ def isstartfile(f):
 
 #print(node_number)
 
+parser = argparse.ArgumentParser(
+    description="Create symbolic links to DUECA start scripts")
+parser.add_argument(
+    '--force', action='store_true',
+    help="Overwrite any existing links or files")
+parser.add_argument(
+    '--scriptdir', type=str, default=os.getenv('HOME', 'nohome')+'/scripts',
+    help="Supply folder where scripts are created")
+
+res = parser.pars_args(sys.argv[1:])
+scriptdir = res.scriptdir
+force = res.force
+
 # see if there are start files
 platformdir = os.path.realpath('..')
 startfiles = []
@@ -77,14 +102,15 @@ if node_number == 0 and os.path.isdir(scriptdir):
         if isstartfile(f):
             if (os.path.isfile(f'{scriptdir}/{f}') or \
                 os.path.isdir(f'{scriptdir}/{f}')) and not \
-                os.path.islink(f'{scriptdir}/{f}'):
+                os.path.islink(f'{scriptdir}/{f}') and not force:
                 print(f"Will not link start script {f}\n"
                       f"There is a file with that name in {scriptdir}")
             elif os.path.islink(f'{scriptdir}/{f}') and \
-                 os.path.realpath(f'{scriptdir}/{f}') != f'{platformdir}/{f}':
+                 os.path.realpath(f'{scriptdir}/{f}') != f'{platformdir}/{f}' \
+                 and not force:
                 print(f"Will not link start script {f}\n"
                       f"There is already a different link in {scriptdir}")
-            elif os.path.islink(f'{scriptdir}/{f}'):
+            elif os.path.islink(f'{scriptdir}/{f}') and not force:
                 # print(f"Already linked {scriptdir}/{f}")
             else:
                 try:
@@ -92,7 +118,4 @@ if node_number == 0 and os.path.isdir(scriptdir):
                     print(f"Created a link to start file {f}")
                 except:
                     print(f"Failed to create symlink to {f} in folder {scriptdir}")
-        
-
-
 
