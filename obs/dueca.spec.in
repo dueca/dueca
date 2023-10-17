@@ -600,6 +600,7 @@ getent group rtdueca || groupadd rtdueca
 %{_bindir}/dueca-gproject
 %{_bindir}/dueca-cvs-to-git
 %{_bindir}/dueca-scheme-to-python
+%{_bindir}/dueca-startlink
 
 # python package
 %{python3_sitelib}/duecautils*

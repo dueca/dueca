@@ -20,3 +20,6 @@ else
    ln -sf ../../../dueca_run.x .
 fi
 
+# active only on node 0, when a start file is found, link the start
+# file to a start script folder (default ${HOME}/scripts)
+dueca-startlink --scriptdir=${HOME}/scripts

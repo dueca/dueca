@@ -3,14 +3,15 @@
 import os
 import pyparsing as pp
 import argparse
+import sys
 
 # When the following conditions are present
 #
 # - Running from node 0 on a platform
-# - There is one start file in the platform folder
+# - There is a start file in the platform folder
 # - There is a ${HOME}/scripts folder
 #
-# Then a symbolic link is created from the ${HOME}/scripts to the start file
+# Then a symbolic link is created from the ${HOME}/scripts to the start file(s)
 
 # default 
 node_number = None
@@ -88,7 +89,7 @@ parser.add_argument(
     '--scriptdir', type=str, default=os.getenv('HOME', 'nohome')+'/scripts',
     help="Supply folder where scripts are created")
 
-res = parser.pars_args(sys.argv[1:])
+res = parser.parse_args(sys.argv[1:])
 scriptdir = res.scriptdir
 force = res.force
 
@@ -112,6 +113,7 @@ if node_number == 0 and os.path.isdir(scriptdir):
                       f"There is already a different link in {scriptdir}")
             elif os.path.islink(f'{scriptdir}/{f}') and not force:
                 # print(f"Already linked {scriptdir}/{f}")
+                pass
             else:
                 try:
                     os.symlink(f'{platformdir}/{f}', f'{scriptdir}/{f}')
