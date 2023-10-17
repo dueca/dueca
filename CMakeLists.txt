@@ -22,7 +22,7 @@ include(GNUInstallDirs)
 # version information, please update accordingly
 set(VERMAJOR 4)
 set(VERMINOR 0)
-set(REVISION 1)
+set(REVISION 2)
 set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
 set(VERSION_DATE "15 Jun 2023")
