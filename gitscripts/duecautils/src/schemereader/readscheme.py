@@ -13,6 +13,7 @@ import os
 import sys
 from itertools import accumulate
 import numpy as np
+import re
 
 _debprint = False
 _values = {}
@@ -178,6 +179,11 @@ class Expression:
             #print(f"Calling {self.arguments[0].name} from pool")
             return pool[self.arguments[0].name](
                 level, pool, *self.arguments[1:])
+        for k, e in pool.items():
+            if isinstance(k, re.Pattern):
+                m = k.fullmatch(self.arguments[0].name)
+                if m:
+                    return e(m.group(1), level, pool, *self.arguments[1:])
 
 # token parsing
 comment = (Literal(';') + SkipTo(LineEnd(), include=True)).setParseAction(
@@ -220,5 +226,3 @@ if __name__ == '__main__':
         for r in res:
             if isinstance(r, Expression):
                 r.run()
-
-

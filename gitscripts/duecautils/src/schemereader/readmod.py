@@ -5,7 +5,7 @@ Created on Thu Mar 23 09:32:14 2023
 
 @author: repa
 """
-
+import re
 import os
 try:
     from .readscheme import contents, _values, Expression, _debprint, _evaluate, \
@@ -108,48 +108,52 @@ class Define:
     def __str__(self):
         return self.line
 
-class Equal:
-    def __init__(self, level, pool, v1, v2):
-        vl = convert(level, pool, v1)
-        vr = convert(level, pool, v2)
-        self.line = f"{str(vl)} == {str(vr)}"
-    def __str__(self):
-        return self.line
-
-class And:
-    def __init__(self, level, pool, *args):
-        self.line = " and ".join(
-            [ f"( {str(convert(level, pool, v))} )" for v in args ])
-    def __str__(self):
-        return self.line
-
-class Or:
-    def __init__(self, level, pool, *args):
-        self.line = " or ".join(
-            [ f"( {str(convert(level, pool, v))} )" for v in args ])
-    def __str__(self):
-        return self.line
-
-class Multiplication:
-    def __init__(self, level, pool, *args):
-        self.line = " * ".join(
+class ToInfix:
+    def __init__(self, sym, level, pool, *args):
+        if len(args) < 2:
+            raise ValueError(f"Cannot create infix {sym} from {args}")
+        self.line = f" {sym} ".join(
             [ str(convert(level, pool, v)) for v in args ])
     def __str__(self):
-        return self.line
+        return f"({self.line})"
+
+class ToUnitary:
+    def __init__(self, sym, level, pool, *args):
+        self.line = f"({sym} {str(convert(level, pool, args[0]))})"
+        if len(args) > 1:
+            raise ValueError(f"Too many arguments for unitary {sym}")
+    def __str__(self):
+        return f"({self.line})"
+
+def splitargs(n, args):
+    res = []
+    cmnt = []
+    for a in args:
+        if isinstance(a, Comment):
+            cmnt.append(a)
+        else:
+            res.append(a)
+    while len(res) < n:
+        res.append(None)
+    return res, cmnt
 
 class If:
-    def __init__(self, level, pool, test, cmdtrue, cmdfalse=None):
-        self.lines = [
-            ' '*level + f"if {str(convert(level, pool, test))}:"]
+    def __init__(self, level, pool, *args):
+        (test, cmdtrue, cmdfalse), comments = splitargs(3, args)
+        self.lines = [ str(convert(level, pool, cm)) for cm in comments ]
+        self.lines.append(
+            ' '*level + f"if {str(convert(level, pool, test))}:")
         if isinstance(cmdtrue, Expression) and cmdtrue.fname() == 'list':
             for c in cmdtrue.arguments[1:]:
                 self.lines.append(str(convert(level+4, pool, c)))
         else:
             self.lines.append(str(convert(level+4, pool, cmdtrue)))
-        if cmdfalse is not None:
+        if (cmdfalse is not None) and not (
+            isinstance(cmdfalse, Expression) and cmdfalse.fname() == 'list' and
+            len(cmdfalse.arguments) == 1):
             self.lines.append(
                 ' '*level + 'else:')
-            if isinstance(cmdfalse, Expression) and cmdfalse.fname == 'list':
+            if isinstance(cmdfalse, Expression) and cmdfalse.fname() == 'list':
                 for c in cmdfalse.arguments[1:]:
                     self.lines.append(str(convert(level+4, pool, c)))
             else:
@@ -161,20 +165,44 @@ class If:
 class PrioritySpec:
     def __init__(self, level, pool, *a):
         try:
-            self.line = f"dueca.PrioritySpec({int(a[0])}, {int(a[1])})"
+            vals = dict(priority=0, order=0)
+            if isinstance(a[0], str) and isinstance(a[1], str):
+                vals['priority'] = int(a[0])
+                vals['order'] = int(a[1])
+            else:
+                idx = 0
+                while idx < len(a)-1:
+                    if not isinstance(a[idx], ALiteral):
+                        raise ValueError(f"Cannot get PrioritySpec from {a}")
+                    vals[a[idx].name] = int(a[idx+1])
+                    idx = idx + 2
+
+            self.line = f"dueca.PrioritySpec({vals['priority']}, {vals['order']})"
         except ValueError:
             self.line = "dueca.PrioritySpec(please correct this)"
     def __str__(self):
         return self.line
 
 class TimeSpec:
-     def __init__(self, level, pool, *a):
-         try:
-             self.line = f"dueca.TimeSpec({int(a[0])}, {int(a[1])})"
-         except ValueError:
-             self.line = "dueca.TimeSpec(please correct this)"
-     def __str__(self):
-         return self.line
+    def __init__(self, level, pool, *a):
+        try:
+            vals = {'validity-start': 0, 'period': 100}
+            if isinstance(a[0], str) and isinstance(a[1], str):
+                vals['validity-start'] = int(a[0])
+                vals['period'] = int(a[1])
+            else:
+                idx = 0
+                while idx < len(a)-1:
+                    if not isinstance(a[idx], ALiteral):
+                        raise ValueError(f"Cannot get PrioritySpec from {a}")
+                    vals[a[idx].name] = int(a[idx+1])
+                    idx = idx + 2
+
+            self.line = f"dueca.TimeSpec({vals['validity-start']}, {vals['period']})"
+        except ValueError:
+            self.line = "dueca.TimeSpec(please correct this)"
+    def __str__(self):
+        return self.line
 
 class Entity:
     def __init__(self, level, pool, *arg):
@@ -202,6 +230,38 @@ class Module:
             self.lines.append(' '*(level+8) + '))')
         else:
             self.lines.append(' '*(level+8) + ')')
+    def __str__(self):
+        return '\n'.join(self.lines)
+
+class Font:
+    def __init__(self, level, pool, f1, *args):
+        allf = [ f'"{str(f1)}"' ]
+        if len(args) > 0 and not isinstance(args[0], ALiteral):
+            allf.append(f'"{str(args.pop(0))}"')
+            if len(args) > 0 and not isinstance(args[0], ALiteral):
+                allf.append(f'"{str(args.pop(0))}"')
+
+        self.lines = [
+            f'''dueca.Font({', '.join(allf)})''' ]
+        if len(args):
+            self.lines[-1] += '.param('
+            self.lines.append(' '*(level+8) +
+                              convertLiteralList(level+8, pool, args))
+            self.lines[-1] += ')'
+    def __str__(self):
+        return '\n'.join(self.lines)
+
+class FontManager:
+    def __init__(self, level, pool, name, *args):
+        self.lines = [
+            f'dueca.FontManager("{str(name)}")' ]
+        if len(args):
+            self.lines[-1] += '.param('
+            self.lines.append(' '*(level+4) +
+                              convertLiteralList(level+8, pool, args))
+            self.lines.append(' '*(level+4) + ').complete()')
+        else:
+            self.lines[-1] += '.complete()'
     def __str__(self):
         return '\n'.join(self.lines)
 
@@ -238,7 +298,8 @@ class Apply:
 
 class LoadExternal:
     def __init__(self, level, pool, fname):
-        self.line = f"import {fname.split('.')[0]}"
+        self.line = " "*level + \
+            f"from {str(convert(level, pool, fname))[1:-1]} import *"
     def __str__(self):
         return self.line
 
@@ -298,33 +359,40 @@ _pool = {
     'if': lambda l, p, *c: If(l, p, *c),
     'make-priority-spec': lambda l, p, *c: PrioritySpec(l, p, *c),
     'make-time-spec': lambda l, p, *c: TimeSpec(l, p, *c),
-    'equal?': lambda l, p, *c: Equal(l, p, *c),
-    'and': lambda l, p, *c: And(l, p, *c),
-    'or': lambda l, p, *c: Or(l, p, *c),
-    '*': lambda l, p, *c: Multiplication(l, p, *c),
+    'equal?': lambda l, p, *c: ToInfix("==", l, p, *c),
+    'and': lambda l, p, *c: ToInfix("and", l, p, *c),
+    'or': lambda l, p, *c: ToInfix("or", l, p, *c),
+    'not': lambda l, p, *c: ToUnitary("not", l, p, *c),
+    '*': lambda l, p, *c: ToInfix('*', l, p, *c),
+    '+': lambda l, p, *c: ToInfix('+', l, p, *c),
+    '/': lambda l, p, *c: ToInfix('/', l, p, *c),
+    '-': lambda l, p, *c: ToInfix('-', l, p, *c),
     'make-entity': lambda l, p, *c: Entity(l, p, *c),
     'make-module': lambda l, p, *c: Module(l, p, *c),
     'make-stick-value': lambda l, p, *c: Creatable('MultiStickValue', l, p, *c),
+    'make-font': lambda l, p, *c: Font(l, p, *c),
+    'make-font-manager': lambda l, p, *c: FontManager(l, p, *c),
     'apply': lambda l, p, *c: Apply(l, p, *c),
     'dueca-list': lambda l, p, *c: DuecaBlurp(),
     'load': lambda l, p, *c: LoadExternal(l, p, *c),
     Comment: lambda l, p, c: ' '*l+f"# {c}",
     Identifier: lambda l, p, c: safeName(c),
     ALiteral: lambda l, p, c: c,
-    String: lambda l, p, c: f'"{c}"'
+    String: lambda l, p, c: f'"{c}"',
+    re.compile(r"make-(.+)"): lambda n, l, p, *c: Creatable(n, l, p, *c),
     }
 
 
 if __name__ == '__main__':
 
-    tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/SRS/srsecs',)
-
+    tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/SRS/srsecs/dueca.mod',)
+    tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/run-data/andy_motion_filt.cnf',)
+    tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/solo/solo/dueca.mod',)
     for l in tryme:
-        with open(f"{os.environ['HOME']}/{l}/dueca.mod", 'r') as f:
+        with open(f"{os.environ['HOME']}/{l}", 'r') as f:
             res = contents.parseFile(f)
 
         level = 0
         for r in res:
             print(r.convert(level, _pool))
     print(_values)
-
