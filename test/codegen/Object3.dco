@@ -1,7 +1,10 @@
+(Header "
+        Give me additional header code")
+
 (Type double)
-(IterableType std::vector<double> "#include <vector>")
+(Type std::vector<double> "#include <vector>")
 
 (Stream Object3
   (Option msgpack)
-  (std::vector<double> a (Default 1.0) (DefaultSize 0))
+  (std::vector<double> a (Default 1.0) (DefaultSize 1))
 )

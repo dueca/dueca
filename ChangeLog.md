@@ -2,6 +2,14 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.2] - 2023-10-17
+
+- A new script, dueca-startlink, to create automatic links to start script, 
+  on links.script running
+- Many fixes to the dueca-scheme-to-python script, works quite OK now
+- Corrections to the code generator with default size / argument
+- Add handling of real-time-workshop 9.8 in the config script
+
 ## [4.0.1] - 2023-07-11
 
 - Add "dueca-gproject build" command, to configure and build projects

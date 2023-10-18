@@ -1439,23 +1439,36 @@ bool %(mastername)s::doFromParameterTableSet_%(name)s(const std::string& n)
         return ''
 
 class SingleMember(MemberBase):
-    def __init__(self, master, comments, name, klassref, default, defaultarg):
+    def __init__(self, master, comments, name, klassref, default, defaultsize, defaultarg):
+        self.defaultsize = defaultsize
         super(SingleMember, self).__init__(
             master, comments, name, klassref, default, defaultarg)
 
     def defaultConstructorArgumentDec(self):
         if self.defaultarg:
             return self.completeConstructorSingleArgumentDec()
+        elif self.defaultsize is not None:
+            return """
+    size_t %(name)s_size = %(defaultsize)s""" % self.__dict__
         return None
 
     def defaultConstructorArgumentImp(self):
         if self.defaultarg:
             return self.completeConstructorArgumentImp()
+        elif self.defaultsize is not None:
+            return """
+    size_t %(name)s_size""" % self.__dict__
         return None
 
     def defaultConstructorList(self):
         if self.defaultarg:
             return self.completeConstructorList()
+        elif self.defaultsize is not None and not self.default:
+            return """
+    %(name)s(%(name)s_size)""" % self.__dict__
+        elif self.defaultsize is not None and self.default:
+            return """
+    %(name)s(%(name)s_size, %(default)s)""" % self.__dict__
         elif self.default:
             return """
     %(name)s(%(default)s)""" % self.__dict__
@@ -1859,9 +1872,13 @@ class Member:
                 master, self.comments, self.name, klassref,
                 self.default, self.defaultsize, self.defaultarg)
         else:
+            #return IterableMember(
+            #    master, self.comments, self.name, klassref,
+            #    self.default, self.defaultsize, self.defaultarg)
+            
             return SingleMember(
                 master, self.comments, self.name, klassref,
-                self.default, self.defaultarg)
+                self.default, self.defaultsize, self.defaultarg)
 
 def ROR(c):
     return (c >> 1) | ((c & 0x1) << 31)

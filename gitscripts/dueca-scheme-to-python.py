@@ -39,8 +39,13 @@ tries to convert these to a Python configuration.
   """)
 
 parser.add_argument(
-    'platform', type=str,
+    'platform', type=str, default='', nargs='?',
     help="Name of the platform, or file location")
+
+parser.add_argument(
+    '--file', type=str,
+    help="Alternative run mode, convert a single (helper) file"
+)
 
 parser.add_argument(
     '--verbose', action='store_true',
@@ -157,8 +162,25 @@ _dueca_cnf_defaults = {
     'date': date.today().strftime("%d-%b-%Y"),
     }
 
+if runargs.platform == '':
+    try:
+        out = runargs.file + '.py'
+        if canWrite(out, runargs.overwrite):
 
-if os.path.isdir(runargs.platform):
+            with open(runargs.file, 'r', encoding='utf-8') as f:
+                res = readscheme.contents.parseFile(f)
+
+            with open(out, 'w', encoding='utf-8') as f:
+                for r in res:
+                    print(r.convert(0, _pool), file=f)
+            print(f"Converted to {out}")
+        else:
+            print(f"Not overwriting {out}")
+    except Exception as e:
+        print(f"Could not find or convert specific file '{runargs.file}'")
+    sys.exit(0)
+
+elif os.path.isdir(runargs.platform):
     dprint(f"Found folder {runargs.platform}")
     platform = runargs.platform
 else:

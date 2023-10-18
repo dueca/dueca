@@ -23,6 +23,7 @@ new-module TYPE NAME OPTIONS
                rtw8_13 : Simulink Coder 8.13 (Matlab 2017b; ert target)
                rtw9_0 : Simulink Coder 9.0 (Matlab 2018b; ert target)
                rtw9_2 : Simulink Coder 9.2 (Matlab 2019b; ert target)
+               rtw9_8 : Simulink Coder 9.8 (Matlab 2022b; ert target)
                dueca : bare dueca module. No dusime state change logic
                dusime : dusime module, module code integrated in
                         the module
@@ -225,7 +226,8 @@ if sys.argv[1].startswith('rtw88') or \
    sys.argv[1].startswith('rtw8_11') or \
    sys.argv[1].startswith('rtw8_13') or \
    sys.argv[1].startswith('rtw9_0') or \
-   sys.argv[1].startswith('rtw9_2'):
+   sys.argv[1].startswith('rtw9_2') or \
+   sys.argv[1].startswith('rtw9_8'):
     al=getUserInput(
         ['name', 'rtwname', 'activityname'], \
         ['Give a (full) name for the module: ', \

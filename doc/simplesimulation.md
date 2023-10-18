@@ -254,7 +254,7 @@ a look:
      The project must contain the full path to a git repository
 
      If you encounter a message that a certain comm-objects folder cannot
-     be found, use dueca-project borrow-project to add that project url
+     be found, use dueca-gproject borrow-project to add that project url
 
      If you need to check out from a specific branch, version or
      revision, add that in the optional version field.
@@ -1773,7 +1773,7 @@ ig  solo
      The project must contain the full path to a git repository
 
      If you encounter a message that a certain comm-objects folder cannot
-     be found, use dueca-project borrow-project to add that project url
+     be found, use dueca-gproject borrow-project to add that project url
 
      If you need to check out from a specific branch, version or
      revision, add that in the optional version field.
@@ -1804,7 +1804,7 @@ modules, so that it looks like:
      The project must contain the full path to a git repository
 
      If you encounter a message that a certain comm-objects folder cannot
-     be found, use dueca-project borrow-project to add that project url
+     be found, use dueca-gproject borrow-project to add that project url
 
      If you need to check out from a specific branch, version or
      revision, add that in the optional version field.

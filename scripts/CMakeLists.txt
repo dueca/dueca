@@ -49,6 +49,11 @@ install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/dueca-config
   DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES ${PYAUX} DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca)
 
+configure_file(dueca-startlink.py dueca-startlink @ONLY)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/dueca-startlink
+  DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND
      CMAKE_INSTALL_PREFIX STREQUAL "/usr"  )
    install(FILES profile DESTINATION ${SYSCONF_INSTALL_DIR}/dueca)

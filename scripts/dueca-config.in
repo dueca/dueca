@@ -49,7 +49,8 @@ Component selection options:
         --rtwv8_11         # Simulink Coder 8.11, from Matlab 2016b
         --rtwv8_13         # Simulink Coder 8.13, from Matlab 2017b
         --rtwv9_0          # Simulink Coder 9.0, from Matlab 2018b
-        --rtwv9_2          # Simulink Coder 8.2, from Matlab 2019b
+        --rtwv9_2          # Simulink Coder 9.2, from Matlab 2019b
+        --rtwv9_8          # Simulink Coder 9.8, from Matlab 2022b
         --xml              # Xml library needed for RTW state/parameter saves
         --hmi              # HMIlib OpenGL interface library
         --hmi-ftgl         # HMIlib only with ftgl support
@@ -247,6 +248,10 @@ case $OPTION in
                 --rtwv9_2 )
                     CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV9_2"
                     PKGS="$PKGS rtw9_2"
+                    ;;
+                --rtwv9_8 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV9_8"
+                    PKGS="$PKGS rtw9_8"
                     ;;
                 --xml)
                     CFLAGS="$CFLAGS -DDUECA_CONFIG_XML"

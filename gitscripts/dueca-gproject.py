@@ -470,7 +470,12 @@ class CloneProject:
                          'CMakeLists.txt\nREADME.md\n.gitignore\nbuild/*\n')
 
         # pull the existing code, and create master/selected branches
-        orig.fetch()
+        try:
+            orig.fetch()
+        except git.GitCommandError as e:
+            print(f"Cannot fetch from {RootMap().urlToAbsolute(ns.remote)}\n"
+                  "Clone failed, check url and access rights")
+            sys.exit(-1)
         dprint("check out on branch", ns.version)
         branch = repo.create_head('master', orig.refs.master)
         branch.set_tracking_branch(orig.refs.master)
@@ -1428,6 +1433,8 @@ class BuildProject(OnExistingProject):
                     [ 'rm', '-rf'] + files,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                 dprint(f"Clean result {cm}")
+                if os.path.islink('../compile_commands.json'):
+                    os.remove('../compile_commands.json')
             except Exception as e:
                 print(f"Could not clean out the build folder, {e}",
                       file=sys.stderr)
@@ -1446,6 +1453,15 @@ class BuildProject(OnExistingProject):
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                         check=True)
                     dprint(f"CMake result {cm}")
+
+                    # symlink the compile_commands.json file if present
+                    if os.path.isfile("compile_commands.json") and \
+                       not os.path.exists("../compile_commands.json"):
+                        self.pushDir(f'{self.projectdir}')
+                        os.symlink("build/compile_commands.json",
+                                   "compile_commands.json")
+                        self.popDir()
+
                 print("Running the build")
                 cm = subprocess.run(
                     [ 'make', '-j8' ], check=True)
