@@ -193,6 +193,13 @@ const ParameterTable* WebSocketsServer::getMyParameterTable()
       "Certificate files for SSL, specify a .crt and a .key file. If these\n"
       "are supplied, wss sockets will be used instead of ws" },
 
+
+    { "add-mimetype",
+      new MemberCall<_ThisModule_,std::vector<std::string> >
+      (&_ThisModule_::addMimeType),
+      "Add a mime type for an extension, specify the extension (without '.')\n"
+      "and the mime type string" },
+
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
        class objects. Please also add a description (c-style string).
@@ -1124,6 +1131,18 @@ bool WebSocketsServer::_complete_http(S& server)
           auto length = ifs->tellg();
           ifs->seekg(0, ios::beg);
           header.emplace("Content-Length", to_string(length));
+          string ext = boost::filesystem::extension(path);
+          auto mime = mimemap.find(ext);
+          if (mime == mimemap.end()) {
+            /* DUECA websockets.
+
+               The http server cannot determine this mime type
+            */
+            W_XTR("Cannot determine mime type for " << path);
+          }
+          else {
+            header.emplace("Content-Type", mime->second);
+          }
           response->write(header);
           read_and_send(response, ifs);
         }
@@ -1609,6 +1628,20 @@ bool WebSocketsServer::setCertFiles(const std::vector<std::string>& files)
   }
   server_crt = files[0];
   server_key = files[1];
+  return true;
+}
+
+bool WebSocketsServer::addMimeType(const std::vector<std::string>& i)
+{
+  if (i.size() != 2) {
+    /* DUECA websockets.
+
+       Supply two strings to add a new mime type.
+    */
+    E_CNF("Need extension and mime type");
+    return false;
+  }
+  mimemap[i[0]] = i[1];
   return true;
 }
 
