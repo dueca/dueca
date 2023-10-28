@@ -41,7 +41,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL 0
 #include <debprint.h>
 
 DUECA_NS_START;
@@ -545,10 +545,11 @@ bool WebSocketsServer::_complete(S& server)
         const std::string reason("Resource not available");
         connection->send_close(1001, reason);
       }
-
-      // connect the connection to the located or created channel reader
-      this->singlereadsmapped[reinterpret_cast<void*>(connection.get())] =
-        ee != this->readsingles.end() ? ee->second : ea->second;
+      else {
+        // connect the connection to the located or created channel reader
+        this->singlereadsmapped[reinterpret_cast<void*>(connection.get())] =
+          ee != this->readsingles.end() ? ee->second : ea->second;
+      }
     };
 
   // access channel data to collect all data; messages are followed
@@ -620,6 +621,8 @@ bool WebSocketsServer::_complete(S& server)
       if (ekey != qpars.end()) {
         entry = boost::lexical_cast<unsigned>(ekey->second);
       }
+      DEB("New read connection attempt " << connection->path_match[1] <<
+          " entry " << entry);
 
       // try to find the setup object
       NameEntryId key(connection->path_match[1], entry);
@@ -643,13 +646,20 @@ bool WebSocketsServer::_complete(S& server)
           auto dataclass = mm->second->findEntry(entry);
           if (dataclass.size()) {
 
-            std::shared_ptr<SingleEntryFollow>
-              newfollow(new SingleEntryFollow
-                        (mm->second->channelname, dataclass, entry,
-                         this->getId(), this->read_prio,
-                         mm->second->time_spec, extended, true));
-            this->autofollowers[key] = newfollow;
+            // check whether we have one already
             ee = this->autofollowers.find(key);
+
+            if (ee == this->autofollowers.end()) {
+              DEB("Creating new follow on " << mm->second->channelname <<
+                  " entry " << entry << "(" << dataclass << ")");
+              std::shared_ptr<SingleEntryFollow>
+                newfollow(new SingleEntryFollow
+                          (mm->second->channelname, dataclass, entry,
+                           this->getId(), this->read_prio,
+                           mm->second->time_spec, extended, true));
+              this->autofollowers[key] = newfollow;
+              ee = this->autofollowers.find(key);
+            }
             foundconnect = ee != this->autofollowers.end();
           }
         }

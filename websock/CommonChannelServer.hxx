@@ -223,6 +223,9 @@ struct SingleEntryFollow: public ConnectionList {
   /** Stop following the channel data */
   bool stop(const TimeSpec& ts);
 
+  /** Disconnect from the triggering channel */
+  void disconnect();
+
 private:
   void tokenValid(const TimeSpec& ts);
 };
