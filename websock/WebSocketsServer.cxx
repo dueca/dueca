@@ -1139,11 +1139,14 @@ bool WebSocketsServer::_complete_http(S& server)
     [](shared_ptr<typename S::Request> request,
            const SimpleWeb::error_code &ec) {
       // note, error 125 is returned when a client pauses too much
-      /* DUECA websockets.
+      if (ec.value() != 125) {
+        /* DUECA websockets.
 
-         Unexpected error in the HTTP static file server. */
-      E_XTR("Http server error code " << ec << " (" << ec.message() <<
-            ") for request :" << request->path << ' ' << request->query_string);
+           Unexpected error in the HTTP static file server. */
+        E_XTR("Http server error code " << ec << " (" << ec.message() <<
+              ") for request :" << request->path << ' ' <<
+              request->query_string);
+      }
     };
 
   server.io_service = runcontext;
