@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scenario xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl testscenario.xsd">
+  <project name="SimpleSimulation">
+    <window>DUECA/DUSIME control panel</window>
+    <window>Are you serious?</window>
+  </project>
+  <repository>https://github.com/dueca/</repository>
+  <execute>
+    <platform>multi</platform>
+    <node>central</node>
+  </execute>
+  <execute>
+    <platform>multi</platform>
+    <node>team1</node>
+  </execute>
+  <execute>
+    <platform>multi</platform>
+    <node>team2</node>
+  </execute>
+  <actions>
+  </actions>
+</scenario>

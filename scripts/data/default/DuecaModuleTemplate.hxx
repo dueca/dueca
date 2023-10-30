@@ -25,7 +25,7 @@ USING_DUECA_NS;
 
 /** A simulation module.
 
-    The instructions to create an module of this class from the Scheme
+    The instructions to create an module of this class from the start
     script are:
 
     \verbinclude @smodule@.scm

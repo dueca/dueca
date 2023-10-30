@@ -52,6 +52,7 @@ execute_process(COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/h5dump-script)
 set(LOGGROUPS entry child __parent__ coded drive fixvector limvector
 lists map mappedfixvector nestedmap second varvector)
 
+# These files (with .xml suffix) define the test scenarios
 set(CONTROLFILES
   tmssolo tmsudptwo tmswsudpfour replayscenario
 )
