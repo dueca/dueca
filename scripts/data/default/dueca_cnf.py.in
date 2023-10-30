@@ -76,6 +76,23 @@ DUECA_environment = dueca.Environment().param(
     multi_thread = run_in_multiple_threads,
     highest_priority = highest_manager,
     graphic_interface = graphic_interface,
+
+    # options for gl graphics
+    # graphic_depth_buffer_size=16,    # gl depth buffer minimum size
+    # graphic_stencil_buffer_size=4,   # gl stencil buffer size
+    share_gl_context = True,           # share context between windows
+    # x_multithread_lock = True,       # graphics lock
+
+    # alternatives to highest_priority setting, specify os priorities
+    # priority_nice=[0],
+    # priority_rr=[9],
+    # priority_fifo=[10, 11, 12, 13, 14],
+
+    # locale setting, !DANGER!, affects the way in which data files are
+    # read/interpreted (, vs ., time, day/month names, etc.)
+    # locale="nl_NL.UTF-8",
+
+    # lead and interval for controlling distributed state machine
     command_interval = 0.25,
     command_lead = 0.25).complete()
 
@@ -208,4 +225,3 @@ elif use_ip_comm and send_order != 0:
 ###      give these the opportunity to do additional initialisation
 ###      Then it creates the EntityManager for this node, and the
 ###      configuration continues with dueca_mod.py
-
