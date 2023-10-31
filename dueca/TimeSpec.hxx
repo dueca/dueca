@@ -209,6 +209,20 @@ public:
   /// Move an interval up with a time delta
   TimeSpec operator+ (const int& delta) const;
 
+  /// Move an interval up with a time in seconds
+  TimeSpec operator+ (const double delta) const;
+
+  /// Move an interval up with a time in seconds
+  inline TimeSpec operator+ (const float delta) const
+  { return *this + double(delta); }
+
+  /// Move an interval up with a time in seconds
+  TimeSpec operator- (const double delta) const;
+
+  /// Move an interval up with a time in seconds
+  inline TimeSpec operator- (const float delta) const
+  { return *this - double(delta); }
+  
   /// Move an interval back with a time delta
   TimeSpec operator- (const int& delta) const;
 

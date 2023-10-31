@@ -17,6 +17,7 @@
 DUECA_NS_END;
 #include <SimTime.hxx>
 #include <Ticker.hxx>
+#include <cmath>
 DUECA_NS_START;
 #include <dassert.h>
 
@@ -41,6 +42,20 @@ DataTimeSpec DataTimeSpec::now()
   return DataTimeSpec(tick, tick);
 }
 
+DataTimeSpec DataTimeSpec::operator+ (const double delta) const
+{
+  int idelta = int(round(delta / Ticker::single()->getTimeGranule()));
+  return DataTimeSpec(getValidityStart() + idelta,
+		      getValidityEnd() + idelta);
+}
+
+DataTimeSpec DataTimeSpec::operator- (const double delta) const
+{
+  int idelta = int(round(delta / Ticker::single()->getTimeGranule()));
+  return DataTimeSpec(getValidityStart() - idelta,
+		      getValidityEnd() - idelta);
+}
+  
 DataTimeSpec& DataTimeSpec::operator = (const TimeSpec& other)
 {
   validity_start = other.validity_start;

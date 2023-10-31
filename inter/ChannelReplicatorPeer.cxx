@@ -221,23 +221,49 @@ void ChannelReplicatorPeer::doCalculation(const TimeSpec& ts)
 {
   if (Environment::getInstance()->runningMultiThread()) {
     /* DUECA interconnect.
-
+       
        Starting cyclic processing of messages */
     I_INT("cyclic start " << ts);
     setStopTime(MAX_TIMETICK);
-    startCyclic(do_calc);
+
+    try {
+      startCyclic(do_calc);
+    }
+    catch(const connectionfails& e) {
+      /* DUECA interconnect.
+	 
+	 Tried to run a communication cycle, but could not make the
+	 websockets connection for start up. Will attempt to connect
+	 later. */
+      W_NET("Connection failure, will attempt new connection later");
+      slaveclock.requestAlarm(ts.getValidityStart() +
+			      int(round(1.0/Ticker::single()->getTimeGranule())));
+    }
   }
+  
   else {
     DEB1("one cycle " << ts);
-    oneCycle(do_calc);
-
-    // when not over to cyclic, but still stopping
-    if (commanded_stop) {
-      clearConnections();
-      return;
+    try {
+      oneCycle(do_calc);
+      
+      // when not over to cyclic, but still stopping
+      if (commanded_stop) {
+	clearConnections();
+	return;
+      }
+      time_spec.advance();
+      slaveclock.requestAlarm(time_spec.getValidityStart());
     }
-    time_spec.advance();
-    slaveclock.requestAlarm(time_spec.getValidityStart());
+    catch(const connectionfails& e) {
+      /* DUECA interconnect.
+	 
+	 Tried to run a communication cycle, but could not make the
+	 websockets connection for start up. Will attempt to connect
+	 later. */
+      W_NET("Connection failure, will attempt new connection later");
+      slaveclock.requestAlarm(ts.getValidityStart() + 
+			      int(round(1.0/Ticker::single()->getTimeGranule())));
+    }
   }
 }
 
