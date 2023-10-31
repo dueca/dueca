@@ -69,7 +69,7 @@ public: // construction and further specification
   /** Continued construction. This is called after all script
       parameters have been read and filled in, according to the
       parameter table. Your running environment, e.g. for OpenGL
-      drawing, is also prepared. Any lengty initialisations (like
+      drawing, is also prepared. Any lengthy initialisations (like
       reading the 4 GB of wind tables) should be done here.
       Return false if something in the parameters is wrong (by
       the way, it would help if you printed what!) May be deleted. */
