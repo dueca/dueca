@@ -48,7 +48,6 @@ const static double test_failprob = 0.0001;
 // constructor
 NetCommunicatorPeer::NetCommunicatorPeer() :
   NetCommunicator(),
-  master_address(""),
   master_url(""),
   override_data_url(""),
   conf_comm(),
@@ -127,10 +126,11 @@ void NetCommunicatorPeer::setupConnection(Activity& activity)
 
     PacketCommunicatorSpecification spec;
     if (!master_url.size()) {
-      //DEB("Initial master url " << master_url);
-      master_url = std::string("ws://") + master_address + std::string(":") +
-        boost::lexical_cast<std::string>(master_port) + std::string("/config");
-      DEB("Constructed master url " << master_url);
+      /* DUECA network.
+
+	 Master url needs to be supplied */
+      W_NET("Master URL needs to be supplied");
+      throw(connectionfails());
     }
     spec.url = master_url;
     spec.buffer_size = config_buffer_size;

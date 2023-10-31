@@ -51,7 +51,6 @@ const size_t NetCommunicator::control_size = 22;
 NetCommunicator::NetCommunicator() :
   PacketCommunicatorSpecification(),
   ts_interval(Ticker::single()->getBaseIncrement()),
-  master_port(7000),
   config_buffer_size(1024),
   data_comm(),
   peer_address(""),

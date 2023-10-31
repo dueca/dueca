@@ -68,15 +68,8 @@ const ParameterTable* ChannelReplicatorPeer::getMyParameterTable()
 
     { "if-address",
       new VarProbe<_ThisClass_,std::string>(&_ThisClass_::interface_address),
-      "Address of the interface over which communication takes place." },
-
-    { "master-address",
-      new VarProbe<_ThisClass_,std::string>(&_ThisClass_::master_address),
-      "Address of the master node. Either hostname or IP address." },
-
-    { "server-port",
-      new VarProbe<_ThisClass_,uint16_t>(&_ThisClass_::master_port),
-      "Port for contacting the server." },
+      "Address of the interface over which communication takes place. This\n"
+      "is usually determined automatically."},
 
     // specific for UDP connections
     { "port-re-use",
