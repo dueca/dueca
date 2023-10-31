@@ -51,6 +51,10 @@ display_timing = dueca.TimeSpec(0, 200)
 ## log a bit more economical, 25 Hz
 log_timing = dueca.TimeSpec(0, 400)
 
+## the name for the main entity to create. Note that you can create as
+## many entities as you want, usually one is enough. Adjust as appropriate
+entity_name = "PHLAB"
+
 ## ---------------------------------------------------------------------
 ### the modules needed for dueca itself
 if this_node_id == ecs_node:
@@ -72,7 +76,7 @@ if this_node_id == ecs_node:
     # remove the quotes to enable DUSIME initial condition recording and
     # setting, and simulation recording and replay
     '''
-    for e in ("PHLAB",):
+    for e in (entity_name,):
         DUECA_mods.append(
             dueca.Module("initials-inventory", e, admin_priority).param(
                 reference_file=f"initials-{e}.toml",
@@ -107,7 +111,7 @@ if this_node_id == ecs_node:
     #             ('set-timing', sim_timing),
     #             ('check-timing', (5000, 9000)),
     #             ('port', 8001),
-    #             ('info', ("endpoint", "MyData://PHLAB")),
+    #             ('info', ("endpoint", "MyData://"+entity_name)),
     #             ('write-and-read', ("plotconfig",
     #                                 "ConfigFileRequest://dueca",
     #                                 "ConfigFileData://dueca")),
@@ -120,15 +124,15 @@ if this_node_id == ecs_node:
     #         "hdf5-logger", "", log_priority).param(
     #             ('set_timing', log_timing),
     #             ('chunksize', 3000),
-    #             ('log_entry', ("MyData://PHLAB",
+    #             ('log_entry', ("MyData://"+entity_name,
     #                            "MyData", "/data/mydata"))))
     #     )
 
 # etc, each node can have modules in its mymods list
 
     # add a filer in this node for replay support
-    # filer = dueca.ReplayFiler("PHLAB")
+    # filer = dueca.ReplayFiler(entity_name)
 
-# then combine in an entity (one "copy" per node)
+# then combine in an entity
 if mymods:
-    myentity = dueca.Entity("PHLAB", mymods)
+    myentity = dueca.Entity(entity_name, mymods)
