@@ -197,7 +197,7 @@ const ParameterTable* WebSocketsServer::getMyParameterTable()
     { "add-mimetype",
       new MemberCall<_ThisModule_,std::vector<std::string> >
       (&_ThisModule_::addMimeType),
-      "Add a mime type for an extension, specify the extension (without '.')\n"
+      "Add a mime type for an extension, specify the extension (with '.')\n"
       "and the mime type string" },
 
     /* You can extend this table with labels and MemberCall or
