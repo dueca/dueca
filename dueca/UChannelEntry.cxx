@@ -11,16 +11,14 @@
         license         : EUPL-1.2
 */
 
+#include "AsyncQueueMT.hxx"
+#include "UCClientHandle.hxx"
 #define UChannelEntry_cxx
 #include "UChannelEntry.hxx"
 
 #include "dueca-conf.h"
 #include "dassert.h"
-#ifdef TEST_OPTIONS
 #define DEBPRINTLEVEL -1
-#else
-#define DEBPRINTLEVEL -1
-#endif
 #include "debug.h"
 #include "DataSetConverter.hxx"
 #include "ChannelWriteToken.hxx"
@@ -169,14 +167,17 @@ void UChannelEntry::setConfValid()
 
 void UChannelEntry::resetValid()
 {
-  // the lock is on
+  // the lock is already on on
   DEB(channel->getNameSet() << " entry #" << entry_id << " invalid");
   if (this->valid) {
     this->valid = false;
+
+    // writing and triggering for packing will no longer be done.
+    // release read access from any packer clients (is this really safe?)
     if (writer) {
       for (unsigned ii = pclients.size(); ii--; ) {
         if (pclients[ii].handle) {
-          pclients[ii].handle->entry->read_index->releaseAccess();
+          pclients[ii].handle->entry->read_index->releaseReadAccess();
         }
       }
     }
@@ -415,6 +416,7 @@ void UChannelEntry::newData(const void* data, const DataTimeSpec& t_write)
   // trigger all clients that need triggering
   for (UCTriggerLinkPtr t = triggers; t; t = t->next) {
     t->entry()->pull(t_write);
+    DEB1("Triggering " << t->entry()->getTriggerName() << " with " << t_write);
   }
 
   if (writer && pclients.size()) {
@@ -434,7 +436,7 @@ void UChannelEntry::saveupRemoveInner()
     UCClientHandleLinkPtr l = (*ii)->clients;
     while (l) {
       // if one of the entries has not updated, return
-      if (l->entry()->config_version != config_version) {
+      if (l->entry()->config_change != channel->latest_entry_config_change) {
         return;
       }
       l = l->next;
@@ -443,7 +445,7 @@ void UChannelEntry::saveupRemoveInner()
 
   // all entries are current, the saveup may be removed
   saveup = NoSaveUp;
-  oldest->releaseAccess();
+  oldest->releaseReadAccess();
   DEB(channel->getNameSet() << " entry #" << entry_id <<
       " saveup removal complete");
 }
@@ -452,41 +454,46 @@ void UChannelEntry::saveupRemoveInner()
 
 void UChannelEntry::refreshEntryConfigInner()
 {
+  DEB("Entry refresh config own " << this->config_version << " chn " <<
+      channel->config_version);
   ScopeLock l(channel->entries_lock);
 
-  if (channel->config_version == config_version)
-    return;
-
-  DEB(channel->getNameSet() << " entry #" << entry_id <<
-      " config refresh " << config_version << "->" <<
-      channel->config_version);
-
-  // clean the old list of triggers
-  for (UCTriggerLinkPtr t = triggers; t; ) {
-    UCTriggerLinkPtr todel = t;
-    t = t->next;
-    delete todel;
+  while (trigger_requests.notEmpty()) {
+    AsyncQueueReader<UCClientHandlePtr> r(trigger_requests);
+    triggers = new UCTriggerLink(r.data()->trigger_target, triggers);
+    DEB("Channel " << channel->getNameSet() << " entry " << entry_id <<
+        " add trigger for " << r.data()->getId());
   }
-  triggers = NULL;
 
-  // traverse the dataclass maps and extract triggers
-  for (dataclasslink_type::iterator ii = dataclasslink.begin();
-       ii != dataclasslink.end(); ii++) {
-    UCClientHandleLinkPtr l = (*ii)->clients;
-    while (l) {
-      if ((l->entry()->requested_entry == entry_end ||
-           l->entry()->requested_entry == this->entry_id ||
-           (l->entry()->requested_entry == entry_bylabel &&
-            l->entry()->getLabel() == this->entrylabel)) &&
-          l->entry()->trigger_target) {
-        DEB("entry #" << entry_id << " linking trigger to " <<
-            l->entry()->token->getTokenHolder());
-        triggers = new UCTriggerLink(l->entry()->trigger_target, triggers);
-      }
-      l = l->next;
+  while (trigger_releases.notEmpty()) {
+    AsyncQueueReader<UCClientHandlePtr> r(trigger_releases);
+
+    // find the trigger link
+    auto tcur = triggers;
+    UCTriggerLinkPtr tprev = nullptr;
+    while (tcur->_entry != r.data()->trigger_target &&
+           tcur->next != nullptr) {
+      tprev = tcur; tcur = tcur->next;
     }
+    assert(tcur->_entry == r.data()->trigger_target);
+
+    DEB("Channel " << channel->getNameSet() << " entry " << entry_id <<
+        " removing trigger for " << r.data()->getId());
+
+    // remove it
+    if (tprev) {
+      tprev->next = tcur->next;
+    }
+    else {
+      triggers = triggers->next;
+    }
+    delete tcur;
   }
+
+  // check whether to add new transports
   this->refreshTransporters();
+
+  // remember we are done
   config_version = channel->config_version;
 }
 
@@ -724,7 +731,7 @@ unsigned UChannelEntry::spinToLast(UCClientHandlePtr client)
   if (ed->seqId() == 0) {
     ed = ed->getNext();
     ed->incrementReadAccess();
-    ed->getPrevious()->releaseAccess();
+    ed->getPrevious()->releaseReadAccess();
   }
 
   // if a gap is written, it is not on the previous to latest, so this
@@ -733,7 +740,7 @@ unsigned UChannelEntry::spinToLast(UCClientHandlePtr client)
 
   // no data access done, simply switch around the read access counts
   spinto->incrementReadAccess();
-  ed->releaseAccess();
+  ed->releaseReadAccess();
   client->entry->read_index = spinto;
   return nskip;
 }
@@ -779,7 +786,7 @@ unsigned UChannelEntry::spinToLast(UCClientHandlePtr client, TimeTickType t_late
 
   // no data access done, simply switch around the read access counts
   spinto->incrementReadAccess();
-  myoldest->releaseAccess();
+  myoldest->releaseReadAccess();
   client->entry->read_index = spinto;
   return nskip;
 }
@@ -800,7 +807,7 @@ unsigned UChannelEntry::flushAll(UCClientHandlePtr client)
   if (ed->seqId() == 0) {
     ed = ed->getNext();
     ed->incrementReadAccess();
-    ed->getPrevious()->releaseAccess();
+    ed->getPrevious()->releaseReadAccess();
   }
 
   // there can be a short time during which the seqId of latest is 0,
@@ -810,7 +817,7 @@ unsigned UChannelEntry::flushAll(UCClientHandlePtr client)
 
   // no data access done, simply switch around the read access counts
   spinto->incrementReadAccess();
-  ed->releaseAccess();
+  ed->releaseReadAccess();
   client->entry->read_index = spinto;
 
   return nskip;
@@ -831,13 +838,13 @@ unsigned UChannelEntry::flushOne(UCClientHandlePtr client)
   if (ed->seqId() == 0) {
     ed = ed->getNext();
     ed->incrementReadAccess();
-    ed->getPrevious()->releaseAccess();
+    ed->getPrevious()->releaseReadAccess();
   }
 
   // no data access done, simply switch around the read access counts
   client->entry->read_index = ed->getNext();
   client->entry->read_index->incrementReadAccess();
-  ed->releaseAccess();
+  ed->releaseReadAccess();
 
   return 1U;
 }
@@ -871,7 +878,8 @@ const void* UChannelEntry::accessData(UCClientHandlePtr client,
     if (ed->seqId() == 0) {
       ed = ed->getNext();
       ed->incrementReadAccess();
-      ed->getPrevious()->releaseAccess();
+      ed->getPrevious()->releaseReadAccess();
+      client->entry->read_index = ed;
     }
 
     // let's check whether there is data here; first data will be written,
@@ -879,7 +887,7 @@ const void* UChannelEntry::accessData(UCClientHandlePtr client,
     if (ed && ed->getNext() && ed->beforeTick(t_latest)) {
 
       // remember the following point
-      client->entry->read_index = ed->getNext();
+      // client->entry->read_index = ed->getNext();
       client->entry->seq_id = ed->seqId();
       origin = this->origin;
       const void* edata = ed->getSequentialData(ts_actual, client, eventtype);
@@ -1013,7 +1021,7 @@ const void* UChannelEntry::accessPackData(PackerClientData& pclient,
   if (ed->seqId() == 0) {
     ed = ed->getNext();
     ed->incrementReadAccess();
-    ed->getPrevious()->releaseAccess();
+    ed->getPrevious()->releaseReadAccess();
     handle->entry->read_index = ed;
     assert(handle->entry->read_index != NULL);
 
@@ -1165,16 +1173,37 @@ void UChannelEntry::releaseData(UCClientHandlePtr client)
       " entry=" << entry_id);
 
   if (client->entry->isSequential()) {
-    client->accessed->getNext()->incrementReadAccess();
+    // set the index to the next data point, and increment the read access
+    // there
+    client->entry->read_index = client->entry->read_index->getNext();
+    client->entry->read_index->incrementReadAccess();
+    // client->accessed->getNext()->incrementReadAccess();
   }
 
+  // accessed is a pointer to the currently-being-accessed data;
+  // data is returned.
+  // returndata also decrements the read_accessed count for the
+  // accessed datapoint.
   client->accessed->returnData(client);
 }
+
+
+void UChannelEntry::releaseDataNoStep(UCClientHandlePtr client)
+{
+  DEB("UChannelEntry::releaseDataNoStep, channel=" << channel->getId() <<
+      " entry=" << entry_id);
+  if (client->entry->isSequential()) {
+    client->accessed->incrementReadAccess();
+  }
+  client->accessed->returnData(client);
+}
+
 
 void UChannelEntry::releaseOnlyAccess(UCClientHandlePtr client)
 {
   if (client->entry->isSequential()) {
-    client->accessed->getNext()->incrementReadAccess();
+    client->entry->read_index = client->accessed->getNext();
+    client->entry->read_index->incrementReadAccess();
   }
 
   // this only works with only one client reading this data!!!!!!
@@ -1201,13 +1230,16 @@ UChannelEntry::AccessLockOldest::AccessLockOldest(const UChannelEntry* entry)
 {
   do {
     oldest = entry->oldest;
+    DEB(entry->getChannel()->getNameSet() << "#" << entry->getId() <<
+        " try access to oldest " << oldest->seqId());
   }
   while (!oldest->getAccess());
 }
 
 UChannelEntry::AccessLockOldest::~AccessLockOldest()
 {
-  oldest->releaseAccess();
+  DEB("Release access to same oldest " << oldest->seqId());
+  oldest->releaseReadAccess();
 }
 
 void UChannelEntry::nextSendFull()
@@ -1245,6 +1277,79 @@ void UChannelEntry::unlinkFromDataClass()
   }
 }
 
+void UChannelEntry::warnLazyClients()
+{
+  for (auto const & dc: dataclasslink) {
+    auto cl = dc->clients;
+    while (cl != NULL) {
+
+      // in the client link, find the entry link pointing to here
+      auto el = cl->entry()->class_lead;
+      while (el && el->entry != this) { el = el->next; }
+
+      if (el->isSequential()) {
+        auto nleft = el->entry->getNumVisibleSets(MAX_TIMETICK);
+
+        if (nleft > UNREAD_DATAPOINTS_THRESHOLD) {
+        /* DUECA channel.
+
+           You created a channel read token with a request for sequential
+           reading, but have neglected reading from it. This keeps a large
+           number of datapoints in the channel. Consider flushing or reading,
+           deleting the token or maybe you don't need it at all.
+        */
+        W_CHN("When deleting entry from channel " << channel->getNameSet() <<
+              ", entry " << entry_id <<
+              ", client " << cl->entry()->getId() <<
+              ", still " << nleft << " unread");
+        }
+      }
+      cl = cl ->next;
+    }
+  }
+}
+
+void UChannelEntry::printClients(std::ostream& os)
+{
+  os << channel->getNameSet() << " #" << entry_id
+     << " current clients:" << std::endl;
+  for (auto const & pc: pclients) {
+    os << "  packer client at " << pc.seq_id << " tick "
+       << pc.validity_end << std::endl;
+  }
+
+  for (auto const & dc: dataclasslink) {
+    auto cl = dc->clients;
+    if (cl != NULL) {
+      os << "  through dataclass " << cl->entry()->dataclassname
+         << std::endl;
+      while (cl) {
+        auto el = cl->entry()->class_lead;
+        while (el && el->entry != this) { el = el->next; }
+        os << "    client " << cl->entry()->getId();
+        if (el && el->sequential_read) { os << " sequential"; }
+        if (el) {
+          os << " linked";
+          if (el->read_index) {
+            os << " still accessing " << el->read_index->seqId();
+          }
+        }
+        os << std::endl;
+        cl = cl->next;
+      }
+    }
+  }
+
+  os << "remaining data:" << std::endl;
+  unsigned ntry = 5;
+  auto cu = cleanup;
+  while (ntry-- && cu) {
+    os << "#" << cu->seqId() << " at " << cu->getTime() << " access: "
+       << cu->getReadAccesses() << (cu == oldest ? " oldest" : "") << std::endl;
+    cu = cu->getNext();
+  }
+}
+
 UChannelEntry::PackerClientData::PackerClientData() :
   validity_end(MAX_TIMETICK),
   previous_data(NULL),
@@ -1268,6 +1373,7 @@ UChannelEntry::PackerClient::PackerClient(UCClientHandlePtr handle) :
     assert(handle->entry->read_index->getReadAccesses() > 1);
   }
 }
+
 
 UChannelEntry::PackerClient&
 UChannelEntry::PackerClient::operator= (const PackerClientData& d)

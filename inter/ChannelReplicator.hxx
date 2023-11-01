@@ -63,6 +63,9 @@ class ChannelReplicator:
 
 protected: // simulation data
 
+  /** Peer timing gain */
+  double                              timing_gain;
+
   /** Peer timing information */
   typedef std::map<unsigned,PeerTiming>  peer_timing_info_t;
 

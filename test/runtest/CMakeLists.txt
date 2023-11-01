@@ -14,7 +14,7 @@ find_package(LibXml2 REQUIRED)
 find_program(H5DUMP NAMES h5dump)
 
 # variables for running
-set(DISPLAYSIZE 1024x768)
+set(DISPLAYSIZE 1920x1080)
 set(DISPLAY ":88")
 set(TIMELIMIT 180s)
 

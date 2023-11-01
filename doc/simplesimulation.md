@@ -68,6 +68,10 @@ After the simulation has been made, we look at a few more things:
 - A simple program, dueca-channeldot, which can create a visual
   representation of your simulation from the logs.
 
+If you want to explore a bit further, and look at how you could create
+multiplayer simulations with DUECA, you can check out the sequel 
+[More Simple Simulation](#exampel2b).
+
 ## Setting up
 
 I assume you have the dueca packages installed on a (real or virtual)

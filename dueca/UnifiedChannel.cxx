@@ -11,6 +11,10 @@
         license         : EUPL-1.2
 */
 
+#include "ChannelDef.hxx"
+#include "ChannelReadInfo.hxx"
+#include "TimeSpec.hxx"
+#include "UCClientHandle.hxx"
 #define UnifiedChannel_cxx
 #include "UnifiedChannel.hxx"
 #include "UnifiedChannelMaster.hxx"
@@ -28,7 +32,7 @@
 #include <exception>
 #include "ChannelWriteInfo.hxx"
 #include <InformationStash.hxx>
-
+#include "UCEntryConfigurationChange.hxx"
 #include "ChannelCountResult.hxx"
 #include <dueca/visibility.h>
 #include <WrapSendEvent.hxx>
@@ -151,6 +155,8 @@ UnifiedChannel::UnifiedChannel(const NameSet &name_set) :
   conf_counter(0),
   checkup_delay(false),
   channel_status(Created),
+  entry_config_changes(new EntryConfigurationChange()),
+  latest_entry_config_change(entry_config_changes),
   config_version(0),
   masterp(NULL),
   service_id(0U),
@@ -206,212 +212,201 @@ void UnifiedChannel::releaseReadAccess(UCClientHandlePtr client)
   client->entry->entry->releaseData(client);
 }
 
+void UnifiedChannel::resetReadAccess(UCClientHandlePtr client)
+{
+  client->entry->entry->releaseDataNoStep(client);
+}
+
 void UnifiedChannel::releaseReadAccessKeepData(UCClientHandlePtr client)
 {
   client->entry->entry->releaseOnlyAccess(client);
 }
 
-bool UnifiedChannel::refreshClientHandleInner(UCClientHandlePtr client)
+// Helper function, performs linking a reading client to a given entry
+void UnifiedChannel::linkReadClientToEntry(UCClientHandlePtr client,
+                                           UChannelEntryPtr entry)
 {
-  // quick exit for single-attach handles that still point to
-  // a valid entry
-  if (client->class_lead &&                        // points to entry
-      client->requested_entry <= entry_bylabel &&  // single entry (lbl/id)
-      client->class_lead->entryMatch() &&          // check still same
-      client->class_lead->entry->isValid()) {      // check entry still valid
+  // check that this is not already linked
+  auto cl = client->class_lead;
+  while (cl && cl->entry != entry) { cl = cl->next; }
+  assert(cl == NULL);
 
-    // update the configuration version in the handle
-    client->config_version = this->config_version;
+  // the list of client to entry links is updated/extended
+  // when sequential reading, this will also ensure that the currently oldest
+  // datapoint is reserved for this client.
+  client->class_lead = new UCEntryClientLink
+    (entry, client->client_creation_id,
+     isSequentialRead(client->reading_mode, entry->isEventType()),
+     client->class_lead);
+
+  DEB(getNameSet() << " client " << client->token->getClientId() <<
+      " attach to entry #" << entry->getId());
+
+  if (!client->class_lead->isSequential()) {
+
+    // non-sequential reading, ensure that the requested buffer is maintained
+    // by the entry
+    entry->setMinimumSpanAndDepth(client->requested_span,
+                                  client->requested_depth);
+  }
+
+  // set the presently handled entry if not yet there
+  if (client->entry == NULL) {
     client->entry = client->class_lead;
+  }
+
+  // add to the list of clients for the given entry
+  entry->reportClient(client->class_lead);
+
+  // send information on this channel change
+  channelreadinfo::stash().stash
+    (new ChannelReadInfo(getId(), client->token->getClientId(),
+                           client->client_creation_id, entry->getId(),
+                           client->class_lead->isSequential(),
+                           client->requested_entry == entry_bylabel ?
+                           ChannelReadInfo::byLabel :
+                           (client->requested_entry == entry_any ?
+                            ChannelReadInfo::Multiple :
+                            ChannelReadInfo::byId)));
+}
+
+// Helper function, performs linking a reading client to a given entry
+bool UnifiedChannel::detachReadClientFromEntry(UCClientHandlePtr client,
+                                               UChannelEntryPtr entry)
+{
+  // run through the entries, and check whether one of these is the deleted
+  // one
+  auto el = client->class_lead;
+  UCEntryClientLinkPtr prev = NULL;
+  while (el && el->entry != entry) {
+    prev = el; el = el->next;
+  }
+
+  // is this a matching entry?
+  if (el->entry == entry) {
+
+    DEB(getNameSet() << " client " << client->token->getClientId() <<
+      " detach from entry #" << entry->getId());
+
+    // was this concidentically the currently accessed entry?
+    if (client->entry == el) {
+      client->entry = el->next;
+    }
+
+    // sequential access entries need to reset the read access
+    // leaving the requested depth/span
+    if (el->isSequential() && el->read_index != NULL) {
+#if DEBPRINTLEVEL >= 0
+      auto anew =
+#endif
+      el->read_index->releaseReadAccess();
+      DEB(getNameSet() << " entry " << entry->getId() <<
+          " client " << client->token->getClientId() <<
+          " release read access " << anew);
+    }
+
+    // remove the link to this entry from the list
+    if (prev) {
+      prev->next = el->next;
+    }
+    else {
+      client->class_lead = el->next;
+    }
+
+    // ensure the entry removes triggers if needed
+    if (client->trigger_target) {
+      entry->requestRemoveTrigger(client);
+    }
+
+    // clear from the list of clients for the given entry
+    entry->removeClient(el);
+
+    // send information on this channel change
+    channelreadinfo::stash().stash
+      (new ChannelReadInfo(getId(), client->token->getClientId(),
+                           client->client_creation_id, entry->getId(),
+                           el->isSequential(),
+                           ChannelReadInfo::Detached));
+
+    // delete the link
+    delete el;
     return true;
   }
 
-  // query the dataclass map, this gives a linked list to
-  // all entries carrying the client's type (or a descendant)
-  UCEntryLinkPtr t = client->dataclasslink->entries;
+  // no match, no change
+  return false;
+}
 
-  // reserve the old entries list in this handle
-  UCEntryClientLinkPtr oldlist = client->class_lead;
+bool UnifiedChannel::refreshClientHandleInner(UCClientHandlePtr client)
+{
+  bool changes = false;
 
-  // reset the entries list for the handle
-  client->class_lead = NULL;
+  // quick exit for single-attach handles that still point to
+  // a valid entry, and that entry does not change
+  while (client->config_change != latest_entry_config_change &&
+         client->class_lead &&    // already points to entry
+         client->requested_entry <= entry_bylabel &&
+         client->config_change->entry != client->class_lead->entry) {
+    client->config_change = client->config_change->markHandled();
+  }
 
-  // remember, if currently attached, the entry id of the currently read
-  // entry. Then reset current entry.
-  uint32_t readid = client->entry ?
-    client->entry->entry_creation_id : 0xffffffff;
-  client->entry = NULL;
+  // now (laboriously) process all remaining changes
+  while (client->config_change != latest_entry_config_change) {
 
-  // now filter for all matching entries in the map
-  while (t) {
-    if (t->entry()->isValid()) {
-      if (client->requested_entry < entry_bylabel &&
-          client->requested_entry == t->entry()->getId()) {
+    // shorthand for the configuration change
+    EntryConfigurationChange *cc = client->config_change;
 
-        // match on specific entry ID
-        client->class_lead = new UCEntryClientLink
-          (t->entry(), client->client_creation_id,
-           isSequentialRead(client->reading_mode, t->entry()->isEventType()),
-                            NULL);
-        DEB(getNameSet() << " client " << client->token->getClientId() <<
-            " attach to entry #" << t->entry()->getId());
+    // case 1, new entry
+    if (cc->changetype == EntryConfigurationChange::NewEntry) {
 
-        // for a sequential client, set read index and increase the access
-        // count of the relevant data point
-        /* if (client->isSequential()) {
-          client->class_lead->read_index =
-            client->class_lead->entry->latchSequentialRead();
-        } */
+      // first test, is this type of data compatible (same or descendant)
+      if (DataClassRegistry::single().isCompatible(
+            client->dataclassname, cc->entry->getDataClassName()) &&
 
-        // list the client in the entry
-        t->entry()->reportClient(client->class_lead);
+            // option one, single specific entry requested (label or id) and
+            // there was no connected/found entry yet
+            ((client->class_lead == NULL &&
+              (client->requested_entry == cc->entry->getId() ||
+               (client->requested_entry == entry_bylabel &&
+                client->entrylabel == cc->entry->getLabel()))) ||
 
-        // send information on this channel change
-        channelreadinfo::stash().stash
-          (new ChannelReadInfo(getId(), client->token->getClientId(),
-                               client->client_creation_id, t->entry()->getId(),
-                               client->class_lead->isSequential(),
-                               ChannelReadInfo::byId));
+            // option two, any requested entry is acceptable
+            client->requested_entry == entry_any)) {
 
-        // found the one requested entry, step out from list checking
-        break;
-      }
-      else if (client->requested_entry == entry_bylabel &&
-               client->entrylabel == t->entry()->getLabel()) {
-
-        // match on specific label name
-        client->class_lead = new UCEntryClientLink
-          (t->entry(), client->client_creation_id,
-           isSequentialRead(client->reading_mode, t->entry()->isEventType()),
-           NULL);
-        DEB(getNameSet() << " client " << client->token->getClientId() <<
-            " attach to entry #" << t->entry()->getId() <<
-            " with " << client->entrylabel );
-
-        // sequential client action.
-        /* if (client->isSequential()) {
-          client->class_lead->read_index =
-            client->class_lead->entry->latchSequentialRead();
-            } */
-
-        // list the client in the entry
-        t->entry()->reportClient(client->class_lead);
-
-        // send information on this channel change
-        channelreadinfo::stash().stash
-          (new ChannelReadInfo(getId(), client->token->getClientId(),
-                               client->client_creation_id, t->entry()->getId(),
-                               client->class_lead->isSequential(),
-                               ChannelReadInfo::byLabel));
-
-        // found the one matching entry, step out from checking the list
-        break;
-      }
-
-      else if (client->requested_entry == entry_any &&
-               (client->entrylabel.size() == 0 ||
-                (client->entrylabel == t->entry()->getLabel())) ) {
-        // check whether this entry was already in the old list,
-        UCEntryClientLinkPtr oe = oldlist; UCEntryClientLinkPtr pe = NULL;
-        while(oe && !oe->isMatch(t->entry()->getCreationId())) {
-          pe = oe; oe = oe->next;
-          DEB("step in old list");
+        // check this client is in the data web
+        UCClientHandleLinkPtr cl = NULL;
+        for (const auto &dc: cc->entry->dataclasslink) {
+          cl = dc->clients;
+          while (cl && cl->_entry != client) { cl = cl->next; }
+          if (cl->_entry == client) break;
         }
+        assert(cl != NULL);
 
+        // connect this
+        linkReadClientToEntry(client, cc->entry);
 
-        if (oe) {
-
-          DEB("found oe match " << pe << ' ' << oe << " n " << oe->next);
-
-          // first remove this old link from the old entry list
-          if (pe) { pe->next = oe->next; } else { oldlist = oe->next; }
-
-          // re-cycle this entry
-          oe->next = client->class_lead;
-          client->class_lead = oe;
-
-          // reset current entry if we found it again
-          if (client->class_lead->entry_creation_id == readid) {
-            client->entry = client->class_lead;
-          }
-        }
-        else {
-          // new attachment link
-          client->class_lead = new UCEntryClientLink
-            (t->entry(), client->client_creation_id,
-             isSequentialRead(client->reading_mode, t->entry()->isEventType()),
-             client->class_lead);
-          DEB(getNameSet() << " client " << client->token->getClientId() <<
-              " attach to entry #" << t->entry()->getId() << " (any)");
-
-          // new entry, if reading sequential, update the read index
-          /* if (client->isSequential()) {
-            client->class_lead->read_index =
-              client->class_lead->entry->latchSequentialRead();
-              } */
-
-          // list the client in the entry
-          t->entry()->reportClient(client->class_lead);
-
-          // send information on this change
-          channelreadinfo::stash().stash
-            (new ChannelReadInfo(getId(), client->token->getClientId(),
-                                 client->client_creation_id,
-                                 t->entry()->getId(),
-                                 client->class_lead->isSequential(),
-                                 ChannelReadInfo::Multiple));
-        }
+        // remember
+        changes = true;
       }
     }
-    t = t->next;
+
+    else if (client->class_lead != NULL &&
+             cc->changetype == EntryConfigurationChange::DeletedEntry) {
+
+      changes = detachReadClientFromEntry(client, cc->entry) || changes;
+    }
+
+    // processed this (or not for me). Updates to the next change, and
+    // updates the todo count in the change
+    client->config_change = client->config_change->markHandled();
   }
 
-  if (client->entry == NULL) {
-    // the handle was at the end of the entry sequence, or has not yet
-    // been used. Select the class lead, and if nothing found, set NULL
-    client->entry = client->class_lead;
-  }
+  if (changes) config_version++;
 
-  // now go through the old entries list. All remaining entries
-  detachClientlinks(client, oldlist, ChannelReadInfo::Deleted);
-
-  // update the configuration version in the handle
-  client->config_version = this->config_version;
-
+  // return true if an entry can currently be read
   return client->entry != NULL;
 }
 
-void UnifiedChannel::detachClientlinks(UCClientHandlePtr client,
-                                       UCEntryClientLinkPtr oe,
-                                       ChannelReadInfo::InfoType itype)
-{
-  /*
-     After a refresh, removes any left-over links to entries that are
-     no longer valid, or removes links upon destruction of a read
-     token.
-  */
-  while (oe != NULL) {
-    bool seq = oe->isSequential();
-    if (seq && oe->read_index) {
-      DEB(getNameSet() << " client " << client->token->getClientId() <<
-          " detaching from entry #" << oe->entry->getId());
-      oe->read_index->releaseAccess();
-    }
-
-    // remove the client from the entry's quick list
-    oe->entry->removeClient(oe);
-
-    // report the change in channel configuration
-    channelreadinfo::stash().stash
-      (new ChannelReadInfo(getId(), client->token->getClientId(),
-                           client->client_creation_id, client->requested_entry,
-                           seq, itype));
-    DEB("Deleting oe " << oe << " n " << oe->next);
-    UCEntryClientLinkPtr todel = oe;
-    oe = oe->next;
-    delete todel;
-  }
-}
 
 /* Design considerations.
 
@@ -433,7 +428,7 @@ bool UnifiedChannel::refreshClientHandle(UCClientHandlePtr client)
 {
   // Only perform updates if the channel config version has increased
   // above the one currently stored in the client handle
-  if (client->config_version != this->config_version) {
+  if (client->config_change != latest_entry_config_change) {
 
     // re-search the lead and entry
     ScopeLock e(entries_lock);
@@ -441,7 +436,7 @@ bool UnifiedChannel::refreshClientHandle(UCClientHandlePtr client)
     return refreshClientHandleInner(client);
   }
 
-  // returns true if the handle is now valid
+  // returns true if the handle is valid
   return client->entry != NULL;
 }
 
@@ -684,6 +679,17 @@ void UnifiedChannel::unPackData(AmorphReStore& source, int sender_id,
   }
 }
 
+void UnifiedChannel::recycleConfigChanges()
+{
+  while (entry_config_changes != latest_entry_config_change &&
+         entry_config_changes->changetype !=
+         EntryConfigurationChange::DeletedEntry &&
+         entry_config_changes->tocheck == 0) {
+    auto nxt = entry_config_changes->next;
+    latest_entry_config_change->insert(entry_config_changes);
+    entry_config_changes = nxt;
+  }
+}
 
 void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
 {
@@ -758,6 +764,21 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
         // increase the configuration counter
         config_version++;
 
+        // recycle any processed changes
+        recycleConfigChanges();
+
+        // make sure there is a sentinel object in the latest config change pointer
+        if (latest_entry_config_change->next == NULL) {
+          latest_entry_config_change->next = new EntryConfigurationChange();
+        }
+
+        // indicate the availability of the new entry
+        latest_entry_config_change->setData(EntryConfigurationChange::NewEntry,
+          reading_clients.size(), entries[entry]);
+
+        // force reading tokens to update on next occasion
+        latest_entry_config_change = latest_entry_config_change->next;
+
         // set the entry to be valid
         entries[entry]->setValid(entry);
 
@@ -789,32 +810,46 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
           UCClientHandleLinkPtr l = ix->second.clients;
           while (l) {
             UCClientHandlePtr c = l->entry();
-            if (c->callback &&
-                (c->requested_entry == entry_any ||
+
+            // check for a match to this entry
+            if (c->requested_entry == entry_any ||
                  c->requested_entry == entry ||
                  (c->requested_entry == entry_bylabel &&
-                  c->entrylabel == msg.entrylabel))) {
-              // from the callback, these clients are not supposed to be
-              // active yet. Call the refresh, so any sequential reading
-              // uses all available data
-              refreshClientHandleInner(c);
-              DEB(getNameSet() << " entry #" << entry <<
-                  " initiates callback for client " <<
-                  c->token->getClientId());
-              // set up a queue with validity calls
-              AsyncQueueWriter<UCClientHandlePtr> w(check_valid2);
-              c->claim();
-              w.data() = c;
+                  c->entrylabel == msg.entrylabel)) {
+
+              if (c->callback) {
+                // from the callback, these clients are not supposed to be
+                // active yet. Call the refresh, so any sequential reading
+                // uses all available data
+                refreshClientHandleInner(c);
+                DEB(getNameSet() << " entry #" << entry <<
+                    " initiates callback for client " <<
+                    c->token->getClientId());
+                // set up a queue with validity calls
+                AsyncQueueWriter<UCClientHandlePtr> w(check_valid2);
+                c->claim();
+                w.data() = c;
+              }
+
+              // when triggered, ensure that clients are called on new data
+              if (c->trigger_target) {
+                entries[entry]->requestIncludeTrigger(c);
+              }
             }
-            // update the data keeping span
-            entries[entry]->setMinimumSpanAndDepth(c->requested_span,
-                                                   c->requested_depth);
+            // update the data keeping span - done when linking to entry
+            //entries[entry]->setMinimumSpanAndDepth(c->requested_span,
+            //                                       c->requested_depth);
             l = l->next;
           }
 
           // see if there is a parent class too, repeat the trick there
           clsname = DataClassRegistry::single().getParent(clsname);
         } while (clsname.size());
+
+        DEB("Entry now valid");
+#if DEBPRINTLEVEL >= 0
+        entries[entry]->printClients(std::cout);
+#endif
 
         // releases the entries lock
       }
@@ -863,11 +898,34 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
     // find the entry
     UChannelEntryPtr entry = entries[msg.data0];
 
+    DEB("Invalidating entry");
+#if DEBPRINTLEVEL >= 0
+    entry->printClients(std::cout);
+#endif
+
+    // print warnings about large numbers of unread datapoints
+    entry->warnLazyClients();
+
     DEB(getNameSet() << " detaching #" << msg.data0 << " from class web");
 
     // remove this entry from the configuration
     ScopeLock l(entries_lock);
     config_version++;
+
+    // recycle any processed changes
+    recycleConfigChanges();
+
+    // make sure there is a next object in the latest config change pointer
+    if (latest_entry_config_change->next == NULL) {
+      latest_entry_config_change->next = new EntryConfigurationChange();
+    }
+
+    // indicate the removal of the entry
+    latest_entry_config_change->setData(EntryConfigurationChange::DeletedEntry,
+      reading_clients.size(), entry);
+
+    // force reading tokens to update on next occasion
+    latest_entry_config_change = latest_entry_config_change->next;
 
     // reset validity, needed since the master may be remote
     entry->resetValid();
@@ -904,21 +962,60 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
   case UChannelCommRequest::CleanEntryCmd: {
 
     assert(msg.data0 < entries.size() && entries[msg.data0] != NULL);
+    {
+      ScopeLock l(entries_lock);
+      while (entry_config_changes != latest_entry_config_change &&
+             entry_config_changes->tocheck == 0) {
+        if (entry_config_changes->changetype ==
+            EntryConfigurationChange::DeletedEntry) {
+
+          // check for match with the command
+          if (entry_config_changes->entry == entries[msg.data0] &&
+              entry_config_changes->entry->cleanAllData()) {
+
+            DEB(getNameSet() << " entry " << msg.data0 << " is now clean");
+            // send the confirmation
+            AsyncQueueWriter<UChannelCommRequest> w(config_requests);
+            w.data().type = UChannelCommRequest::CleanEntryConf;
+            w.data().data0 = msg.data0;
+            w.data().data1 = msg.data1;
+          }
+          else {
+            DEB(getNameSet() << " entry " << msg.data0 << " not yet clean");
+#if DEBPRINTLEVEL >= 0
+            entries[msg.data0]->printClients(std::cout);
+#endif
+          }
+
+          // recycle the configuration change
+          auto nxt = entry_config_changes->next;
+          latest_entry_config_change->insert(entry_config_changes);
+          entry_config_changes = nxt;
+        }
+        else {
+          // other processed configuration changes can be recycled without
+          // further action
+          auto nxt = entry_config_changes->next;
+          latest_entry_config_change->insert(entry_config_changes);
+          entry_config_changes = nxt;
+        }
+      }
+    }
 
     // if the cleaning has already been done and reported, break
     //if (msg.data0 >= entries.size() || !entries[msg.data0]) break;
 
-    if (entries[msg.data0]->cleanAllData()) {
-      AsyncQueueWriter<UChannelCommRequest> w(config_requests);
-      w.data().type = UChannelCommRequest::CleanEntryConf;
-      w.data().data0 = msg.data0;
-      w.data().data1 = msg.data1;
-      DEB(getNameSet() << " entry #" << msg.data0 <<
-          " confirming clean, round " << msg.data1);
-    }
-    else {
-      DEB(getNameSet() << " entry #" << msg.data0 << " not yet clean");
-    }
+    //if (entries[msg.data0]->cleanAllData()) {
+    //  AsyncQueueWriter<UChannelCommRequest> w(config_requests);
+    //  w.data().type = UChannelCommRequest::CleanEntryConf;
+    //  w.data().data0 = msg.data0;
+    //  w.data().data1 = msg.data1;
+    //  DEB(getNameSet() << " entry #" << msg.data0 <<
+    //      " confirming clean, round " << msg.data1);
+    //}
+    //else {
+    //  DEB(getNameSet() << " entry #" << msg.data0 << " not yet clean");
+    //}
   }
     break;
 
@@ -1338,19 +1435,19 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
                              unsigned requested_depth)
 {
   // create a client handle, with common data
-  UCClientHandlePtr handle = new UCClientHandle(token, dataclassname,
-                                                entrylabel,
-                                                valid, attach_entry,
-                                                readmode,
-                                                requested_span,
-                                                requested_depth,
-                                                newclient_id);
+  UCClientHandlePtr handle = new UCClientHandle
+    (token, dataclassname, entrylabel,
+     valid, attach_entry, readmode,
+     requested_span, requested_depth, newclient_id);
   newclient_id += 0x100;        // TODO: make max nodes flexible
   bool immediatevalid = false;
 
   {
     ScopeLock lc(entries_lock);
     reading_clients.push_back(handle);
+
+    // with lock on the entries, mark config generation
+    handle->config_change = latest_entry_config_change;
 
     // try to find the dataclass mapping with this data class name
     dataclassmap_type::iterator ix = entrymap.find(dataclassname);
@@ -1375,6 +1472,7 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
     // present, i.e., there is an entry that is readable by this
     // client (this will fail when there are no entries yet)
     UCEntryLinkPtr l = ix->second.entries;
+    bool linked = false;
     while (l != NULL) {
       UChannelEntryPtr e = l->entry();
       bool entrymatch =
@@ -1387,9 +1485,22 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
       if (entrymatch) {
         e->setMinimumSpanAndDepth(handle->requested_span,
                                   handle->requested_depth);
+        linkReadClientToEntry(handle, e);
+
+        // and ensure the entry installs triggers if needed
+        if (handle->trigger_target) {
+          e->requestIncludeTrigger(handle);
+        }
+
+        linked = true;
       }
       l = l->next;
     }
+    if (!linked) {
+      DEB(getNameSet() << " read token for " << token->getClientId() <<
+          " no entry at creation");
+    }
+
     if (immediatevalid) {
       refreshClientHandleInner(handle);  // do the refresh
     }
@@ -1424,14 +1535,69 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
   // next round
 }
 
+void UnifiedChannel::detachClientlinks(UCClientHandlePtr client)
+{
+  /*
+     When removing a read token, remove links.
+  */
+  auto oe = client->class_lead;
+  while (oe != NULL) {
+    bool seq = oe->isSequential();
+    if (seq && oe->read_index) {
+      DEB(getNameSet() << " client " << client->token->getClientId() <<
+          " detaching from entry #" << oe->entry->getId());
+      oe->read_index->releaseReadAccess();
+    }
+
+    // ensure the entry removes triggers if needed
+    if (client->trigger_target) {
+      oe->entry->requestRemoveTrigger(client);
+      config_version++;
+    }
+
+    // remove the client from the entry's quick list
+    oe->entry->removeClient(oe);
+
+    // report the change in channel configuration
+    channelreadinfo::stash().stash
+      (new ChannelReadInfo(getId(), client->token->getClientId(),
+                           client->client_creation_id, client->requested_entry,
+                           seq, ChannelReadInfo::Detached));
+    DEB("Deleting oe " << oe << " n " << oe->next);
+    UCEntryClientLinkPtr todel = oe;
+    oe = oe->next;
+    delete todel;
+  }
+}
+
 void UnifiedChannel::removeReadToken(UCClientHandlePtr& client)
 {
   assert(client->accessed == NULL);
   ScopeLock lock(entries_lock);
 
   // last refresh, if out of sync with config
-  if (client->config_version != config_version) {
+  if (client->config_change != latest_entry_config_change) {
     refreshClientHandleInner(client);
+  }
+
+  // warn if neglective of reading
+  auto cl = client->class_lead;
+  while (cl) {
+    if (cl->isSequential() &&
+        cl->entry->getNumVisibleSets(MAX_TIMETICK) > 1) {
+      /* DUECA channel.
+
+         You created a channel read token with a request for sequential
+         reading, but have neglected reading from it. This keeps a large
+         number of datapoints in the channel. Consider flushing or reading,
+         deleting the token or maybe you don't need it at all.
+      */
+      W_CHN("Deleting read token for channel " << getNameSet() <<
+            ", entry " << cl->entry->entry_id <<
+            ", client " << client->getId() << ", still " <<
+            cl->entry->getNumVisibleSets(MAX_TIMETICK) << " unread");
+      }
+    cl = cl->next;
   }
 
   // remove from list of reading clients
@@ -1439,6 +1605,8 @@ void UnifiedChannel::removeReadToken(UCClientHandlePtr& client)
     find(reading_clients.begin(), reading_clients.end(), client);
   assert(to_erase != reading_clients.end());
   reading_clients.erase(to_erase);
+
+  // inform the master that this client leaves
   {
     AsyncQueueWriter<UChannelCommRequest> w(config_requests);
     w.data().type = UChannelCommRequest::LeaveClientNotif;
@@ -1446,10 +1614,10 @@ void UnifiedChannel::removeReadToken(UCClientHandlePtr& client)
   }
 
   // remove remaining links to entries
-  detachClientlinks(client, client->class_lead, ChannelReadInfo::Detached);
+  detachClientlinks(client);
   client->class_lead = NULL;
 
-  // increase configuration version
+  // increase configuration version (why?)
   config_version++;
 
   // find the entry in the classmap
@@ -1560,6 +1728,11 @@ UnifiedChannel::addWriteToken(ChannelWriteToken* token,
 
 void UnifiedChannel::removeWriteToken(UCWriterHandlePtr& client)
 {
+  DEB("removing write token");
+#if DEBPRINTLEVEL >= 0
+  client->entry->printClients(std::cout);
+#endif
+
   // reset the validity of the entry, no more data given by the
   // entry
   client->callback = NULL;
@@ -1569,7 +1742,7 @@ void UnifiedChannel::removeWriteToken(UCWriterHandlePtr& client)
     config_version++;
   }
 
-  // the handle object will be deleted by the entry itself.
+  // the handle object (client) will be deleted by the entry itself.
 
   // notify the managing end
   AsyncQueueWriter<UChannelCommRequest> w(config_requests);

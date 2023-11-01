@@ -157,6 +157,15 @@ public:
   */
   const std::string& getParent(const std::string& classname);
 
+  /** See whether a class is a parent of (compatible with reading) 
+      another class.
+      
+      @param tryclass    Class you want to access/read with
+      @param classname   Class given. 
+      */
+  bool isCompatible(const std::string& tryclass, 
+                    const std::string& classname);
+
   /** Get a pointer to the dataset converter for this data type.
 
       @param classname   data type class name

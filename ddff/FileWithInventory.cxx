@@ -16,7 +16,7 @@
 #include <msgpack.hpp>
 #include <dueca/msgpack-unstream-iter.hxx>
 #include "DDFFExceptions.hxx"
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 namespace msgpack {

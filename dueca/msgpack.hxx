@@ -298,7 +298,7 @@ MSGPACK_API_VERSION_NAMESPACE(v1) {
 #include <string>
 #include <vector>
 
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -2
 #include <debprint.h>
 
 /** @group Utilities for generated code */

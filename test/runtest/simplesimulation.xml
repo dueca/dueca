@@ -4,7 +4,7 @@
     <window>DUECA/DUSIME control panel</window>
     <window>Are you serious?</window>
   </project>
-  <repository>https://github.com/dueca/</repository>
+  <repository>https://github.com/repagh/</repository>
   <execute>
     <platform>solo</platform>
     <node>solo</node>

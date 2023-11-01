@@ -17,6 +17,8 @@
 */
 
 
+#include <tuple>
+#include <utility>
 #define ChannelReplicatorPeer_cxx
 
 // include the definition of the module class
@@ -110,6 +112,11 @@ const ParameterTable* ChannelReplicatorPeer::getMyParameterTable()
       (&_ThisClass_::sync_to_master_timing),
       "Synchronize to the master's timing, creeps up to the master within the\n"
       "communication data rate" },
+
+    { "timing-gain",
+      new VarProbe<_ThisClass_,double>
+      (&_ThisClass_::timing_gain),
+      "Gain factor for determining timing differences (default 0.002)" },
 
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
@@ -561,7 +568,9 @@ void ChannelReplicatorPeer::clientUnpackPayload
 {
   auto timing = peer_timing.find(id);
   if (timing == peer_timing.end()) {
-    peer_timing.emplace(id, ts_interval);
+    peer_timing.emplace(std::piecewise_construct,
+                        std::forward_as_tuple(id), 
+                        std::forward_as_tuple(ts_interval, timing_gain));
     timing = peer_timing.find(id);
   }
   timing->second.adjustDelta

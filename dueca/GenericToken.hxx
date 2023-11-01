@@ -54,6 +54,7 @@ class GenericCallback;
     for accounting purposes */
 class GenericToken: public TriggerPuller
 {
+
 private:
   /** ID pointing to the creator of the token. */
   GlobalId holder;

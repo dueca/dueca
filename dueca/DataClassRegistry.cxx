@@ -293,6 +293,20 @@ DataClassRegistry::getConverter(const std::string& classname) const
   return ix->second->converter.get();
 }
 
+bool DataClassRegistry::isCompatible(const std::string& tryclass, 
+                                     const std::string& classname)
+{
+  map_type::const_iterator ix = entries.find(classname);
+  if (ix == entries.end()) throw(DataObjectClassNotFound(classname));
+  if (tryclass == classname) return true;
+  std::shared_ptr<DCRegistryEntry> ip = ix->second->iparent;
+  while (ip->iparent) {
+    if (ip->parent == tryclass) return true;
+    ip = ip->iparent;
+  }
+  return false;
+}
+
 std::weak_ptr<DCOMetaFunctor>
 DataClassRegistry::getMetaFunctor(const std::string& classname,
                                   const std::string& fname) const

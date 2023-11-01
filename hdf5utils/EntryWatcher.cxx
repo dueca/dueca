@@ -138,6 +138,10 @@ EntryWatcher::EntryData::EntryData(const dueca::ChannelEntryInfo& i,
   }
 }
 
+EntryWatcher::EntryData::~EntryData()
+{
+  // deletes?
+}
 
 void EntryWatcher::EntryData::accessAndLog(const dueca::TimeSpec& ts)
 {

@@ -52,7 +52,6 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 STARTNSREPLICATOR;
@@ -138,6 +137,17 @@ const ParameterTable* ChannelReplicatorMaster::getMyParameterTable()
       (&_ThisClass_::timeout),
       "Timeout, in s, before a message from the peers is considered missing" },
 
+    { "timing-gain",
+      new VarProbe<_ThisClass_,double>
+      (&_ThisClass_::timing_gain),
+      "Gain factor for determining timing differences (default 0.002)" },
+
+    { "timing-interval",
+      new VarProbe<_ThisClass_,unsigned>
+      (&_ThisClass_::ts_interval),
+      "Interval on which data time translation is rounded. Default ticker's\n"
+      "time interval." },
+
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
        class objects. Please also add a description (c-style string).
@@ -210,9 +220,6 @@ bool ChannelReplicatorMaster::setTimeSpec(const TimeSpec& ts)
 
   // set the master clock
   masterclock.changePeriodAndOffset(ts);
-
-  // remember granularity of communication
-  ts_interval = ts.getValiditySpan();
 
   // return true if everything is acceptable
   return true;
@@ -330,6 +337,9 @@ void ChannelReplicatorMaster::stopModule(const TimeSpec &time)
 // appropriate output
 void ChannelReplicatorMaster::doCalculation(const TimeSpec& ts)
 {
+  // early return if delayed by timeout
+  if (do_calc.numScheduledBehind()) return;
+  
   doCycle(ts, do_calc);
 
   if (peers.size() == 0) {
@@ -351,7 +361,9 @@ clientInfoPeerJoined(const std::string& address, unsigned id,
   }
 
   // create room for timing information
-  peer_timing.emplace(id, ts_interval);
+  peer_timing.emplace(std::piecewise_construct,
+                      std::forward_as_tuple(id), 
+                      std::forward_as_tuple(ts_interval, timing_gain));
 }
 
 /*

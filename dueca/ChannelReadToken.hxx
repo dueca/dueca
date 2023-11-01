@@ -197,7 +197,6 @@ typedef UCClientHandle* UCClientHandlePtr;
 */
 class ChannelReadToken: public GenericToken
 {
-
   /** pointer to the client handle */
   UCClientHandlePtr     handle;
 

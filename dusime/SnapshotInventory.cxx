@@ -31,7 +31,7 @@
 #include <algorithm>
 
 #define CATCH_TOML_ERROR 0
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 #define DO_INSTANTIATE

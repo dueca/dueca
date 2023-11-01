@@ -126,6 +126,7 @@ public:
           // valid timing
         }
         else {
+          // does not match requested time, return data
           releaseAccess(r, data_ptr);
           data_ptr = NULL;
         }

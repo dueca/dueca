@@ -28,7 +28,7 @@
 #include <iostream>
 #include "ChronoTimePoint.hxx"
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 #define DO_INSTANTIATE

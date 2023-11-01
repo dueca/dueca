@@ -14,7 +14,7 @@
 #include "msgpack.hxx"
 #include <debug.h>
 #include <dueca_ns.h>
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -2
 #include <debprint.h>
 
 PRINT_NS_START;
