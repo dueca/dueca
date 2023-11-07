@@ -98,7 +98,9 @@ option(FILLPACKER_SEND_ID  "Let fill packing/unpacking add message number and ID
 option(FORCE_PYTHON_MALLOC "Force malloc as allocator for python" OFF)
 option(BUILD_DDFF          "Build Delft Direct File Format logging" ON)
 option(TRY_INSTALL_PYTHON_BUILD "If needed, use pip to install python build" OFF)
-option(UNREAD_DATAPOINTS_THRESHOLD "Threshold for warning about unread data in channels" 1000)
+set(UNREAD_DATAPOINTS_THRESHOLD 1000 CACHE STRING
+  "Threshold for warning about unread data in channels")
+
 if (APPLE)
   set(CMAKE_FIND_FRAMEWORK LAST)
 endif()
