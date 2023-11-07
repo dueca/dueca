@@ -66,7 +66,7 @@ private:
 
   /** remember whether files have been initialized */
   bool                               files_initialized;
-  
+
   /** Enumeration values for the store, these are  */
   enum StoreFieldsReplay {
     S_rec_id,            /**< Giving each a number */
@@ -94,6 +94,9 @@ public:
 
   /** Destructor */
   ~ReplayMasterGtk3();
+
+  /** Window position */
+  bool setPositionAndSize(const std::vector<int>& p);
 
   /** Start signal */
   void startModule(const TimeSpec &time);

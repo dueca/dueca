@@ -1583,20 +1583,22 @@ void UnifiedChannel::removeReadToken(UCClientHandlePtr& client)
   // warn if neglective of reading
   auto cl = client->class_lead;
   while (cl) {
-    if (cl->isSequential() &&
-        cl->entry->getNumVisibleSets(MAX_TIMETICK) > 1) {
-      /* DUECA channel.
+    if (cl->isSequential()) {
+      auto nunr = cl->entry->getNumVisibleSets(MAX_TIMETICK, cl->read_index);
+      if (nunr > UNREAD_DATAPOINTS_THRESHOLD) {
+        /* DUECA channel.
 
-         You created a channel read token with a request for sequential
-         reading, but have neglected reading from it. This keeps a large
-         number of datapoints in the channel. Consider flushing or reading,
-         deleting the token or maybe you don't need it at all.
-      */
-      W_CHN("Deleting read token for channel " << getNameSet() <<
-            ", entry " << cl->entry->entry_id <<
-            ", client " << client->getId() << ", still " <<
-            cl->entry->getNumVisibleSets(MAX_TIMETICK) << " unread");
+           You created a channel read token with a request for sequential
+           reading, but have neglected reading from it. This keeps a large
+           number of datapoints in the channel. Consider flushing or reading,
+           deleting the token or maybe you don't need it at all.
+        */
+        W_CHN("Deleting read token for channel " << getNameSet() <<
+              ", entry " << cl->entry->entry_id <<
+              ", client " << client->getId() << ", read " << cl->read_index->seqId() <<
+	            ", still " << nunr << " unread");
       }
+    }
     cl = cl->next;
   }
 

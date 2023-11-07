@@ -12,7 +12,8 @@ sleep 1
 timeout --kill-after=10 @TIMELIMIT@ \
        @Python_EXECUTABLE@ @CMAKE_CURRENT_SOURCE_DIR@/testrunner.py \
        --base @TESTRUN_BASE@ \
-       --control @CMAKE_CURRENT_SOURCE_DIR@/@CONTROLFILE@.xml
+       --control @CMAKE_CURRENT_SOURCE_DIR@/@CONTROLFILE@.xml \
+       --timelimit @PYTHONTIME@
 RESULT=$?
 sleep 1
 

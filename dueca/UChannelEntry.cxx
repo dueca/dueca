@@ -1287,8 +1287,8 @@ void UChannelEntry::warnLazyClients()
       auto el = cl->entry()->class_lead;
       while (el && el->entry != this) { el = el->next; }
 
-      if (el->isSequential()) {
-        auto nleft = el->entry->getNumVisibleSets(MAX_TIMETICK);
+      if (el != NULL && el->isSequential()) {
+        auto nleft = el->entry->getNumVisibleSets(MAX_TIMETICK, el->read_index);
 
         if (nleft > UNREAD_DATAPOINTS_THRESHOLD) {
         /* DUECA channel.
@@ -1300,7 +1300,7 @@ void UChannelEntry::warnLazyClients()
         */
         W_CHN("When deleting entry from channel " << channel->getNameSet() <<
               ", entry " << entry_id <<
-              ", client " << cl->entry()->getId() <<
+              ", client " << cl->entry()->getId() << ", read " << el->read_index->seqId() <<
               ", still " << nleft << " unread");
         }
       }

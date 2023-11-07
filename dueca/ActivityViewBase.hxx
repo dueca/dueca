@@ -195,6 +195,9 @@ public:
   /** Call for a measurement of the activities. */
   void triggerUpdate();
 
+  /** Pre-define a position and size for the window */
+  virtual bool setPositionAndSize(const std::vector<int>& ps);
+  
   /** Change the look-ahead time. */
   bool setLookAhead(const double& ahead);
 

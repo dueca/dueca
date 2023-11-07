@@ -99,6 +99,8 @@ SnapshotInventory::SnapshotInventory(const char* entity_name) :
 {
   store_snapshots.setTrigger(r_snapshots);
   store_snapshots.switchOn();
+  follow_dusime.setTrigger(r_dusime);
+  follow_dusime.switchOn();
 }
 
 SnapshotInventory::~SnapshotInventory()

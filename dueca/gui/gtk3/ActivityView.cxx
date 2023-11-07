@@ -290,6 +290,22 @@ void ActivityView::cbViewSpan(GtkWidget* spin, gpointer gp)
   hl.end = 0;
 }
 
+bool ActivityView::setPositionAndSize(const std::vector<int>& ps)
+{
+  if (ps.size() == 2 || ps.size() == 4) {
+    gui.window.setWindow(ps);
+  }
+  else {
+    /* DUECA UI.
+
+       ActivityView window setting needs 2 (for size) or 4 (also location)
+       arguments. */
+    E_CNF("ActivityView position size setting needs 2 or 4 arguments");
+    return false;
+  }
+  return true;
+}
+
 void ActivityView::cbRecordSpan(GtkWidget* spin, gpointer gp)
 {
   //dspan = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin));

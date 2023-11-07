@@ -49,6 +49,9 @@ public:
   /** Completion, creates the window. */
   bool complete() final;
 
+  /** Pre-define a position and size for the window */
+  bool setPositionAndSize(const std::vector<int>& ps) final;
+
   /** Re-draw the display of activities. */
   void updateLines(unsigned idlog) final;
 

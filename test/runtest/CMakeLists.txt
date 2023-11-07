@@ -14,9 +14,10 @@ find_package(LibXml2 REQUIRED)
 find_program(H5DUMP NAMES h5dump)
 
 # variables for running
-set(DISPLAYSIZE 1920x1080)
+set(DISPLAYSIZE 1280x1024)
 set(DISPLAY ":88")
-set(TIMELIMIT 180s)
+set(TIMELIMIT 240s)
+set(PYTHONTIME 220)
 
 # test some supporting python packages
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import PIL"
@@ -54,7 +55,7 @@ lists map mappedfixvector nestedmap second varvector)
 
 # These files (with .xml suffix) define the test scenarios
 set(CONTROLFILES
-  tmssolo tmsudptwo tmswsudpfour replayscenario
+  tmssolo tmsudptwo tmswsudpfour replayscenario simplesimulationmulti
 )
 
 # run these tests with enough python modules

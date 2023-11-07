@@ -97,6 +97,9 @@ public: // construction and further specification
   /** Destructor. */
   ~SnapshotInventoryGtk3();
 
+  /** Window position */
+  bool setPositionAndSize(const std::vector<int>& p);
+
 public: // member functions for cooperation with DUECA
   /** indicate that everything is ready. */
   bool isPrepared();

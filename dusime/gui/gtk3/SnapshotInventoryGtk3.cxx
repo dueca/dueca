@@ -22,7 +22,7 @@
 // include the definition of the module class
 #include "SnapshotInventoryGtk3.hxx"
 #include <dueca/DuecaPath.hxx>
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -2
 #include <debprint.h>
 #include <dueca/gui/gtk3/GtkDuecaView.hxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -54,6 +54,11 @@ const ParameterTable* SnapshotInventoryGtk3::getParameterTable()
       new VarProbe<_ThisModule_,std::string>
       (&_ThisModule_::gladefile),
       "Interface description (glade, gtkbuilder) for the channel view window" },
+
+    { "position-size", new MemberCall<_ThisModule_, std::vector<int> >
+      (&_ThisModule_::setPositionAndSize),
+      "Specify the position, and optionally also the size of the interface\n"
+      "window." },
 
     { "reference-file",
       new VarProbe<_ThisModule_,std::string>
@@ -374,6 +379,22 @@ cbDelete(GtkWidget *window, GdkEvent *event, gpointer user_data)
 
   // indicate that the event is handled
   return TRUE;
+}
+
+bool SnapshotInventoryGtk3::setPositionAndSize(const std::vector<int>& p)
+{
+  if (p.size() == 2 || p.size() == 4) {
+    window.setWindow(p);
+  }
+  else {
+    /* DUECA UI.
+
+       Window setting needs 2 (for size) or 4 (also location)
+       arguments. */
+    E_CNF(getId() <<  '/' << classname << " need 2 or 4 arguments");
+    return false;
+  }
+  return true;
 }
 
 

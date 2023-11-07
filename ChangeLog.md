@@ -2,6 +2,24 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.3] - 2023-11-08
+
+- Fix for a crash in the websocket server with repeated access/delete
+- Add mime type information tot the build-in web server
+- Various documentation fixes
+- Removed the calculation of config/master url for the udp server, url's
+  to be directly entered now to the config
+- Robustness fixes for dueca inter
+- Considerable rework of channel handling for sequential read access; 
+  now correctly cleans read datapoints, more efficient transmission of 
+  changes to channel configuration
+- Add a warning on sequential reading when too many datapoints are left
+  in an entry after removing entry or read token.
+- Add a new test scenario with actual replay of a recorded data
+- Add a new test scenario with SimpleSimulation, involving/testing the 
+  DUECA inter communication, with two teams and a central hub
+- Enhancements to the python testrunner
+
 ## [4.0.2] - 2023-10-17
 
 - A new script, dueca-startlink, to create automatic links to start script, 
