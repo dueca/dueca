@@ -136,11 +136,13 @@ Created new DUECA project SimpleSimulation
 Now enter the project folder. This is where your project-specific
 code, the configuration for the project, and datafiles live.
 
-    [enter]$ cd SimpleSimulation/SimpleSimulation
-    [enter]$ ls
-    build  CMakeLists.txt  comm-objects  README.md  run
-    [enter]$ ls .config
-    class  machine  machinemapping.xml  policylist.xml
+~~~~{.bash}
+[enter]$ cd SimpleSimulation/SimpleSimulation
+[enter]$ ls
+build  CMakeLists.txt  comm-objects  README.md  run
+[enter]$ ls .config
+class  machine  machinemapping.xml  policylist.xml
+~~~~
 
 We see here the following:
 
