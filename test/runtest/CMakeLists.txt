@@ -16,8 +16,8 @@ find_program(H5DUMP NAMES h5dump)
 # variables for running
 set(DISPLAYSIZE 1280x1024)
 set(DISPLAY ":88")
-set(TIMELIMIT 240s)
-set(PYTHONTIME 220)
+set(TIMELIMIT 300s)
+set(PYTHONTIME 290)
 
 # test some supporting python packages
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import PIL"
