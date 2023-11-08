@@ -66,8 +66,15 @@
 
     @section hdf5_init Adding HDF5 logging to your project
 
-    To add hdf5 logging capability to your project, add the option
-    --hdf5 to the DCOMPONENTS variable in the makefile:
+    To add hdf5 logging capability to your project, add hdf5 to the
+    DUECA_COMPONENTS list in your main CMakeLists.txt file:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cmake}
+    set(DUECA_COMPONENTS ${SCRIPTLANG} ... hdf5)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    If you are still using the old Makefile-based project setup, adapt
+    your project Makefile:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.make}
     DCOMPONENTS = ....  --hdf5
@@ -110,7 +117,7 @@
     to monitor a specific channel and create logging for all entries
     appearing in that channel. You can specify whether logging takes
     place always, or only when the simulation is in advance, and it is
-    also possible to "throttle" the logging rate, however make sure
+    also possible to "throttle" the logging rate, however, make sure
     you only do this on clean signals, since the data is not filtered
     before picking only a part of the data points.
 

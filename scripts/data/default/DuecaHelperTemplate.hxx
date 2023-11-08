@@ -24,10 +24,10 @@ USING_DUECA_NS;
 /** A class definition for a DUECA helper class
 
     This class has been derived from the ScriptCreatable base class,
-    and has a (scheme) script command to create it and optionally add
-    parameters.
+    and has a (Scheme or Python) script command to create it and
+    optionally add parameters.
 
-    The instructions to create an object of this class from the Scheme
+    The instructions to create an object of this class from the start
     script are:
 
     \verbinclude @smodule@.scm
@@ -37,7 +37,7 @@ class @Module@: public ScriptCreatable
 private: // simulation data
 
 public: // construction and further specification
-  /** Constructor. Is normally called from scheme/the creation script. */
+  /** Constructor. Is normally called from the creation script. */
   @Module@();
 
   /** Continued construction. This is called after all script

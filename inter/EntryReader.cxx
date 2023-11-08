@@ -23,7 +23,7 @@
 #include <dueca.h>
 #include <dassert.h>
 
-#define DEBPRINTLEVEL -1
+#define DEBPRINTLEVEL 2
 #include <debprint.h>
 
 STARTNSREPLICATOR;
@@ -129,7 +129,11 @@ bool EntryReader::readChannel(AmorphStore& s, uint16_t channelid)
          be held until the next communication opportunity. If this
          occurs frequently, try increasing the message size in the 
 	 ChannelReplicatorMaster. */
-      W_INT("no room for channel data from " << r_entry.getName());
+      W_INT("No room for channel data from " << r_entry.getName());
+      DEB1("Store full, ch " << channelid << " packed from " <<
+           r_entry.getName() <<
+           " entry " << r_entry.getEntryId() << " at " << lasttick <<
+           " s" << idx0 << ".." << s.getSize());
       s.setSize(idx0);
       throw(e);
     }

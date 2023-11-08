@@ -22,10 +22,10 @@ include(GNUInstallDirs)
 # version information, please update accordingly
 set(VERMAJOR 4)
 set(VERMINOR 0)
-set(REVISION 2)
+set(REVISION 3)
 set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "15 Jun 2023")
+set(VERSION_DATE "08 Nov 2023")
 string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
 set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 
@@ -98,6 +98,9 @@ option(FILLPACKER_SEND_ID  "Let fill packing/unpacking add message number and ID
 option(FORCE_PYTHON_MALLOC "Force malloc as allocator for python" OFF)
 option(BUILD_DDFF          "Build Delft Direct File Format logging" ON)
 option(TRY_INSTALL_PYTHON_BUILD "If needed, use pip to install python build" OFF)
+set(UNREAD_DATAPOINTS_THRESHOLD 1000 CACHE STRING
+  "Threshold for warning about unread data in channels")
+
 if (APPLE)
   set(CMAKE_FIND_FRAMEWORK LAST)
 endif()

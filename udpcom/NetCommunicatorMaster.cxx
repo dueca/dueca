@@ -133,23 +133,11 @@ bool NetCommunicatorMaster::startServer()
 {
   if (not conf_comm) {
     if (!config_url.size()) {
-      try {
-        config_url = std::string("ws://") + interface_address +
-          std::string(":") + boost::lexical_cast<std::string>(master_port) +
-          std::string("/config");
-      }
-      catch (const std::exception& e) {
-        /* DUECA network.
-
-           A URL for configuration of the communication is normally
-           given directly. For compatibility with older code, it can
-           also be composed from the interface address and port
-           given. In this case that failed. Update your code, and
-           directly specify the URL.
-         */
-        E_CNF("Cannot autocreate a config url");
-        throw(e);
-      }
+      /* DUECA network.
+	 
+	 Config url needs to be supplied */
+      W_NET("Config URL needs to be supplied");
+      throw(connectionfails());
     }
     conf_comm.reset(new WebsockCommunicatorConfig
                     (config_url, timeout, common_callback

@@ -17,6 +17,8 @@
 */
 
 
+#include <tuple>
+#include <utility>
 #define ChannelReplicatorPeer_cxx
 
 // include the definition of the module class
@@ -68,15 +70,8 @@ const ParameterTable* ChannelReplicatorPeer::getMyParameterTable()
 
     { "if-address",
       new VarProbe<_ThisClass_,std::string>(&_ThisClass_::interface_address),
-      "Address of the interface over which communication takes place." },
-
-    { "master-address",
-      new VarProbe<_ThisClass_,std::string>(&_ThisClass_::master_address),
-      "Address of the master node. Either hostname or IP address." },
-
-    { "server-port",
-      new VarProbe<_ThisClass_,uint16_t>(&_ThisClass_::master_port),
-      "Port for contacting the server." },
+      "Address of the interface over which communication takes place. This\n"
+      "is usually determined automatically."},
 
     // specific for UDP connections
     { "port-re-use",
@@ -117,6 +112,11 @@ const ParameterTable* ChannelReplicatorPeer::getMyParameterTable()
       (&_ThisClass_::sync_to_master_timing),
       "Synchronize to the master's timing, creeps up to the master within the\n"
       "communication data rate" },
+
+    { "timing-gain",
+      new VarProbe<_ThisClass_,double>
+      (&_ThisClass_::timing_gain),
+      "Gain factor for determining timing differences (default 0.002)" },
 
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
@@ -228,23 +228,49 @@ void ChannelReplicatorPeer::doCalculation(const TimeSpec& ts)
 {
   if (Environment::getInstance()->runningMultiThread()) {
     /* DUECA interconnect.
-
+       
        Starting cyclic processing of messages */
     I_INT("cyclic start " << ts);
     setStopTime(MAX_TIMETICK);
-    startCyclic(do_calc);
+
+    try {
+      startCyclic(do_calc);
+    }
+    catch(const connectionfails& e) {
+      /* DUECA interconnect.
+	 
+	 Tried to run a communication cycle, but could not make the
+	 websockets connection for start up. Will attempt to connect
+	 later. */
+      W_NET("Connection failure, will attempt new connection later");
+      slaveclock.requestAlarm(ts.getValidityStart() +
+			      int(round(1.0/Ticker::single()->getTimeGranule())));
+    }
   }
+  
   else {
     DEB1("one cycle " << ts);
-    oneCycle(do_calc);
-
-    // when not over to cyclic, but still stopping
-    if (commanded_stop) {
-      clearConnections();
-      return;
+    try {
+      oneCycle(do_calc);
+      
+      // when not over to cyclic, but still stopping
+      if (commanded_stop) {
+	clearConnections();
+	return;
+      }
+      time_spec.advance();
+      slaveclock.requestAlarm(time_spec.getValidityStart());
     }
-    time_spec.advance();
-    slaveclock.requestAlarm(time_spec.getValidityStart());
+    catch(const connectionfails& e) {
+      /* DUECA interconnect.
+	 
+	 Tried to run a communication cycle, but could not make the
+	 websockets connection for start up. Will attempt to connect
+	 later. */
+      W_NET("Connection failure, will attempt new connection later");
+      slaveclock.requestAlarm(ts.getValidityStart() + 
+			      int(round(1.0/Ticker::single()->getTimeGranule())));
+    }
   }
 }
 
@@ -542,7 +568,9 @@ void ChannelReplicatorPeer::clientUnpackPayload
 {
   auto timing = peer_timing.find(id);
   if (timing == peer_timing.end()) {
-    peer_timing.emplace(id, ts_interval);
+    peer_timing.emplace(std::piecewise_construct,
+                        std::forward_as_tuple(id), 
+                        std::forward_as_tuple(ts_interval, timing_gain));
     timing = peer_timing.find(id);
   }
   timing->second.adjustDelta

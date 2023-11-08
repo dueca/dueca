@@ -22,7 +22,7 @@
 #include <iomanip>
 #include <cstring>
 
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DDFF_NS_START
@@ -50,7 +50,7 @@ void FileStreamWrite::initBuffers(size_t bufsize)
 {
   if (buffers.allocator.bufsize) { throw incorrect_init(); }
 
-  DEB("FileStreamRead, allocating " << 3 <<
+  DEB("FileStreamWrite, allocating " << 3 <<
       " buffers, sz=" << bufsize);
 
   // ensure allocation with proper buffer size

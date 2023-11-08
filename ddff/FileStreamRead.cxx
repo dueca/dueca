@@ -18,7 +18,7 @@
 #include "ControlBlock.hxx"
 #include <iomanip>
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DDFF_NS_START

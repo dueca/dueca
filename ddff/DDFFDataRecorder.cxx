@@ -23,7 +23,7 @@
 #include "DDFFExceptions.hxx"
 #include <dueca/DCOtypeJSON.hxx>
 
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DDFF_NS_START

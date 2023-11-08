@@ -43,7 +43,7 @@ def parsepy():
     # run through all lines
     with open('dueca_cnf.py', 'r') as fn:
         for l in fn:
-            nodecheck.search_string(l)
+            nodecheck.searchString(l)
 
 def parseguile():
 
@@ -54,7 +54,7 @@ def parseguile():
     # run through all lines
     with open('dueca.cnf', 'r') as fn:
         for l in fn:
-            nodecheck.search_string(l)
+            nodecheck.searchString(l)
 
 # Check node number
 for f in os.listdir('.'):
@@ -74,7 +74,7 @@ def isstartfile(f):
     with open(f'../{f}', 'r') as sf:
         for l in sf:
             #print( l)
-            if pattern.search_string(l):
+            if pattern.searchString(l):
                 return True
     return False
 

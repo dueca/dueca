@@ -24,7 +24,7 @@ USING_DUECA_NS;
 
 /** A simulation module.
 
-    The instructions to create an module of this class from the Scheme
+    The instructions to create an module of this class from the start
     script are:
 
     \verbinclude @smodule@.scm
@@ -76,13 +76,13 @@ public: // class name and trim/parameter tables
   static const ParameterTable*       getMyParameterTable();
 
 public: // construction and further specification
-  /** Constructor. Is normally called from scheme/the creation script. */
+  /** Constructor. Is normally called from the creation script. */
   @Module@Mod(Entity* e, const char* part, const PrioritySpec& ts);
 
   /** Continued construction. This is called after all script
       parameters have been read and filled in, according to the
       parameter table. Your running environment, e.g. for OpenGL
-      drawing, is also prepared. Any lengty initialisations (like
+      drawing, is also prepared. Any lengthy initialisations (like
       reading the 4 GB of wind tables) should be done here.
       Return false if something in the parameters is wrong (by
       the way, it would help if you printed what!) May be deleted. */

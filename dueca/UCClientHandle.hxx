@@ -11,8 +11,7 @@
         license         : EUPL-1.2
 */
 
-#ifndef UCClientHandle_hxx
-#define UCClientHandle_hxx
+#pragma once
 
 #include <inttypes.h>
 #include <string>
@@ -28,7 +27,7 @@
 
 DUECA_NS_START;
 
-
+// advance definitions
 class UChannelEntryData;
 typedef UChannelEntryData* UChannelEntryDataPtr;
 class UChannelEntry;
@@ -39,6 +38,8 @@ class ChannelReadToken;
 struct GlobalId;
 class TriggerPuller;
 typedef uint32_t uchan_seq_id_t;
+struct EntryConfigurationChange;
+typedef EntryConfigurationChange* EntryConfigurationChangePtr;
 
 template<class T>
 struct single_link
@@ -66,6 +67,7 @@ typedef UCDataclassLink* UCDataclassLinkPtr;
 struct UCEntryClientLink;
 typedef UCEntryClientLink* UCEntryClientLinkPtr;
 
+
 /** Link for matching a client with a channel entry. */
 struct UCEntryClientLink
 {
@@ -81,14 +83,14 @@ struct UCEntryClientLink
   /** And the unique ID of the client */
   uint32_t client_id;
 
-  /** Sequential reading? */
+  /** Flag indicating sequential reading. */
   bool sequential_read;
 
   /** placeholder for the reading index, only used in sequential
       reading */
   UChannelEntryDataPtr read_index;
 
-  /** Remeber the index of the last read data point */
+  /** Remeber the index counter of the last read data point */
   uchan_seq_id_t       seq_id;
 
   /** Constructor */
@@ -121,8 +123,8 @@ struct UCClientHandle
       specified child classes */
   UCDataclassLinkPtr dataclasslink;
 
-  /** Match with the channel configuration generation */
-  uint32_t config_version;
+  /** Pointer to the latest processed configuration change */
+  EntryConfigurationChangePtr config_change;
 
   /** Counter to guard for validity */
   atom_type<uint32_t>::type access_count;
@@ -262,5 +264,3 @@ typedef UCWriterHandle* UCWriterHandlePtr;
 
 
 DUECA_NS_END;
-
-#endif

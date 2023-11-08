@@ -203,6 +203,11 @@ bool ActivityViewBase::setLookAhead(const double& ahead)
   return true;
 }
 
+bool ActivityViewBase::setPositionAndSize(const std::vector<int>& ps)
+{
+  // not implemented for the base
+  return true;
+}
 
 void ActivityViewBase::startModule(const TimeSpec& time)
 {
@@ -317,6 +322,11 @@ const ParameterTable* ActivityViewBase::getParameterTable()
     {"set-lookahead",
      new MemberCall<ActivityViewBase,double>(&ActivityViewBase::setLookAhead),
      "advance time needed for request sending" },
+    {"position-size",
+     new MemberCall<ActivityViewBase,std::vector<int>>
+     (&ActivityViewBase::setPositionAndSize),
+     "Specify the position, and optionally also the size of the interface\n"
+     "window." },
     {NULL, NULL,
      "Visualises activity data for the different DUECA nodes. When included,\n"
      "this module adds a menu entry to a suitable dueca-view\n"} };

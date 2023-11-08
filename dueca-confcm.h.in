@@ -435,3 +435,6 @@
 /* Force malloc as allocator for embedded Python, seems to be necessary for
    reasonable valgrind error messages on Ubuntu */
 #cmakedefine FORCE_PYTHON_MALLOC
+
+/* Number of unread datapoints before warning */
+#define UNREAD_DATAPOINTS_THRESHOLD @UNREAD_DATAPOINTS_THRESHOLD@

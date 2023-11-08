@@ -18,7 +18,7 @@
 #include <boost/filesystem.hpp>
 #include <debug.h>
 
-#define DEBPRINTLEVEL 3
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DDFF_NS_START

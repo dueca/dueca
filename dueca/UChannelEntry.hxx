@@ -14,6 +14,7 @@
 #ifndef UChannelEntry_hxx
 #define UChannelEntry_hxx
 
+#include "AsyncQueueMT.hxx"
 #include "TimeSpec.hxx"
 #include "AmorphStore.hxx"
 #include "dueca_ns.h"
@@ -21,6 +22,7 @@
 #include <UCClientHandle.hxx>
 #include "UCDataclassLink.hxx"
 #include "UChannelEntryData.hxx"
+#include "AsyncList.hxx"
 
 DUECA_NS_START
 
@@ -29,6 +31,8 @@ class ChannelWriteToken;
 class UnifiedChannel;
 struct NameSet;
 struct EntryCountResult;
+struct ReaderConfigurationChange;
+typedef ReaderConfigurationChange* ReaderConfigurationChangePtr;
 
 /** UChannelEntry. A single entry in a UnifiedChannel.
 
@@ -43,6 +47,8 @@ struct EntryCountResult;
 */
 class UChannelEntry
 {
+  friend class UnifiedChannel;
+
   /** Pointer to the handle of the access token that writes on this
       entry. If the writing is not done locally (i.e. data comes in
       from remote end.), this pointer is NULL. */
@@ -147,6 +153,9 @@ class UChannelEntry
   /** version counter, to keep up with channel version changes */
   unsigned config_version;
 
+  /** next to process configuration change */
+  ReaderConfigurationChangePtr config_change;
+
   /** list of triggers. */
   UCTriggerLinkPtr triggers;
 
@@ -194,8 +203,6 @@ class UChannelEntry
     PackerClient& operator = (const PackerClientData& d);
   };
 
-
-
   /** Type of the vector with packer clients */
   typedef vectorMT<PackerClient> pclients_type;
 
@@ -204,6 +211,12 @@ class UChannelEntry
 
   /** Number of reservations for the data */
   unsigned                       nreservations;
+
+  /** New entries for this channel that need triggering */
+  AsyncQueueMT<UCClientHandlePtr>  trigger_requests;
+
+  /** Undo triggering */
+  AsyncQueueMT<UCClientHandlePtr>  trigger_releases;
 
 public:
 
@@ -328,6 +341,9 @@ public:
   /** Trigger validity callbacks for the write token. */
   void runCallback();
 
+  /** Provide a warning about datapoints not read at removal of the entry */
+  void warnLazyClients();
+
   /** Reset activity. */
   void resetValid();
 
@@ -445,7 +461,7 @@ public:
   unsigned flushOne(UCClientHandlePtr client);
 
   /** Return a void* pointer to the data and the correct time
-      specification for this data. 
+      specification for this data.
 
       If sequential reading, the data is returned when the event time
       (events) or start time (stream) <= t_latest. If time-based
@@ -481,6 +497,15 @@ public:
       \param client Client handle.
   */
   void releaseData(UCClientHandlePtr client);
+
+  /** Release access to the data. Accesses are flagged and removed, to
+      be certain that clients are not accessing data as stuff is
+      cleaned up. Does not select next data point for sequential read,
+      needed for cases where reading is not complete/ exception thrown.
+
+      \param client Client handle.
+  */
+  void releaseDataNoStep(UCClientHandlePtr client);
 
   /** Release access to monitor data.  */
   void monitorReleaseData();
@@ -568,6 +593,19 @@ public:
       @returns     Time span (or tick) of the oldest data point */
   DataTimeSpec getLatestDataTime();
 
+  /** Request that triggering is provided to the given handle */
+  inline void requestIncludeTrigger(UCClientHandlePtr handle)
+  { AsyncQueueWriter<UCClientHandlePtr> w(trigger_requests);
+    w.data() = handle; }
+
+  /** Request that triggering is removed for the given handle */
+  inline void requestRemoveTrigger(UCClientHandlePtr handle)
+  { AsyncQueueWriter<UCClientHandlePtr> w(trigger_releases);
+    w.data() = handle; }
+
+  /** Overview of currently active clients. */
+  void printClients(std::ostream& os);
+
 private:
   /** Object that provides a scoped anti-deletion lock on the "oldest"
       datapoint, for searching/reading purposes */
@@ -605,4 +643,3 @@ struct entryinvalid: public std::exception
 DUECA_NS_END
 
 #endif
-

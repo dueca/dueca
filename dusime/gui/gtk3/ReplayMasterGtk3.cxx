@@ -19,6 +19,7 @@
 #include <debug.h>
 #include <dueca/ObjectManager.hxx>
 #include <dusime/DusimeController.hxx>
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 #include <dueca/DuecaPath.hxx>
 #include "GtkDuecaView.hxx"
@@ -41,6 +42,11 @@ const ParameterTable* ReplayMasterGtk3::getParameterTable()
       new VarProbe<_ThisModule_,std::string>
       (&_ThisModule_::gladefile),
       "Interface description (glade, gtkbuilder) for the channel view window" },
+
+    { "position-size", new MemberCall<_ThisModule_, std::vector<int> >
+      (&_ThisModule_::setPositionAndSize),
+      "Specify the position, and optionally also the size of the interface\n"
+      "window." },
 
     { "reference-files",
       new VarProbe<_ThisModule_,std::string>
@@ -520,5 +526,20 @@ void ReplayMasterGtk3::cbRecordName(GtkWidget* text, gpointer gp)
      replays->haveReplaySet(newtext) ? FALSE : TRUE);
 }
 
+bool ReplayMasterGtk3::setPositionAndSize(const std::vector<int>& p)
+{
+  if (p.size() == 2 || p.size() == 4) {
+    window.setWindow(p);
+  }
+  else {
+    /* DUECA UI.
+
+       Window setting needs 2 (for size) or 4 (also location)
+       arguments. */
+    E_CNF(getId() <<  '/' << classname << " need 2 or 4 arguments");
+    return false;
+  }
+  return true;
+}
 
 DUECA_NS_END;

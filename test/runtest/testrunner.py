@@ -9,12 +9,13 @@ Created on Mon Sep 27 20:32:23 2021
 from PIL import ImageGrab, ImageDraw
 import pynput
 from pynput.keyboard import Key
-from wmctrl import Desktop, Window
+from wmctrl import Window
 import subprocess
 import os
 import asyncio
 import time
 import argparse
+import pathlib
 import sys
 from lxml import etree
 from duecautils.xmlutil import XML_comment, XML_tag, XML_interpret_bool
@@ -96,7 +97,7 @@ class Project:
         self.windows = []
         for elt in xmlnode:
             self.windows.append(elt.text.strip())
-            self.xmlnode = xmlnode
+        self.xmlnode = xmlnode
 
     def save(self):
         tosave = set(self.windows)
@@ -173,7 +174,7 @@ class Click:
             x, y = self.x, self.y
 
         the_mouse.position = x, y
-        if self.wait:
+        if self.wait > 0.0:
             await asyncio.sleep(self.wait)
 
         if self.pressed:
@@ -269,8 +270,8 @@ class Check:
         elif xmlnode is not None:
             self.window, self.x, self.y, self.timeout, self.wait = (
                 xmlnode.get('window', ''),
-                int(xmlnode.get('x', 0)),
-                int(xmlnode.get('y', 0)),
+                int(xmlnode.get('x', 1)),
+                int(xmlnode.get('y', 1)),
                 float(xmlnode.get('timeout', 0.0)),
                 float(xmlnode.get('wait', 0.0)))
             if xmlnode.get('r', None) is not None:
@@ -283,7 +284,7 @@ class Check:
 
     async def execute(self):
 
-        print(f"check {self.window} {self.x},{self.y} {self.timeout} {self.color}")
+        print(f"check {self.window} {self.x},{self.y} {self.wait}+{self.timeout} {self.color}")
         # simply run in 100 sleep increments
 
         # move the mouse, since that may change color
@@ -293,44 +294,64 @@ class Check:
             await asyncio.sleep(self.wait)
         moved = False
 
-        for w in range(20):
+        for cnt in range(20):
 
-            if self.window:
+            if not moved:
+                if self.window:
 
-                # check the window is present
-                w = findWindow(self.window)
-                if w is None:
-                    await asyncio.sleep(0.05*self.timeout)
-                    continue
-                x, y = translation.toScreen(self.x, self.y, w)
-                if not moved:
-                    moved = True
-                    the_mouse.position = x, y
-                    continue
-            else:
-                x, y = self.x, self.y
+                    # check the window is present
+                    w = findWindow(self.window)
 
+                    # when no window there, wait some more
+                    if w is None and self.timeout > 0.0:
+                        await asyncio.sleep(0.05*self.timeout)
+                        continue
+
+                    # pull the window up and to focus if needed
+                    w.activate()
+
+                    # translate the coordinates for test to screen
+                    x, y = translation.toScreen(self.x, self.y, w)
+
+                else:
+                    x, y = self.x, self.y
+
+                # set the mouse position
+                the_mouse.position = x, y
+                moved = True
+
+
+            # wait part of the timeout, to see if the interface reacts
+            if self.timeout > 0.0:
+                await asyncio.sleep(0.05*self.timeout)
+
+            # exit when we found the requested color
             if self.color is not None:
                 under_cursor = ImageGrab.grab(bbox=(x-2, y-2, x-1, y-1),
                                               xdisplay=x11display)
                 col = under_cursor.getcolors(1)[0][1]
                 if col == self.color:
                     return True
+
+            # no color was specified, exit if just looked for a window
             elif self.window is not None:
                 return True
 
-            await asyncio.sleep(0.05*self.timeout)
-
+        # no window or color found, create a snapshot and increase errror count
         img = ImageGrab.grab(xdisplay=x11display)
         if self.window and w is None:
-            print(f"Failed to find window {self.window}")
-            img.save(f'error{Check.errcnt:03d}-no-win-{self.window}.png'.replace('/', '_'))
+            print(f"Failed to find window {self.window} after {cnt+1} checks")
+            img.save(f'{scenario.name}-error{Check.errcnt:03d}-no-win-{self.window}.png'.replace('/', '_'))
         elif self.color is not None:
             draw = ImageDraw.Draw(img)
             draw.rectangle(((x-3, y-3),(x, y)), outline=(0,0,0))
-            img.save(f'error{Check.errcnt:03d}-no-col-{",".join(map(str, self.color))}-at{x},{y}.png')
+            img.save(f'{scenario.name}-error{Check.errcnt:03d}-no-col-{",".join(map(str, self.color))}-at{self.x},{self.y}.png')
             print(f"Failed to find the right color {self.color} at "
-                  f"{x}, {y}, found {col}")
+                  f"{self.x}, {self.y} after {cnt+1} checks, found {col}")
+        if self.window is None and self.color is None:
+            # no check, just timeout and wait
+            return True
+        
         Check.errcnt += 1
         return False
 
@@ -355,6 +376,7 @@ class Scenario:
     def __init__(self, fname=None):
         self.clean = None
         self.fname = fname
+        self.name = (fname and pathlib.Path(fname).stem) or 'anonymous'
         self._sync()
 
     def parseActions(self, actionroot):
@@ -531,41 +553,52 @@ class DuecaRunner:
 
             # environment variables
             envdict = dict(os.environ)
+            envdict['DAPPS_GITROOT_pub']='https://github.com/dueca/'
             #envdict['DAPPS_GITROOT'] = f'file:///{self.base}/repo/'
             #envdict['DUECA_CVSTOGITPATCHES'] = \
             #    '/home/repa/TUDelft/servers/cvstogit/patches'
 
+            # check out the project from the repository
             c1 = subprocess.run((
                 'dueca-gproject', 'clone', '--remote',
                  f'{self.repository}{self.project}.git',
-                 '--node', 'solo'), cwd=self.base)
+                 '--node', 'solo'), 
+                 env=envdict, cwd=self.base, stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
-                    f'Failing dueca-gproject for {self.project}')
+                    f'Failing dueca-gproject for {self.project}\n'
+                    f'{c1.stderr}')
+
+            # see if we are violating policies; there is currently 
+            # no configured public policy URL
             c1 = subprocess.run(
-                'dueca-gproject policies', shell=True,
-                env=envdict, cwd=self.pdir)
+                ('dueca-gproject',  'policies'),
+                env=envdict, cwd=self.pdir, stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
                     f'Failing dueca-gproject policies for {self.project}\n'
                     f'{c1.stdout}/{c1.stderr}')
 
+            # make sure the borrowed modules project are ´fresh´
             c1 = subprocess.run('dueca-gproject refresh', shell=True,
-                                env=envdict, cwd=self.pdir)
+                                env=envdict, cwd=self.pdir,
+                                stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
-                    f'Failing dueca-gproject refresh for {self.project}')
+                    f'Failing dueca-gproject refresh for {self.project}:\n'
+                    f'{c1.stderr}')
 
             c1 = subprocess.run('cmake ..', cwd=f'{self.pdir}/build',
-                                shell=True)
+                                shell=True, stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
-                    f'Failing cmake for {self.project}')
+                    f'Failing cmake for {self.project}:\n{c1.stderr}')
 
-            c1 = subprocess.run('make', cwd=f'{self.pdir}/build', shell=True)
+            c1 = subprocess.run('make', cwd=f'{self.pdir}/build', shell=True,
+                                stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
-                    f'Failing make for {self.project}')
+                    f'Failing make for {self.project}:\n{c1.stderr}')
         else:
             print(f"Project dir {self.pdir} already present")
 
@@ -576,9 +609,10 @@ class DuecaRunner:
 
         cmpl = subprocess.run(('source', 'links.script'),
                               executable='/usr/bin/bash',
-                              cwd=rdir, text=True, stderr=subprocess.PIPE)
+                              cwd=rdir, text=True,
+                              stderr=subprocess.PIPE)
         if cmpl.returncode != 0:
-            print(f'Failure to run links.script {cmpl.stderr}')
+            print(f'Failure to run links.script:\n{cmpl.stderr}')
 
         # hackety hack, someone scrubbed my LD_LIBRARY_PATH
         envdict = dict(os.environ)
@@ -594,13 +628,13 @@ class DuecaRunner:
 
         print(f"using display {envdict.get('DISPLAY')}")
         duecaprocess = await asyncio.create_subprocess_shell(
-            f"../../../build/dueca_run.x",
+            f"./dueca_run.x",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE, cwd=rdir, env=envdict)
         stdout, stderr = await duecaprocess.communicate()
-        print(f"Dueca task for {self.project} ended, {duecaprocess.returncode}")
-        print(f'\nNormal out\n{stdout.decode()}')
-        print(f'\nError out\n{stderr.decode()}')
+        print(f"Dueca task for {self.project} on {node} ended, {duecaprocess.returncode}")
+        print(f'\nNormal out {node}\n{stdout.decode()}')
+        print(f'\nError out {node}\n{stderr.decode()}')
 
     def runDueca(self, platform='solo', node='solo'):
         self.running.append(
@@ -650,7 +684,11 @@ parser.add_argument('--extra-x', default=0, type=int,
                     help="Additional x size (borders) by window manager")
 parser.add_argument('--extra-y', default=32, type=int,
                     help="Additional y size (borders, header) by window manager")
+parser.add_argument('--timelimit', default=3600, type=int,
+                    help="Time limit for running the test")
 pres = parser.parse_args(sys.argv[1:])
+
+t0 = time.time()
 
 translation = Translation(pres.offset_x, pres.offset_y,
                           pres.extra_y)
@@ -662,12 +700,17 @@ scenario = Scenario(fname=pres.control)
 runner = DuecaRunner(scenario.project.name, pres.base, scenario.repository)
 runner.prepare()
 
+tprep = int(round(time.time() - t0))
+print(f"Code preparation took {tprep}s") 
+
 # run the different dueca processes
 for p in scenario.processes:
     runner.runDueca(p.platform, p.node)
 
 async def main():
     doall = asyncio.gather(scenario.run(runner, pres.learn), *runner.running)
-    await asyncio.wait_for(doall, 500)
+    await asyncio.wait_for(doall, pres.timelimit - tprep)
 
 asyncio.run(main())
+
+sys.exit(Check.errcnt)

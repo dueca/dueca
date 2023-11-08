@@ -16,8 +16,10 @@
 #include "HDF5Logger.hxx"
 #include <sstream>
 #include <iomanip>
-//#define I_XTR
+#define I_XTR
 #include <debug.h>
+#define DEBPRINTLEVEL -1
+#include <debprint.h>
 
 STARTHDF5LOG;
 
@@ -103,6 +105,8 @@ void EntryWatcher::accessAndLog(const dueca::TimeSpec& ts)
 void EntryWatcher::createFunctors(std::weak_ptr<H5::H5File> nfile,
                                   const std::string &prefix)
 {
+  DEB("createFunctors called, entry list size" << entrylist.size());
+
   checkChanges();
   tpath = prefix + path;
 
@@ -133,15 +137,25 @@ EntryWatcher::EntryData::EntryData(const dueca::ChannelEntryInfo& i,
   // if the master file is already open (standard loggin), create the functor
   if (master->getFile().lock()) {
 
+    DEB("master file present, creating functor for " <<
+	channelname << "#" << entry_id << " at " << path);
     createFunctor(master->getFile(), master, chunksize, always_logging,
                   compress, path);
   }
 }
 
+EntryWatcher::EntryData::~EntryData()
+{
+  // deletes?
+}
 
 void EntryWatcher::EntryData::accessAndLog(const dueca::TimeSpec& ts)
 {
-  if (!r_token.isValid()) return;
+  if (!r_token.isValid()) {
+    DEB(r_token.getName() << "#" << entry_id << " token not yet valid");
+    return;
+  }
+
   if (reduction) {
     DataTimeSpec tsc0 = r_token.getOldestDataTime();
     DataTimeSpec tsc1 = r_token.getLatestDataTime();
@@ -162,11 +176,20 @@ void EntryWatcher::EntryData::accessAndLog(const dueca::TimeSpec& ts)
   }
   else {
     if (functor) {
+#if DEBPRINTLEVEL >= 1
+      unsigned npts = 0;
+#endif
       while (r_token.applyFunctor(functor.get())) {
         // nothing to be done, could put message here
+#if DEBPRINTLEVEL >= 1
+	npts++;
+#endif
       }
+      DEB1(r_token.getName() << "#" << entry_id << " at " << ts <<
+	   " saved " << npts);
     }
     else {
+      DEB1(r_token.getName() << "#" << entry_id << " flushing at " << ts);
       r_token.flushOlderSets(ts.getValidityStart());
     }
   }
@@ -189,6 +212,7 @@ void EntryWatcher::EntryData::createFunctor(std::weak_ptr<H5::H5File> nfile,
   std::stringstream dpath;
   dpath << path << "/e" << std::setw(6) << std::setfill('0') << eidx;
 
+  DEB("Functor at " << dpath.str());
   functor.reset(metafunctor.lock()->getWriteFunctor
                 (nfile.lock(), dpath.str(), chunksize,
                  ei.entry_label, master->getOpTime(always_logging),

@@ -41,7 +41,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL 0
 #include <debprint.h>
 
 DUECA_NS_START;
@@ -192,6 +192,13 @@ const ParameterTable* WebSocketsServer::getMyParameterTable()
       (&_ThisModule_::setCertFiles),
       "Certificate files for SSL, specify a .crt and a .key file. If these\n"
       "are supplied, wss sockets will be used instead of ws" },
+
+
+    { "add-mimetype",
+      new MemberCall<_ThisModule_,std::vector<std::string> >
+      (&_ThisModule_::addMimeType),
+      "Add a mime type for an extension, specify the extension (with '.')\n"
+      "and the mime type string" },
 
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
@@ -545,10 +552,11 @@ bool WebSocketsServer::_complete(S& server)
         const std::string reason("Resource not available");
         connection->send_close(1001, reason);
       }
-
-      // connect the connection to the located or created channel reader
-      this->singlereadsmapped[reinterpret_cast<void*>(connection.get())] =
-        ee != this->readsingles.end() ? ee->second : ea->second;
+      else {
+        // connect the connection to the located or created channel reader
+        this->singlereadsmapped[reinterpret_cast<void*>(connection.get())] =
+          ee != this->readsingles.end() ? ee->second : ea->second;
+      }
     };
 
   // access channel data to collect all data; messages are followed
@@ -620,6 +628,8 @@ bool WebSocketsServer::_complete(S& server)
       if (ekey != qpars.end()) {
         entry = boost::lexical_cast<unsigned>(ekey->second);
       }
+      DEB("New read connection attempt " << connection->path_match[1] <<
+          " entry " << entry);
 
       // try to find the setup object
       NameEntryId key(connection->path_match[1], entry);
@@ -643,13 +653,20 @@ bool WebSocketsServer::_complete(S& server)
           auto dataclass = mm->second->findEntry(entry);
           if (dataclass.size()) {
 
-            std::shared_ptr<SingleEntryFollow>
-              newfollow(new SingleEntryFollow
-                        (mm->second->channelname, dataclass, entry,
-                         this->getId(), this->read_prio,
-                         mm->second->time_spec, extended, true));
-            this->autofollowers[key] = newfollow;
+            // check whether we have one already
             ee = this->autofollowers.find(key);
+
+            if (ee == this->autofollowers.end()) {
+              DEB("Creating new follow on " << mm->second->channelname <<
+                  " entry " << entry << "(" << dataclass << ")");
+              std::shared_ptr<SingleEntryFollow>
+                newfollow(new SingleEntryFollow
+                          (mm->second->channelname, dataclass, entry,
+                           this->getId(), this->read_prio,
+                           mm->second->time_spec, extended, true));
+              this->autofollowers[key] = newfollow;
+              ee = this->autofollowers.find(key);
+            }
             foundconnect = ee != this->autofollowers.end();
           }
         }
@@ -1114,6 +1131,18 @@ bool WebSocketsServer::_complete_http(S& server)
           auto length = ifs->tellg();
           ifs->seekg(0, ios::beg);
           header.emplace("Content-Length", to_string(length));
+          string ext = boost::filesystem::extension(path);
+          auto mime = mimemap.find(ext);
+          if (mime == mimemap.end()) {
+            /* DUECA websockets.
+
+               The http server cannot determine this mime type
+            */
+            W_XTR("Cannot determine mime type for " << path);
+          }
+          else {
+            header.emplace("Content-Type", mime->second);
+          }
           response->write(header);
           read_and_send(response, ifs);
         }
@@ -1129,11 +1158,14 @@ bool WebSocketsServer::_complete_http(S& server)
     [](shared_ptr<typename S::Request> request,
            const SimpleWeb::error_code &ec) {
       // note, error 125 is returned when a client pauses too much
-      /* DUECA websockets.
+      if (ec.value() != 125) {
+        /* DUECA websockets.
 
-         Unexpected error in the HTTP static file server. */
-      E_XTR("Http server error code " << ec << " (" << ec.message() <<
-            ") for request :" << request->path << ' ' << request->query_string);
+           Unexpected error in the HTTP static file server. */
+        E_XTR("Http server error code " << ec << " (" << ec.message() <<
+              ") for request :" << request->path << ' ' <<
+              request->query_string);
+      }
     };
 
   server.io_service = runcontext;
@@ -1596,6 +1628,20 @@ bool WebSocketsServer::setCertFiles(const std::vector<std::string>& files)
   }
   server_crt = files[0];
   server_key = files[1];
+  return true;
+}
+
+bool WebSocketsServer::addMimeType(const std::vector<std::string>& i)
+{
+  if (i.size() != 2) {
+    /* DUECA websockets.
+
+       Supply two strings to add a new mime type.
+    */
+    E_CNF("Need extension and mime type");
+    return false;
+  }
+  mimemap[i[0]] = i[1];
   return true;
 }
 

@@ -76,6 +76,9 @@ class EntryWatcher: public dueca::ChannelWatcher
               bool always_logging,
               const DataTimeSpec *reduction);
 
+    /** Destructor */
+    ~EntryData();
+
     /** Perform the logging */
     void accessAndLog(const dueca::TimeSpec& ts);
 

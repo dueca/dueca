@@ -94,7 +94,14 @@ SingleEntryFollow::SingleEntryFollow(const std::string& channelname,
 }
 
 SingleEntryFollow::~SingleEntryFollow()
-{ }
+{
+  do_calc.clearTriggers();
+}
+
+void SingleEntryFollow::disconnect()
+{
+  do_calc.clearTriggers();
+}
 
 void SingleEntryFollow::tokenValid(const TimeSpec &ts)
 {

@@ -18,6 +18,8 @@
 #include "DataSetConverter.hxx"
 #include "Arena.hxx"
 #include "ArenaPool.hxx"
+#include "ChannelReadToken.hxx"
+#include "UChannelEntry.hxx"
 
 #define DEBPRINTLEVEL -1
 #include "debprint.h"
@@ -44,7 +46,7 @@ UChannelEntryData::UChannelEntryData(const TimeTickType& ts,
   data(NULL),
   older(current),
   newer(NULL),
-  read_accesses(1),
+  read_accesses(1U),
   seq_id(current->seq_id + 1)
 {
   // note that this constructor should always be called with a
@@ -62,7 +64,7 @@ UChannelEntryData::UChannelEntryData(const TimeTickType& ts,
   data(data),
   older(current),
   newer(NULL),
-  read_accesses(1),
+  read_accesses(1U),
   seq_id(seq_id)
 {
   if (current) current->newer = this;
@@ -109,7 +111,8 @@ bool UChannelEntryData::finalDeleteData(UChannelEntryDataPtr& pnt,
     pnt = n;
     return (pnt != NULL);
   }
-  DEB("EntryData delete failing, readers " << (pnt->read_accesses));
+  DEB("EntryData delete failing at" << pnt->seq_id << ", readers " <<
+      (pnt->read_accesses));
   return false;
 }
 
@@ -129,7 +132,8 @@ const void* UChannelEntryData::getData(DataTimeSpec& ts_actual,
         ts_actual = DataTimeSpec(time_or_time_end, newer->time_or_time_end);
       }
       client->accessed = this;
-      DEB1("seq #" << seq_id << " getData, increment to" << ra+1);
+      DEB1(client->token->getName() << " #" << client->entry->entry->getId() <<
+           "seq #" << seq_id << " getData, increment to" << ra+1);
       return data;
     }
     ra = read_accesses;
@@ -172,7 +176,8 @@ const void* UChannelEntryData::getSequentialData(DataTimeSpec& ts_actual,
     ts_actual = DataTimeSpec(time_or_time_end, newer->time_or_time_end);
   }
   client->accessed = this;
-  DEB1("seq #" << seq_id << " getSequentialData, at " << read_accesses);
+  DEB1(client->token->getName() << " #" << client->entry->entry->getId() <<
+       " seq #" << seq_id << " getSequentialData, accesses " << read_accesses);
   return data;
 }
 
@@ -180,14 +185,21 @@ void UChannelEntryData::returnData(UCClientHandlePtr client)
 {
   assert(client->accessed == this);
   client->accessed = NULL;
+#if DEBPRINTLEVEL >= 1
+  auto ra =
+#endif
   atomic_decrement32(read_accesses);
-  DEB1("seq #" << seq_id << " return data, decrement");
+  DEB1(client->token->getName() << " #" << client->entry->entry->getId() <<
+       "seq #" << seq_id << " return data, decrement to " << ra);
 }
 
 void UChannelEntryData::monitorReturnData()
 {
+#if DEBPRINTLEVEL >= 1
+  auto ra =
+#endif
   atomic_decrement32(read_accesses);
-  DEB1("seq #" << seq_id << " monitor return data, decrement");
+  DEB1("seq #" << seq_id << " monitor return data, decrement to " << ra);
 }
 
 void UChannelEntryData::resetDataAccess(UCClientHandlePtr client)
@@ -195,8 +207,12 @@ void UChannelEntryData::resetDataAccess(UCClientHandlePtr client)
   assert(client->accessed == this);
   client->accessed = NULL;
   if (!client->entry->isSequential()) {
+#if DEBPRINTLEVEL >= 1
+    auto ra =
+#endif
     atomic_decrement32(read_accesses);
-    DEB1("seq #" << seq_id << " reset data access, decrement");
+    DEB1(client->token->getName() << " #" << client->entry->entry->getId() <<
+         " seq #" << seq_id << " reset data access, decrement to " << ra);
   }
 }
 
@@ -205,9 +221,12 @@ void UChannelEntryData::assumeData(UCClientHandlePtr client)
   assert(client->accessed == this);
   client->accessed = NULL;
   data = NULL;
+#if DEBPRINTLEVEL >= 1
+  auto ra =
+#endif
   atomic_decrement32(read_accesses);
-  DEB1("seq #" << seq_id << " assume data, decrement");
+  DEB1(client->token->getName() << " #" << client->entry->entry->getId() <<
+       " seq #" << seq_id << " assume data, decrement to " << ra);
 }
 
 DUECA_NS_END
-

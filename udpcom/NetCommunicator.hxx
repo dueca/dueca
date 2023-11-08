@@ -133,9 +133,6 @@ protected:
   /** cycle timing in granule increments */
   TimeTickType                        ts_interval;
 
-  /** Network configuration communication server port */
-  uint16_t                            master_port;
-
   /** Buffer size */
   uint32_t                            config_buffer_size;
 

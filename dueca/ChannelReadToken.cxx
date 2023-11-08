@@ -219,6 +219,7 @@ const void* ChannelReadToken::getAccess(TimeTickType t_request,
 
 void ChannelReadToken::releaseAccess(const void* data_ptr)
 {
+  assert(data_ptr != NULL);
   channel->releaseReadAccess(handle);
 }
 
@@ -263,11 +264,13 @@ ChannelReadToken::readAndStoreData(AmorphStore& s, TimeTickType& tsprev)
     }
   }
   catch (const AmorphStoreBoundary& e) {
-    channel->releaseReadAccess(handle);
+    // channel->releaseReadAccess(handle); // this is wrong,
+    channel->resetReadAccess(handle);
+
     handle->accessed = NULL; //->resetDataAccess(handle);
     // revert the read index to previous element? Will this match with
     // gap?
-    handle->entry->read_index = handle->entry->read_index->getPrevious();
+    // handle->entry->read_index = handle->entry->read_index->getPrevious();
     throw(e);
   }
   //assert(handle->accessed == NULL);
@@ -294,11 +297,11 @@ ChannelReadToken::readAndPack(AmorphStore& s, DataTimeSpec& ts_actual,
     channel->releaseReadAccess(handle);
   }
   catch (const AmorphStoreBoundary& e) {
-    channel->releaseReadAccess(handle);
+    channel->resetReadAccess(handle);
     handle->accessed = NULL; //->resetDataAccess(handle);
     // revert the read index to previous element? Will this match with
     // gap?
-    handle->entry->read_index = handle->entry->read_index->getPrevious();
+    // handle->entry->read_index = handle->entry->read_index->getPrevious();
     throw(e);
   }
 
@@ -323,9 +326,8 @@ bool ChannelReadToken::applyFunctor(DCOFunctor* fnct, TimeTickType time)
     channel->releaseReadAccess(handle);
   }
   catch (const std::exception &e) {
-    channel->releaseReadAccess(handle);
+    channel->resetReadAccess(handle);
     handle->accessed = NULL;
-    handle->entry->read_index = handle->entry->read_index->getPrevious();
     throw(e);
   }
   return res;

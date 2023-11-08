@@ -21,7 +21,7 @@
 #include <boost/python/raw_function.hpp>
 
 #include <dueca/debug.h>
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START

@@ -218,6 +218,9 @@ private: // simulation data
   /** Folder with files for http server */
   std::string document_root;
 
+  /** Mime types map */
+  std::map<std::string,std::string> mimemap;
+
   /** Flag to indicate aggressive reconnection to preset entries */
   bool aggressive_reconnect;
 
@@ -376,6 +379,9 @@ public: // construction and further specification
 
   /** Set SLL certificates; will convert to use SSL */
   bool setCertFiles(const std::vector<std::string>& i);
+
+  /** Add a mime type */
+  bool addMimeType(const std::vector<std::string>& i);
 
 public: // member functions for cooperation with DUECA
   /** indicate that everything is ready. */

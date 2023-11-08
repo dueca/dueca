@@ -22,7 +22,7 @@
 
 DUECA_NS_START;
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include "debprint.h"
 
 struct bufferboundaryexception: public std::exception

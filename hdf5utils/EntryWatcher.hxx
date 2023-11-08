@@ -82,6 +82,9 @@ class EntryWatcher: public dueca::ChannelWatcher
               const DataTimeSpec *reduction,
               unsigned chunksize);
 
+    /** Destructor, removes the token again */
+    ~EntryData();
+
     /** Perform the logging */
     void accessAndLog(const dueca::TimeSpec& ts);
 

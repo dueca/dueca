@@ -321,7 +321,7 @@ GtkDuecaView::~GtkDuecaView()
   //g_object_unref(G_OBJECT(nodes_store));
 }
 
-bool GtkDuecaView::PositionAndSize(const vector<int>& p)
+bool GtkDuecaView::setPositionAndSize(const vector<int>& p)
 {
   if (p.size() == 2 || p.size() == 4) {
     window.setWindow(p);
@@ -358,7 +358,7 @@ const ParameterTable* GtkDuecaView::getParameterTable()
       (REF_MEMBER(&GtkDuecaView::shutdownscript)),
       "Script called to shut down the DUECA nodes" },
     { "position-size", new MemberCall<GtkDuecaView, vector<int> >
-      (&GtkDuecaView::PositionAndSize),
+      (&GtkDuecaView::setPositionAndSize),
       "Specify the position, and optionally also the size of the interface\n"
       "window." },
     {NULL, NULL,

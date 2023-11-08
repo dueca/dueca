@@ -308,15 +308,16 @@ public:
     return true;
   }
 
-  inline void releaseAccess() {
-    atomic_decrement32(read_accesses);
-    DEB("seq #" << seq_id << " read access decrement " << read_accesses);
+  inline uint32_t releaseReadAccess() {
+    uint32_t rnew = atomic_decrement32(read_accesses);
+    DEB("seq #" << seq_id << " read access decrement " << rnew);
+    return rnew;
   }
 
   /** Atomic (?) increment of the read access counter */
   inline void incrementReadAccess() {
     atomic_increment32(read_accesses);
-    DEB("seq #" << seq_id << " read access increment" << read_accesses);
+    DEB("seq #" << seq_id << " read access increment " << read_accesses);
   }
 
   /** Total write index */
