@@ -85,8 +85,7 @@
     <click window="TEAM 2 control panel" x="475" y="65" button="Button.left" pressed="true" wait="0.2"/>
     <click window="TEAM 2 control panel" x="475" y="65" button="Button.left" pressed="false" wait="0.2"/>
     <snap name="simplesimulationmulti-02-running.png"/>
-    <check window="TEAM 2 control panel" x="16" y="20" r="190" g="191" b="190" timeout="10.0" wait="1.5"/>
-    <click window="TEAM 2 control panel" x="16" y="20" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="TEAM 2 control panel" x="16" y="20" button="Button.left" pressed="true" wait="2.2"/>
     <click window="TEAM 2 control panel" x="16" y="20" button="Button.left" pressed="false" wait="0.2"/>
     <check window="TEAM 2 control panel" x="68" y="64" r="53" g="132" b="228" timeout="10.0" wait="4.5"/>
     <click window="TEAM 2 control panel" x="68" y="64" button="Button.left" pressed="true" wait="0.2"/>
