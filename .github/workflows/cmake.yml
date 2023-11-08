@@ -97,4 +97,4 @@ jobs:
         name: TestResult
         path: |
           ${{github.workspace}}/build/Testing/Temporary/LastTest.log
-          ${{github.workspace}}/build/test/runtests/*.png
+          ${{github.workspace}}/build/test/runtest/*.png
