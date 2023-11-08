@@ -558,27 +558,35 @@ class DuecaRunner:
             #envdict['DUECA_CVSTOGITPATCHES'] = \
             #    '/home/repa/TUDelft/servers/cvstogit/patches'
 
+            # check out the project from the repository
             c1 = subprocess.run((
                 'dueca-gproject', 'clone', '--remote',
                  f'{self.repository}{self.project}.git',
-                 '--node', 'solo'), cwd=self.base, stderr=subprocess.PIPE)
+                 '--node', 'solo'), 
+                 env=envdict, cwd=self.base, stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
-                    f'Failing dueca-gproject for {self.project}\n', c1.stderr)
+                    f'Failing dueca-gproject for {self.project}\n'
+                    f'{c1.stderr}')
+
+            # see if we are violating policies; there is currently 
+            # no configured public policy URL
             c1 = subprocess.run(
-                'dueca-gproject policies', shell=True,
+                ('dueca-gproject',  'policies'),
                 env=envdict, cwd=self.pdir, stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
                     f'Failing dueca-gproject policies for {self.project}\n'
                     f'{c1.stdout}/{c1.stderr}')
 
+            # make sure the borrowed modules project are ´fresh´
             c1 = subprocess.run('dueca-gproject refresh', shell=True,
                                 env=envdict, cwd=self.pdir,
                                 stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
-                    f'Failing dueca-gproject refresh for {self.project}:\n{c1.stderr}')
+                    f'Failing dueca-gproject refresh for {self.project}:\n'
+                    f'{c1.stderr}')
 
             c1 = subprocess.run('cmake ..', cwd=f'{self.pdir}/build',
                                 shell=True, stderr=subprocess.PIPE)
@@ -620,7 +628,7 @@ class DuecaRunner:
 
         print(f"using display {envdict.get('DISPLAY')}")
         duecaprocess = await asyncio.create_subprocess_shell(
-            f"../../../build/dueca_run.x",
+            f"./dueca_run.x",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE, cwd=rdir, env=envdict)
         stdout, stderr = await duecaprocess.communicate()
