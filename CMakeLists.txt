@@ -360,7 +360,14 @@ pkg_check_modules(GTKMM30 gtkmm-3.0)
 
 # rapidjson for channel data coding
 pkg_check_modules(RAPIDJSON RapidJSON)
-find_package(msgpack REQUIRED)
+
+# msgpack should be there for storage and packing
+find_package(msgpack)
+
+# opensuse variants have that in msgpack-cxx!
+if (NOT msgpack_FOUND)
+  find_package(msgpack-cxx REQUIRED)
+endif()
 
 # gl and glui family
 set(OpenGL_GL_PREFERENCE "GLVND")
