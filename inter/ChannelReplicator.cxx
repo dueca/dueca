@@ -55,7 +55,7 @@
 #include <dueca.h>
 #include <AsyncList.hxx>
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 STARTNSREPLICATOR;

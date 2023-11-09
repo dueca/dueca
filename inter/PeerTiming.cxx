@@ -17,7 +17,7 @@
 #include <dueca/Ticker.hxx>
 // #define I_INT
 #include <debug.h>
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 #include <dueca/DataTimeSpec.hxx>
 

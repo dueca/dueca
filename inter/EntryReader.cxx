@@ -23,7 +23,7 @@
 #include <dueca.h>
 #include <dassert.h>
 
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 STARTNSREPLICATOR;

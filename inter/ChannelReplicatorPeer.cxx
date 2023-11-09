@@ -55,7 +55,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 STARTNSREPLICATOR;
