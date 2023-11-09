@@ -2,30 +2,27 @@
 
 For many experiments and simulations, it would be nice if the
 experiment controller (usually you) can operate the simulation with a
-graphical interface. The DUECA interfaces are based on GTK (GTK 2.x,
-currently, and GTK 1.2 is also still supported, but not recommended
+graphical interface. The DUECA interfaces are based on GTK (GTK 3.x,
+currently, and GTK 3.x is also still supported, but not recommended
 for new projects), and things are kept as simple as possible if you
 create the interface for your experiment with that same toolkit.
 
 Glade is an excellent tool for creating Gtk interface. Start up glade,
 select widgets from the menu and create your interface. There is a
-tutorial on http://www.glade.org/. Under Fedora, the old GTK 1.2
-version of glade can be started with the command glade, start the
-newer (GTK 2.x) glade editor with the command glade-2.
+tutorial on http://www.glade.org/. 
 
 With glade you can create the interface, or at least most of it. The
 next step is connecting this interface to the DUECA module that you
 use to drive the interface. You can let glade generate C or (if you
 installed that option) C++ code, and add that to your project, but
-there is a *much* simpler option; use the GtkGladeWindow class
+there is a *much* simpler option; use the dueca::GtkGladeWindow class
 supplied by DUECA.
 
-The GtkGladeWindow class builds the interface directly from your glade
-file. It only needs to be able to read the interface file. So add the
-glade file to the repository with
-\ref appdevel "dueca-project".
-Then create a GtkGladeWindow object in your interface class and supply
-it with the name of your glade file:
+The dueca::GtkGladeWindow class builds the interface directly from
+your glade file. It only needs to be able to read the interface
+file. So add the glade file to the repository with \ref appdevel
+"dueca-gproject".  Then create a dueca::GtkGladeWindow object in your
+interface class and supply it with the name of your glade file:
 
 \code
 // include headers for functions/classes you need in the module
@@ -122,6 +119,15 @@ use the widget name as an index:
     gtk_label_set_text(label, "new label text");
   }
 \endcode
+
+Note that (if you use gtk3) there are all kinds of nifty features in
+the dueca::GtkGladeWindow class to directly link pieces of your gtk
+interface to DCO objects. You can link:
+
+- String members in your DCO to a GtkComboBox or GtkEntry
+- Boolean members in your DCO to GtkToggleButten
+- Floating point members (double or float) or integer members to
+  GtkAdjustment, GtkRange, GtkSpinButton or GtkEntry
 
 Summarising, the GtkGladeInterface class lets you use an interface
 directly from the definition created by glade, and quickly and cleanly
