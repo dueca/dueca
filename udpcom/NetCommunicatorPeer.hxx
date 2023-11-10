@@ -103,6 +103,9 @@ private:
   /** Time to send */
   bool                                myturntosend;
 
+  /** Last tick for checkup */
+  TimeTickType                        last_run_tick;
+  
 protected:
   /** Constructor */
   NetCommunicatorPeer();

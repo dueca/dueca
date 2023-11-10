@@ -207,7 +207,7 @@ void DuecaNetPeer::prepareToStop()
   */
   I_NET(getId() << " stopping communication");
   commanded_stop = true;
-  setStopTime(0);
+  setStopTime(SimTime::getTimeTick());
 }
 
 void DuecaNetPeer::clientSendConfig()
