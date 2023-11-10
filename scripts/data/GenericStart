@@ -31,7 +31,7 @@ $Usage $0 Invoke this script as the tail of another script,
          MNODES      [opt] notes that you will start manually (for debugging!)
          RSHL        shell you will use for connections to Linux
          RSHQ        shell you will use for connections to QNX
-         SUDO             [opt] set to 'sudo' to use sudo on Linux nodes
+         SUDO        [opt] set to 'sudo' to use sudo on Linux nodes
                      Note that you don't need sudo; see the page
                      "tuning linux workstations" in the DUECA documentation
          WAITTIME    [opt] waiting time before starting timing master node
@@ -207,10 +207,18 @@ cleannode()
     fi
 
     echo "Cleaning Linux node $1"
-    $RSHL $NODE $SUDO /usr/bin/killall -s 9 dueca_run.x
-    if eval echo "Running \${${ALIAS}_CLEANMORE:-no_such_command} on $1 "| \
-            grep --invert-match no_such_command; then
-        eval $RSHL $NODE \$${ALIAS}_CLEANMORE
+    if [ "${ALIAS}" != "${ZERONODE}" ]; then
+	$RSHL $NODE $SUDO /usr/bin/killall -s 9 dueca_run.x
+	if eval echo "Running \${${ALIAS}_CLEANMORE:-no_such_command} on $1 "| \
+		grep --invert-match no_such_command; then
+            eval $RSHL $NODE \$${ALIAS}_CLEANMORE
+	fi
+    else
+	$SUDO /usr/bin/killall -s 9 dueca_run.x
+	if eval echo "Running \${${ALIAS}_CLEANMORE:-no_such_command} on $1 "| \
+		grep --invert-match no_such_command; then
+            eval \$${ALIAS}_CLEANMORE
+	fi
     fi
 }
 
