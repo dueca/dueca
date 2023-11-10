@@ -16,8 +16,10 @@ find_program(H5DUMP NAMES h5dump)
 # variables for running
 set(DISPLAYSIZE 1280x1024)
 set(DISPLAY ":88")
-set(TIMELIMIT 300s)
-set(PYTHONTIME 290)
+set(RUNTEST_TIMELIMIT 360 CACHE STRING
+  "Timeout limit for runtests")
+math(EXPR PYTHONTIME ${RUNTEST_TIMELIMIT})
+math(EXPR TIMELIMIT "${RUNTEST_TIMELIMIT} + 10")
 
 # test some supporting python packages
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import PIL"
