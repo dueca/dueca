@@ -156,10 +156,18 @@ protected:
 
   /** Test whether activation is appropriate */
   inline bool isInRunPeriod(const DataTimeSpec& ts)
-  { return
-      (switch_off > switch_on) &&
-      (ts.getValidityEnd() >= switch_on &&
-       ts.getValidityStart() <= switch_off);
+  {
+    return
+      // for when the activity is off
+      (switch_off > switch_on) && ts.getValidityStart() < switch_off &&
+       (
+        // most common case, in the range
+        (ts.getValidityEnd() > switch_on) ||
+
+        // event activation can run tighter
+        (ts.getValiditySpan() == 0 &&
+         ts.getValidityEnd() >= switch_on)
+       );
   }
 
   /** Trim a time spec to the run period */

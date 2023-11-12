@@ -143,5 +143,9 @@ ChannelEntryInfo ChannelWriteToken::getChannelEntryInfo() const
   }
 }
 
+bool ChannelWriteToken::isEventType() const
+{
+  return handle->entry->isEventType();
+}
 
 DUECA_NS_END;

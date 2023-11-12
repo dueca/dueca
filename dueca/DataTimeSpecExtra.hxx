@@ -95,6 +95,10 @@
     return this->operator-=(unsigned(-delta));
   }
 
+  /** set the data span to zero */
+  inline void setSpanToZero()
+  { validity_end = validity_start; }
+
   /** Subtract a certain value from the time */
   inline DataTimeSpec& operator-= (const int delta)
   {

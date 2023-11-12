@@ -217,6 +217,10 @@ protected:
   void discardAccess(const void* data_ptr);
 
 private:
+
+  /** Check whether this token sends event data */
+  bool isEventType() const;
+
   /** Prevent copying */
   ChannelWriteToken(const ChannelWriteToken& );
 

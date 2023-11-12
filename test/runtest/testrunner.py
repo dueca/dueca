@@ -346,7 +346,7 @@ class Check:
             draw = ImageDraw.Draw(img)
             draw.rectangle(((x-3, y-3),(x, y)), outline=(0,0,0))
             img.save(f'{scenario.name}-error{Check.errcnt:03d}-no-col-{",".join(map(str, self.color))}-at{self.x},{self.y}.png')
-            print(f"Failed to find the right color {self.color} at "
+            print(f"Failed to find color {self.color} at "
                   f"{self.x}, {self.y} after {cnt+1} checks, found {col}")
         if self.window is None and self.color is None:
             # no check, just timeout and wait
