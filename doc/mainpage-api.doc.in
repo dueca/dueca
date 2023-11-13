@@ -137,6 +137,8 @@ simulation.
 
 <li> @ref example2 "A simulation project from A to Z"
 
+<li> @ref example2b "Extending the A to Z project even further"
+
 <li> @ref configure "Configuration files"
 
 <li> @ref confpy "Configuration files (python version)"
@@ -153,7 +155,7 @@ simulation.
 
 <li> @ref appdevel "Application development with dueca-project (old)"
 
-<li> @ref #appdevelg "Application development with dueca-gproject"
+<li> @ref appdevelg "Application development with dueca-gproject"
 
 <li> @ref dueca2 "Difference between DUECA 0.x and DUECA 2.x versions"
 

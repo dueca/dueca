@@ -132,6 +132,7 @@ Environment::Environment() :
   init_complete(false),
   need_to_start_others(true),
   statuscheck(true),
+  exitcode(0),
   create_cmd(Wait),
   cbw(this, &Environment::waitAdditional),
   wait_additional(NULL),
@@ -1063,7 +1064,7 @@ void Environment::proceed(int stage)
 
 	  if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
 	    /* DUECA system.
-	       
+
 	       Attempt to load and lock the memory for the DUECA
 	       executable failed. This is normal during development,
 	       when real-time and memory locking priorities are not
@@ -1284,5 +1285,19 @@ void Environment::quit()
   gui_handler->returnControl();
 }
 
+/** Set the exit code, mainly used in testing */
+void Environment::setExitCode(int ecode)
+{
+  if (exitcode != 0 && ecode == 0) {
+    /* DUECA System
+
+       A previous call to Environment::setExitCode set the exit code to
+       nonzero, indicating an issue. Now the exitcode is reset to zero.
+       Check that this is your desired behaviour.
+    */
+    W_SYS("The application is resetting the exit code to zero");
+  }
+  exitcode = ecode;
+}
 
 DUECA_NS_END

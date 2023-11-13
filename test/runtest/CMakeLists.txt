@@ -57,7 +57,12 @@ lists map mappedfixvector nestedmap second varvector)
 
 # These files (with .xml suffix) define the test scenarios
 set(CONTROLFILES
-  tmssolo tmsudptwo tmswsudpfour replayscenario simplesimulationmulti
+  tmssolo                  # DuecaTestCommunication, one node, various data
+  tmsudptwo                # DuecaTestCommunication, two nodes, udp
+  tmswsudpfour             # DuecaTestCommunication, four nodes, websocket
+  replayscenario           # DuecaTestCommunication, 1 node, record & replay
+  simplesimulationmulti    # SimpleSimulation, 3x, inter communications
+  triggering               # DuecaTestCommunication, trigger variants
 )
 
 # run these tests with enough python modules

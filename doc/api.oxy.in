@@ -45,6 +45,7 @@ INPUT = mainpage-api.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/repository.md \
         @CMAKE_CURRENT_SOURCE_DIR@/using-git.md \
         @CMAKE_CURRENT_SOURCE_DIR@/simplesimulation.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/simplesimulationb.md \
         @apifiles@
 
 INCLUDE_PATH=@CMAKE_SOURCE_DIR@/dueca \
@@ -95,3 +96,4 @@ SORT_MEMBER_DOCS = NO
 SHOW_INCLUDE_FILES = NO
 VERBATIM_HEADERS = NO
 DISTRIBUTE_GROUP_DOC = YES
+STRIP_CODE_COMMENTS = NO

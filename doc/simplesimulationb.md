@@ -1,4 +1,4 @@
-# More Simple Simulation (#example2b)
+# More Simple Simulation {#example2b}
 
 ## Introduction
 
@@ -67,21 +67,21 @@ just for printing the notifications. This needs the following in the
 header file:
 
 * A callback object:
-  ~~~~{.c++}
+  ~~~~{.cxx}
     /** Callback object for simulation calculation. */
     Callback<MonitorTeams>  cb2;
   ~~~~
   Add this below the first callback object.
 
 * A second activity:
-  ~~~~{.c++}
+  ~~~~{.cxx}
     /** Activity for simulation calculation. */
     ActivityCallback        do_notify
   ~~~~
   Add it below the first activity object.
 
 - and a function that is to be called:
-  ~~~~{.c++}
+  ~~~~{.cxx}
     /** print a notification about a leaving or joining peer */
     void doNotify(const TimeSpec& ts);
   ~~~~
@@ -101,13 +101,13 @@ convention; `ReplicatorInfo://<entity name>`, where in this example
 the entity name is will `central`. To have access to the definition,
 we will include the proper header:
 
-~~~~{.c++}
+~~~~{.cxx}
 #include <dueca/inter/ReplicatorInfo.hxx>
 ~~~~
 
 Now add the tokens to the constructor implementation:
 
-~~~~{.c++}
+~~~~{.cxx}
   r_announce(getId(), NameSet(getEntity(), ReplicatorInfo::classname, part),
              ReplicatorInfo::classname, 0, Channel::Events),
   r_world(getId(), NameSet("world", BaseObjectMotion::classname, part),
@@ -134,7 +134,8 @@ dueca::ChannelReadToken.
 
 You would want the notification activity to always work. To do that,
 we can switch it on in the `complete()` method, and switch it off
-again in the destructor. If you don't specify a time for the `switchOn()/switchOff()` calls, it basically means now!
+again in the destructor. If you don't specify a time for the
+`switchOn()/switchOff()` calls, it basically means now!
 
 Add to the complete method:
 
@@ -178,10 +179,10 @@ Adapt the `doCalculation` method to run through all entries in the
     try {
       DataReader<BaseObjectMotion,MatchIntervalStartOrEarlier> om(r_world);
       std::cout << "Ufo " << r_world.getEntryLabel() << " now at "
-		<< om.data().xyz << std::endl;
+		            << om.data().xyz << std::endl;
       std::cout << "Current tick " << ts.getValidityStart()
-		<< ", data generated at "
-		<< om.timeSpec().getValidityStart() << std::endl; 
+		            << ", data generated at "
+		            << om.timeSpec().getValidityStart() << std::endl;
     }
     catch (const NoDataAvailable& e) {
       std::cout << "Ufo " << r_world.getEntryLabel() << " no data" << std::endl;
@@ -209,7 +210,7 @@ void MonitorTeams::doNotify(const TimeSpec& ts)
 This works only because DUECA will generate exactly one activation for
 each time the channel with ReplicatorInfo objects is written, and that
 calls one run of the `doNotify` method, with the correct time
-specification. 
+specification.
 
 ## Adapting the UFODynamics module
 
@@ -229,19 +230,23 @@ Open the `UFODynamics.hxx` file, and add a write token for the world:
 And in the `UFODynamics.cxx` file, initialise it in the constructor:
 
 ~~~~{.cxx}
-  // this channel is labeled with our entity name. 
+  // this channel is labeled with our entity name.
   w_world(getId(), NameSet("world", "BaseObjectMotion", ""),
 	  BaseObjectMotion::classname, getEntity(), Channel::Continuous,
 	  Channel::OneOrMoreEntries),
 ~~~~
 
 You can see that instead of `getEntity()` in the `NameSet`, i.e., the
-name of the channel, we simply hardcoded `"world"`. The label of the
+name of the channel, we simply hardcoded `"world"`. This will generate a
+channel with the name of `BaseObjectMotion://world`. The label of the
 channel is then again set to our entity name, so in the examples below
 that will be `team1` or `team2`. The channel has stream data
 (continuous positions) and can have multiple entries.
 
-We already write a `BaseObjectMotion` DCO for driving the viewpoint of in the 3D world. We can add two lines to the `doCalculation` method to copy that over to the world channel, so after writing the position to `w_egomotion`, add:
+We already write a `BaseObjectMotion` DCO for driving the viewpoint in
+the 3D world. We can add two lines to the `doCalculation` method to
+copy that over to the world channel, so after writing the position
+to `w_egomotion`, add:
 
 ~~~~{.cxx}
   // copy this, so others see where we are (in multiplayer)
@@ -284,8 +289,9 @@ all occurrences of `SIMPLE` with `team1`.
 
 Let's modify also the stick interface. You might not have two
 joysticks on your computer (if you have, simply skip this step), so we
-will use a small GUI to provide joystick input. Find the `flexi-stick` code, 
-remove the `add_device` line (which accessed the first SDL device), and replace it with the configuration to create a gui interface:
+will use a small GUI to provide joystick input. Find the `flexi-stick` code,
+remove the `add_device` line (which accessed the first SDL device),
+and replace it with the configuration to create a gui interface:
 
 ~~~~{.py}
                 # virtual, gtk driven stick
@@ -302,8 +308,11 @@ remove the `add_device` line (which accessed the first SDL device), and replace 
 ~~~~
 
 The funny specification of the argument to `add-virtual` is needed
-because a list or tuple is expected here. The rest of the joystick
-configuration can stay the same.
+because a list or tuple is expected here. If you forget the round (or square)
+brackets around `"logi"`, Python will interpret `"logi"` as an iterable of
+characters, and feed the function connected to `add-virtual` with
+`('l', 'o', 'g', 'i')`, which will lead to an error message. The rest of
+the joystick configuration can stay the same.
 
 Now make sure we send information on the position to the other
 simulations, add the following module:
@@ -311,7 +320,6 @@ simulations, add the following module:
 ~~~~{.py}
     mymods.append(dueca.Module(
         'channel-replicator-peer', "", com_priority).param(
-            port_re_use=True,
             config_url="ws://127.0.0.1:8032/config"))
 ~~~~
 
@@ -337,7 +345,8 @@ if this_node_id == ecs_node:
             check_timing = (10000, 20000)))
 ~~~~
 
-And now a channel replicator, but the master. This one needs a bit more configuration:
+And now a channel replicator, but the master. This one needs a bit more
+configuration:
 
 ~~~~{.py}
     # this is a standard DUECA module (from the "inter" library), that
@@ -363,9 +372,12 @@ these will write the entry locally on the other ends.
 The channel replicators have a number of additional options. It is
 possible to communicate over udp multicast, udp broadcast, udp
 point-to-point, or, as is done here, over websocket interfaces, by
-adapting the data url. Starting and configuration is always over
-websockets. It is also possible to configure the replicators when you
-are behind a network translating firewall, e.g., on a home network.
+adapting the data url. Initial starting and configuration is always over
+websockets, and the peers will receive the details on how to transmit
+the data over the configuration websocket connection. It is also possible
+to configure the replicators when you are behind a network translating
+firewall, e.g., on a home network, see the documentation for the
+replicators for that.
 
 ## Testing things
 
@@ -377,10 +389,10 @@ and then simply start the dueca processes by entering:
 [enter] $ ./dueca_run.x
 ~~~~
 
-Three times. This will give you three DUECA windows, one for the
-monitor, and two for the two teams. It should look something like the
-following, with the exception that your outside windows may be larger,
-and you have the shell windows open.
+Do this three times, once from each node folder. This will give you three
+DUECA windows, one for the monitor, and two for the two teams. It should
+look something like the following, with the exception that your outside
+windows may be larger, and you have the shell windows open.
 
 ![Two teams running](simpsim/multiple.png)
 
@@ -392,4 +404,69 @@ like in the previous example.
 
 ## Seeing each other
 
-To be completed.
+It would be fun to actually be able to see other teams in the visual.
+I hacked together a very simple 3D model of a UFO-like vehicle, you can
+find the two files you need at
+[platillo.obj](https://raw.githubusercontent.com/dueca/SimpleSimulation/master/run/run-data/platillo.obj)
+and
+[platillo.mtl](https://raw.githubusercontent.com/dueca/SimpleSimulation/master/run/run-data/platillo.mtl)
+
+Place these files in the `run/run-data` folder of your project, and add the
+following to the `links.script` files in the teams folders:
+
+~~~~{.sh}
+ln -sf $DATADIR/platillo.obj .
+ln -sf $DATADIR/platillo.mtl .
+~~~~
+
+Now in the configuration of the `world-view` module, we can modify the
+`OSGViewer` object to create visual objects for the teams. First we tell
+the `world-view` module to monitor the channel with teams for new entries:
+
+~~~~{.python}
+    # the visual output
+    mymods.append(
+        dueca.Module(
+            "world-view", "", admin_priority).param(
+            set_timing = display_timing,
+            check_timing = (8000, 9000),
+            add_world_information_channel = ("BaseObjectMotion://world",),
+            set_viewer =
+            dueca.OSGViewer().param(
+    ....
+            )
+        )
+    )
+~~~~
+
+In the definition of the OSGViewer, we add the classes for the teams:
+~~~~{.python}
+                # object class for the teams
+                ('add-object-class-data',
+                 ('BaseObjectMotion:team1', 'Team One', 'moving',
+                  'platillo.obj')),
+                ('add-object-class-data',
+                 ('BaseObjectMotion:team2', 'Team Two', 'moving',
+                  'platillo.obj')),
+                ('add-object-class-data',
+                 ('BaseObjectMotion', 'Team #', 'moving',
+                  'platillo.obj')),
+~~~~
+
+When an entry is added to the world information channel, the viewer will
+try to match the type of data written (`BaseObjectMotion`) in combination with
+the label for the entry, which in our example can be `team1` or `team2`.
+The last `add-object-class-data` specifies the case where the team names
+in the entry do not match, then a match is made on only the data type.
+
+The matched entry is then connected to a visualisation of type `moving`
+defined in the OSGViewer. On creation, this visualisation takes one 3D
+model as argument, and when there is new data in the form of a
+`BaseObjectMotion` object in the channel, the position and orientation
+of that object are set to that data. To provide smooth movement, it is also
+possible to use the linear and angular velocity in the `BaseObjectMotion`
+object for extrapolation, to compensate for the delays in the simulation.
+
+You should now see the frame of your own vehicle, and the other vehicles. If you
+have other models, you can of course substitute these, or you can maybe give
+each team different colours.
