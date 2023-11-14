@@ -177,7 +177,13 @@ bool TimeSpec::forceAdvance(const DataTimeSpec& t)
   return true;
 }
 
-TimeSpec TimeSpec::operator+ (const int& delta) const
+TimeSpec TimeSpec::operator+ (const int delta) const
+{
+  return TimeSpec(getValidityStart() + delta,
+                  getValidityEnd() + delta);
+}
+
+TimeSpec TimeSpec::operator+ (const unsigned int delta) const
 {
   return TimeSpec(getValidityStart() + delta,
                   getValidityEnd() + delta);
@@ -190,7 +196,13 @@ TimeSpec TimeSpec::operator+ (const double delta) const
                   getValidityEnd() + idelta);
 }
     
-TimeSpec TimeSpec::operator- (const int& delta) const
+TimeSpec TimeSpec::operator- (const int delta) const
+{
+  return TimeSpec(getValidityStart() - delta,
+                  getValidityEnd() - delta);
+}
+
+TimeSpec TimeSpec::operator- (const unsigned int delta) const
 {
   return TimeSpec(getValidityStart() - delta,
                   getValidityEnd() - delta);
