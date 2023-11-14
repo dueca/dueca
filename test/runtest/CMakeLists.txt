@@ -61,6 +61,7 @@ set(CONTROLFILES
   tmsudptwo                # DuecaTestCommunication, two nodes, udp
   tmswsfour                # DuecaTestCommunication, four nodes, websocket
   replayscenario           # DuecaTestCommunication, 1 node, record & replay
+  simplesimulation         # SimpleSimulation, 1x, 2 nodes
   simplesimulationmulti    # SimpleSimulation, 3x, inter communications
   triggering               # DuecaTestCommunication, trigger variants
 )
