@@ -7,7 +7,7 @@
 if [ -z "$DISPLAY" ]; then
 
    # can we see an Xwayland?
-   $DISPLAY=`ps -C Xwayland --format=args --no-headers | tail -1 | awk -F ' +' '{print $2}`
+   $DISPLAY=`ps -C Xwayland --format=args --no-headers | tail -1 | awk -F ' +' '{print $2}'`
    if [ -n $DISPLAY ]; then
       echo "Guessing display as ${DISPLAY} from Xwayland"
    fi
