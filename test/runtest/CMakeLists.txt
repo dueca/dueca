@@ -59,7 +59,7 @@ lists map mappedfixvector nestedmap second varvector)
 set(CONTROLFILES
   tmssolo                  # DuecaTestCommunication, one node, various data
   tmsudptwo                # DuecaTestCommunication, two nodes, udp
-  tmswsudpfour             # DuecaTestCommunication, four nodes, websocket
+  tmswsfour                # DuecaTestCommunication, four nodes, websocket
   replayscenario           # DuecaTestCommunication, 1 node, record & replay
   simplesimulationmulti    # SimpleSimulation, 3x, inter communications
   triggering               # DuecaTestCommunication, trigger variants
