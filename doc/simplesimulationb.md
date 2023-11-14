@@ -46,16 +46,12 @@ following line:
 
     WorldView/comm-objects/BaseObjectMotion.dco
 
-We are already using the `WorldView` for the visualisation, so it is
-given in the `modules.xml` file, and `dueca-gproject` will know where
-to get the code from.
-
 The DUECA interconnection facilities can also send information on
 joining and leaving peers. That is given in a `ReplicatorInfo` DCO,
-which is installed with the DUECA headers and libraries. Define two
-read tokens in the `MonitorTeams.hxx` header file, called `r_announce`
-and `r_world`, and uncomment the line that defines a clock
-(`myclock`).
+which is installed with the DUECA headers and libraries. We need to
+add that later to `MonitorTeams.cxx`. Define two read tokens in the
+`MonitorTeams.hxx` header file, called `r_announce` and `r_world`, and
+uncomment the line that defines a clock (`myclock`).
 
 ### Adding a second activity to the module
 
@@ -150,12 +146,13 @@ And to stop this again in the destructor:
 ~~~~
 
 The check-up on current status is done on the basis of time. Adapt the
-`setTimeSpec` call to modify the clock rather than the activity:
+`setTimeSpec` call to modify the clock, don't use the activity's
+dueca::Activity::setTimeSpec() method in this case:
+
 ~~~~{.cxx}
   // specify the timespec to the clock
   myclock.changePeriodAndOffset(ts);
 ~~~~
-
 
 We need to check the two tokens in the `isPrepared` call:
 
@@ -165,8 +162,8 @@ We need to check the two tokens in the `isPrepared` call:
   CHECK_TOKEN(r_announce);
 ~~~~
 
-Switching the main (`do_calc`) activity is already present in the
-`startModule` and `stopModule` calls.
+Switching the main (`do_calc`) activity on and off is already present
+in the `startModule` and `stopModule` calls.
 
 Adapt the `doCalculation` method to run through all entries in the
 `r_world` token, and print the result:
@@ -195,9 +192,14 @@ Adapt the `doCalculation` method to run through all entries in the
 ~~~~
 
 With this set-up, the `DataReader` will try to find the very latest
-data from the channel.
+data from the channel, if you omit the
+dueca::MatchIntervalStartOrEarlier specifier, it will throw a
+dueca::NoDataAvailable exception when data for the requested time is
+not yet there. It might still throw the exception when there is not
+data yet for the entry.
 
-The new `doNotify` method looks very simple:
+The new `doNotify` method looks very simple, we just print the
+received event:
 
 ~~~~{.cxx}
 void MonitorTeams::doNotify(const TimeSpec& ts)
@@ -274,7 +276,7 @@ node).
 	          --num-nodes 1 --node-number 0 --gui gtk3 --script python
 ~~~~
 
-This gives us three places to run a single-node python process
+This gives us three places to run a single-node DUECA process
 from. We will adapt the `dueca_mod.py` file that is in the `solo`
 platform for the two teams; copy that one over the respective files in
 the `team1` folder. While you are at it, also copy over the
@@ -288,8 +290,9 @@ Now open the copied `dueca_mod.py` file. Rename the entity, replace
 all occurrences of `SIMPLE` with `team1`.
 
 Let's modify also the stick interface. You might not have two
-joysticks on your computer (if you have, simply skip this step), so we
-will use a small GUI to provide joystick input. Find the `flexi-stick` code,
+joysticks on your computer (if you have, simply skip this step, and
+configure one of the teams to use the second one), so we will use a
+small GUI to provide joystick input. Find the `flexi-stick` code,
 remove the `add_device` line (which accessed the first SDL device),
 and replace it with the configuration to create a gui interface:
 
@@ -332,7 +335,7 @@ copy it over, and change all occurrences of `team1` with `team2`.
 ### Monitor configuration
 
 The configuration for the monitor, in `central`, is a bit
-different. Let's call this entity central. We will add only our new
+different. Let's call this entity "central". We will add only our new
 monitoring module:
 
 ~~~~{.py}
@@ -363,21 +366,23 @@ configuration:
 ~~~~
 
 With the list in `watch_channels`, you determine which information is
-copied between the different DUECA processes. The master replicator
-will inform the peers which channels those are. Any entry found in
-those channels (and created locally where it is found), will be read
-by the replicators, and transmitted to the other replicators, and
-these will write the entry locally on the other ends.
+copied between the different DUECA processes. Such a copied channel
+must have the same name in all linked DUECA processes. The master
+replicator will inform the peers which channels those are. Any entry
+found in those channels (and created locally where it is found), will
+be read by the replicators, and transmitted to the other replicators,
+and these will write the entry locally on the other ends.
 
 The channel replicators have a number of additional options. It is
 possible to communicate over udp multicast, udp broadcast, udp
 point-to-point, or, as is done here, over websocket interfaces, by
-adapting the data url. Initial starting and configuration is always over
-websockets, and the peers will receive the details on how to transmit
-the data over the configuration websocket connection. It is also possible
-to configure the replicators when you are behind a network translating
-firewall, e.g., on a home network, see the documentation for the
-replicators for that.
+adapting the data url. Initial starting and configuration is always
+over websockets, and the peers will receive the details on how to
+transmit the data over the configuration websocket connection. It is
+also possible to configure the replicators when you are behind a
+network translating firewall, e.g., on a home network, by specifying
+which is the public URL. See the documentation for the replicators for
+that.
 
 ## Testing things
 
@@ -390,15 +395,18 @@ and then simply start the dueca processes by entering:
 ~~~~
 
 Do this three times, once from each node folder. This will give you three
-DUECA windows, one for the monitor, and two for the two teams. It should
+DUECA main windows, one for the monitor, and two for the two teams. It should
 look something like the following, with the exception that your outside
 windows may be larger, and you have the shell windows open.
 
 ![Two teams running](simpsim/multiple.png)
 
-Once you have the monitor in work (it won't go any further, because
+This screenshot is actually from a testcase for DUECA, the windows are
+adjusted to be so tiny so that it neatly fits on one screen.
+
+Once you have the monitor in `work` (it won't go any further, because
 there are no DUSIME modules in that process), you will see messages
-about the other teams in your console. A team joins when the DUECA
+about the other teams in your console. A team joins when its DUECA
 state machine is set to work, and you can operate the DUSIME buttons
 like in the previous example.
 
@@ -411,7 +419,8 @@ find the two files you need at
 and
 [platillo.mtl](https://raw.githubusercontent.com/dueca/SimpleSimulation/master/run/run-data/platillo.mtl)
 
-Place these files in the `run/run-data` folder of your project, and add the
+Place these files in the `run/run-data` folder of your project (if you
+want to keep them there, don't forget `git add`), and add the
 following to the `links.script` files in the teams folders:
 
 ~~~~{.sh}
@@ -467,6 +476,6 @@ of that object are set to that data. To provide smooth movement, it is also
 possible to use the linear and angular velocity in the `BaseObjectMotion`
 object for extrapolation, to compensate for the delays in the simulation.
 
-You should now see the frame of your own vehicle, and the other vehicles. If you
-have other models, you can of course substitute these, or you can maybe give
-each team different colours.
+You should now see the frame of your own vehicle, and the other
+vehicles. If you have other models, you can of course substitute
+these, or you can maybe give each team different colours.
