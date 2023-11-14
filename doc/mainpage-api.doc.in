@@ -137,6 +137,8 @@ simulation.
 
 <li> @ref example2 "A simulation project from A to Z"
 
+<li> @ref example2b "Extending the A to Z project even further"
+
 <li> @ref configure "Configuration files"
 
 <li> @ref confpy "Configuration files (python version)"

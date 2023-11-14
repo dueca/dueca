@@ -206,16 +206,8 @@ function create_debfiles()
         cp debian-versioned-xUbuntu_22.04.tar debian-${sfx}.tar
     done
 
-    # add a test project, relies on available gproject
-    dueca-gproject clone \
-        --remote git@github.com:dueca/DuecaTestCommunication.git \
-        --node solo
-    rm -rf DuecaTestCommunication/DuecaTestCommunication/.git
-    tar cvfj DuecaTestCommunication.tar.bz2 DuecaTestCommunication
-    rm -rf DuecaTestCommunication
     rm -rf dueca-${VERSION}
     if [ -z "$KEEPTMP" -a -d "${OSCDIRV}" ]; then
-        cp -f DuecaTestCommunication.tar.bz2 ${OSCDIRV}
         cp -f dueca*tar.bz2 ${OSCDIRV}
         mv -f dueca-versioned.dsc ${OSCDIRV}
         mv -f dueca-versioned-xUbuntu_18.04.dsc ${OSCDIRV}

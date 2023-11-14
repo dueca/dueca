@@ -58,7 +58,11 @@
                         this->getValidityEnd()); }
 
   /** Add a certain value to the time */
-  inline DataTimeSpec operator+ (const int& delta) const
+  inline DataTimeSpec operator+ (const int delta) const
+  { return DataTimeSpec(validity_start + delta, validity_end + delta); }
+
+  /** Add a certain value to the time */
+  inline DataTimeSpec operator+ (const unsigned int delta) const
   { return DataTimeSpec(validity_start + delta, validity_end + delta); }
 
   /** Move an interval up with a time in seconds */
@@ -69,7 +73,11 @@
   { return *this + double(delta); }
 
   /** Subtract a certain value from the time */
-  inline DataTimeSpec operator- (const int& delta) const
+  inline DataTimeSpec operator- (const int delta) const
+  { return DataTimeSpec(validity_start - delta, validity_end - delta); }
+
+  /** Subtract a certain value from the time */
+  inline DataTimeSpec operator- (const unsigned int delta) const
   { return DataTimeSpec(validity_start - delta, validity_end - delta); }
 
   /** Move an interval up with a time in seconds */
@@ -95,6 +103,10 @@
     return this->operator-=(unsigned(-delta));
   }
 
+  /** set the data span to zero */
+  inline void setSpanToZero()
+  { validity_end = validity_start; }
+
   /** Subtract a certain value from the time */
   inline DataTimeSpec& operator-= (const int delta)
   {
@@ -102,6 +114,3 @@
       return this->operator-=(unsigned(delta));
     return this->operator+=(unsigned(-delta));
   }
-
-
-

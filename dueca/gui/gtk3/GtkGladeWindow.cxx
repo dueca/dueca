@@ -371,16 +371,13 @@ bool GtkGladeWindow::_setValue(const char* wname, const char* mname,
     return _setValue(wname, double(boost::any_cast<int32_t>(b)), warn);
   }
   else if (b.type() == typeid(int64_t)) {
-    return _setValue(wname, double(boost::any_cast<int32_t>(b)), warn);
-  }
-  else if (b.type() == typeid(int64_t)) {
     return _setValue(wname, double(boost::any_cast<int64_t>(b)), warn);
   }
-  else if (b.type() == typeid(uint64_t)) {
-    return _setValue(wname, double(boost::any_cast<int32_t>(b)), warn);
+  else if (b.type() == typeid(uint32_t)) {
+    return _setValue(wname, double(boost::any_cast<uint32_t>(b)), warn);
   }
   else if (b.type() == typeid(uint64_t)) {
-    return _setValue(wname, double(boost::any_cast<int64_t>(b)), warn);
+    return _setValue(wname, double(boost::any_cast<uint64_t>(b)), warn);
   }
   else if (b.type() == typeid(bool)) {
     return _setValue(wname, boost::any_cast<bool>(b), warn);

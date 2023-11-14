@@ -350,33 +350,61 @@ public:
 
     \code
     {
-      DataReader<MyData> r(r_mydata, ts);
+      DataReader<MyData,MatchIntervalStart> r(r_mydata, ts);
       cout << r.data() << endl;
     } // out of scope, access to data in channel released again
     \endcode
 
     Parameters:
     @tparam T    Class of the data to be read.
-    @tparam S    Data time selector.
+    @tparam S    Data time selector. Note that MatchIntervalStart is the
+                 default here.
 
-    Typical data time selectors are:
+    The class of data to be read should match what you specified for
+    your read access token.
 
-    * MatchIntervalStart. Data is read that matches the start of the
-      time specification interval. When reading all datapoints (with
-      Channel::ReadAllData, Channel::ReadReservation, or
-      Channel::AdaptEventStream in combination with
-      Channel::Events), older data is also returned.
+    A channel typically holds data for multiple times. Time selectors
+    determine for what time the data is returned. Typical data time
+    selectors are:
+
+    * MatchIntervalStart.
+
+      - When reading data with a Channel::JumpToMatchTime (the default
+        for stream data), data is read that matches the start of the
+        time specification interval.
+
+      - When reading all datapoints (with Channel::ReadAllData or
+        Channel::ReadReservation, or with the combination of
+	Channel::AdaptEventStream with Channel::Events), older data is
+	also returned if data for the requested time is not available.
+
+      Note that event data is returned if the time point for the event
+      is on or before the start of your requested interval. When
+      reading stream data (which has a validity interval), this may
+      also straddle the start moment, and it reads eagerly, so the
+      data may not stretch for the full interval that you requested.
 
     * MatchIntervalStartOrEarlier. If data is not available for the
       requested time, but older data is available, then that older
-      data is returned.
+      data is returned. If you read event data with ReadAllData or
+      equivalent in the token constructor, this specifier is not
+      needed, you will always get the older data. If you want to read
+      the latest stream data, you do need this.
 
     * VirtualJoin. Produces a combined reading of all entries in a
       channel, typically only selected for event data. Note that it
       might be necessary for channels with many entries and a higher
-      frequency of data writing, to repeatedly try reading to prevent
-      data buildup in the channel.
- */
+      frequency of data writing, to repeatedly try reading or flushing
+      to prevent data buildup in the channel.
+
+   If you don't supply a second argument (the time) to the
+   constructor, the default time that is taken is infinity
+   future. When reading sequentially (event) data, this just gives you
+   the next available data on the list. If you created a token with
+   Channel::JumpToMatchTime (the default for stream data), and you
+   simply want the latest data in the channel, you must use the
+   MatchIntervalStartOrEarlier specifier.
+*/
 template<class T, template<class> class S = MatchIntervalStart >
 class DataReader: protected DataReaderBase
 {

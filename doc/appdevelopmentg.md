@@ -12,14 +12,20 @@ simulation or data acquisition projects on desktop computers, and
 deployment of these projects on simulation or data acquisition
 facilities that typically use networked computers with IO capabilities
 and hardware to drive these facilities and collect and process
-real-time data. The transition to and from desktop development and
-deployment on different facilities should be as smooth as possible,
-enabling rapid prototyping and quick turn-around times between
-development, deployment and test. To enable this, DUECA uses version
-control for both the simulation code, and for the configurations
-needed for each deployment platform, be it development desktop,
-simulator or otherwise. To be able to read the following description,
-please consider the following definitions:
+real-time data. 
+
+Normally, you will develop your simulation or experiment on a desktop
+computer without all that hardware, and later bring the simulation to
+your target environment, then check and fine-tune there.
+
+The transition to and from desktop development and deployment on
+different facilities should be as smooth as possible, enabling rapid
+prototyping and quick turn-around times between development,
+deployment and test. To enable this, DUECA uses version control for
+both the simulation code, and for the configurations needed for each
+deployment platform, be it development desktop, simulator or
+otherwise. To be able to read the following description, please
+consider the following definitions:
 
 ### Definitions
 
@@ -92,6 +98,12 @@ please consider the following definitions:
                                  data files, no code. </td></tr>
 </table>
 
+Note that a DUECA project can, and often does, borrow modules and DCO
+files from other projects. A configuration file defines where the
+borrowed code can be found. This enables re-use and efficient
+maintenance of common software, for example for visualization and
+interfacing and control of certain simulator hardware.
+
 A number of different types of configuration files is used. These are the
 following:
 
@@ -116,7 +128,15 @@ following:
 <tr><td> config.cmake </td><td>A file defining additional build
                                  instructions (libraries to search and
                                  link, include paths, etc.) for a
-                                 certain machine class. </td></tr>
+                                 certain machine class. It is wise to
+                                 only add configuration here that is
+                                 specific to the hardware of the
+                                 computer where this machine class is
+                                 used, e.g., IO libraries specific for
+                                 that computer. All software-related
+                                 build configuration can be done in
+                                 the CMakeLists.txt files in the
+                                 modules. </td></tr>
 
 <tr><td> project CMakeLists.txt</td><td>A CMake file defining build
                                 instructions common to a whole
@@ -174,7 +194,7 @@ following:
                                 created when you clone the project for a
                                 specific node; based on machinemapping.xml, the
                                 appropriate class is chosen. This file is
-                                not checked in to the repository.</td></tr>
+                                never checked in to the repository.</td></tr>
 
 </table>
 
@@ -276,7 +296,9 @@ and run from the repository.
 Note that when you are deploying your code on another computer for
 another platform (not solo), such as one of the computers running your
 simulator, a "sparse" checkout is done, and only those modules that
-are actually needed (also from the "own" project), are checked out.
+are actually needed (also from the "own" project), are checked out. If
+you want the full set of software (however, `dueca-gproject` will only
+build what is needed), use the `--full` option.
 
 ## Interaction with git version control {#appdevelg_gitinter}
 
@@ -313,7 +335,7 @@ variable:
     export DAPPS_GITROOT=git@gitlab.somewhere.org:i-am-a-gitlab-user/
 
 Now you can use the shorthands `dgr:///MyNewEyeTracker.git` and
-`MyExperiment.git`, and these will also be stored in the project configuration. If you later move repositories, or someone else clones your efforts to their own repository, the translation will also work for them.
+`dgr:///MyExperiment.git`, and these will also be stored in the project configuration. If you later move repositories, or someone else clones your efforts to their own repository, the translation will also work for them.
 
 If you borrow from a project somewhere else, you can always specify the
 full URL. The common steps outlined below will present you with a mix
@@ -631,8 +653,8 @@ files; here is some explanation on how and when to do this.
 
 ### modules.xml file
 
-The `modules.xml` files are located under `.config/class/&lt;machine
-class&gt;/`. They list, per machine class, what modules are included
+The `modules.xml` files are located under `.config/class/<machine
+class>/`. They list, per machine class, what modules are included
 for the machine class, and which modules are borrowed. In addition,
 the project url for the own project and each borrowed project is
 recorded there.
@@ -772,7 +794,7 @@ When a DUECA executable is started, it is started from the node's run
 folder. This folder should have the files, or links to the files, that
 are needed by the dueca process for this node.
 
-Each node has a run configuration under `run/&lt;platform&gt;/`, named
+Each node has a run configuration under `run/<platform>/`, named
 after the node. Most nodes have three files in there:
 
 - `links.script`, a script that should be "source-d" to run (type
@@ -788,14 +810,17 @@ after the node. Most nodes have three files in there:
   needs to collaborate with the other DUECA processes on the
   simulator. The file as created by the `new-node` command is usually
   correct. The only thing that sometimes is adjusted is the number of
-  threads that should be run by DUECA.
+  threads (priorities) that should be run by DUECA.
 
 Node number 0 is the node with the experiment control interface. This
 node also has the `dueca.mod` or `dueca_mod.py` file that defines the
-complete interface. In general, you can create this file using the
+complete simulation. In general, you can create this file using the
 `dueca.mod` or `dueca_mod.py` from the development stage in the `solo`
 node as a template, and modify it by assigning all modules to their
-proper node.
+proper node. This file is will be read on each of the nodes in your
+simulation, and with the `if this_node_id == some_node:` switches, you
+can make sure that modules are only created in the node where they
+should run.
 
 ### Deployment on a platform
 
@@ -831,9 +856,9 @@ computers/nodes of a platform:
   file, the clone/checkout will default to solo.
 
 - the machine-class specific `config.cmake` file contains code to
-  include/link the used widget library (typically gtk2 or gtk3), and
-  to link platform-specific (typically IO) libraries. These typically
-  need to be adjusted.
+  include/link platform-specific (typically IO) libraries. These
+  typically need to be adjusted only for nodes that run on computers
+  with specific hardware (such as control loading or motion systems).
 
 ### Correcting or expanding a platform
 

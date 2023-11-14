@@ -137,6 +137,9 @@ private:
       attempted. */
   int64_t rt_start_time;
 
+  /** Exit code, may be modified by "clients" */
+  int exitcode;
+
   /** scoped pointer for object that sets CPU to low latency mode */
   boost::scoped_ptr<CPULowLatency> cpu_lowlatency;
 
@@ -382,6 +385,12 @@ public:
 
   /** Command interval, for if other interfaces want to use this */
   inline unsigned getCommandLead() { return command_lead_ticks; }
+
+  /** Set the exit code, mainly used in testing */
+  void setExitCode(int ecode);
+
+  /** Get the current exit code, mainly used in testing */
+  inline int getExitCode() { return exitcode; }
 };
 
 DUECA_NS_END;

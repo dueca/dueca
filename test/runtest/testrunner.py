@@ -346,12 +346,12 @@ class Check:
             draw = ImageDraw.Draw(img)
             draw.rectangle(((x-3, y-3),(x, y)), outline=(0,0,0))
             img.save(f'{scenario.name}-error{Check.errcnt:03d}-no-col-{",".join(map(str, self.color))}-at{self.x},{self.y}.png')
-            print(f"Failed to find the right color {self.color} at "
+            print(f"Failed to find color {self.color} at "
                   f"{self.x}, {self.y} after {cnt+1} checks, found {col}")
         if self.window is None and self.color is None:
             # no check, just timeout and wait
             return True
-        
+
         Check.errcnt += 1
         return False
 
@@ -406,6 +406,7 @@ class Scenario:
             self.actionnode = None
             self.project = None
             self.actions = []
+            self.version = None
 
             # read from file
             try:
@@ -420,6 +421,8 @@ class Scenario:
                             self.project = Project(xmlnode=node)
                         elif XML_tag(node, 'repository'):
                             self.repository = node.text.strip()
+                        elif XML_tag(node, 'version'):
+                            self.version = node.text.strip()
                         elif XML_tag(node, 'execute'):
                             self.processes.append(Execute(xmlnode=node))
                         elif XML_tag(node, 'actions'):
@@ -532,12 +535,13 @@ class Scenario:
 
 class DuecaRunner:
 
-    def __init__(self, project, base, repository):
+    def __init__(self, project, base, repository, version=None):
         print(f"Creating runner {project}")
         self.project = project
         self.pdir = f'{base}/{project}/{project}'
         self.base = base
         self.repository = repository
+        self.version = version
         self.running = []
 
     def prepare(self):
@@ -558,18 +562,23 @@ class DuecaRunner:
             #envdict['DUECA_CVSTOGITPATCHES'] = \
             #    '/home/repa/TUDelft/servers/cvstogit/patches'
 
+            if self.version is not None:
+                vtuple = ( '--version', self.version )
+            else:
+                vtuple = tuple()
+
             # check out the project from the repository
             c1 = subprocess.run((
                 'dueca-gproject', 'clone', '--remote',
                  f'{self.repository}{self.project}.git',
-                 '--node', 'solo'), 
+                 '--node', 'solo') + vtuple,
                  env=envdict, cwd=self.base, stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
                     f'Failing dueca-gproject for {self.project}\n'
                     f'{c1.stderr}')
 
-            # see if we are violating policies; there is currently 
+            # see if we are violating policies; there is currently
             # no configured public policy URL
             c1 = subprocess.run(
                 ('dueca-gproject',  'policies'),
@@ -697,11 +706,12 @@ translation = Translation(pres.offset_x, pres.offset_y,
 scenario = Scenario(fname=pres.control)
 
 # prepare the executable
-runner = DuecaRunner(scenario.project.name, pres.base, scenario.repository)
+runner = DuecaRunner(scenario.project.name, pres.base,
+                     scenario.repository, scenario.version)
 runner.prepare()
 
 tprep = int(round(time.time() - t0))
-print(f"Code preparation took {tprep}s") 
+print(f"Code preparation took {tprep}s")
 
 # run the different dueca processes
 for p in scenario.processes:

@@ -1,8 +1,33 @@
 # This script is included when DUECA is remotely started up via the
 # rrundueca* scripts. Put platform specific environment variables etc. here
 
-# needed for X-windows
-export DISPLAY=:0.0
+# Uncomment and adapt to override X guessing
+# DISPLAY=:1
+
+if [ -z "$DISPLAY" ]; then
+
+   # can we see an Xwayland?
+   $DISPLAY=`ps -C Xwayland --format=args --no-headers | tail -1 | awk -F ' +' '{print $2}'`
+   if [ -n $DISPLAY ]; then
+      echo "Guessing display as ${DISPLAY} from Xwayland"
+   fi
+fi
+
+if [ -z "$DISPLAY" ]; then
+
+   # can we see an Xorg seat?
+   $DISPLAY=`who | grep $USER | grep --invert-match login | tail -1 | awk -F ' +' '{print $2}'`
+   if [ -n $DISPLAY ]; then
+      echo "Guessing display as ${DISPLAY} from Xorg/who"
+   fi
+fi
+
+# simply guessing the default
+if [ -z "$DISPLAY" ]; then
+   DISPLAY=:0.0
+fi
+
+export DISPLAY
 export PATH=/usr/X11R6/bin:$PATH
 
 #    NVIDIA valid 'FSAA' Values

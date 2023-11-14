@@ -61,7 +61,8 @@ NetCommunicatorPeer::NetCommunicatorPeer() :
   current_tick(0),
   i_nodeid(uint16_t(0xffff)),
   lastround_npeers(0),
-  myturntosend(false)
+  myturntosend(false),
+  last_run_tick(MAX_TIMETICK)
 {
   PacketCommunicatorSpecification::callback =
     common_callback(this, &NetCommunicatorPeer::unpackPeerData);
@@ -582,10 +583,11 @@ void NetCommunicatorPeer::startCyclic(Activity& activity)
   setupConnection(activity);
 
   /* 5: now do cyclic work, block & read UDP messages, */
-  current_tick = SimTime::getTimeTick();
   do {
+    current_tick = SimTime::getTimeTick();
     _oneCycle(activity);
-  } while (message_cycle < last_cycle);
+  } while (message_cycle < last_cycle &&
+	   current_tick < last_run_tick);
 
   /* after this, clear the connections */
   clearConnections();
@@ -806,10 +808,17 @@ void NetCommunicatorPeer::setStopTime(const TimeTickType& last_tick)
 {
   if (last_tick == MAX_TIMETICK) {
     last_cycle = std::numeric_limits<uint32_t>::max();
+    last_run_tick = MAX_TIMETICK;
     stop_commanded = false;
   }
   else {
+
+    // this will send a stop request, the master will then actually
+    // confirm stop, and the last_cycle is set upon that
     DEB("Commanding stop " << last_tick);
     stop_commanded = true;
+
+    // unless the master is no longer active, for that case give 5 s leeway
+    last_run_tick = last_tick + Ticker::single()->getIncrement(5.0);
   }
 };

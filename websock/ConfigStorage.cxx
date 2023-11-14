@@ -30,6 +30,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <fstream>
+
 // the standard package for DUSIME, including template source
 #define DO_INSTANTIATE
 #define NO_TYPE_CREATION

@@ -21,7 +21,7 @@
 #include "ReplicatorExceptions.hxx"
 #include <PeerTiming.hxx>
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 #define W_INT
 #include <debug.h>

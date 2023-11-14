@@ -7,8 +7,6 @@ usr/bin/rrundueca*
 usr/bin/dueca-*
 
 usr/sbin
-etc/dueca
-etc/udev/rules.d/90-rtdueca-cpulatency.rules
 
 usr/lib/*/libdueca.*
 usr/lib/*/libdueca-start*.*

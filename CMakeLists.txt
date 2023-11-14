@@ -22,10 +22,10 @@ include(GNUInstallDirs)
 # version information, please update accordingly
 set(VERMAJOR 4)
 set(VERMINOR 0)
-set(REVISION 3)
+set(REVISION 4)
 set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "08 Nov 2023")
+set(VERSION_DATE "13 Nov 2023")
 string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
 set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 
@@ -360,7 +360,14 @@ pkg_check_modules(GTKMM30 gtkmm-3.0)
 
 # rapidjson for channel data coding
 pkg_check_modules(RAPIDJSON RapidJSON)
-find_package(msgpack REQUIRED)
+
+# msgpack should be there for storage and packing
+find_package(msgpack)
+
+# opensuse variants have that in msgpack-cxx!
+if (NOT msgpack_FOUND)
+  find_package(msgpack-cxx REQUIRED)
+endif()
 
 # gl and glui family
 set(OpenGL_GL_PREFERENCE "GLVND")
@@ -536,11 +543,11 @@ if (SCRIPT_PYTHON)
   else()
     find_library(BPLIB
 
-      NAMES boost_python311 boost_python310 boost_python39 boost_python38
-      boost_python37 boost_python-py311 boost_python-py310 boost_python-py39
-      boost_python-py38 boost_python-py37 boost_python-py36
-      boost_python3 boost_python-py3 boost_python27 boost_python2
-      boost_python)
+      NAMES boost_python312 boost_python311 boost_python310
+      boost_python39 boost_python38 boost_python37 boost_python-py311
+      boost_python-py310 boost_python-py39 boost_python-py38
+      boost_python-py37 boost_python-py36 boost_python3
+      boost_python-py3 boost_python27 boost_python2 boost_python)
 
     if (BPLIB STREQUAL "BPLIB-NOTFOUND")
       message(FATAL_ERROR "Cannot find a boost-python library")

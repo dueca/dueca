@@ -2,6 +2,14 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.4] - 2023-11-13
+
+- add documentation on running multi-team
+- autodetect X display in the dueca profile script
+- add a test on triggering
+- more precise triggering, remove 0-length trigger at start
+- fixes for Fedora 39
+
 ## [4.0.3] - 2023-11-08
 
 - Fix for a crash in the websocket server with repeated access/delete

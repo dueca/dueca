@@ -14,6 +14,7 @@
 /** DuecaMain.cxx Starting via Script */
 
 #include "ScriptInterpret.hxx"
+#include "Environment.hxx"
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
@@ -143,4 +144,5 @@ LNK_PUBLIC int main(int argc, char* argv[])
   sleep(1);
 
   cout << "out of main" << endl;
+  return Environment::getInstance()->getExitCode();
 }
