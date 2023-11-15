@@ -373,15 +373,20 @@ bool UnifiedChannel::refreshClientHandleInner(UCClientHandlePtr client)
             // option two, any requested entry is acceptable
             client->requested_entry == entry_any)) {
 
-        // check this client is in the data web
+#if 0
+        // this check was wrong. UCDataClassLink assembles for each dataclass
+        // what writing entries there are (dc->entry) and what clients read
+        // that dataclass (dc->clients)
+
+        // check this client is not yet in the data web
         UCClientHandleLinkPtr cl = NULL;
         for (const auto &dc: cc->entry->dataclasslink) {
           cl = dc->clients;
           while (cl && cl->_entry != client) { cl = cl->next; }
-          if (cl->_entry == client) break;
+          if (cl && cl->_entry == client) break;
         }
-        assert(cl != NULL);
-
+        if (cl != NULL)
+#endif
         // connect this
         linkReadClientToEntry(client, cc->entry);
 
