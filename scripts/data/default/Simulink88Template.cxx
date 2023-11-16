@@ -159,7 +159,7 @@ public:
 
 @Module@::modelSet *@Module@::createAndInitialiseModel()
 {
-  modelSet *S = new ModelSet();
+  modelSet *S = new modelSet();
   S->M = @rtwmodel@(&(S->U), &(S->Y));
   if (S->M == NULL) {
     E_MOD(getId() << " Cannot create model \"@rtwmodel@\"");
