@@ -27,9 +27,11 @@
     <click window="DUECA/DUSIME control panel" x="477" y="150" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="477" y="150" button="Button.left" pressed="false" wait="0.2"/>
     <check window="DUECA/DUSIME control panel" x="478" y="190" r="65" g="255" b="11" timeout="15.0" wait="0.5"/>
-    <check window="DUECA/DUSIME control panel" x="478" y="237" r="104" g="104" b="104" timeout="15.0" wait="0.5"/>
+    <!-- hold -->
+    <check window="DUECA/DUSIME control panel" x="478" y="237" r="104" g="104" b="104" timeout="15.0" wait="2.5"/>
     <click window="DUECA/DUSIME control panel" x="478" y="237" button="Button.left" pressed="true" wait="2.2"/>
     <click window="DUECA/DUSIME control panel" x="478" y="238" button="Button.left" pressed="false" wait="0.2"/>
+    <!-- calibrate -->
     <check window="DUECA/DUSIME control panel" x="428" y="235" r="104" g="104" b="104" timeout="15.0" wait="2.5"/>
     <click window="DUECA/DUSIME control panel" x="428" y="235" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="428" y="235" button="Button.left" pressed="false" wait="0.2"/>
