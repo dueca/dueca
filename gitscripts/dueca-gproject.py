@@ -1419,6 +1419,9 @@ class BuildProject(OnExistingProject):
         parser.add_argument(
             '--debug', dest='debug', action='store_true', default=False,
             help='Configure with debug mode')
+        parser.add_argument(
+            '--verbose', dest='buildverbose', action='store_true',
+            default=False, help='Do a verbose build')
         parser.set_defaults(handler=BuildProject)
 
     def __call__(self, ns):
@@ -1431,7 +1434,9 @@ class BuildProject(OnExistingProject):
                 # dprint([ 'rm', '-rf'] + files)
                 cm = subprocess.run(
                     [ 'rm', '-rf'] + files,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                    stdout=subprocess.PIPE, check=True)
+                for line in cm.stdout:
+                    print(line.decode())
                 dprint(f"Clean result {cm}")
                 if os.path.islink('../compile_commands.json'):
                     os.remove('../compile_commands.json')
@@ -1448,10 +1453,7 @@ class BuildProject(OnExistingProject):
                     options.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
                     print("Configuring the build dir with options\n  ",
                           ' '.join(options))
-                    cm = subprocess.run(
-                        [ 'cmake', '..' ] + options,
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                        check=True)
+                    cm = subprocess.run([ 'cmake', '..' ] + options, check=True)
                     dprint(f"CMake result {cm}")
 
                     # symlink the compile_commands.json file if present
@@ -1463,8 +1465,11 @@ class BuildProject(OnExistingProject):
                         self.popDir()
 
                 print("Running the build")
-                cm = subprocess.run(
-                    [ 'make', '-j8' ], check=True)
+                import multiprocessing
+                command = ['make', f'-j{multiprocessing.cpu_count()}']
+                if ns.buildverbose:
+                    command.append("VERBOSE=1")
+                cm = subprocess.run(command, check=True)
                 dprint(f"Build result {cm}")
             except Exception as e:
                 print(f"Failed to run configure or build, {e}",
