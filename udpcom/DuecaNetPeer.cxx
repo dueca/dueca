@@ -229,6 +229,9 @@ void DuecaNetPeer::clientSendWelcome()
   ::packData(s, nodeid);
   ::packData(s, num_nodes);
   ::packData(s, interface_address);
+  ::packData(s, uint16_t(DUECA_VERMAJOR));
+  ::packData(s, uint16_t(DUECA_VERMINOR));
+  ::packData(s, uint16_t(DUECA_REVISION));
   sendConfig(s);
 }
 

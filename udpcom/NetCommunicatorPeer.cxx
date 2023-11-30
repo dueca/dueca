@@ -30,6 +30,7 @@
 
 #define I_NET
 #include <dueca-conf.h>
+#include <dueca/dueca-version.h>
 #include <debug.h>
 #include <dassert.h>
 
@@ -727,6 +728,16 @@ bool NetCommunicatorPeer::decodeConfigData()
 
         // set it for the current send buffer
         current_send_buffer->message_cycle = message_cycle - 0x10;
+
+	// send a check on the DUECA version used here
+	char cbuf[8+6];
+	AmorphStore s(cbuf, 8+6);
+	UDPPeerConfig cmd(UDPPeerConfig::DuecaVersion, peer_id);
+	cmd.packData(s);
+	s.packData(uint16_t(DUECA_VERMAJOR));
+	s.packData(uint16_t(DUECA_VERMINOR));
+	s.packData(uint16_t(DUECA_REVISION));
+	sendConfig(s);
 
         // inform connection is established
         this->clientIsConnected();
