@@ -100,21 +100,29 @@
 ;;  @code
 ;;    // somewhere appropriate, include pugixml
 ;;    #include <pugixml.hpp>
-;;    using namespace pugi;   // or prefix your calls with pugi
+;;    using namespace pugi;   // or prefix variables with pugi
 ;;
 ;;    // make a snapshot, initially empty string
 ;;    Snapshot *snap = new Snapshot("", getNameSet(), Snapshot::XML);
+;;
 ;;    // the data object in the snapshot can be used in combination with
-;;    // a json writer, the following gives an appropriate standard writer:
+;;    // an xml writer, the following gives an appropriate standard writer:
 ;;    smartstring::xml_string_writer writer(snap->data);
 ;;
-;;    // now code the data; using an array here. Of course you can use
-;;    // other formats as well, e.g., Object. See the rapidjson documentation
-;;    writer.StartArray()
+;;    // now code the data; the convention/layout of the XML is your choice.
+;;    // See also the pugixml documentation
+;;    xml_document doc;
+;;    xml_node root = doc.child("state")
 ;;    for (int ii = 5; ii--; ) {
-;;      writer.Double(my_x_copy[ii]);
+;;      xml_node element = root.child("value");
+;;      xml_attribute idx = element.attribute("idx");
+;;      idx.set_value(ii);
+;;      element.set_value(my_x_copy[ii]);
 ;;    }
-;;    writer.EndArray();
+;;
+;;    // this saves the created XML document to the smartstring in the
+;;    // snapshot object.
+;;    doc.save(writer);
 ;;
 ;;    // done, can now send off the snapshot.
 ;;  @endcode
@@ -123,9 +131,7 @@
  Snapshot
  (IncludeFile SnapshotExtra)
  ;; A place for the data, variable size. Use this with ASCII converted
- ;; data, or use an AmorphStore to pack.
- ;; The intention for the future developments is to use snapshots that
- ;; derive from a base type, allowing more freedom for the user's code
+ ;; data (XML, JSON), or use an AmorphStore to pack as binary data.
  (dueca::smartstring data)
  ;; Identifies the object that sent the snapshot
  (NameSet originator)
