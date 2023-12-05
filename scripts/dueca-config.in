@@ -51,6 +51,7 @@ Component selection options:
         --rtwv9_0          # Simulink Coder 9.0, from Matlab 2018b
         --rtwv9_2          # Simulink Coder 9.2, from Matlab 2019b
         --rtwv9_8          # Simulink Coder 9.8, from Matlab 2022b
+        --rtwv23_2         # Simulink Coder 23.3, from Matlab 2023b
         --xml              # Xml library needed for RTW state/parameter saves
         --hmi              # HMIlib OpenGL interface library
         --hmi-ftgl         # HMIlib only with ftgl support
@@ -78,11 +79,6 @@ Component selection options:
 
 Note that you can only use ONE of the real-time workshop versions at a time.
 The rtw53 etc. options are obsolete, and may be removed in a next version
-
-Note that the --rtw* options do NOT give you the cflags for that library,
-due to the potentially devastating effects of the defines in those flags,
-add these flags in the Makefiles that build the individual modules,
-preferably through pkg-config.
 
 Note that you can only use ONE of --gtk2 or --gtk3 at a time.
 EOF
@@ -252,6 +248,10 @@ case $OPTION in
                 --rtwv9_8 )
                     CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV9_8"
                     PKGS="$PKGS rtw9_8"
+                    ;;
+                --rtwv23_2 )
+                    CFLAGS="$CFLAGS -DDUECA_CONFIG_RTWV23_2"
+                    PKGS="$PKGS rtw23_2"
                     ;;
                 --xml)
                     CFLAGS="$CFLAGS -DDUECA_CONFIG_XML"
