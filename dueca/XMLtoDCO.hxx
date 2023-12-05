@@ -23,12 +23,19 @@
     Conversion routines for XML to DCO. */
 
 DUECA_NS_START;
+
+/** Exception type thrown when XML data cannot be fitted in a given
+    DCO object. */
+struct xmlcodeexception;
+
 class CommObjectWriter;
 
 /** Convert the data from an XML stringbuffer to a DCO object.
 
     @param reader    XML node value object.
     @param writer    DCO channel access object.
+    @throw dueca::xmlcodeexception Data cannot be interpreted as part of
+                     the dco object.
 */
 void XMLtoDCO(const pugi::xml_node& reader,
               CommObjectWriter& writer);
