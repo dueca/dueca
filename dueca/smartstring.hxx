@@ -147,6 +147,7 @@ public:
 
       @tparam DCO   Dueca Communication Object, or comparable
       @param obj    DCO object
+      @throws       dueca::xmldecodeexception for type or dataclass mis-matches
    */
   template<class DCO>
   void decodexml(DCO& obj) const

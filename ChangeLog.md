@@ -2,6 +2,14 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.5] - 2023-12-07
+
+- Fix simplesimulation test
+- add rtwv23_2 to the dueca-config options
+- documentation enhancements
+- fix uninitialized memory crash in TriggerRegulator / TriggerRegulatorGreedy
+- warn for incompatible dueca versions when using net communicator
+
 ## [4.0.4] - 2023-11-13
 
 - add documentation on running multi-team

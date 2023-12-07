@@ -361,6 +361,7 @@ bool WebSocketsServer::_complete(S& server)
       writer.Double(Ticker::single()->getTimeGranule());
 
       writer.EndObject();
+      rapidjson::PutUnsafe(doc, '\n');
 
       connection->send
         (doc.GetString(),
@@ -373,7 +374,6 @@ bool WebSocketsServer::_complete(S& server)
              W_XTR("Error sending message " << ec);
            }
          });
-
       DEB("New connection on ^/configuration, sent data" << doc.GetString());
 
       // removed, closing at this point upsets some clients

@@ -341,8 +341,10 @@ public:
 
 
 
-/** Common base class for objects that pass triggering
+/** Common base class for objects that pass triggering.
 
+    These objects receive triggering events, and process/combine
+    these to pass them on and produce triggering.
  */
 class TargetAndPuller: public TriggerTarget, public TriggerPuller
 {
@@ -389,7 +391,7 @@ public:
 };
 
 
-/** Or combination of different TriggerPullers.
+/** "Or" combination of different TriggerPullers.
 
     Note that you need not make an OR combination directly, it is
     automatically done by the operator || function for
@@ -442,7 +444,7 @@ private:
 };
 
 
-/** And combination of different TriggerPullers.
+/** "And" combination of different TriggerPullers.
 
     Note that you need not make an AND combination directly, it is
     automatically done by the operator && function for

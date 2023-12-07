@@ -20,7 +20,8 @@ TriggerRegulatorGreedy::TriggerRegulatorGreedy(TriggerPuller& base,
                                                const TimeSpec& ts) :
   TargetAndPuller(),
   ts(ts),
-  prev_end(0)
+  prev_end(0),
+  new_ts(NULL)
 {
   setTrigger(base);
   setTriggerName();
@@ -31,7 +32,8 @@ TriggerRegulatorGreedy(boost::intrusive_ptr<TargetAndPuller> base,
                        const TimeSpec& ts) :
   TargetAndPuller(),
   ts(ts),
-  prev_end(0)
+  prev_end(0),
+  new_ts(NULL)
 {
   setTrigger(base);
   setTriggerName();
@@ -40,7 +42,8 @@ TriggerRegulatorGreedy(boost::intrusive_ptr<TargetAndPuller> base,
 TriggerRegulatorGreedy::TriggerRegulatorGreedy(const TimeSpec& ts) :
   TargetAndPuller(),
   ts(ts),
-  prev_end(0)
+  prev_end(0),
+  new_ts(NULL)
 {
 
 }

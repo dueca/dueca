@@ -20,7 +20,8 @@ DUECA_NS_START;
 TriggerRegulator::TriggerRegulator(TriggerPuller& base, const TimeSpec& ts) :
   TargetAndPuller(),
   ts(ts),
-  prev_end(0)
+  prev_end(0),
+  new_ts(NULL)
 {
   setTrigger(base);
   setTriggerName();
@@ -30,7 +31,8 @@ TriggerRegulator::TriggerRegulator(boost::intrusive_ptr<TargetAndPuller> base,
                                    const TimeSpec& ts) :
   TargetAndPuller(),
   ts(ts),
-  prev_end(0)
+  prev_end(0),
+  new_ts(NULL)
 {
   setTrigger(base);
   setTriggerName();
@@ -39,7 +41,8 @@ TriggerRegulator::TriggerRegulator(boost::intrusive_ptr<TargetAndPuller> base,
 TriggerRegulator::TriggerRegulator(const TimeSpec& ts) :
   TargetAndPuller(),
   ts(ts),
-  prev_end(0)
+  prev_end(0),
+  new_ts(NULL)
 {
   //
 }

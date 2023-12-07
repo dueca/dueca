@@ -10,18 +10,23 @@
 
 ;; defines type of message
 (Enum MessageType uint8_t
-      ;; Hook up to preceding, data: peer_id of preceding in message chain
-      ;; and cycle at which the hookup should start, 0 if immediate
+      ;; Command to hook up to preceding, data: peer_id of preceding
+      ;; in message chain and cycle at which the hookup should start,
+      ;; 0 if immediate
       HookUp
-      ;; Peer leave message, data: peer_id and cycle at which peer leaves,
-      ;; 0 if ASAP
+      ;; Peer leave message, data: peer_id and cycle at which peer
+      ;; leaves, 0 if ASAP. Normally sent by the peer and replied as
+      ;; configuration by master
       DeletePeer
-      ;; Configure new peer, data: peer_id
+      ;; Sent by the master with configuration data for the new peer,
+      ;; data: peer_id
       ConfigurePeer
       ;; Initial configuration burst complete, no data
       InitialConfComplete
       ;; Client payload follows (from derived class), no data
       ClientPayload
+      ;; Version check follows, peer ID with configured peer
+      DuecaVersion
       ;; Undefined, no data
       Undefined
       )

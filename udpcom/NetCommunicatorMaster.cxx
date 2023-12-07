@@ -134,7 +134,7 @@ bool NetCommunicatorMaster::startServer()
   if (not conf_comm) {
     if (!config_url.size()) {
       /* DUECA network.
-	 
+
 	 Config url needs to be supplied */
       W_NET("Config URL needs to be supplied");
       throw(connectionfails());
@@ -512,7 +512,7 @@ void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
 	/* DUECA network.
 
 	   A sudden disconnect by a peer is detected. The communication
-	   chain will be reconfigured to skip the peer. 
+	   chain will be reconfigured to skip the peer.
 	*/
         W_NET("Sudden disconnect from peer " << (*pp)->send_id);
         correctFollowId((*pp)->send_id, (*pp)->follow_id);
@@ -984,6 +984,39 @@ void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
           throw(e);
         }
         break;
+
+      case UDPPeerConfig::DuecaVersion:
+
+	try {
+	  uint16_t major(s);
+	  uint16_t minor(s);
+	  uint16_t revision(s);
+	  storelevel = s.getIndex();
+
+	  if (major != DUECA_VERMAJOR || minor != DUECA_VERMINOR ||
+	      revision != DUECA_REVISION) {
+	    /* DUECA network.
+
+	       A peer dueca process reports a different DUECA version
+	       than what is running here. Please update all DUECA
+	       nodes to the same version.
+	    */
+	    W_NET("Peer " << cmd.peer_id <<
+		  " reports a different DUECA version " << major <<
+		  "." << minor << "." << revision);
+	  }
+	}
+	catch (const dueca::AmorphReStoreEmpty &e) {
+	  /* DUECA network.
+
+	     A peer dueca process has no information on the DUECA
+	     version in the welcome message. Update all DUECA nodes to
+	     the same version.
+	  */
+          DEB("Cannot unpack version information");
+	  storelevel = storelevel0;
+	  throw(e);
+	}
 
       default:
         /* DUECA network.
