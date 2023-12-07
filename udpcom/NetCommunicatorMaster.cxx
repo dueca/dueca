@@ -988,12 +988,12 @@ void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
       case UDPPeerConfig::DuecaVersion:
 
 	try {
-	  uint16_t major(s);
-	  uint16_t minor(s);
+	  uint16_t vmajor(s);
+	  uint16_t vminor(s);
 	  uint16_t revision(s);
 	  storelevel = s.getIndex();
 
-	  if (major != DUECA_VERMAJOR || minor != DUECA_VERMINOR ||
+	  if (vmajor != DUECA_VERMAJOR || vminor != DUECA_VERMINOR ||
 	      revision != DUECA_REVISION) {
 	    /* DUECA network.
 

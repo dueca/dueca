@@ -42,4 +42,4 @@ usr/lib/python*/*/duecautils*
 usr/include/dueca
 
 usr/share/dueca
-
+etc/dueca/profile
