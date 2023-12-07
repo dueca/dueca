@@ -55,7 +55,7 @@ class StreamChannelReadToken : public ChannelReadToken
 {
 public:
 
-  DUECA_DEPRECATED("use a StreamReader instead")
+  DUECA_DEPRECATED("use new tokens and DataReader instead")
   /** Makes the reference to the data valid, does not return the
       data's age. As a side effect the access to the data is
       registered.
@@ -67,7 +67,7 @@ public:
   */
   void getAccess(const T *& data, const TimeSpec& ts);
 
-  DUECA_DEPRECATED("use StreamReaderLatest instead")
+  DUECA_DEPRECATED("use new tokens and DataReader instead")
   /** Get always the latest version of the data. Use this only in
       special applications, e.g. for projection on interfaces
       etc.
@@ -81,7 +81,7 @@ public:
   /** Returns the number of data points available. */
   int getNumWaitingSets() const;
 
-  DUECA_DEPRECATED("use an StreamReader instead")
+  DUECA_DEPRECATED("use new tokens and DataReader instead")
   /** Returns the read channel access pointer. The data access
       registration is undone.
 
