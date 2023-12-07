@@ -43,3 +43,4 @@ usr/include/dueca
 
 usr/share/dueca
 etc/dueca/profile
+etc/udev/rules.d/90-rtdueca-cpulatency.rules
