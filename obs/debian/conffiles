@@ -1,2 +1,2 @@
-etc/dueca/profile
-etc/udev/rules.d/90-rtdueca-cpulatency.rules
+/etc/dueca/profile
+/etc/udev/rules.d/90-rtdueca-cpulatency.rules
