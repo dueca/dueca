@@ -1002,8 +1002,8 @@ void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
 	       nodes to the same version.
 	    */
 	    W_NET("Peer " << cmd.peer_id <<
-		  " reports a different DUECA version " << major <<
-		  "." << minor << "." << revision);
+		  " reports a different DUECA version " << vmajor <<
+		  "." << vminor << "." << revision);
 	  }
 	}
 	catch (const dueca::AmorphReStoreEmpty &e) {
