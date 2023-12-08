@@ -207,7 +207,7 @@ void ConnectionList::sendOne
 
 void SingleEntryFollow::passData(const TimeSpec& ts)
 {
-  if (firstwrite) {
+  if (firstwrite || regulator) {
     r_token.flushOlderSets(ts.getValidityStart());
     firstwrite = false;
   }
