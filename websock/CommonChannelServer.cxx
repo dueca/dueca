@@ -212,6 +212,13 @@ void SingleEntryFollow::passData(const TimeSpec& ts)
     firstwrite = false;
   }
 
+  // Fix for initial triggering when not enough data in the channel,
+  // cause not exactly clear @TODO investigate
+  if (!r_token.haveVisibleSets(ts)) {
+    DEB("SingleEntryFollow, no data for time step " << ts);
+    return;
+  }
+
   // ScopeLock l(flock);
   DCOReader r(datatype.c_str(), r_token, ts);
   rapidjson::StringBuffer doc;
