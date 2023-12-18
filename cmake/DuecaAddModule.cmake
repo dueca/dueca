@@ -120,6 +120,26 @@ function(DUECA_ADD_MODULE)
   set_target_properties(${MODULETARGET} PROPERTIES
     OUTPUT_NAME "module"
     LINKER_LANGUAGE CXX)
+  
+  # check if we are in a GIT controlled repo, and if so, add a DUECA_GITHASH
+  # define to the compile options
+  execute_process(COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE DOES_GIT
+    OUTPUT_VARIABLE GITHASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  # message(STATUS "In ${CMAKE_CURRENT_SOURCE_DIR} have ${GITHASH}")
+  if (DOES_GIT EQUAL 0)
+    execute_process(COMMAND git status -suno
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      OUTPUT_VARIABLE GITDIFF)
+    if (GITDIFF)
+      set(DUECA_GITHASH "-DDUECA_GITHASH=${GITHASH}+mods")
+    else()
+      set(DUECA_GITHASH "-DDUECA_GITHASH=${GITHASH}")
+    endif()
+  endif()
+
   target_link_libraries(${MODULETARGET} PUBLIC
     ${DUECA_LIBRARIES}
     ${PROJECT_LIBRARIES}
@@ -128,7 +148,7 @@ function(DUECA_ADD_MODULE)
     ${DUECA_COMPILEOPTIONS}
     ${PROJECT_COMPILE_FLAGS}
     ${ADDMODULE_COMPILEOPTIONS_PUBLIC}
-    PRIVATE ${ADDMODULE_COMPILEOPTIONS})
+    PRIVATE ${ADDMODULE_COMPILEOPTIONS} ${DUECA_GITHASH})
 
   # direct dependencies on modules
   set(OTHERMODULE_INCLUDES)

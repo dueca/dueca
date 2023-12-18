@@ -250,34 +250,6 @@ CoreCreator(const ParameterTable* table,
   single(this);
 }
 
-#if 0
-// obsolete version, only works with scheme
-template<class T, typename B,
-         class P1, class P2, class P3, class P4, class P5,
-         class P6, class P7, class P8, class P9, class P10>
-CoreCreator<T, B, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10>::
-CoreCreator(const ParameterTable* table) :
-  ArgListProcessor(table,
-                   SchemeClassData<T>::single()->getName(),
-                   ArgListProcessor::AllowListAndPair),
-  extracall(NULL)
-{
-  // ensure iostream is available befor main.
-  startIOStream();
-
-  if (DuecaEnv::scriptInstructions(&(callName()[5]))) {
-    cout << "(" << callName() << endl;
-    printArgumentList(cout);
-  }
-  else if (!DuecaEnv::scriptSpecific()) {
-    cout << "Adding object (" << &(callName()[5]) << ")" << endl;
-  }
-  ScriptInterpret::addInitFunction(SchemeClassData<T>::single()->getName(), NULL, ifunct);
-
-  single(this);
-}
-#endif
-
 template<class T, typename B,
          class P1, class P2, class P3, class P4, class P5,
          class P6, class P7, class P8, class P9, class P10>

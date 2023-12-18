@@ -45,7 +45,7 @@ protected:
   /** Constructor.
       @param type_name  Name for the type, as known in script.
       @param table      Points to table with parameter values. */
-  GenericTypeCreator(const std::string& type_name);
+  GenericTypeCreator(const std::string& type_name, const char* vhash);
 
 public:
   /** Destructor. */

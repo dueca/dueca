@@ -23,8 +23,9 @@
 DUECA_NS_START
 
 ScriptTypeCreator::ScriptTypeCreator(const std::string& type_name,
-                                     const ParameterTable* table) :
-  GenericTypeCreator(type_name),
+                                     const ParameterTable* table,
+				     const char* vhash) :
+  GenericTypeCreator(type_name, vhash),
   ArgListProcessor(table, type_name)
 {
   if (DuecaEnv::scriptInstructions(type_name)) {

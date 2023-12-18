@@ -34,7 +34,8 @@ class ScriptTypeCreator: public GenericTypeCreator, public ArgListProcessor
 public:
   /** Constructor */
   ScriptTypeCreator(const std::string& type_name,
-                    const ParameterTable* table);
+                    const ParameterTable* table,
+		    const char* vhash);
 
   /** Destructor */
   virtual ~ScriptTypeCreator();
@@ -95,9 +96,20 @@ DUECA_NS_START
 template<class T>
 TypeCreator<T>* TypeCreator<T>::singleton = NULL;
 
+#ifndef _tc_xstr
+#define _tc_xstr(a) _tc_str(a)
+#define _tc_str(a) #a
+#endif
+
 template<class T>
 TypeCreator<T>::TypeCreator(const ParameterTable* table) :
-  ScriptTypeCreator(T::classname, table)
+  ScriptTypeCreator(T::classname, table,
+#ifdef DUECA_GITHASH
+		    _tc_xstr(DUECA_GITHASH)
+#else
+		    NULL
+#endif
+		    )
 {
   if (singleton != NULL) {
     std::cerr << "extra type creator created in file:" << __FILE__
