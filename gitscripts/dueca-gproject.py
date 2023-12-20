@@ -1414,7 +1414,7 @@ class BuildProject(OnExistingProject):
             '--clean', dest='clean', action='store_true', default=False,
             help="Clean all code from the build folder, don't configure")
         parser.add_argument(
-            '--option', type=str, nargs='*', default=[],
+            '-D', '--option', type=str, nargs='*', default=[],
             help='Provide additional options for the configure stage')
         parser.add_argument(
             '--debug', dest='debug', action='store_true', default=False,
