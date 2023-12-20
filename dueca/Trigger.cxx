@@ -309,6 +309,19 @@ void TriggerTarget::clearTriggers()
   pullers.clear();
 }
 
+bool TargetAndPuller::removeTerm(TriggerPuller& p)
+{
+  for (pullers_type::iterator pp = pullers.begin();
+       pp != pullers.end(); pp++) {
+    if (pp->puller == &p) {
+      pp->puller->removeTarget(this);
+      pullers.erase(pp);
+      return true;
+    }
+  }
+  return false;
+}
+
 void TriggerTarget::setTrigger(boost::intrusive_ptr<TargetAndPuller> p)
 {
   if (pullers.size()) {
