@@ -1401,6 +1401,40 @@ SearchProject.args(subparsers)
 class BuildProject(OnExistingProject):
     command = 'build'
 
+    contents_tasks = '''
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "dueca build",
+            "type": "shell",
+            "command": "dueca-gproject build --debug",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
+'''
+
+    contents_launch = '''
+{
+    "name": "C++ launch",
+    "type": "lldb",
+    "request": "launch",
+    "program": "${workspaceFolder}/run/solo/solo/dueca_run.x",
+    "args": [],
+    "stopAtEntry": true,
+    "environment": [],
+    "externalConsole": false,
+    "MIMode": "lldb",
+    "cwd": "${workspaceFolder}/run/solo/solo",
+}'''
+    
     def __init__(self, *args, **kwargs):
         super().__init__(BuildProject.command, *args, **kwargs)
 
@@ -1419,6 +1453,10 @@ class BuildProject(OnExistingProject):
         parser.add_argument(
             '--debug', dest='debug', action='store_true', default=False,
             help='Configure with debug mode')
+        parser.add_argument(
+            '--vscode', action='store_true',
+            default=False,
+            help="Prepare or augment a vscode folder with build and debug instructions")
         parser.add_argument(
             '--verbose', dest='buildverbose', action='store_true',
             default=False, help='Do a verbose build')
@@ -1475,6 +1513,17 @@ class BuildProject(OnExistingProject):
                 print(f"Failed to run configure or build, {e}",
                       file=sys.stderr)
         self.popDir()
+        
+        if ns.vscode:
+            self.pushDir(self.projectdir)
+            if not os.path.isdir('.vscode'):
+                os.mkdir('.vscode')
+            for item in ('launch', 'tasks'):
+                if not os.path.isfile(f'.vscode/{item}.json'):
+                    with open(f'.vscode/{item}.json', 'w') as f:
+                        f.write(BuildProject.__dict__[f'contents_{item}'])
+                    print(f"Created '.vscode/{item}.json'")
+            self.popDir()
 
 BuildProject.args(subparsers)
 
