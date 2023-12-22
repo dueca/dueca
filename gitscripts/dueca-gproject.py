@@ -175,7 +175,7 @@ def read_transform_and_write(f0, f1, subst):
     return f1
 
 
-def create_and_copy(dirs, files, subst):
+def create_and_copy(dirs, files, subst, keepcurrent=False, inform=False):
     for _d in dirs:
         try:
             d = _d.format(**subst)
@@ -183,7 +183,10 @@ def create_and_copy(dirs, files, subst):
                 dprint("creating dir", d)
                 os.mkdir(d)
             else:
-                raise Exception(f"Failed to create directory {d}")
+                if keepcurrent:
+                    pass
+                else:
+                    raise Exception(f"Failed to create directory {d}")
         except ValueError as ve:
             print(f"Problem formatting '{_d}'", file=sys.stderr)
             raise ve
@@ -196,6 +199,12 @@ def create_and_copy(dirs, files, subst):
     fnew = []
     for f in files:
         f1 = f[1].format(**subst)
+        if keepcurrent and os.path.isfile(f1):
+            if inform:
+                print(f"Keeping existing '{f1}'")
+            continue
+        if inform:
+            print(f"Created '{f1}'")
         dprint("writing", f1)
         fnew.append(
             read_transform_and_write(
@@ -1401,42 +1410,10 @@ SearchProject.args(subparsers)
 class BuildProject(OnExistingProject):
     command = 'build'
 
-    contents_tasks = '''
-{
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    // run with Shift-Ctrl-B
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "dueca build",
-            "type": "shell",
-            "command": "dueca-gproject build --debug",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        }
-    ]
-}
-'''
-
-    contents_launch = '''
-{
-    // Adapt/extend if you want to run dueca from different folders
-    // This requires installation of the "Native Debug" extension by WebFreak
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Debug solo",
-            "type": "gdb",
-            "request": "launch",
-            "target": "${workspaceFolder}/run/solo/solo/dueca_run.x",
-            "cwd": "${workspaceFolder}/run/solo/solo"
-        }
-    ]
-}'''
+    vsdirs = (".vscode",)
+    vsfiles = (('project.vscode.launch.json', ".vscode/launch.json"),
+               ('project.vscode.tasks.json', ".vscode/tasks.json"),
+               ('project.clang-format', ".clang-format"))
 
     def __init__(self, *args, **kwargs):
         super().__init__(BuildProject.command, *args, **kwargs)
@@ -1516,16 +1493,11 @@ class BuildProject(OnExistingProject):
                 print(f"Failed to run configure or build, {e}",
                       file=sys.stderr)
         self.popDir()
-        
+
         if ns.vscode:
             self.pushDir(self.projectdir)
-            if not os.path.isdir('.vscode'):
-                os.mkdir('.vscode')
-            for item in ('launch', 'tasks'):
-                if not os.path.isfile(f'.vscode/{item}.json'):
-                    with open(f'.vscode/{item}.json', 'w') as f:
-                        f.write(BuildProject.__dict__[f'contents_{item}'])
-                    print(f"Created '.vscode/{item}.json'")
+            create_and_copy(BuildProject.vsdirs, BuildProject.vsfiles, {},
+                            True, True)
             self.popDir()
 
 BuildProject.args(subparsers)
