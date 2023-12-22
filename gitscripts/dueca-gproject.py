@@ -1405,6 +1405,7 @@ class BuildProject(OnExistingProject):
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
+    // run with Shift-Ctrl-B
     "version": "2.0.0",
     "tasks": [
         {
@@ -1423,18 +1424,20 @@ class BuildProject(OnExistingProject):
 
     contents_launch = '''
 {
-    "name": "C++ launch",
-    "type": "lldb",
-    "request": "launch",
-    "program": "${workspaceFolder}/run/solo/solo/dueca_run.x",
-    "args": [],
-    "stopAtEntry": true,
-    "environment": [],
-    "externalConsole": false,
-    "MIMode": "lldb",
-    "cwd": "${workspaceFolder}/run/solo/solo",
+    // Adapt/extend if you want to run dueca from different folders
+    // This requires installation of the "Native Debug" extension by WebFreak
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug solo",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/run/solo/solo/dueca_run.x",
+            "cwd": "${workspaceFolder}/run/solo/solo"
+        }
+    ]
 }'''
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(BuildProject.command, *args, **kwargs)
 
