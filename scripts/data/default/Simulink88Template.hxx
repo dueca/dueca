@@ -31,8 +31,8 @@ extern "C" {
 #undef assert
 
 // define the number of states here.
-#define NCSTATES (sizeof(X_@rtwmodel@_T))
-#define NDSTATES (sizeof(DW_@rtwmodel@_T))
+#define NCSTATES (sizeof(X_@rtwmodel@_T)/sizeof(real_T))
+#define NDSTATES (sizeof(DW_@rtwmodel@_T)/sizeof(real_T))
 
 // calculate total number of states
 #if defined(NCSTATES) && defined(NDSTATES)
