@@ -99,7 +99,8 @@ const ParameterTable* @Module@::getMyParameterTable()
      If you give 0 for the snapshot state, you will not be called to
      fill a snapshot, or to restore your state from a snapshot. Only
      applicable if you have no state. */
-  SimulationModule(e, classname, part, getMyIncoTable(), NSTATES),
+  SimulationModule(e, classname, part, getMyIncoTable(),
+		   NSTATES*sizeof(real_T)),
 
   // initialize the data you need in your simulation
   S(NULL),
