@@ -175,7 +175,7 @@ def read_transform_and_write(f0, f1, subst):
     return f1
 
 
-def create_and_copy(dirs, files, subst):
+def create_and_copy(dirs, files, subst, keepcurrent=False, inform=False):
     for _d in dirs:
         try:
             d = _d.format(**subst)
@@ -183,7 +183,10 @@ def create_and_copy(dirs, files, subst):
                 dprint("creating dir", d)
                 os.mkdir(d)
             else:
-                raise Exception(f"Failed to create directory {d}")
+                if keepcurrent:
+                    pass
+                else:
+                    raise Exception(f"Failed to create directory {d}")
         except ValueError as ve:
             print(f"Problem formatting '{_d}'", file=sys.stderr)
             raise ve
@@ -196,6 +199,12 @@ def create_and_copy(dirs, files, subst):
     fnew = []
     for f in files:
         f1 = f[1].format(**subst)
+        if keepcurrent and os.path.isfile(f1):
+            if inform:
+                print(f"Keeping existing '{f1}'")
+            continue
+        if inform:
+            print(f"Created '{f1}'")
         dprint("writing", f1)
         fnew.append(
             read_transform_and_write(
@@ -1401,6 +1410,11 @@ SearchProject.args(subparsers)
 class BuildProject(OnExistingProject):
     command = 'build'
 
+    vsdirs = (".vscode",)
+    vsfiles = (('project.vscode.launch.json', ".vscode/launch.json"),
+               ('project.vscode.tasks.json', ".vscode/tasks.json"),
+               ('project.clang-format', ".clang-format"))
+
     def __init__(self, *args, **kwargs):
         super().__init__(BuildProject.command, *args, **kwargs)
 
@@ -1414,11 +1428,15 @@ class BuildProject(OnExistingProject):
             '--clean', dest='clean', action='store_true', default=False,
             help="Clean all code from the build folder, don't configure")
         parser.add_argument(
-            '--option', type=str, nargs='*', default=[],
+            '-D', '--option', type=str, nargs='*', default=[],
             help='Provide additional options for the configure stage')
         parser.add_argument(
             '--debug', dest='debug', action='store_true', default=False,
             help='Configure with debug mode')
+        parser.add_argument(
+            '--vscode', action='store_true',
+            default=False,
+            help="Prepare or augment a vscode folder with build and debug instructions")
         parser.add_argument(
             '--verbose', dest='buildverbose', action='store_true',
             default=False, help='Do a verbose build')
@@ -1475,6 +1493,12 @@ class BuildProject(OnExistingProject):
                 print(f"Failed to run configure or build, {e}",
                       file=sys.stderr)
         self.popDir()
+
+        if ns.vscode:
+            self.pushDir(self.projectdir)
+            create_and_copy(BuildProject.vsdirs, BuildProject.vsfiles, {},
+                            True, True)
+            self.popDir()
 
 BuildProject.args(subparsers)
 

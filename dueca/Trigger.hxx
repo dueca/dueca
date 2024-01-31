@@ -331,12 +331,14 @@ public:
   */
   void setTrigger(boost::intrusive_ptr<TargetAndPuller> p);
 
-  /** Remove triggering, normally when a puller is destructed */
-  void forgetTrigger(const TriggerPuller* p);
 
   /** Clear all triggers from this target; this is not thread-safe, don't
       call this when running. */
   void clearTriggers();
+
+ private:
+  /** Remove triggering, normally when a puller is destructed */
+  void forgetTrigger(const TriggerPuller* p);
 };
 
 
@@ -388,6 +390,11 @@ public:
       See the explanation above.
    */
   void addTerm(const boost::intrusive_ptr<TargetAndPuller>& p);
+
+  /** Remove a term from this TriggerAnd or TriggerOr object.
+
+      @param p        Object that can serve as a trigger puller. */
+  bool removeTerm(TriggerPuller& p);
 };
 
 

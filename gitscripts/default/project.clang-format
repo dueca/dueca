@@ -1,3 +1,9 @@
+# CLANG formatter configuration file for DUECA projects
+#
+# This requires:
+#   vscode extension "Clang-Format", by xaver
+#   clang-format (e.g. apt install clang-format)
+
 BasedOnStyle: LLVM
 IndentWidth: 2
 

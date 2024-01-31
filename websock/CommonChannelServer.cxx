@@ -207,9 +207,16 @@ void ConnectionList::sendOne
 
 void SingleEntryFollow::passData(const TimeSpec& ts)
 {
-  if (firstwrite) {
+  if (firstwrite || regulator) {
     r_token.flushOlderSets(ts.getValidityStart());
     firstwrite = false;
+  }
+
+  // Fix for initial triggering when not enough data in the channel,
+  // cause not exactly clear @TODO investigate
+  if (!r_token.haveVisibleSets(ts)) {
+    DEB("SingleEntryFollow, no data for time step " << ts);
+    return;
   }
 
   // ScopeLock l(flock);

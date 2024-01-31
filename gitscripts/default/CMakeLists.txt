@@ -8,10 +8,12 @@ set(PLATFORMS
 set(DATA
 
   CMakeLists.txt.com CMakeLists.txt.mod CMakeLists.txt.app modules.txt
-  config.cmake machine comm-objects.txt machinemapping.xml policylist.xml
-  modules.xml README-pseudomodule.md build.gitignore run-data-README.md
-  ${PLATFORMS} RunProject project.gitignore project-README.md
-  platform.xsd machinemapping.xsd modules.xsd policies.xsd policylist.xsd)
+  config.cmake machine comm-objects.txt machinemapping.xml
+  policylist.xml modules.xml README-pseudomodule.md build.gitignore
+  run-data-README.md ${PLATFORMS} RunProject project.gitignore
+  project-README.md platform.xsd machinemapping.xsd modules.xsd
+  policies.xsd policylist.xsd project.vscode.launch.json
+  project.vscode.tasks.json project.clang-format )
 
 install(FILES ${DATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca/data/default)
 

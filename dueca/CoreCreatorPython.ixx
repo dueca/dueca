@@ -163,6 +163,10 @@ CoreCreator<T, B, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10>::single
   return _single;
 }
 
+#ifndef _tc_xstr
+#define _tc_xstr(a) _tc_str(a)
+#define _tc_str(a) #a
+#endif
 
 template<class T, typename B,
          class P1, class P2, class P3, class P4, class P5, class P6,
@@ -183,7 +187,11 @@ CoreCreator(const ParameterTable* table, const char* name,
                           printargs<P1,P2,P3,P4,P5,P6,P7,P8,P9,P10>());
   }
   else if (!DuecaEnv::scriptSpecific()) {
-    cout << "Adding object (" << this->name << ")" << endl;
+    cout << "Adding object (" << this->name;
+#ifdef DUECA_GITHASH
+    cout << ", githash=" << _tc_xstr(DUECA_GITHASH);
+#endif
+    cout << ")" << endl;
   }
   ScriptInterpret::addInitFunction(core_creator_name<T>(name),
                                    core_creator_name<B>(name), ifunct);
@@ -233,7 +241,11 @@ CoreCreator(const ParameterTable* table,
                           printargs<P1,P2,P3,P4,P5,P6,P7,P8,P9,P10>());
   }
   else if (!DuecaEnv::scriptSpecific()) {
-    cout << "Adding object (" << this->name << ")" << endl;
+    cout << "Adding object (" << this->name;
+#ifdef DUECA_GITHASH
+    cout << ", githash=" << _tc_xstr(DUECA_GITHASH);
+#endif
+    cout << ")" << endl;
   }
   ScriptInterpret::addInitFunction(core_creator_name<T>(name),
                                    core_creator_name<B>(name), ifunct);

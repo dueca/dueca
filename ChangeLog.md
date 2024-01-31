@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.6] - 2024-01-31
+
+- more support for vscode/codium
+- add possibility to remove a trigger
+- for traceability, add git hash to dueca startup output
+- fixes websockets server
+
 ## [4.0.5] - 2023-12-07
 
 - Fix simplesimulation test

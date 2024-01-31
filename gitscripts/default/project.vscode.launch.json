@@ -1,0 +1,17 @@
+{
+    // Adapt/extend if you want to run dueca from different folders
+    // This requires:
+    //
+    //   vscode extension "Native Debug" by WebFreak
+    //   installation of gdb (e.g. apt-get install gdb)
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug solo",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/run/solo/solo/dueca_run.x",
+            "cwd": "${workspaceFolder}/run/solo/solo"
+        }
+    ]
+}

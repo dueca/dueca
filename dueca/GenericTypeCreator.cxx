@@ -20,7 +20,7 @@
 #include <debug.h>
 
 DUECA_NS_START
-GenericTypeCreator::GenericTypeCreator(const std::string& type_name) :
+GenericTypeCreator::GenericTypeCreator(const std::string& type_name, const char* vhash) :
   type_name(type_name)
 {
   // ensure iostream is available before main has started.
@@ -40,7 +40,11 @@ GenericTypeCreator::GenericTypeCreator(const std::string& type_name) :
   }
 
   else if (!DuecaEnv::scriptSpecific()) {
-    cout << "Adding module (" << type_name << ')' << endl;
+    cout << "Adding module (" << type_name;
+    if (vhash != NULL) {
+      cout << ", githash=" << vhash;
+    }
+    cout << ')' << endl;
   }
   CreationCenter::single()->addObjectType(type_name, this);
 }

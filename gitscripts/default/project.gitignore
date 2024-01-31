@@ -24,5 +24,8 @@ run/*/*/**
 *.orig
 *.rej
 
+# the vscode folder
+.vscode/**
+
 # the machine file should never be in the repository
 .config/machine
