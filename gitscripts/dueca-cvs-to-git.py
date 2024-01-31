@@ -154,7 +154,7 @@ def constructUrl(prj):
         print(f"Borrow from now-converted project {prj}")
     else:
         print(f"Cannot find conversion repository at '{rundir}/repo/{prj}.git'"
-              "Assuming it will be created")
+              ", Assuming it will be created later")
     return f'file://{rundir}/repo/{prj}.git'
 
 parser = argparse.ArgumentParser(
@@ -230,7 +230,9 @@ parser.add_argument(
     default=patchdir,
     help='Folder with temporary project patches. These are replayed after\n'
     'a conversion, and new patches are placed there.')
-
+parser.add_argument(
+    '--cvs-date', type=str,
+    help='Date for the cvs, to possibly get an older version')
 
 # get the arguments
 runargs = parser.parse_args(sys.argv[1:])
@@ -286,6 +288,11 @@ if runargs.base:
     rundir = runargs.base
 else:
     rundir = tempfile.mkdtemp()
+
+if runargs.cvs_date:
+    cvsdateselection=('-D', runargs.cvs_date)
+else:
+    cvsdateselection=()
 
 for suffix in ('old', 'new', 'repo'):
     if not os.path.isdir(f'{rundir}/{suffix}'):
@@ -354,7 +361,11 @@ for project in projects:
 
     # check out the CVS-based code
     os.chdir(f'{rundir}/old')
-    subprocess.run(('cvs', '-d', cvsroot, 'export', '-r', 'HEAD', project))
+    if runargs.cvs_date:
+        subprocess.run(('cvs', '-d', cvsroot, 'export',
+                        '-D', runargs.cvs_date, project))
+    else:
+        subprocess.run(('cvs', '-d', cvsroot, 'export', '-r', 'HEAD', project))
 
     # initialize the git repository
     rrepo = git.Repo.init(f'{rundir}/repo/{project}.git', bare=True)
