@@ -1,7 +1,12 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-    // invoke with Shift-Ctrl-B
+    //
+    // this adds a build task for DUECA projects. Default build is with
+    // debug options, since that is likely the most useful build type when
+    // developing
+    //
+    // invoke from vscode/codium with Shift-Ctrl-B
     "version": "2.0.0",
     "tasks": [
         {

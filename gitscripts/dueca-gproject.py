@@ -1461,7 +1461,7 @@ class BuildProject(OnExistingProject):
             except Exception as e:
                 print(f"Could not clean out the build folder, {e}",
                       file=sys.stderr)
-        else:
+        elif not ns.vscode:
             try:
                 if len(os.listdir('.')) == 1:
                     options = [ (o[0] == '-' and o) or f'-D{o}' for
