@@ -1102,11 +1102,11 @@ class NewMachineClass(OnExistingProject):
             # when created from a config, more information is available
             try:
                 if ns.modules:
-                    m = Modules(self.projectdir, ns.name)
+                    mods = Modules(self.projectdir, ns.name)
 
                     for url, m, v in ns.modules:
                         project = project_name_from_url(url)
-                        m.addModule(project, m, v, url)
+                        mods.addModule(project, m, v, url)
 
             except AttributeError:
                 pass
