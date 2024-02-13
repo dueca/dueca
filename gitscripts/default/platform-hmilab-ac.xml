@@ -47,7 +47,7 @@
 	  <name>OSGViewer</name>
 	  <version>master</version>
 	</module>
-        <module>
+        <module pseudo="true">
 	  <url>dgrpub:///WorldView.git</url>
 	  <name>HMILabViewFiles</name>
 	  <version>master</version>

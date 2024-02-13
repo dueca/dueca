@@ -34,6 +34,7 @@ from duecautils.machinemapping import NodeMachineMapping
 from duecautils.githandler import GitHandler
 from duecautils.verboseprint import dprint
 from duecautils.policy import Policies
+from duecautils.xmlutil import XML_interpret_bool, XML_tag, XML_comment
 
 
 """
@@ -286,11 +287,14 @@ def guess_ifaddress(nodename=None):
     print("Assuming machine IP address", ipaddress)
     return ipaddress
 
+'''
 def XML_tag(elt, tag):
     return isinstance(elt.tag, str) and elt.tag.split('}')[-1] == tag
 
 def XML_comment(elt):
     return isinstance(elt, etree._Comment)
+'''
+
 
 # checked
 class NewProject:
@@ -1104,9 +1108,9 @@ class NewMachineClass(OnExistingProject):
                 if ns.modules:
                     mods = Modules(self.projectdir, ns.name)
 
-                    for url, m, v in ns.modules:
+                    for url, m, v, pseudo, inactive in ns.modules:
                         project = project_name_from_url(url)
-                        mods.addModule(project, m, v, url)
+                        mods.addModule(project, m, v, url, pseudo, inactive)
 
             except AttributeError:
                 pass
@@ -1205,6 +1209,8 @@ class PreparePlatform(OnExistingProject):
                             elif XML_tag(c, 'modules'):
                                 for m in c:
                                     url, modname, version = None, None, None
+                                    pseudo = XML_interpret_bool(m.get("pseudo", False))
+                                    inactive = XML_interpret_bool(m.get("inactive", False))
                                     for t in m:
                                         if XML_comment(t):
                                             pass
@@ -1214,10 +1220,11 @@ class PreparePlatform(OnExistingProject):
                                             modname = t.text
                                         elif XML_tag(t, 'version'):
                                             version = t.text
+
                                     # gather result
                                     if mname and url:
                                         modules.append(
-                                            (url, modname, version))
+                                            (url, modname, version, pseudo, inactive))
                             else:
                                 print(f"Unexpected xml tag {c.tag}",
                                       file=sys.stderr)

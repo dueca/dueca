@@ -18,7 +18,7 @@
 	  <name>ControlLoading</name>
 	  <version>master</version>
 	</module>
-        <module>
+        <module pseudo="true">
           <url>dgrbase:///CSControlLoading.git</url>
 	  <name>CLConfigurations</name>
 	  <version>master</version>

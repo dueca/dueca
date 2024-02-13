@@ -6,3 +6,4 @@ from .commobjects import *
 from .githandler import *
 from .policylist import *
 from .codegen import *
+from .xmlutil import *

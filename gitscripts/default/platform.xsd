@@ -41,8 +41,11 @@
     <xs:all>
       <xs:element name="url" type="xs:string"/>
       <xs:element name="name" type="xs:string"/>
-      <xs:element name="version" type="xs:string" minOccurs="0"/>
+      <xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1" />
+      <xs:element name="scriptlet" type="xs:string" minOccurs="0" maxOccurs="1" />
     </xs:all>
+    <xs:attribute name="pseudo" type="xs:string" />
+    <xs:attribute name="inactive" type="xs:string" />
   </xs:complexType>
 
   <xs:complexType name="platform_t">
