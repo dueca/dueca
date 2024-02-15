@@ -87,6 +87,29 @@
     </machineclass>
   </machineclasses>
   <platform name="SRS" comm-master="srsctrlecat_x">
+    <scriptlet place="## [nodes]">
+      host_node = 1   # srshost, model and motion control
+      cl_node = 2     # srsctrlecat, control loading, timing master
+      pfd_node = 3    # srsefis1, primary flight display
+      nd_node = 4     # srsefis2, navigation display
+      snd_node = 5    # srssound, sound
+      ig1_node = 6    # srsig1, front view
+      ig2_node = 7    # srsig2, left view
+      ig3_node = 8    # srsig3, right view
+    </scriptlet>
+    <scriptlet place="## [priority]">
+      if this_node_id == cl_node:
+          stick_priority = dueca.PrioritySpec(4, 0)
+          io_priority = dueca.PrioritySpec(5, 0)
+    </scriptlet>
+    <scriptlet place="## [timing]">
+      if this_node_id == cl_node:
+          # timing of the stick calculations. Assuming 100 usec ticks, this gives 2500 Hz
+          stick_timing = dueca.TimeSpec(0, 4)
+    </scriptlet>
+    <scriptlet place="## [modules]">
+      # extend with the module creation here
+    </scriptlet>
     <node name="srsecs" machineclass="srs-ecs" node-number="0"
           if-address="192.168.2.11" />
     <node name="srshost" machineclass="srs-host"

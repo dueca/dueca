@@ -164,9 +164,20 @@ def _gui_choices():
     return ('none', 'gtk3', 'gtk2', 'glut', 'glut-gui')
 
 
-def read_transform_and_write(f0, f1, subst):
+def read_transform_and_write(f0, f1, subst, insert=None):
+
     with open(f0, 'r') as fr:
-        fdata = ''.join(fr.readlines())
+        if insert:
+            lines = []
+            for l in fr.readlines():
+                lines.append(l)
+                for k, txt in insert.items():
+                    if k in l:
+                        lines.append(txt)
+                        lines.append('\n')
+            fdata = ''.join(lines)
+        else:
+            fdata = ''.join(fr.readlines())
 
     for k, v in subst.items():
         if f'@{k}@' in fdata:
@@ -176,7 +187,7 @@ def read_transform_and_write(f0, f1, subst):
     return f1
 
 
-def create_and_copy(dirs, files, subst, keepcurrent=False, inform=False):
+def create_and_copy(dirs, files, subst, keepcurrent=False, inform=False, insert=None):
     for _d in dirs:
         try:
             d = _d.format(**subst)
@@ -209,7 +220,7 @@ def create_and_copy(dirs, files, subst, keepcurrent=False, inform=False):
         dprint("writing", f1)
         fnew.append(
             read_transform_and_write(
-                duecabase + f[0], f1, subst))
+                duecabase + f[0], f1, subst, insert))
     return fnew
 
 def get_dueca_prefix():
@@ -985,7 +996,7 @@ class NewNode(OnExistingProject):
         parser.set_defaults(handler=NewNode)
 
 
-    def __call__(self, ns):
+    def __call__(self, ns, scriptlets=None):
 
         try:
             self.pushDir()
@@ -1029,7 +1040,7 @@ class NewNode(OnExistingProject):
             create_and_copy(NewNode.dirs, NewNode.files, tofill)
             nfiles = (ns.node_number and 1) or 2
             if scriptlang == 'python':
-                create_and_copy([], NewNode.pfile[:nfiles], tofill)
+                create_and_copy([], NewNode.pfile[:nfiles], tofill, insert=scriptlets)
             else:
                 create_and_copy([], NewNode.sfile[:nfiles], tofill)
 
@@ -1238,22 +1249,28 @@ class PreparePlatform(OnExistingProject):
                         except Exception as e:
                             print(e, file=sys.stderr)
 
-                elif elt.tag.endswith('platform'):
+                elif XML_tag(elt, 'platform'):
                     pname = ns.name or elt.get('name')
                     pcomm_master = elt.get('comm-master')
 
 
                     # get list of nodes
                     nodes = []
-                    for node in elt:
-                        nodes.append(Namespace(
-                            highest_priority=node.get('highest-priority', 4),
-                            name=node.get('name'),
-                            script=self.checkScriptlang(),
-                            machine_class=node.get('machineclass'),
-                            node_number=node.get('node-number', None),
-                            if_address=node.get('if-address', '0.0.0.0'),
-                            ismaster=node.get('comm-master', False)))
+                    scriptlets = {}
+                    for e in elt:
+                        if XML_tag(e, 'scriptlet'):
+                            place = e.get('place')
+                            scriptlets[place] = trim_lines(e.text)
+
+                        elif XML_tag(e, 'node'):
+                            nodes.append(Namespace(
+                                highest_priority=e.get('highest-priority', 4),
+                                name=e.get('name'),
+                                script=self.checkScriptlang(),
+                                machine_class=e.get('machineclass'),
+                                node_number=e.get('node-number', None),
+                                if_address=e.get('if-address', '0.0.0.0'),
+                                ismaster=e.get('comm-master', False)))
 
                     # assert node numbers
                     nums = set(range(len(nodes)))
@@ -1301,7 +1318,7 @@ class PreparePlatform(OnExistingProject):
 
                     for n in nodes:
                         # create the node
-                        nnc(n)
+                        nnc(n, scriptlets)
 
         print("Created platform, machine classes and nodes, based on"
               f" {template}")
