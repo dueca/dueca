@@ -250,13 +250,7 @@ public:
   /** Remove element at head */
   inline void pop()
   {
-    element_ptr tmphead;
-    do {
-      tmphead = data_head;
-      if (tmphead->next == NULL) return;
-    } while (!atomic_swap64(&data_head, tmphead, tmphead->next));
-    returnSpare(tmphead);
-    removed++;
+    getHead();
   }
 
   /** Return the number of elements in the list. */

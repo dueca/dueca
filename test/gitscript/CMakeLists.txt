@@ -287,6 +287,25 @@ if(Python3_Interpreter_FOUND)
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject2/TestProject2)
 
+
+  # check a node added to machineclass
+  add_test(NAME gitscript_prepareplatform_check_mapping
+    COMMAND grep srsctrlecat .config/machinemapping.xml
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject2/TestProject2)
+
+  # check appropriate modules added
+  add_test(NAME gitscript_prepareplatform_check_modules
+    COMMAND grep IOController .config/class/srs-io/modules.xml
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject2/TestProject2)
+
+  # check config modified
+  add_test(NAME gitscript_prepareplatform_check_config
+    COMMAND grep lethercat .config/class/srs-io/config.cmake
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject2/TestProject2)
+
   add_test(NAME prepare_gitcommit1c
     COMMAND git commit -a -m "compiles now"
     WORKING_DIRECTORY

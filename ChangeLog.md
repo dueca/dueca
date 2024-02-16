@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.7] - 2024-02-15
+
+- extensions for dueca-gproject; prepareplatform with scriptlets, 
+  speudo module creation, vscode tweaks
+
 ## [4.0.6] - 2024-01-31
 
 - more support for vscode/codium
