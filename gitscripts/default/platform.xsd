@@ -23,7 +23,7 @@
 
   <xs:complexType name="machineclass_t">
     <xs:all>
-      <xs:element name="config" minOccurs="0" type="xs:string" />
+      <xs:element name="config" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="modules" minOccurs="0" type="modules_t" />
     </xs:all>
     <xs:attribute name="name" type="xs:string" use="required" />
@@ -58,7 +58,7 @@
   <xs:complexType name="platform_t">
     <xs:choice maxOccurs="unbounded">
       <xs:element name="scriptlet" type="scriptlet_t" />
-       <xs:element name="node" type="node_t" />
+      <xs:element name="node" type="node_t" />
     </xs:choice>
     <xs:attribute name="name" type="xs:string" use="required" />
     <xs:attribute name="comm-master" type="xs:string" use="required" />
