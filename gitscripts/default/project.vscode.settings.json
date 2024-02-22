@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+	"*.dco" : "scheme",
+	"dueca.mod" : "scheme",
+	"dueca.cnf" : "scheme"
+    },
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true
+}

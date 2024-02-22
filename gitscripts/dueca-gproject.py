@@ -1437,6 +1437,7 @@ class BuildProject(OnExistingProject):
     vsdirs = (".vscode",)
     vsfiles = (('project.vscode.launch.json', ".vscode/launch.json"),
                ('project.vscode.tasks.json', ".vscode/tasks.json"),
+               ('project.vscode.settings.json', ".vscode/settings.json"),
                ('project.clang-format', ".clang-format"))
 
     def __init__(self, *args, **kwargs):

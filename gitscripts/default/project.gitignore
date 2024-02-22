@@ -27,5 +27,11 @@ run/*/*/**
 # the vscode folder
 .vscode/**
 
+# link for compile instructions
+compile_commands.json
+
+# C++ formatting selection
+.clang-format
+
 # the machine file should never be in the repository
 .config/machine

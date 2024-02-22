@@ -108,7 +108,7 @@ to a pre-defined model state (and maybe in some future version
 calculate trim conditions for the model). There are also facilities
 for recording the user input of a simulation, and replaying that
 input. This manual is written for people who use DUECA with DUSIME,
-and all the examples concern simulation models. 
+and all the examples concern simulation models.
 
 \section overview Overview of the documentation
 
@@ -183,7 +183,7 @@ simulation.
 
 <li> @ref jsondco "JSON representation of DCO objects"
 
-
+<li> @ref vscode "Editor support for VSCode / Codium"
 </ul>
 
 */
