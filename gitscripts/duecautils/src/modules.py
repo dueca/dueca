@@ -176,7 +176,14 @@ class RootMap(dict):
         except ValueError:
             prjname = _prjname
 
-        for u, root in self.items():
+        # list of shorthand and url roots
+        ulist = [ (u, root)
+                  for u, root in self.items() if u  != 'dgr' ]
+        # ensure the generic dgr is last!
+        if 'dgr' in self:
+            ulist.append(('dgr', self['dgr']))
+
+        for u, root in ulist:
             dprint(f"project name: {prjname} from url: {url[len(root):-4]}")
             if url.startswith(root) and \
                 (u != 'origin' or url[len(root):-4] == prjname):
