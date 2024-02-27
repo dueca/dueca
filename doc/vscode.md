@@ -32,6 +32,7 @@ Then I recomment the following extensions, using the extension manager ("four bl
 - "CMake", by twxs
 - "clangd", by llvm-vs-code-extensions
 - "Scheme", by jeandeaual
+- "XML", by redhat
 
 ## Use
 
@@ -49,7 +50,7 @@ If you have multiple projects, repeat this for each project. You should now have
     .clang-format
     .vscode/launch.json
     .vscode/tasks.json
-	.vscode/settings.json
+    .vscode/settings.json
 
 Run codium in your project by starting, from the project folder, with:
 
