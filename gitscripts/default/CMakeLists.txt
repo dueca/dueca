@@ -13,7 +13,8 @@ set(DATA
   run-data-README.md ${PLATFORMS} RunProject project.gitignore
   project-README.md platform.xsd machinemapping.xsd modules.xsd
   policies.xsd policylist.xsd project.vscode.launch.json
-  project.vscode.tasks.json project.clang-format )
+  project.vscode.tasks.json project.vscode.settings.json
+  project.clang-format )
 
 install(FILES ${DATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca/data/default)
 

@@ -21,7 +21,7 @@ You can head over to the [Visual Studio](https://code.visualstudio.com/) website
 
 To get optimum functionality, some additional software and plugins in Codium are needed. First, for C++ formatting and error checking support, install:
 
-    sudo apt install clang format
+    sudo apt install clang-format
 
 Then I recomment the following extensions, using the extension manager ("four blocks" icon in VSCode/Codium):
 
