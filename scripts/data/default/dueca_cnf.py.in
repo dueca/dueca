@@ -80,7 +80,7 @@ DUECA_environment = dueca.Environment().param(
     # options for gl graphics
     # graphic_depth_buffer_size=16,    # gl depth buffer minimum size
     # graphic_stencil_buffer_size=4,   # gl stencil buffer size
-    share_gl_context = True,           # share context between windows
+    share_gl_contexts = True,           # share context between windows
     # x_multithread_lock = True,       # graphics lock
 
     # alternatives to highest_priority setting, specify os priorities
