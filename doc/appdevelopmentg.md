@@ -386,18 +386,18 @@ Simulation we commonly define:
 <tr><td>`DAPPS_GITROOT_base`</td>
 <td>`git@gitlab.tudelft.nl:ae-cs-dueca-base/`</td>
 <td>`dgrbase:///`</td>
-<td>Common modules for re-use</td></td>
+<td>Common modules intended for re-use</td></td>
 
 <tr><td>`DAPPS_GITROOT_active`</td>
 <td>`git@gitlab.tudelft.nl:ae-cs-dueca-active/`</td>
 <td>`dgractive:///`</td>
-<td>Widely used projects that are held active on the facilities, for demo's
+<td>Widely used projects that are held active on our facilities, for demo's
 etc.</td></tr>
 
 <tr><td>`DAPPS_GITROOT_archive`</td>
 <td>`git@gitlab.tudelft.nl:ae-cs-dueca-archive/`</td>
 <td>`dgrarchive:///`</td>
-<td>Completed student projects.</td></tr>
+<td>Completed (student) projects</td></tr>
 
 <tr><td>`DAPPS_GITROOT_yard`</td>
 <td>`git@gitlab.tudelft.nl:ae-cs-dueca-yard/`</td>
@@ -410,6 +410,8 @@ etc.</td></tr>
 <td>`dgrstudents:///`</td>
 <td>Currently active student projects.</td></tr>
 </table>
+
+If a student needs to base his or her work on an existing project, which may be one of  the projects in active or in archive, a fork  is created for that project into the students group. Students (everyone actually), should work in a named branch. After completion of the project, the students' branch can then be pushed to the base project in the archive or active group. If the work is an extension, and keeps current capabilities of the project intact, these branches can be merged into main.  
 
 When specifying a repository to the `dueca-gproject` script, the
 shortened URL may then be used. The repository will be stored in the

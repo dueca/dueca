@@ -4,8 +4,8 @@ This documentation is specific to the Control and Simulation division
 at the Aerospace Engineering department of the Delft University of
 Techology, the place where DUECA was created. However, it might offer
 some inspiration to others who want to organise their software
-repositories for DUECA projects. It is currently (2022) a work in
-progress, since we are just transitioning from old CVS-based projects
+repositories for DUECA projects. It is currently (2024) a work in
+progress, and we have transitioned our relevant old CVS-based projects
 to git+CMake based projects.
 
 ## Facilitating module borrowing
@@ -86,7 +86,9 @@ upper case.
 <tr><td>AE-CS-DUECA-base </td><td> Generic base projects, providing
 services like motion filtering, control device IO, outside visual
 images, etc. These projects are generally maintained by Control and
-Simulation staff. </td></tr>
+Simulation staff. They are not used as projects in themselves, rather
+the modules in these projects are commonly borrowed by a multitude
+of other projects.</td></tr>
 
 <tr><td>AE-CS-DUECA-active </td><td> Working projects that are kept
 active on the simulation facilities, such as simulations now also used
@@ -95,7 +97,7 @@ for demonstration or testing. </td></tr>
 <tr><td>AE-CS-DUECA-ftis </td><td> Projects for the Flight Test
 Instrumentation and fly-by-wire system.  </td></tr>
 
-<tr><td>AE-CS-DUECA-archive </td><td> Finished student projects, kept
+<tr><td>AE-CS-DUECA-archive </td><td> Finished (student) projects, kept
 as reference for future projects, but generally not actively
 maintained on the simulation facilities. </td></tr>
 
@@ -103,15 +105,17 @@ maintained on the simulation facilities. </td></tr>
 current transition from CVS to git, that are needed to run some of the
 active, older or current projects. The yard needs cleaning up, and
 with time the DCO objects and sometimes modules borrowed from these
-projects are moved into base projects, while the projects themselves
-are moved to the archive. </td></tr>
+projects are moved into base projects, while, if applicable, the projects 
+themselves are moved to the archive. </td></tr>
 
 <tr><td>AE-CS-DUECA-students </td><td> When working on their
-graduation projects, students receive either a clone from an existing
-project, or start a new, blank project. A staff member will create the
-project, and assign access to teh student. After completion of the
+graduation projects, students receive a fork from an existing
+project in base or archive, or start a new, blank project. A staff member 
+will create the
+project, and assign access to the student. The project name will indicate 
+which student is working on the project. After completion of the
 project, the result is added to the archive or active group, or merged
-back into the donating project as a separate branch. </td></tr>
+back into the donating project as a separate branch.  </td></tr>
 
 </table>
 
