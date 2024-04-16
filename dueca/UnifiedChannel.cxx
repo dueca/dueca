@@ -1768,6 +1768,7 @@ void UnifiedChannel::addWatcher(ChannelWatcher* w)
   watcher_list.push_back(w);
 
   ScopeLock le(entries_lock);
+
   // push the current state of the channel onto the watcher
   for (vectorMT<UChannelEntryPtr>::iterator ii = entries.begin();
        ii != entries.end(); ii++) {
