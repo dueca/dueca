@@ -1,4 +1,4 @@
-INPUT = mainpage-api.doc \
+INPUT = mainpage-api.md \
         @CMAKE_CURRENT_SOURCE_DIR@/appdevelopmentg.md \
         @CMAKE_CURRENT_SOURCE_DIR@/appdevelopment.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/set-up.doc \

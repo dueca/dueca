@@ -116,7 +116,7 @@ file(GLOB DOCSOURCES
 
 # these files generally carry the version information & need updating
 configure_file(mainpage-inspec.doc.in mainpage-inspec.doc @ONLY)
-configure_file(mainpage-api.doc.in mainpage-api.doc @ONLY)
+configure_file(mainpage-api.md.in mainpage-api.md @ONLY)
 configure_file(htfoot-inspec.html.in htfoot-inspec.html @ONLY)
 configure_file(htfoot-api.html.in htfoot-api.html @ONLY)
 configure_file(header-inspec.tex.in header-inspec.tex @ONLY)
@@ -339,4 +339,3 @@ install(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/api
   DESTINATION ${DUECA_DOC_PATH}/dueca-doc-${dueca_VERSION}
   OPTIONAL)
-
