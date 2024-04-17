@@ -92,14 +92,14 @@ def _readPolicyFile(fname, openedFiles=None):
     policies = []
     if openedFiles is None:
         openedFiles = set(['fname'])
-        
-    
+
+
     try:
         if os.path.isfile(fname):
             f = open(fname, 'rb')
         else:
             f = request.urlopen(fname)
-            
+
         dprint(f"Reading policies from {fname}")
         parser = etree.XMLParser(remove_blank_text=True)
         xmltree = etree.XML(f.read(), parser=parser)
@@ -116,7 +116,14 @@ def _readPolicyFile(fname, openedFiles=None):
                     print(
                         f"Detecting file recursion or double use in {fname},"
                         f" ignoring {fname2}")
-                policies.extend(_readPolicyFile(fname2))
+
+                # try this first as full filename, and then as a relative
+                # file
+                try:
+                    policies.extend(_readPolicyFile(fname2))
+                except FileNotFoundError:
+                    pdir = '/'.join(fname2.split('/')[:-1])
+                    policies.extend(_readPolicyFile(pdir + '/' + fname2))
 
             elif len(policies) == 0:
                 # probably not a policy file
@@ -154,7 +161,7 @@ class Policies:
             try:
 
                 # policy files from environment
-                for pfile in os.environ['DUECA_POLICIES'].split(':'):
+                for pfile in os.environ['DUECA_POLICIES'].split(';'):
                     self.policies.extend(_readPolicyFile(pfile))
 
             except KeyError:
@@ -181,13 +188,13 @@ class Policies:
         self.machines = [ mods.mclass ]
         self.machines.extend(
             [ m for m in os.listdir(f'{path}/.config/class') if
-                str(m) != self.machine and 
+                str(m) != self.machine and
                 os.path.isfile(f'{path}/.config/class/{m}/modules.xml') ])
-        self.modules = dict([(m, Modules(path, mclass=m)) 
+        self.modules = dict([(m, Modules(path, mclass=m))
                              for m in self.machines])
         self.plist = PolicyList(path)
         self.commobjects = dict([(m, CommObjectsList(f'{path}/{m}'))
-                                 for m in os.listdir(path) 
+                                 for m in os.listdir(path)
                                  if os.path.isfile(f'{path}/{m}/comm-objects.lst')])
         #for m in self.modules.getOwnModules():
         ##    if os.path.isfile(f'{path}/{m}/comm-objects.lst'):
@@ -216,7 +223,7 @@ class Policies:
             p_path : absolute path to the project
             p_project : project name
             p_machine : currently selected machine class
-            p_modules : dict, keyed to machine class name, with Modules 
+            p_modules : dict, keyed to machine class name, with Modules
                         objects indicating wich modules in a machine class
             p_policy  : str, name of the policy
             p_polid   : str, policy ID
@@ -252,7 +259,7 @@ class Policies:
 
         result = []
         for p in self.policies:
-            
+
             # skip if not to apply this policy
             if (policylist is not None and p.polid not in policylist) or \
                 (not force and self.plist.status(p.polid) == 'implemented'):
