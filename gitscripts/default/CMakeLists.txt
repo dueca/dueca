@@ -11,8 +11,8 @@ set(DATA
   config.cmake machine comm-objects.txt machinemapping.xml
   policylist.xml modules.xml README-pseudomodule.md build.gitignore
   run-data-README.md ${PLATFORMS} RunProject project.gitignore
-  project-README.md platform.xsd machinemapping.xsd modules.xsd
-  policies.xsd policylist.xsd project.vscode.launch.json
+  project-README.md platform.xsd testscenario.xsd machinemapping.xsd
+  modules.xsd policies.xsd policylist.xsd project.vscode.launch.json
   project.vscode.tasks.json project.vscode.settings.json
   project.clang-format )
 

@@ -121,7 +121,7 @@ file is given as:
 
     <policies xmlns="https://dueca.tudelft.nl"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="https://dueca.tudelft.nl policies.xsd">
+              xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/policies.xsd">
       <policy name="a name" id="a unique id">
         ...
       </policy>

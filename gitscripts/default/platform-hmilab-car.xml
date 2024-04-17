@@ -1,146 +1,146 @@
 <?xml version="1.0"?>
 <configuration
-    xmlns="https://dueca.tudelft.nl"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://dueca.tudelft.nl platform.xsd">
-  <machineclasses>
-    <machineclass name="hmi-ecs" gui="gtk3"/>
-    <machineclass name="hmi-io" gui="none">
-      <config>
+	xmlns="https://dueca.tudelft.nl"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/platform.xsd">
+	<machineclasses>
+		<machineclass name="hmi-ecs" gui="gtk3" />
+		<machineclass name="hmi-io" gui="none">
+			<config>
         set(PROJECT_LIBRARIES -L$ENV{HOME}/dapps/hmi-io/build
             -lhmi-io -lethercat)
         set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/dapps/hmi-io/build
             -I$ENV{HOME}/apps/hmi-io)
       </config>
-      <modules>
-	<module>
-	  <url>dgrbase:///HMILabHardware.git</url>
-	  <name>PedalsIO</name>
-	  <version>master</version>
-	</module>
-	<module>
-          <url>dgrbase:///ECIToolbox.git</url>
-	  <name>DisturbanceGenerator</name>
-	  <version>master</version>
-	</module>
-	<module>
-          <url>dgrbase:///ECIToolbox.git</url>
-	  <name>DataReader</name>
-	  <version>master</version>
-	</module>
-	<module>
-          <url>dgrbase:///ECIToolbox.git</url>
-	  <name>Channalyzer</name>
-	  <version>master</version>
-	</module>
-	<module>
-          <url>dgrbase:///ECIToolbox.git</url>
-	  <name>DataViewer</name>
-	  <version>master</version>
-	</module>
-      </modules>
-    </machineclass>
-    <machineclass name="hmi-ig" gui="none">
-      <modules>
-        <module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>WorldView</name>
-	  <version>master</version>
-	</module>
-        <module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>OgreViewer</name>
-	  <version>master</version>
-	</module>
-        <module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>HMILabViewFiles</name>
-	  <version>master</version>
-	</module>
-        <module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>SpecificationBase</name>
-	  <version>master</version>
-	</module>
-      </modules>
-    </machineclass>
-    <machineclass name="hmi-dash" gui="glut"/>
-    <machineclass name="hmi-host" gui="none">
-      <modules>
-	<module>
-	  <url>dgrpub:///WorldListener.git</url>
-	  <name>OpenALListener</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrpub:///WorldListener.git</url>
-	  <name>WorldListener</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>SpecificationBase</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///ECIToolbox.git</url>
-	  <name>DisturbanceGenerator</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///ECIToolbox.git</url>
-	  <name>DataReader</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrpub:///ECIToolbox.git</url>
-	  <name>Channalyzer</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///ECIToolbox.git</url>
-	  <name>DataViewer</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///HMILabHardware.git</url>
-	  <name>SteeringWheelIO</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///HMILabSound.git</url>
-	  <name>NewCarSound</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///HMILabSound.git</url>
-	  <name>Sounds</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///DrivingSimulator.git</url>
-	  <name>IDSS</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///DrivingSimulator.git</url>
-	  <name>SensorSuite</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///DrivingSimulator.git</url>
-	  <name>CarDynamics</name>
-	  <version>master</version>
-	</module>
-      </modules>
-    </machineclass>
-  </machineclasses>
-  <platform name="hmilab" comm-master="dutmms4">
-    <node name="dutmms1" machineclass="hmi-ecs" node-number="0"/>
-    <node name="dutmms6" machineclass="hmi-host"/>
-    <node name="dutmms4" machineclass="hmi-io"/>
-    <node name="dutmms5" machineclass="hmi-dash"/>
-    <node name="dutmms14" machineclass="hmi-ig"/>
-    <node name="dutmms14b" machineclass="hmi-ig"/>
-  </platform>
+			<modules>
+				<module>
+					<url>dgrbase:///HMILabHardware.git</url>
+					<name>PedalsIO</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///ECIToolbox.git</url>
+					<name>DisturbanceGenerator</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///ECIToolbox.git</url>
+					<name>DataReader</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///ECIToolbox.git</url>
+					<name>Channalyzer</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///ECIToolbox.git</url>
+					<name>DataViewer</name>
+					<version>master</version>
+				</module>
+			</modules>
+		</machineclass>
+		<machineclass name="hmi-ig" gui="none">
+			<modules>
+				<module>
+					<url>dgrpub:///WorldView.git</url>
+					<name>WorldView</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrpub:///WorldView.git</url>
+					<name>OgreViewer</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrpub:///WorldView.git</url>
+					<name>HMILabViewFiles</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrpub:///WorldView.git</url>
+					<name>SpecificationBase</name>
+					<version>master</version>
+				</module>
+			</modules>
+		</machineclass>
+		<machineclass name="hmi-dash" gui="glut" />
+		<machineclass name="hmi-host" gui="none">
+			<modules>
+				<module>
+					<url>dgrpub:///WorldListener.git</url>
+					<name>OpenALListener</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrpub:///WorldListener.git</url>
+					<name>WorldListener</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrpub:///WorldView.git</url>
+					<name>SpecificationBase</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///ECIToolbox.git</url>
+					<name>DisturbanceGenerator</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///ECIToolbox.git</url>
+					<name>DataReader</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrpub:///ECIToolbox.git</url>
+					<name>Channalyzer</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///ECIToolbox.git</url>
+					<name>DataViewer</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///HMILabHardware.git</url>
+					<name>SteeringWheelIO</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///HMILabSound.git</url>
+					<name>NewCarSound</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///HMILabSound.git</url>
+					<name>Sounds</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///DrivingSimulator.git</url>
+					<name>IDSS</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///DrivingSimulator.git</url>
+					<name>SensorSuite</name>
+					<version>master</version>
+				</module>
+				<module>
+					<url>dgrbase:///DrivingSimulator.git</url>
+					<name>CarDynamics</name>
+					<version>master</version>
+				</module>
+			</modules>
+		</machineclass>
+	</machineclasses>
+	<platform name="hmilab" comm-master="dutmms4">
+		<node name="dutmms1" machineclass="hmi-ecs" node-number="0" />
+		<node name="dutmms6" machineclass="hmi-host" />
+		<node name="dutmms4" machineclass="hmi-io" />
+		<node name="dutmms5" machineclass="hmi-dash" />
+		<node name="dutmms14" machineclass="hmi-ig" />
+		<node name="dutmms14b" machineclass="hmi-ig" />
+	</platform>
 </configuration>

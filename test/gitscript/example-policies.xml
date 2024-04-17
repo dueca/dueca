@@ -3,7 +3,9 @@
     Example file with some try-out definitions for policy editing.
 
 -->
-<policies xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl policies.xsd">
+<policies xmlns="https://dueca.tudelft.nl"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/policies.xsd">
   <policy name="replace-dco" id="21-001">
     <description>
       This is a test replacement. Replacing DCO can be used to streamline
@@ -25,15 +27,15 @@
         <param name="dco">
           Some
         </param>
-	<param name="resultvar">
-	  dcolist
-	</param>
+        <param name="resultvar">
+          dcolist
+        </param>
       </condition>
       <!-- just to test, check if we have a specific borrowed module -->
       <condition type="has-module">
-	<param name="resultvar">
-	  borrowed_module
-	</param>
+        <param name="resultvar">
+          borrowed_module
+        </param>
         <param name="project">
           TestProject1
         </param>
@@ -59,56 +61,56 @@
     </description>
     <condition type="constant">
       <param name="value">
-	1
+        1
       </param>
     </condition>
   </policy>
   <policy name="edit-file" id="21-003">
     <condition type="and">
       <param name="resultvar">
-	channel_loc
+        channel_loc
       </param>
       <param name="inputvar">
-	dco_found, channel_loc_header
+        dco_found, channel_loc_header
       </param>
       <param name="result-filename">
-	channel_loc_header
+        channel_loc_header
       </param>
       <param name="result-matches">
-	channel_loc_header
+        channel_loc_header
       </param>
       <param name="match">
-	module
+        module
       </param>
       <condition type="uses-dco">
-	<param name="project">
-	  TestProject2
-	</param>
-	<param name="dco">
-	  Other
-	</param>
-	<param name="resultvar">
-	  dco_found
-	</param>
+        <param name="project">
+          TestProject2
+        </param>
+        <param name="dco">
+          Other
+        </param>
+        <param name="resultvar">
+          dco_found
+        </param>
       </condition>
       <condition type="find-pattern">
-	<param name="fileglob">
-	  */SomeModule.hxx
-	</param>
-	<param name="pattern">
-	  private: // channel access[\n]
-	</param>
-	<param name="resultvar">
-	  channel_loc_header
-	</param>
+        <param name="fileglob">
+          */SomeModule.hxx
+        </param>
+        <param name="pattern">
+          private: // channel access[\n]
+        </param>
+        <param name="resultvar">
+          channel_loc_header
+        </param>
       </condition>
     </condition>
     <action type="insert-text">
       <param name="inputvar">
-	channel_loc
+        channel_loc
       </param>
       <param name="text">
-  ChannelReadToken         r_some;
+        ChannelReadToken r_some;
       </param>
       <param name="mode">after</param>
     </action>
@@ -116,22 +118,22 @@
   <policy name="edit-file2" id="21-004">
     <condition type="find-pattern">
       <param name="fileglob">
-	*/SomeModule.cxx
+        */SomeModule.cxx
       </param>
       <param name="pattern">
-	// various parameters. Some examples:
+        // various parameters. Some examples:
       </param>
       <param name="resultvar">
-	channel_loc
+        channel_loc
       </param>
     </condition>
     <action type="insert-text">
       <param name="inputvar">
-	channel_loc
+        channel_loc
       </param>
       <param name="text">
-  r_some(getId(), NameSet(getEntity(), Some::classname, part),
-         Some::classname, 0, Channel::Events),
+        r_some(getId(), NameSet(getEntity(), Some::classname, part),
+        Some::classname, 0, Channel::Events),
       </param>
       <param name="mode">after</param>
     </action>

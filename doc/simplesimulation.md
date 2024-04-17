@@ -69,7 +69,7 @@ After the simulation has been made, we look at a few more things:
   representation of your simulation from the logs.
 
 If you want to explore a bit further, and look at how you could create
-multiplayer simulations with DUECA, you can check out the sequel 
+multiplayer simulations with DUECA, you can check out the sequel
 [More Simple Simulation](#exampel2b).
 
 ## Setting up
@@ -265,7 +265,9 @@ a look:
      If you need to check out from a specific branch, version or
      revision, add that in the optional version field.
 -->
-<machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
+<machine xmlns="https://dueca.tudelft.nl"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/modules.xsd">
   <project>
     <url>file:///home/you/gitrepos/SimpleSimulation.git</url>
   </project>
@@ -1426,7 +1428,7 @@ And the detail for a single channel
 
 After a run, dueca will have left a number of log files in your run
 folder. You can inspect these at your leasure. One useful thing to do
-with these logs is to create an overview of your simulation. There is a 
+with these logs is to create an overview of your simulation. There is a
 small script for that:
 
 ~~~{.bash}
@@ -1784,7 +1786,9 @@ ig  solo
      If you need to check out from a specific branch, version or
      revision, add that in the optional version field.
 -->
-<machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
+<machine xmlns="https://dueca.tudelft.nl"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/modules.xsd">
   <project>
     <url>file://home/you/gitrepos/SimpleSimulation.git</url>
   </project>
@@ -1815,7 +1819,9 @@ modules, so that it looks like:
      If you need to check out from a specific branch, version or
      revision, add that in the optional version field.
 -->
-<machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
+<machine xmlns="https://dueca.tudelft.nl"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/modules.xsd">
   <project>
     <url>file://home/you/gitrepos/SimpleSimulation.git</url>
   </project>
@@ -1855,7 +1861,9 @@ a trimmed copy for deployment on a simulator or other device:
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- This file defines the mapping between DUECA nodes and their
      machine class (type of checkout, libraries, modules) -->
-<nodes xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl machinemapping.xsd">
+<nodes xmlns="https://dueca.tudelft.nl"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="https://dueca.tudelft.nl/ https://dueca.tudelft.nl/schemas/machinemapping.xsd">
   <!-- default development set-up -->
   <node name="solo" machineclass="solo" sparse-checkout="false"/>
   <node name="host" machineclass="solo" sparse-checkout="true"/>

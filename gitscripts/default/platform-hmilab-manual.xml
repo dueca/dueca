@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <configuration
-    xmlns="https://dueca.tudelft.nl"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://dueca.tudelft.nl platform.xsd">
+  xmlns="https://dueca.tudelft.nl"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/platform.xsd">
   <!-- Set-up for a manual control task on the HMI laboratory.
 
        - zeronode dutmms1, class hmi-ecs
@@ -11,7 +11,7 @@
 
   -->
   <machineclasses>
-    <machineclass name="hmi-ecs" gui="gtk3"/>
+    <machineclass name="hmi-ecs" gui="gtk3" />
     <machineclass name="hmi-io" gui="none">
       <config>
         set(PROJECT_LIBRARIES -L$ENV{HOME}/apps/hmi-io/build
@@ -41,11 +41,11 @@
         </module>
       </modules>
     </machineclass>
-    <machineclass name="hmi-efis" gui="glut"/>
+    <machineclass name="hmi-efis" gui="glut" />
   </machineclasses>
   <platform name="hmilab" comm-master="dutmms4">
-    <node name="dutmms1" machineclass="hmi-ecs" node-number="0"/>
-    <node name="dutmms4" machineclass="hmi-io"/>
-    <node name="dutmms2" machineclass="hmi-efis"/>
+    <node name="dutmms1" machineclass="hmi-ecs" node-number="0" />
+    <node name="dutmms4" machineclass="hmi-io" />
+    <node name="dutmms2" machineclass="hmi-efis" />
   </platform>
 </configuration>

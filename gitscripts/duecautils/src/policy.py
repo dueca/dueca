@@ -121,8 +121,8 @@ def _readPolicyFile(fname, openedFiles=None):
                 # file
                 try:
                     policies.extend(_readPolicyFile(fname2))
-                except FileNotFoundError:
-                    pdir = '/'.join(fname2.split('/')[:-1])
+                except Exception:
+                    pdir = '/'.join(fname.split('/')[:-1])
                     policies.extend(_readPolicyFile(pdir + '/' + fname2))
 
             elif len(policies) == 0:
@@ -171,7 +171,7 @@ class Policies:
 
             except Exception as e:
 
-                print(f'Error reading policies from environment {e}')
+                print(f'Error reading policies from environment file {pfile}: {e}')
 
         if urls is not None:
 
