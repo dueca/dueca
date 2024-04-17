@@ -2,6 +2,14 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.0.8] - 2024-04-17
+
+- Fixes to the xml schemas, install xsd defs these on dueca server
+- Improvements to policy handling, also worked on documentation
+- General documentation fixes
+- Channel view for gtk3 interface now sorts
+- Improvement in the clang formatting support vscode/codium
+
 ## [4.0.7] - 2024-02-15
 
 - extensions for dueca-gproject; prepareplatform with scriptlets, 
