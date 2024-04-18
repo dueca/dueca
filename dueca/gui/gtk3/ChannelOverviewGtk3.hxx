@@ -109,6 +109,14 @@ public: // class name and trim/parameter tables
   /** Return the parameter table. */
   static const ParameterTable*       getMyParameterTable();
 
+  /** Sorting helper */
+  static gint sort_on_name(GtkTreeModel *model, GtkTreeIter *a,
+			   GtkTreeIter *b, gpointer userdata);
+
+  /** Sorting helper */
+  static gint sort_on_number(GtkTreeModel *model, GtkTreeIter *a,
+			     GtkTreeIter *b, gpointer userdata);
+  
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
   ChannelOverviewGtk3(Entity* e, const char* part, const PrioritySpec& ts);

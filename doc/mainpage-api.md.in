@@ -1,9 +1,6 @@
-// -*-c++-*-
-/**
+# DUECA/DUSIME version @VERSION@ -- Application Programmers Interface {#mainpage}
 
-\mainpage DUECA/DUSIME version @VERSION@ -- Application Programmers Interface
-
-\section main_intro Introduction
+## Introduction {#main_intro}
 
 
 DUECA (Delft University Environment for Communication and Activation)
@@ -96,7 +93,7 @@ This documentation is there to help you write applications in
 DUECA. It contains descriptions of all the classes needed to interface
 with DUECA, and some tutorial material.
 
-\section intro_dusime DUSIME
+## DUSIME {#intro_dusime}
 
 DUSIME (Delft University SIMulation Environment), is a
 simulation-specific extension implemented on top of DUECA. DUSIME
@@ -108,9 +105,9 @@ to a pre-defined model state (and maybe in some future version
 calculate trim conditions for the model). There are also facilities
 for recording the user input of a simulation, and replaying that
 input. This manual is written for people who use DUECA with DUSIME,
-and all the examples concern simulation models. 
+and all the examples concern simulation models.
 
-\section overview Overview of the documentation
+## Overview of the documentation {#overview}
 
 This documentation has been set up to help you get started in
 programming and using DUSIME modules as quickly as possible. It is
@@ -127,63 +124,61 @@ Then go on with building an executable and configuring your
 simulation.
 
 <ul>
-<li> @ref setup "How to set up your application"
+<li>  [How to set up your application](@ref setup)
 
-<li> @ref quickstart "Quick start in programming"
+<li>  [Quick start in programming](@ref quickstart)
 
-<li> @ref keyconcept "DUECA key concepts"
+<li>  [DUECA key concepts](@ref keyconcept)
 
-<li> @ref dusime "DUSIME key concepts"
+<li>  [DUSIME key concepts](@ref dusime)
 
-<li> @ref example2 "A simulation project from A to Z"
+<li>  [A simulation project from A to Z](@ref example2)
 
-<li> @ref example2b "Extending the A to Z project even further"
+<li>  [Extending the A to Z project even further](@ref example2b)
 
-<li> @ref configure "Configuration files"
+<li>  [Configuration files](@ref configure)
 
-<li> @ref confpy "Configuration files (python version)"
+<li>  [Configuration files (python version)](@ref confpy)
 
-<li> @ref confref "Reference documentation for objects in dueca.cnf"
+<li>  [Reference documentation for objects in dueca.cnf](@ref confref)
 
-<li> @ref defmod "Reference documentation for default modules in dueca.mod"
+<li>  [Reference documentation for default modules in dueca.mod](@ref defmod)
 
-<li> @ref rtw "Including code generated from Simulink"
+<li>  [Including code generated from Simulink](@ref rtw)
 
-<li> @ref coder "Including code generated from Simulink, Matlab 2015a and later"
+<li>  [Including code generated from Simulink, Matlab 2015a and later](@ref coder)
 
-<li> @ref extra "Additional utilities"
+<li>  [Additional utilities](@ref extra)
 
-<li> @ref appdevel "Application development with dueca-project (old)"
+<li> [Application development with dueca-project (old)](@ref appdevel)
 
-<li> @ref appdevelg "Application development with dueca-gproject"
+<li>  [Application development with dueca-gproject](@ref appdevelg)
 
-<li> @ref dueca2 "Difference between DUECA 0.x and DUECA 2.x versions"
+<li>  [Difference between DUECA 0.x and DUECA 2.x versions](@ref dueca2)
 
-<li> @ref hdf5 "HDF5 logging"
+<li>  [HDF5 logging](@ref hdf5)
 
-<li> @ref pyscript "Python script extensions"
+<li>  [Python script extensions](@ref pyscript)
 
-<li> @ref analysis "Run log file analysis"
+<li>  [Run log file analysis](@ref analysis)
 
-<li> @ref plotting "Plotting live data with a web browser"
+<li>  [Plotting live data with a web browser](@ref plotting)
 
-<li> @ref log "Log message generation and control"
+<li> [Log message generation and control]( @ref log)
 
-<li> @ref faq "Frequently Asked Questions (and Encountered Problems)"
+<li>  [Frequently Asked Questions (and Encountered Problems)](@ref faq)
 
-<li> @ref bugs "Open bugs"
+<li>  [Open bugs](@ref bugs)
 
-<li> @ref othersoft "Additional software you might need to install"
+<li>  [Additional software you might need to install](@ref othersoft)
 
-<li> @ref cmake "Hints on using CMake with the new project structure"
+<li>  [Hints on using CMake with the new project structure](@ref cmake)
 
-<li> @ref reposetup "Proposed git repository set-up"
+<li>  [Proposed git repository set-up](@ref reposetup)
 
-<li> @ref xmlrep "XML representation of DCO objects"
+<li>  [XML representation of DCO objects](@ref xmlrep)
 
-<li> @ref jsondco "JSON representation of DCO objects"
+<li>  [JSON representation of DCO objects](@ref jsondco)
 
-
+<li>  [Editor support for VSCode / Codium](@ref vscode)
 </ul>
-
-*/

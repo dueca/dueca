@@ -2,7 +2,7 @@
 <scenario
     xmlns="https://dueca.tudelft.nl"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://dueca.tudelft.nl testscenario.xsd">
+    xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
   <project name="FlexiStick">
     <window>DUECA/DUSIME control panel</window>
     <window>GUI stick</window>

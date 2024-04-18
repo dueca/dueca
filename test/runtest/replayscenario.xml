@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<scenario xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl testscenario.xsd">
+<scenario xmlns="https://dueca.tudelft.nl"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
   <!-- set the proper project name here. The project will be checked
        out and configured and compiled -->
   <project name="DuecaTestCommunication">
@@ -13,7 +15,7 @@
   <!-- specify the repository -->
   <repository>https://github.com/dueca/</repository>
   <!-- Each execute given here starts a DUECA process.
-       
+
        Supply platform and node, you can use multiple 'execute' tags,
        so you can start multi-node DUECA processes. -->
   <execute>

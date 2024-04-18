@@ -18,6 +18,7 @@
 #include <map>
 #include <exception>
 #include <iostream>
+#include <iomanip>
 
 /** An exception to be thrown when things cannot be made */
 class CFCannotMake: public std::exception

@@ -139,6 +139,44 @@ static void ChannelOverviewGtk3_monitortoggle(GtkCellRendererToggle *cell,
   reinterpret_cast<ChannelOverviewGtk3*>(data)->monitorToggle(cell, path_str);
 }
 
+gint ChannelOverviewGtk3::sort_on_number(GtkTreeModel *model,
+					 GtkTreeIter *a, GtkTreeIter *b,
+					 gpointer userdata)
+{
+  guint num1, num2;
+  gtk_tree_model_get(model, a, S_channelnum, &num1, -1);
+  gtk_tree_model_get(model, b, S_channelnum, &num2, -1);
+  if (num1 == num2) return 0;
+  if (num1 > num2) return 1;
+  return -1;
+}
+
+gint ChannelOverviewGtk3::sort_on_name(GtkTreeModel *model,
+				       GtkTreeIter  *a,
+				       GtkTreeIter  *b,
+				       gpointer      userdata)
+{
+  gchar *name1, *name2;
+  gint ret = 0;
+
+  gtk_tree_model_get(model, a, S_channelname, &name1, -1);
+  gtk_tree_model_get(model, b, S_channelname, &name2, -1);
+  if (name1 == NULL && name2 == NULL) {
+    ret = 0;
+  }
+  else if (name1 == NULL) {
+    ret = -1;
+  }
+  else if (name2 == NULL) {
+    ret = 1;
+  }
+  else {
+    ret = strcmp(name1, name2);
+  }
+  g_free(name1); g_free(name2);
+  return ret;
+}
+  
 bool ChannelOverviewGtk3::complete()
 {
   static GladeCallbackTable cb_table[] = {
@@ -209,6 +247,15 @@ bool ChannelOverviewGtk3::complete()
      G_TYPE_BOOLEAN   //18   view open
      );
 
+  
+  GtkTreeSortable *sortable = GTK_TREE_SORTABLE(store);
+  gtk_tree_sortable_set_sort_func(sortable, S_channelnum,
+				  sort_on_number, 0, NULL);
+  gtk_tree_sortable_set_sort_func(sortable, S_channelname,
+				  sort_on_name, 0, NULL);
+  gtk_tree_sortable_set_sort_column_id(sortable, S_channelnum,
+				       GTK_SORT_ASCENDING);
+  
   gtk_tree_view_set_model(GTK_TREE_VIEW(channeltree),
                           GTK_TREE_MODEL(store));
 
@@ -227,7 +274,7 @@ bool ChannelOverviewGtk3::complete()
       { { "text", S_channelnum}, { "visible", S_ischanentry }, { NULL,0 } } },
     { "co_channelname", "channel name", txtrenderer, true, true,
       { { "text", S_channelname }, { "visible", S_ischanentry }, { NULL,0 } } },
-    { "co_entrynum", "entry #", txtrenderer, true, false,
+    { "co_entrynum", "entry #", txtrenderer, false, false,
       { { "text", S_entrynum }, { "visible", S_iswriteentry }, { NULL,0 } } },
     { "co_writerid", "writer id", txtrenderer, false, false,
       { { "text", S_writerid }, { "visible", S_iswriteentry }, { NULL,0 } } },
@@ -257,7 +304,10 @@ bool ChannelOverviewGtk3::complete()
       gtk_tree_view_column_add_attribute
         (col, cd->renderer, at->name, at->column);
     }
-    if (cd->sort) gtk_tree_view_column_set_sort_indicator (col, TRUE);
+    if (cd->sort) {
+      gtk_tree_view_column_set_sort_indicator (col, TRUE);
+      gtk_tree_view_column_set_sort_column_id(col, cd->attribs[0].column);
+    }
     gtk_tree_view_append_column(GTK_TREE_VIEW(channeltree), col);
     if (cd->expand) gtk_tree_view_column_set_expand(col, TRUE);
   }

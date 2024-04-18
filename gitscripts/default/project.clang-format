@@ -33,6 +33,7 @@ BraceWrapping:
 Cpp11BracedListStyle: false
 
 # class with initializers
+PackConstructorInitializers: Never
 BreakConstructorInitializers: AfterColon
 ConstructorInitializerIndentWidth: 2
 SpaceBeforeCtorInitializerColon: true

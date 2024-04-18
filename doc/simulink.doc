@@ -70,6 +70,8 @@ this.
 
 For calculation of the model response, you first need to set the input
 vector values. Look in in doCalculation for the template code.
+
+\dontinclude example/SpacePlane.cxx
 \skip copy
 \until ssGetU
 
