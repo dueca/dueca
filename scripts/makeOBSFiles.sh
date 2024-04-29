@@ -119,43 +119,25 @@ function create_debfiles()
     cp $NAME-rpmlintrc ../..
 
     # first the versioned packages
-    # default deb-based, currently focused on Ubuntu 20.04
+    # default deb-based, currently focused on Ubuntu 22.04
     tar cvf ../../../debian-versioned.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
     cp dueca-versioned.dsc ../../../dueca-versioned.dsc
     cp $NAME.dsc ../../../$NAME.dsc
 
-    # hack/adapt for xUbuntu_22.04
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/' -i.bak \
-        debian-versioned/control
-    tar cvf ../../../debian-versioned-xUbuntu_22.04.tar \
-        --transform "s/debian-versioned/debian/" \
-        debian-versioned
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-xUbuntu_22\.04.tar/' dueca-versioned.dsc > \
-                ../../../dueca-versioned-xUbuntu_22.04.dsc
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-xUbuntu_22\.04.tar/' ${NAME}.dsc > \
-		../../../$NAME-xUbuntu_22.04.dsc
-
-    # same for Debian_12, only regular dsc file
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-Debian_12.tar/' ${NAME}.dsc > \
-		../../../$NAME-Debian_12.dsc
-
     # now hack/adapt for xUbuntu_18.04
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/python3-xlwt/python-xlwt/' debian-versioned/control.bak > \
             debian-versioned/control
     tar cvf ../../../debian-versioned-xUbuntu_18.04.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/debian\.tar/debian-xUbuntu_18\.04.tar/
             s/python3-xlwt/python-xlwt/' dueca-versioned.dsc > \
                 ../../../dueca-versioned-xUbuntu_18.04.dsc
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/debian\.tar/debian-xUbuntu_18\.04.tar/
             s/python3-xlwt/python-xlwt/' ${NAME}.dsc > \
                 ../../../${NAME}-xUbuntu_18.04.dsc
@@ -176,17 +158,8 @@ function create_debfiles()
         debian/changelog.in >debian/changelog
     tar cvf ../../debian.tar debian
 
-    # hack/adapt for xUbuntu_22.04
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/' -i.bak \
-        debian/control
-    tar cvf ../../debian-xUbuntu_22.04.tar \
-        debian
-
-    # same pack for Debian_12
-    tar cvf ../../debian-Debian_12.tar debian
-
     # now hack/adapt for xUbuntu_18.04
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/python3-xlwt/python-xlwt/' debian/control.bak > \
             debian/control
     tar cvf ../../debian-xUbuntu_18.04.tar \
@@ -211,12 +184,9 @@ function create_debfiles()
         cp -f dueca*tar.bz2 ${OSCDIRV}
         mv -f dueca-versioned.dsc ${OSCDIRV}
         mv -f dueca-versioned-xUbuntu_18.04.dsc ${OSCDIRV}
-        mv -f dueca-versioned-xUbuntu_22.04.dsc ${OSCDIRV}
         mv -f debian-versioned.tar ${OSCDIRV}/debian.tar
         mv -f debian-versioned-xUbuntu_18.04.tar \
            ${OSCDIRV}/debian-xUbuntu_18.04.tar
-        mv -f debian-versioned-xUbuntu_22.04.tar \
-           ${OSCDIRV}/debian-xUbuntu_22.04.tar
     fi
 
     FILES=`ls *`
