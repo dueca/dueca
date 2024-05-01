@@ -119,7 +119,7 @@ function create_debfiles()
     cp $NAME-rpmlintrc ../..
 
     # first the versioned packages
-    # default deb-based, currently focused on Ubuntu 22.04
+    # default deb-based, currently focused on Ubuntu 20.04, 22.04, 24.04
     tar cvf ../../../debian-versioned.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
@@ -127,6 +127,7 @@ function create_debfiles()
     cp $NAME.dsc ../../../$NAME.dsc
 
     # now hack/adapt for xUbuntu_18.04
+    mv debian-versioned/control debian-versioned/control.bak
     sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/python3-xlwt/python-xlwt/' debian-versioned/control.bak > \
             debian-versioned/control
@@ -159,6 +160,7 @@ function create_debfiles()
     tar cvf ../../debian.tar debian
 
     # now hack/adapt for xUbuntu_18.04
+    mv debian/control debian/control.bak
     sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/python3-xlwt/python-xlwt/' debian/control.bak > \
             debian/control
@@ -172,12 +174,6 @@ function create_debfiles()
 
     # create source file here
     tar cfj dueca-${VERSION}.tar.bz2 dueca-${VERSION}
-
-    # these are like Ubuntu 22.04
-    for sfx in Debian_11 Raspbian_11; do
-        cp $NAME-xUbuntu_22.04.dsc $NAME-${sfx}.dsc
-        cp debian-versioned-xUbuntu_22.04.tar debian-${sfx}.tar
-    done
 
     rm -rf dueca-${VERSION}
     if [ -z "$KEEPTMP" -a -d "${OSCDIRV}" ]; then
