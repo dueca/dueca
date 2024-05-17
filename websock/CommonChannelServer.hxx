@@ -40,6 +40,8 @@ WEBSOCK_NS_START;
 using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 using WssServer = SimpleWeb::SocketServer<SimpleWeb::WSS>;
 
+class WebSocketsServerBase;
+template<typename Encoder>
 class WebSocketsServer;
 
 /** Indicate that a preset channel mis-matches.
@@ -286,7 +288,7 @@ struct ChannelMonitor: public ChannelWatcher, public ConnectionList {
 struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
 {
   INCLASS_REFCOUNT(WriteEntry);
-  
+
   /** State for this entry */
   enum WEState {
     UnConnected,     /**< Not connected to a socket */
@@ -368,7 +370,8 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
 
       @param json         JSON encoded data
   */
-  void writeFromJSON(const std::string& json);
+  template<typename Encoder>
+  void writeFromCoded(const Encoder& coded);
 };
 
 
@@ -470,14 +473,15 @@ struct WriteReadSetup {
     - The first reply on the url will be with information on the write entry
       and the read entry.
 */
+template<typename Encoder>
 struct WriteReadEntry:
-  INHERIT_REFCOUNT_COMMA(WriteReadEntry)
+  INHERIT_REFCOUNT_COMMA(WriteReadEntry<Encoder>)
   public ChannelWatcher
 {
-  INCLASS_REFCOUNT(WriteReadEntry);
+  INCLASS_REFCOUNT(WriteReadEntry<Encoder>);
 
   /** Autostart callback function */
-  Callback<WriteReadEntry>  autostart_cb;
+  Callback<WriteReadEntry<Encoder>>  autostart_cb;
 
   /** State for this entry */
   enum WRState {
@@ -529,7 +533,7 @@ struct WriteReadEntry:
   std::string             label;
 
   /** master id */
-  WebSocketsServer        *master;
+  WebSocketsServer<Encoder>  *master;
 
   /** Activity monitor */
   bool                    active;
@@ -556,7 +560,7 @@ struct WriteReadEntry:
   inline bool isAvailable() { return state == UnConnected; }
 
   /** Callback object */
-  Callback<WriteReadEntry>     cb;
+  Callback<WriteReadEntry<Encoder>>     cb;
 
   /** Activity for getting more data */
   ActivityCallback             do_calc;
@@ -570,7 +574,7 @@ struct WriteReadEntry:
       @param initstate      Starting state of the object
   */
   WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
-                 WebSocketsServer *master,
+                 WebSocketsServer<Encoder> *master,
                  const PrioritySpec& ps, bool extended,
                  WriteReadEntry::WRState initstate = WriteReadEntry::Connected);
 

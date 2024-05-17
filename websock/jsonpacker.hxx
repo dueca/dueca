@@ -12,36 +12,60 @@
 
 #pragma once
 
+#include <rapidjson/encodings.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/document.h>
+
 struct jsonpacker {
 
-  rapidjson::Stringbuffer doc;
+  rapidjson::StringBuffer doc;
   rapidjson::Writer<rapidjson::StringBuffer> writer;
+  bool extended;
 
-  jsonpacker() : doc(), writer(doc) { }
+  jsonpacker(bool extended) : doc(), writer(doc), extended(extended) { }
 
-  inline startobject(size_t n)
+  inline void startobject(size_t n)
   { writer.StartObject(); }
 
-  inline endobject();
+  inline void endobject();
   { writer.EndObject(); }
 
-  inline key(const char* k)
+  inline void key(const char* k)
   { writer.Key(k); }
 
-  inline startarray(size_t n)
+  inline void startarray(size_t n)
   { writer.StartArray(); }
 
-  inline endarray()
+  inline void endarray()
   { writer.EndArray(); }
 
-  inline string(const char* s)
+  inline void string(const char* s)
   { writer.String(s); }
 
-  inline integer(int i)
+  inline void integer(int i)
   { writer.Int(i); }
 
-  inline boolean(bool b)
+  inline void uinteger(unsigned i)
+  { writer.Uint(i); }
+
+  inline void boolean(bool b)
   { writer.Bool(true); }
+
+  inline void _double(double d)
+  { writer.Double(d); }
+
+  inline void dco(DCOReader& r)
+  {
+    if (extended) {
+      DCOtoJSONcompact(writer, r);
+    }
+    else {
+      DCOtoJSONstrict(writer, r);
+    }
+  }
+
+  inline void endline()
+  { rapidjson::PutUnsafe(doc, '\n'); }
 
   const char* getstring() const { return doc.GetString(); }
 };

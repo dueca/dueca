@@ -11,22 +11,23 @@
         license         : EUPL-1.2
 */
 
+#include "CommObjectMemberArity.hxx"
 #define CommonChannelServer_cxx
 #include "CommonChannelServer.hxx"
 #include <boost/lexical_cast.hpp>
 #include <debug.h>
 #define NO_TYPE_CREATION
 #define DO_INSTANTIATE
-#include <dueca.h>
-#include <dueca/DCOtoJSON.hxx>
-#include <dueca/JSONtoDCO.hxx>
-#include <dueca/CommObjectWriter.hxx>
-#include <dueca/DataClassRegistry.hxx>
-#include <rapidjson/document.h>
-#include <rapidjson/reader.h>
-#include <rapidjson/error/en.h>
-#include <dueca/CommObjectReaderWriter.hxx>
 #include "WebSocketsServer.hxx"
+#include <dueca.h>
+#include <dueca/CommObjectReaderWriter.hxx>
+#include <dueca/CommObjectWriter.hxx>
+#include <dueca/DCOtoJSON.hxx>
+#include <dueca/DataClassRegistry.hxx>
+#include <dueca/JSONtoDCO.hxx>
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
+#include <rapidjson/reader.h>
 
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
@@ -34,54 +35,51 @@
 DUECA_NS_START;
 WEBSOCK_NS_START;
 
-
 namespace json = rapidjson;
-typedef json::GenericDocument<json::UTF8<> > JDocument;
+typedef json::GenericDocument<json::UTF8<>> JDocument;
 
-const char* presetmismatch::what() const throw()
-{ return "websocket preset does not match client data"; }
+const char *presetmismatch::what() const throw()
+{
+  return "websocket preset does not match client data";
+}
 
-const char* connectionparseerror::what() const throw()
-{ return "JSON parse error at connection defining message"; }
+const char *connectionparseerror::what() const throw()
+{
+  return "JSON parse error at connection defining message";
+}
 
-const char* dataparseerror::what() const throw()
-{ return "JSON parse error at connection defining message"; }
+const char *dataparseerror::what() const throw()
+{
+  return "JSON parse error at connection defining message";
+}
 
-SingleEntryRead::SingleEntryRead
-(const std::string& channelname, const std::string& datatype,
- entryid_type eid, const GlobalId& master) :
-  r_token(master, NameSet(channelname), datatype, eid,
-          Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
-          Channel::JumpToMatchTime),
+SingleEntryRead::SingleEntryRead(const std::string &channelname,
+                                 const std::string &datatype, entryid_type eid,
+                                 const GlobalId &master) :
+  r_token(master, NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
+          Channel::OneOrMoreEntries, Channel::JumpToMatchTime),
   datatype(datatype)
 {
   r_token.isValid();
 }
 
-SingleEntryRead::~SingleEntryRead()
-{ }
+SingleEntryRead::~SingleEntryRead() {}
 
-SingleEntryFollow::SingleEntryFollow(const std::string& channelname,
-                                     const std::string& datatype,
-                                     entryid_type eid,
-                                     const GlobalId& master,
-                                     const PrioritySpec& ps,
-                                     const DataTimeSpec& ts,
-                                     bool extended,
+SingleEntryFollow::SingleEntryFollow(const std::string &channelname,
+                                     const std::string &datatype,
+                                     entryid_type eid, const GlobalId &master,
+                                     const PrioritySpec &ps,
+                                     const DataTimeSpec &ts, bool extended,
                                      bool autostart) :
   ConnectionList(channelname + std::string(" (entry ") +
                  boost::lexical_cast<std::string>(eid) + std::string(")")),
   autostart_cb(this, &SingleEntryFollow::tokenValid),
-  r_token(master, NameSet(channelname), datatype, eid,
-          Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
-          Channel::ReadAllData, 0.0, autostart ? &autostart_cb : NULL),
+  r_token(master, NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
+          Channel::OneOrMoreEntries, Channel::ReadAllData, 0.0,
+          autostart ? &autostart_cb : NULL),
   cb(this, &SingleEntryFollow::passData),
-  do_calc(master, "read for server", &cb, ps),
-  datatype(datatype),
-  inactive(true),
-  host_id(master),
-  extended(extended),
-  firstwrite(true)
+  do_calc(master, "read for server", &cb, ps), datatype(datatype),
+  inactive(true), host_id(master), extended(extended), firstwrite(true)
 {
   if (ts.getValiditySpan() != 0) {
     regulator.reset(new TriggerRegulatorGreedy(r_token, ts));
@@ -93,15 +91,9 @@ SingleEntryFollow::SingleEntryFollow(const std::string& channelname,
   }
 }
 
-SingleEntryFollow::~SingleEntryFollow()
-{
-  do_calc.clearTriggers();
-}
+SingleEntryFollow::~SingleEntryFollow() { do_calc.clearTriggers(); }
 
-void SingleEntryFollow::disconnect()
-{
-  do_calc.clearTriggers();
-}
+void SingleEntryFollow::disconnect() { do_calc.clearTriggers(); }
 
 void SingleEntryFollow::tokenValid(const TimeSpec &ts)
 {
@@ -113,31 +105,29 @@ void SingleEntryFollow::tokenValid(const TimeSpec &ts)
   }
 }
 
-ConnectionList::ConnectionList(const std::string& ident) :
-  flock(ident.c_str(), false),
-  identification(ident)
-{ }
+ConnectionList::ConnectionList(const std::string &ident) :
+  flock(ident.c_str(), false), identification(ident)
+{}
 
-ConnectionList::~ConnectionList()
-{ }
+ConnectionList::~ConnectionList() {}
 
-void ConnectionList::addConnection
-(std::shared_ptr<WsServer::Connection>& c) {
+void ConnectionList::addConnection(std::shared_ptr<WsServer::Connection> &c)
+{
   // ScopeLock l(flock);
   connections.push_back(c);
 }
 
-void ConnectionList::addConnection
-(std::shared_ptr<WssServer::Connection>& c) {
+void ConnectionList::addConnection(std::shared_ptr<WssServer::Connection> &c)
+{
   // ScopeLock l(flock);
   sconnections.push_back(c);
 }
 
-bool ConnectionList::removeConnection
-(const std::shared_ptr<WsServer::Connection>& c) {
+bool ConnectionList::removeConnection(
+  const std::shared_ptr<WsServer::Connection> &c)
+{
   // ScopeLock l(flock);
-  auto toremove = std::find
-    (connections.begin(), connections.end(), c);
+  auto toremove = std::find(connections.begin(), connections.end(), c);
   if (toremove != connections.end()) {
     connections.erase(toremove);
     return true;
@@ -145,11 +135,11 @@ bool ConnectionList::removeConnection
   return false;
 }
 
-bool ConnectionList::removeConnection
-(const std::shared_ptr<WssServer::Connection>& c) {
+bool ConnectionList::removeConnection(
+  const std::shared_ptr<WssServer::Connection> &c)
+{
   // ScopeLock l(flock);
-  auto toremove = std::find
-    (sconnections.begin(), sconnections.end(), c);
+  auto toremove = std::find(sconnections.begin(), sconnections.end(), c);
   if (toremove != sconnections.end()) {
     sconnections.erase(toremove);
     return true;
@@ -157,8 +147,7 @@ bool ConnectionList::removeConnection
   return false;
 }
 
-void ConnectionList::sendAll(const std::string& data,
-                             const char* desc)
+void ConnectionList::sendAll(const std::string &data, const char *desc)
 {
   // send to all existing connections
   for (auto &cn : connections) {
@@ -169,43 +158,41 @@ void ConnectionList::sendAll(const std::string& data,
   }
 }
 
-void ConnectionList::sendOne
-(const std::string& data, const char* desc,
- const std::shared_ptr<WssServer::Connection>& cn) {
-  cn->send
-    (data,
-     [cn, this, desc](const SimpleWeb::error_code &ec) {
-      if (ec) {
+void ConnectionList::sendOne(const std::string &data, const char *desc,
+                             const std::shared_ptr<WssServer::Connection> &cn)
+{
+  cn->send(data, [cn, this, desc](const SimpleWeb::error_code &ec) {
+    if (ec) {
         /* DUECA websockets.
 
-           Error in a send action, will remove the connection from the
-           list of clients. */
-        W_XTR("Error sending " << desc << ", " << ec.message() <<
-              " removing connenction form " << this->identification);
-        this->removeConnection(cn);
-      }
-    });
+         Error in a send action, will remove the connection from the
+         list of clients. */
+      W_XTR("Error sending " << desc << ", " << ec.message()
+                             << " removing connenction form "
+                             << this->identification);
+      this->removeConnection(cn);
+    }
+  });
 }
 
-void ConnectionList::sendOne
-(const std::string& data, const char* desc,
- const std::shared_ptr<WsServer::Connection>& cn) {
-  cn->send
-    (data,
-     [cn, this, desc](const SimpleWeb::error_code &ec) {
-      if (ec) {
+void ConnectionList::sendOne(const std::string &data, const char *desc,
+                             const std::shared_ptr<WsServer::Connection> &cn)
+{
+  cn->send(data, [cn, this, desc](const SimpleWeb::error_code &ec) {
+    if (ec) {
         /* DUECA websockets.
 
-           Error in a send action, will remove the connection from the
-           list of clients. */
-        W_XTR("Error sending " << desc << ", " << ec.message() <<
-              " removing connenction form " << this->identification);
-        this->removeConnection(cn);
-      }
-    });
+         Error in a send action, will remove the connection from the
+         list of clients. */
+      W_XTR("Error sending " << desc << ", " << ec.message()
+                             << " removing connenction form "
+                             << this->identification);
+      this->removeConnection(cn);
+    }
+  });
 }
 
-void SingleEntryFollow::passData(const TimeSpec& ts)
+template <typename Encoder> void SingleEntryFollow::passData(const TimeSpec &ts)
 {
   if (firstwrite || regulator) {
     r_token.flushOlderSets(ts.getValidityStart());
@@ -221,19 +208,17 @@ void SingleEntryFollow::passData(const TimeSpec& ts)
 
   // ScopeLock l(flock);
   DCOReader r(datatype.c_str(), r_token, ts);
-  rapidjson::StringBuffer doc;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
+  Encoder writer;
   DataTimeSpec dtd = r.timeSpec();
-  writer.StartObject();
+  writer.StartObject(2);
   writer.Key("tick");
   writer.Uint(dtd.getValidityStart());
   writer.Key("data");
-  if (extended) DCOtoJSONcompact(writer, r);
-  else DCOtoJSONstrict(writer, r);
+  writer.dco(r);
   writer.EndObject();
 
-  DEB3("SingleEntryFollow::passData " << doc.GetString());
-  sendAll(doc.GetString(), "channel data");
+  DEB3("SingleEntryFollow::passData " << writer.GetString());
+  sendAll(writer.GetString(), "channel data");
 }
 
 bool SingleEntryFollow::checkToken()
@@ -248,7 +233,7 @@ bool SingleEntryFollow::checkToken()
   return res;
 }
 
-bool SingleEntryFollow::start(const TimeSpec& ts)
+bool SingleEntryFollow::start(const TimeSpec &ts)
 {
   if (inactive) {
     if (r_token.isValid()) {
@@ -261,22 +246,28 @@ bool SingleEntryFollow::start(const TimeSpec& ts)
   return true;
 }
 
-bool SingleEntryFollow::stop(const TimeSpec& ts)
+bool SingleEntryFollow::stop(const TimeSpec &ts)
 {
-  if (inactive) return false;
+  if (inactive)
+    return false;
   do_calc.switchOff(ts);
   inactive = true;
   firstwrite = true;
   return true;
 }
 
-void writeTypeInfo(json::Writer<json::StringBuffer>& writer,
-                   const std::string& dataclass)
+template <typename Encoder>
+void writeTypeInfo(Encoder &writer, const std::string &dataclass)
 {
   CommObjectReaderWriter rw(dataclass.c_str());
-  writer.StartArray();
-  for (size_t ii = 0; ii < rw.getNumMembers(); ii++ ) {
-    writer.StartObject();
+  writer.StartArray(rw.getNumMembers());
+  for (size_t ii = 0; ii < rw.getNumMembers(); ii++) {
+    unsigned nelts =
+      (DataClassRegistry::single().isRegistered(rw.getMemberClass(ii)) ? 3 : 2) +
+      ((rw.getMemberArity(ii) == FixedIterable ||
+        rw.getMemberArity(ii) == Iterable ) ? 1: 0) +
+        (rw.getMemberArity(ii) == Mapped ? 2 : 0);
+    writer.StartObject(nelts);
     writer.Key("name");
     writer.String(rw.getMemberName(ii));
     writer.Key("type");
@@ -285,7 +276,7 @@ void writeTypeInfo(json::Writer<json::StringBuffer>& writer,
       writer.Key("typeinfo");
       writeTypeInfo(writer, rw.getMemberClass(ii));
     }
-    switch(rw.getMemberArity(ii)) {
+    switch (rw.getMemberArity(ii)) {
     case Single:
       break;
     case FixedIterable:
@@ -306,19 +297,16 @@ void writeTypeInfo(json::Writer<json::StringBuffer>& writer,
   writer.EndArray();
 }
 
-ChannelMonitor::ChannelMonitor
-(const std::string& channelname, const DataTimeSpec &ts) :
-  ChannelWatcher(channelname),
-  ConnectionList(channelname),
-  channelname(channelname),
-  time_spec(ts)
-{ }
+ChannelMonitor::ChannelMonitor(const std::string &channelname,
+                               const DataTimeSpec &ts) :
+  ChannelWatcher(channelname), ConnectionList(channelname),
+  channelname(channelname), time_spec(ts)
+{}
 
-ChannelMonitor::~ChannelMonitor()
-{ }
+ChannelMonitor::~ChannelMonitor() {}
 
-static void writeAdded(rapidjson::Writer<rapidjson::StringBuffer>& writer,
-                       unsigned entryid, const std::string& data_class)
+static void writeAdded(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                       unsigned entryid, const std::string &data_class)
 {
   writer.StartObject();
   writer.Key("dataclass");
@@ -335,7 +323,7 @@ void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
   // ScopeLock l(flock);
 
   if (info.entry_id >= entrydataclass.size()) {
-    entrydataclass.resize(info.entry_id+1);
+    entrydataclass.resize(info.entry_id + 1);
   }
   assert(entrydataclass[info.entry_id].size() == 0);
   entrydataclass[info.entry_id] = info.data_class;
@@ -363,7 +351,7 @@ void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
   sendAll(msg.str(), "entry removal");
 }
 
-void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection>& c)
+void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection> &c)
 {
   ConnectionList::addConnection(c);
   // ScopeLock l(flock);
@@ -377,7 +365,7 @@ void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection>& c)
   }
 }
 
-void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection>& c)
+void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection> &c)
 {
   ConnectionList::addConnection(c);
   // ScopeLock l(flock);
@@ -391,7 +379,7 @@ void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection>& c)
   }
 }
 
-const std::string& ChannelMonitor::findEntry(unsigned entryid)
+const std::string &ChannelMonitor::findEntry(unsigned entryid)
 {
   // ScopeLock l(flock);
   static std::string empty;
@@ -401,11 +389,10 @@ const std::string& ChannelMonitor::findEntry(unsigned entryid)
   return entrydataclass[entryid];
 }
 
-WriteableSetup::WriteableSetup(const std::string& channelname,
-                               const std::string& dataclass) :
-  channelname(channelname),
-  dataclass(dataclass)
-{ }
+WriteableSetup::WriteableSetup(const std::string &channelname,
+                               const std::string &dataclass) :
+  channelname(channelname), dataclass(dataclass)
+{}
 
 CODE_REFCOUNT(WriteEntry);
 #if 0
@@ -415,30 +402,21 @@ void intrusive_ptr_release(const WriteEntry*)
 { if (--(t->intrusive_refcount) == 0) { delete t; } }
 #endif
 
-WriteEntry::WriteEntry(const std::string& channelname,
-                       const std::string& datatype,
-                       bool bulk, bool diffpack,
+WriteEntry::WriteEntry(const std::string &channelname,
+                       const std::string &datatype, bool bulk, bool diffpack,
                        WriteEntry::WEState initstate) :
-  INIT_REFCOUNT_COMMA
-  state(initstate),
-  w_token(),
-  identification("not initialized"),
-  channelname(channelname),
-  datatype(datatype),
-  ctiming(false),
-  active(true),
-  stream(false),
-  bulk(bulk),
+  INIT_REFCOUNT_COMMA state(initstate), w_token(),
+  identification("not initialized"), channelname(channelname),
+  datatype(datatype), ctiming(false), active(true), stream(false), bulk(bulk),
   diffpack(diffpack)
-{ }
+{}
 
 WriteEntry::~WriteEntry()
 {
   //
 }
 
-void WriteEntry::complete(const std::string& message1,
-                          const GlobalId& master)
+void WriteEntry::complete(const std::string &message1, const GlobalId &master)
 {
   JDocument doc;
   json::ParseResult res = doc.Parse(message1.c_str());
@@ -448,8 +426,8 @@ void WriteEntry::complete(const std::string& message1,
        Error in parsing the initial JSON data for a "write" URL. Check
        your channel definition and the external client program.
     */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code()) <<
-          " at " << res.Offset());
+    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
+                              << " at " << res.Offset());
     throw connectionparseerror();
   }
 
@@ -475,9 +453,9 @@ void WriteEntry::complete(const std::string& message1,
       if (!im->value.IsBool()) {
       /* DUECA websockets.
 
-         Error the initial JSON data for a "write" URL. A "ctiming"
-         member cannot be interpreted as a boolean.
-      */
+           Error the initial JSON data for a "write" URL. A "ctiming"
+           member cannot be interpreted as a boolean.
+        */
         W_XTR("JSON parse error \"ctiming\" needs to be bool");
         throw connectionparseerror();
       }
@@ -545,8 +523,8 @@ void WriteEntry::complete(const std::string& message1,
        data class in \"dataclass\" does not match the configured
        name. Check your configuration or the external client program.
     */
-    W_XTR("JSON parse error mis-matched dataclass " << dc->value.GetString() <<
-          " needed " << datatype);
+    W_XTR("JSON parse error mis-matched dataclass " << dc->value.GetString()
+                                                    << " needed " << datatype);
     throw connectionparseerror();
   }
   if (datatype.size() == 0) {
@@ -554,14 +532,12 @@ void WriteEntry::complete(const std::string& message1,
   }
 
   identification = channelname + std::string(" type:") + datatype +
-    std::string(" label:\"") + label + std::string("\"");
-  w_token.reset
-    (new ChannelWriteToken(master, NameSet(channelname), datatype, label,
-                           stream ? Channel::Continuous : Channel::Events,
-                           Channel::OneOrMoreEntries,
-                           diffpack ? Channel::MixedPacking :
-                           Channel::OnlyFullPacking,
-                           bulk ? Channel::Bulk : Channel:: Regular));
+                   std::string(" label:\"") + label + std::string("\"");
+  w_token.reset(new ChannelWriteToken(
+    master, NameSet(channelname), datatype, label,
+    stream ? Channel::Continuous : Channel::Events, Channel::OneOrMoreEntries,
+    diffpack ? Channel::MixedPacking : Channel::OnlyFullPacking,
+    bulk ? Channel::Bulk : Channel::Regular));
   checkToken();
   state = Linked;
 }
@@ -579,7 +555,7 @@ bool WriteEntry::checkToken()
   return res;
 }
 
-void WriteEntry::writeFromJSON(const std::string& json)
+void WriteEntry::writeFromJSON(const std::string &json)
 {
   JDocument doc;
   json::ParseResult res = doc.Parse(json.c_str());
@@ -588,8 +564,8 @@ void WriteEntry::writeFromJSON(const std::string& json)
 
        Error in parsing the recurring JSON data for a "write" URL.
     */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code()) <<
-          " at " << res.Offset());
+    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
+                              << " at " << res.Offset());
     throw dataparseerror();
   }
 
@@ -640,37 +616,34 @@ void WriteEntry::writeFromJSON(const std::string& json)
   try {
     JSONtoDCO(doc["data"], wr);
   }
-  catch (const dueca::ConversionNotDefined& e) {
+  catch (const dueca::ConversionNotDefined &e) {
     /* DUECA websockets.
 
        Failed to decode an object of the given dataclass from the JSON
        string received. Check the correspondence between your
        (external) program and the DUECA object definitions. */
-    W_XTR("Websockets, cannot extract '" << w_token->getDataClassName() <<
-          "' from 'data' in '" << json << "'")
+    W_XTR("Websockets, cannot extract '" << w_token->getDataClassName()
+                                         << "' from 'data' in '" << json << "'")
     wr.failed();
   }
 }
 
-PresetWriteEntry::PresetWriteEntry(const std::string& channelname,
-                                   const std::string& datatype,
-                                   const std::string& label,
-                                   const GlobalId& master,
-                                   bool ctiming, bool stream,
-                                   bool bulk, bool diffpack) :
+PresetWriteEntry::PresetWriteEntry(const std::string &channelname,
+                                   const std::string &datatype,
+                                   const std::string &label,
+                                   const GlobalId &master, bool ctiming,
+                                   bool stream, bool bulk, bool diffpack) :
   WriteEntry(channelname, datatype, bulk, diffpack, UnConnected)
 {
   this->ctiming = ctiming;
   this->stream = stream;
   this->identification = channelname + std::string(" type:") + datatype +
-    std::string(" label:\"") + label + std::string("\"");
-  w_token.reset
-    (new ChannelWriteToken(master, NameSet(channelname), datatype, label,
-                           stream ? Channel::Continuous : Channel::Events,
-                           Channel::OneOrMoreEntries,
-                           diffpack ? Channel::MixedPacking :
-                           Channel::OnlyFullPacking,
-                           bulk ? Channel::Bulk : Channel:: Regular));
+                         std::string(" label:\"") + label + std::string("\"");
+  w_token.reset(new ChannelWriteToken(
+    master, NameSet(channelname), datatype, label,
+    stream ? Channel::Continuous : Channel::Events, Channel::OneOrMoreEntries,
+    diffpack ? Channel::MixedPacking : Channel::OnlyFullPacking,
+    bulk ? Channel::Bulk : Channel::Regular));
   checkToken();
 }
 
@@ -679,8 +652,8 @@ PresetWriteEntry::~PresetWriteEntry()
   //
 }
 
-void PresetWriteEntry::complete(const std::string& message1,
-                                const GlobalId& master)
+void PresetWriteEntry::complete(const std::string &message1,
+                                const GlobalId &master)
 {
   JDocument doc;
   json::ParseResult res = doc.Parse(message1.c_str());
@@ -691,8 +664,8 @@ void PresetWriteEntry::complete(const std::string& message1,
        preset. Check your channel definition and the external client
        program.
     */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code()) <<
-          " at " << res.Offset());
+    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
+                              << " at " << res.Offset());
     throw connectionparseerror();
   }
 
@@ -733,7 +706,7 @@ void PresetWriteEntry::complete(const std::string& message1,
   }
 
   if (_ctiming != this->ctiming || _stream != this->stream) {
-    throw(presetmismatch ());
+    throw(presetmismatch());
   }
   state = Linked;
   checkToken();
@@ -751,7 +724,7 @@ void PresetWriteEntry::doConnect(sconnection_t sconnection)
   WriteEntry::doConnect();
 }
 
-void* PresetWriteEntry::disConnect()
+void *PresetWriteEntry::disConnect()
 {
   const std::string reason("Resource re-allocation to new client");
   void *res = NULL;
@@ -777,90 +750,80 @@ void* PresetWriteEntry::disConnect()
   return res;
 }
 
+NameEntryId::NameEntryId(const std::string &name, unsigned id) :
+  name(name), id(id)
+{}
 
-NameEntryId::NameEntryId(const std::string& name, unsigned id) :
-name(name), id(id)
-{ }
-
-bool NameEntryId::operator < (const NameEntryId& other) const
+bool NameEntryId::operator<(const NameEntryId &other) const
 {
-  if (this->name < other.name) return true;
-  if (this->name > other.name) return false;
-  if (this->id < other.id) return true;
+  if (this->name < other.name)
+    return true;
+  if (this->name > other.name)
+    return false;
+  if (this->id < other.id)
+    return true;
   return false;
 }
 
-NameEntryTokenId::NameEntryTokenId
-(const std::string& name, unsigned id, const std::string token) :
+NameEntryTokenId::NameEntryTokenId(const std::string &name, unsigned id,
+                                   const std::string token) :
   name(name), id(id), token(token)
-{ }
+{}
 
-bool NameEntryTokenId::operator <
-(const NameEntryTokenId& other) const
+bool NameEntryTokenId::operator<(const NameEntryTokenId &other) const
 {
-  if (this->name < other.name) return true;
-  if (this->name > other.name) return false;
-  if (this->id < other.id) return true;
-  if (this->id > other.id) return true;
-  if (this->token < other.token) return true;
+  if (this->name < other.name)
+    return true;
+  if (this->name > other.name)
+    return false;
+  if (this->id < other.id)
+    return true;
+  if (this->id > other.id)
+    return true;
+  if (this->token < other.token)
+    return true;
   return false;
 }
 
-NameTokenId::NameTokenId
-(const std::string& name, const std::string token) :
+NameTokenId::NameTokenId(const std::string &name, const std::string token) :
   name(name), token(token)
-{ }
+{}
 
-bool NameTokenId::operator <
-(const NameTokenId& other) const
+bool NameTokenId::operator<(const NameTokenId &other) const
 {
-  if (this->name < other.name) return true;
-  if (this->name > other.name) return false;
-  if (this->token < other.token) return true;
+  if (this->name < other.name)
+    return true;
+  if (this->name > other.name)
+    return false;
+  if (this->token < other.token)
+    return true;
   return false;
 }
 
-WriteReadSetup::WriteReadSetup(const std::string& wchannelname,
-                               const std::string& rchannelname) :
-  cnt_clients(0U),
-  w_channelname(wchannelname),
-  r_channelname(rchannelname),
-  bulk(false),
-  diffpack(false)
+WriteReadSetup::WriteReadSetup(const std::string &wchannelname,
+                               const std::string &rchannelname) :
+  cnt_clients(0U), w_channelname(wchannelname), r_channelname(rchannelname),
+  bulk(false), diffpack(false)
 {
   //
 }
 
-unsigned WriteReadSetup::getNextId()
-{
-  return cnt_clients++;
-}
+unsigned WriteReadSetup::getNextId() { return cnt_clients++; }
 
 CODE_REFCOUNT(WriteReadEntry);
 
 WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
-                               WebSocketsServer *master,
-                               const PrioritySpec& ps,
+                               WebSocketsServer *master, const PrioritySpec &ps,
                                bool extended,
                                WriteReadEntry::WRState initstate) :
   ChannelWatcher(setup->r_channelname),
-  INIT_REFCOUNT_COMMA
-  autostart_cb(this, &WriteReadEntry::tokenValid),
-  state(initstate),
-  w_token(),
-  r_token(),
-  identification("not initialized"),
-  w_channelname(setup->w_channelname),
-  r_channelname(setup->r_channelname),
-  w_dataclass(),
-  r_dataclass(),
-  label(boost::lexical_cast<std::string>(setup->getNextId())),
-  master(master),
-  active(true),
-  bulk(setup->bulk),
-  diffpack(setup->diffpack),
-  extended(extended),
-  cb(this, &WriteReadEntry::passData),
+  INIT_REFCOUNT_COMMA autostart_cb(this, &WriteReadEntry::tokenValid),
+  state(initstate), w_token(), r_token(), identification("not initialized"),
+  w_channelname(setup->w_channelname), r_channelname(setup->r_channelname),
+  w_dataclass(), r_dataclass(),
+  label(boost::lexical_cast<std::string>(setup->getNextId())), master(master),
+  active(true), bulk(setup->bulk), diffpack(setup->diffpack),
+  extended(extended), cb(this, &WriteReadEntry::passData),
   do_calc(master->getId(), "read for server", &cb, ps)
 {
   //
@@ -881,7 +844,7 @@ void WriteReadEntry::setConnection(sconnection_t connection)
   this->sconnection = connection;
 }
 
-void WriteReadEntry::complete(const std::string& message1)
+void WriteReadEntry::complete(const std::string &message1)
 {
   JDocument doc;
   json::ParseResult res = doc.Parse(message1.c_str());
@@ -892,8 +855,8 @@ void WriteReadEntry::complete(const std::string& message1)
        URL. Check your channel definition and the external client
        program.
     */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code()) <<
-          " at " << res.Offset());
+    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
+                              << " at " << res.Offset());
     throw connectionparseerror();
   }
 
@@ -910,15 +873,14 @@ void WriteReadEntry::complete(const std::string& message1)
   w_dataclass = dc->value.GetString();
 
   identification = w_channelname + std::string(" type:") + w_dataclass +
-    std::string(" label:\"") + label + std::string("\" <-> ") + r_channelname;
+                   std::string(" label:\"") + label + std::string("\" <-> ") +
+                   r_channelname;
 
-  w_token.reset
-    (new ChannelWriteToken(master->getId(), NameSet(w_channelname),
-                           w_dataclass, label,
-                           Channel::Events, Channel::OneOrMoreEntries,
-                           diffpack ? Channel::MixedPacking :
-                           Channel::OnlyFullPacking,
-                           bulk ? Channel::Bulk : Channel:: Regular));
+  w_token.reset(new ChannelWriteToken(
+    master->getId(), NameSet(w_channelname), w_dataclass, label,
+    Channel::Events, Channel::OneOrMoreEntries,
+    diffpack ? Channel::MixedPacking : Channel::OnlyFullPacking,
+    bulk ? Channel::Bulk : Channel::Regular));
   state = ValidatingWrite;
   checkToken();
 }
@@ -928,16 +890,15 @@ bool WriteReadEntry::checkToken()
   return (w_token->isValid() && r_token && r_token->isValid());
 }
 
-void WriteReadEntry::entryAdded(const ChannelEntryInfo& i)
+void WriteReadEntry::entryAdded(const ChannelEntryInfo &i)
 {
   DEB("WriteReadEntry::entryAdded " << i);
   if (i.entry_label == label) {
     r_dataclass = i.data_class;
     assert(!r_token);
-    r_token.reset(new ChannelReadToken
-                  (master->getId(), NameSet(r_channelname), r_dataclass,
-                   i.entry_id, i.time_aspect, i.arity,
-                   Channel::ReadAllData, 0.0, &autostart_cb));
+    r_token.reset(new ChannelReadToken(
+      master->getId(), NameSet(r_channelname), r_dataclass, i.entry_id,
+      i.time_aspect, i.arity, Channel::ReadAllData, 0.0, &autostart_cb));
     if (checkToken()) {
       state = Linked;
     }
@@ -946,10 +907,9 @@ void WriteReadEntry::entryAdded(const ChannelEntryInfo& i)
   }
 }
 
-const GlobalId& WriteReadEntry::getId() const
-{ return master->getId(); }
+const GlobalId &WriteReadEntry::getId() const { return master->getId(); }
 
-void WriteReadEntry::tokenValid(const TimeSpec& ts)
+void WriteReadEntry::tokenValid(const TimeSpec &ts)
 {
   rapidjson::StringBuffer doc;
   rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
@@ -984,58 +944,53 @@ void WriteReadEntry::tokenValid(const TimeSpec& ts)
   sendOne(doc.GetString(), "WriterReader info");
 }
 
-void WriteReadEntry::passData(const TimeSpec& ts)
+template <typename Encoder> void WriteReadEntry::passData(const TimeSpec &ts)
 {
+  Encoder writer;
   DCOReader r(r_dataclass.c_str(), *r_token, ts);
-  rapidjson::StringBuffer doc;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
   DataTimeSpec dtd = r.timeSpec();
-  writer.StartObject();
+  writer.StartObject(2);
   writer.Key("tick");
   writer.Uint(dtd.getValidityStart());
   writer.Key("data");
-  if (extended) DCOtoJSONcompact(writer, r);
-  else DCOtoJSONstrict(writer, r);
+  writer.dco(r);
   writer.EndObject();
 
   DEB2("WriteReadEntry::passData " << doc.GetString());
   sendOne(doc.GetString(), "channel data");
 }
 
-void WriteReadEntry::sendOne(const std::string& data,
-                             const char* desc)
+void WriteReadEntry::sendOne(const std::string &data, const char *desc)
 {
   if (connection) {
-    connection->send
-      (data,
-       [this, desc](const SimpleWeb::error_code &ec) {
-         if (ec) {
+    connection->send(data, [this, desc](const SimpleWeb::error_code &ec) {
+      if (ec) {
            /* DUECA websockets.
 
-              Error in a send action for a "write-and-read" URL, will
-              remove the connection from the list of clients. */
-           W_XTR("Error sending " << desc <<", " << ec.message() <<
-                 " removing connenction form " << this->identification);
-         }
-       });
+           Error in a send action for a "write-and-read" URL, will
+           remove the connection from the list of clients. */
+        W_XTR("Error sending " << desc << ", " << ec.message()
+                               << " removing connenction form "
+                               << this->identification);
+      }
+    });
   }
   else {
-    sconnection->send
-      (data,
-       [this, desc](const SimpleWeb::error_code &ec) {
-         if (ec) {
+    sconnection->send(data, [this, desc](const SimpleWeb::error_code &ec) {
+      if (ec) {
            /* DUECA websockets.
 
-              Error in a send action for a "write-and-read" URL, will
-              remove the connection from the list of clients. */
-           W_XTR("Error sending " << desc << ", " << ec.message() <<
-                 " removing connenction form " << this->identification);
-         }
-       });
+           Error in a send action for a "write-and-read" URL, will
+           remove the connection from the list of clients. */
+        W_XTR("Error sending " << desc << ", " << ec.message()
+                               << " removing connenction form "
+                               << this->identification);
+      }
+    });
   }
 }
 
-void WriteReadEntry::entryRemoved(const ChannelEntryInfo& i)
+void WriteReadEntry::entryRemoved(const ChannelEntryInfo &i)
 {
   if (i.entry_label == label) {
     state = Connected;
@@ -1043,20 +998,9 @@ void WriteReadEntry::entryRemoved(const ChannelEntryInfo& i)
   }
 }
 
-void WriteReadEntry::writeFromJSON(const std::string& json)
+template <typename Decoder>
+void WriteReadEntry::writeFromCoded(const Decoder &doc)
 {
-  JDocument doc;
-  json::ParseResult res = doc.Parse(json.c_str());
-  if (!res) {
-    /* DUECA websockets.
-
-       Error in parsing the recurring JSON data for a "write-and-read"
-       URL.
-    */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code()) <<
-          " at " << res.Offset());
-    throw dataparseerror();
-  }
   auto data = doc.FindMember("data");
   if (data == doc.MemberEnd()) {
     /* DUECA websockets.
@@ -1065,26 +1009,25 @@ void WriteReadEntry::writeFromJSON(const std::string& json)
        "write-and-read" URL, it needs a member "data" with the
        to-be-written data.
     */
-    W_XTR("JSON message has no member data");
+    W_XTR("Coded message has no member data");
     throw dataparseerror();
   }
 
   DCOWriter wr(*w_token, DataTimeSpec::now());
   try {
-    JSONtoDCO(data->value, wr);
+    Decoder::todco(data->value, wr);
   }
-  catch (const dueca::ConversionNotDefined& e) {
+  catch (const dueca::ConversionNotDefined &e) {
     /* DUECA websockets.
 
        Failed to decode a DCO object from the received JSON
        string. Check the correspondence between the DCO object and the
        external program. */
-    W_XTR("Websockets, cannot decode '" << w_token->getDataClassName() <<
-          "' from 'data' in '" << json << "'");
+    W_XTR("Websockets, cannot decode '" << w_token->getDataClassName()
+                                        << "' from 'data' in '" << doc << "'");
     wr.failed();
   }
 }
-
 
 DUECA_NS_END;
 WEBSOCK_NS_END;
