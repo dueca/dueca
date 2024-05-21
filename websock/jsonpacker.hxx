@@ -12,9 +12,13 @@
 
 #pragma once
 
+#include <dueca_ns.h>
 #include <rapidjson/encodings.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/document.h>
+#include <dueca/DCOtoJSON.hxx>
+
+DUECA_NS_START;
 
 struct jsonpacker {
 
@@ -22,36 +26,36 @@ struct jsonpacker {
   rapidjson::Writer<rapidjson::StringBuffer> writer;
   bool extended;
 
-  jsonpacker(bool extended) : doc(), writer(doc), extended(extended) { }
+  jsonpacker(bool extended=false) : doc(), writer(doc), extended(extended) { }
 
-  inline void startobject(size_t n)
+  inline void StartObject(size_t n)
   { writer.StartObject(); }
 
-  inline void endobject();
+  inline void EndObject()
   { writer.EndObject(); }
 
-  inline void key(const char* k)
+  inline void Key(const char* k)
   { writer.Key(k); }
 
-  inline void startarray(size_t n)
+  inline void StartArray(size_t n)
   { writer.StartArray(); }
 
-  inline void endarray()
+  inline void EndArray()
   { writer.EndArray(); }
 
-  inline void string(const char* s)
+  inline void String(const char* s)
   { writer.String(s); }
 
-  inline void integer(int i)
+  inline void Int(int i)
   { writer.Int(i); }
 
-  inline void uinteger(unsigned i)
+  inline void Uint(unsigned i)
   { writer.Uint(i); }
 
-  inline void boolean(bool b)
+  inline void Bool(bool b)
   { writer.Bool(true); }
 
-  inline void _double(double d)
+  inline void Double(double d)
   { writer.Double(d); }
 
   inline void dco(DCOReader& r)
@@ -64,8 +68,10 @@ struct jsonpacker {
     }
   }
 
-  inline void endline()
+  inline void EndLine()
   { rapidjson::PutUnsafe(doc, '\n'); }
 
   const char* getstring() const { return doc.GetString(); }
 };
+
+DUECA_NS_END;
