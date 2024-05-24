@@ -192,7 +192,7 @@ void ConnectionList::sendOne(const std::string &data, const char *desc,
   });
 }
 
-template <typename Encoder> void SingleEntryFollow::passData(const TimeSpec &ts)
+void SingleEntryFollow::passData(const TimeSpec &ts)
 {
   if (firstwrite || regulator) {
     r_token.flushOlderSets(ts.getValidityStart());
@@ -208,7 +208,7 @@ template <typename Encoder> void SingleEntryFollow::passData(const TimeSpec &ts)
 
   // ScopeLock l(flock);
   DCOReader r(datatype.c_str(), r_token, ts);
-  Encoder writer;
+/*   Encoder writer;
   DataTimeSpec dtd = r.timeSpec();
   writer.StartObject(2);
   writer.Key("tick");
@@ -219,6 +219,8 @@ template <typename Encoder> void SingleEntryFollow::passData(const TimeSpec &ts)
 
   DEB3("SingleEntryFollow::passData " << writer.GetString());
   sendAll(writer.GetString(), "channel data");
+  */
+  sendAll(master->codeData(r), "channel data");
 }
 
 bool SingleEntryFollow::checkToken()
@@ -944,10 +946,11 @@ void WriteReadEntry::tokenValid(const TimeSpec &ts)
   sendOne(doc.GetString(), "WriterReader info");
 }
 
-template <typename Encoder> void WriteReadEntry::passData(const TimeSpec &ts)
+void WriteReadEntry::passData(const TimeSpec &ts)
 {
   Encoder writer;
   DCOReader r(r_dataclass.c_str(), *r_token, ts);
+  /*
   DataTimeSpec dtd = r.timeSpec();
   writer.StartObject(2);
   writer.Key("tick");
@@ -958,6 +961,8 @@ template <typename Encoder> void WriteReadEntry::passData(const TimeSpec &ts)
 
   DEB2("WriteReadEntry::passData " << doc.GetString());
   sendOne(doc.GetString(), "channel data");
+  */
+  sendOne(master->codeData(r), "channel data");
 }
 
 void WriteReadEntry::sendOne(const std::string &data, const char *desc)

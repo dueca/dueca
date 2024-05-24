@@ -249,6 +249,13 @@ public: // member functions for cooperation with DUECA
 public: // the member functions that are called for activities
   /** the method that implements the main calculation. */
   void doTransfer(const TimeSpec &ts);
+
+public: // coding function
+  /** Send data with, in a "tick"/"data" struct */
+  virtual const std::string& codeData(const DCOReader* r) = 0;
+
+
+
 };
 
 /** Webserver providing access to DUECA channels

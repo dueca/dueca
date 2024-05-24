@@ -357,7 +357,7 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
 
       @param message1     JSON-encoded first message
       @param master       ID of controlling entity, for assigning channel entry.
- */
+  */
   virtual void complete(const std::string& message1, const GlobalId& master);
 
   /** Check whether completion has been done
@@ -473,15 +473,14 @@ struct WriteReadSetup {
     - The first reply on the url will be with information on the write entry
       and the read entry.
 */
-template<typename Encoder>
 struct WriteReadEntry:
-  INHERIT_REFCOUNT_COMMA(WriteReadEntry<Encoder>)
+  INHERIT_REFCOUNT_COMMA(WriteReadEntry)
   public ChannelWatcher
 {
-  INCLASS_REFCOUNT(WriteReadEntry<Encoder>);
+  INCLASS_REFCOUNT(WriteReadEntry);
 
   /** Autostart callback function */
-  Callback<WriteReadEntry<Encoder>>  autostart_cb;
+  Callback<WriteReadEntry>  autostart_cb;
 
   /** State for this entry */
   enum WRState {
@@ -533,7 +532,7 @@ struct WriteReadEntry:
   std::string             label;
 
   /** master id */
-  WebSocketsServer<Encoder>  *master;
+  WebSocketsServerBase   *master;
 
   /** Activity monitor */
   bool                    active;
@@ -560,7 +559,7 @@ struct WriteReadEntry:
   inline bool isAvailable() { return state == UnConnected; }
 
   /** Callback object */
-  Callback<WriteReadEntry<Encoder>>     cb;
+  Callback<WriteReadEntry>     cb;
 
   /** Activity for getting more data */
   ActivityCallback             do_calc;
@@ -574,7 +573,7 @@ struct WriteReadEntry:
       @param initstate      Starting state of the object
   */
   WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
-                 WebSocketsServer<Encoder> *master,
+                 WebSocketsServerBase *master,
                  const PrioritySpec& ps, bool extended,
                  WriteReadEntry::WRState initstate = WriteReadEntry::Connected);
 
@@ -597,7 +596,7 @@ struct WriteReadEntry:
 
       @param message1     JSON-encoded first message
       @param master       ID of controlling entity, for assigning channel entry.
- */
+  */
   void complete(const std::string& message1);
 
   /** Check whether completion has been done
@@ -608,9 +607,10 @@ struct WriteReadEntry:
 
   /** Write data to channel using JSON
 
-      @param json         JSON encoded data
+      @param coded        Encoded data
   */
-  void writeFromJSON(const std::string& json);
+  template<typename Decoder>
+  void writeFromCoded(const Decoder& code);
 
   /** Process new entry in the channel watch */
   void entryAdded(const ChannelEntryInfo& i) final;
