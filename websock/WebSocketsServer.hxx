@@ -252,10 +252,12 @@ public: // the member functions that are called for activities
 
 public: // coding function
   /** Send data with, in a "tick"/"data" struct */
-  virtual const std::string& codeData(const DCOReader* r) = 0;
+  virtual void codeData(std::ostream& s, const DCOReader& r) const = 0;
 
-
-
+  /** Write type information to given stream */
+  virtual void codeEntryInfo(std::ostream& s,
+    const std::string& w_dataname, unsigned w_entryid,
+    const std::string& r_dataname, unsigned r_entryid) const = 0;
 };
 
 /** Webserver providing access to DUECA channels
@@ -420,6 +422,14 @@ public: // construction and further specification
 
   /** Helper function, templated with the server type */
   template <typename S> bool _complete(S &server);
+
+  /** Code the data in the reader object. */
+  void codeData(std::ostream& s, const DCOReader& r) const final;
+
+  /** Code the type information in the reader object. */
+  void codeEntryInfo(std::ostream& s,
+    const std::string& w_dataname, unsigned w_entryid,
+    const std::string& r_dataname, unsigned r_entryid) const final;
 
   /** Destructor. */
   ~WebSocketsServer();

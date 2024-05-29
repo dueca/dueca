@@ -161,6 +161,9 @@ struct ConnectionList {
    */
 struct SingleEntryFollow: public ConnectionList {
 
+  /** Server and provider of id */
+  const WebSocketsServerBase *master;
+
   /** Autostart callback function */
   Callback<SingleEntryFollow>  autostart_cb;
 
@@ -212,7 +215,7 @@ struct SingleEntryFollow: public ConnectionList {
   */
   SingleEntryFollow(const std::string& channelname,
                     const std::string& datatype, entryid_type eid,
-                    const GlobalId& master, const PrioritySpec& ps,
+                    const WebSocketsServerBase *master, const PrioritySpec& ps,
                     const DataTimeSpec& ts, bool extended,
                     bool autostart=false);
 

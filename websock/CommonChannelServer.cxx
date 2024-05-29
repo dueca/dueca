@@ -12,6 +12,7 @@
 */
 
 #include "CommObjectMemberArity.hxx"
+#include <sstream>
 #define CommonChannelServer_cxx
 #include "CommonChannelServer.hxx"
 #include <boost/lexical_cast.hpp>
@@ -67,19 +68,21 @@ SingleEntryRead::~SingleEntryRead() {}
 
 SingleEntryFollow::SingleEntryFollow(const std::string &channelname,
                                      const std::string &datatype,
-                                     entryid_type eid, const GlobalId &master,
+                                     entryid_type eid,
+                                     const WebSocketsServerBase* master,
                                      const PrioritySpec &ps,
                                      const DataTimeSpec &ts, bool extended,
                                      bool autostart) :
   ConnectionList(channelname + std::string(" (entry ") +
                  boost::lexical_cast<std::string>(eid) + std::string(")")),
+  master(master),
   autostart_cb(this, &SingleEntryFollow::tokenValid),
-  r_token(master, NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
+  r_token(master->getId(), NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
           Channel::OneOrMoreEntries, Channel::ReadAllData, 0.0,
           autostart ? &autostart_cb : NULL),
   cb(this, &SingleEntryFollow::passData),
-  do_calc(master, "read for server", &cb, ps), datatype(datatype),
-  inactive(true), host_id(master), extended(extended), firstwrite(true)
+  do_calc(master->getId(), "read for server", &cb, ps), datatype(datatype),
+  inactive(true), extended(extended), firstwrite(true)
 {
   if (ts.getValiditySpan() != 0) {
     regulator.reset(new TriggerRegulatorGreedy(r_token, ts));
@@ -220,7 +223,9 @@ void SingleEntryFollow::passData(const TimeSpec &ts)
   DEB3("SingleEntryFollow::passData " << writer.GetString());
   sendAll(writer.GetString(), "channel data");
   */
-  sendAll(master->codeData(r), "channel data");
+  std::stringstream buffer;
+  master->codeData(buffer, r);
+  sendAll(buffer.str(), "channel data");
 }
 
 bool SingleEntryFollow::checkToken()
@@ -261,6 +266,7 @@ bool SingleEntryFollow::stop(const TimeSpec &ts)
 template <typename Encoder>
 void writeTypeInfo(Encoder &writer, const std::string &dataclass)
 {
+  std::stringstream
   CommObjectReaderWriter rw(dataclass.c_str());
   writer.StartArray(rw.getNumMembers());
   for (size_t ii = 0; ii < rw.getNumMembers(); ii++) {
@@ -557,19 +563,9 @@ bool WriteEntry::checkToken()
   return res;
 }
 
-void WriteEntry::writeFromJSON(const std::string &json)
+template<typename Decoder>
+void WriteEntry::writeFromCoded(const Decoder &doc)
 {
-  JDocument doc;
-  json::ParseResult res = doc.Parse(json.c_str());
-  if (!res) {
-    /* DUECA websockets.
-
-       Error in parsing the recurring JSON data for a "write" URL.
-    */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
-                              << " at " << res.Offset());
-    throw dataparseerror();
-  }
 
   DataTimeSpec ts;
   if (ctiming) {
@@ -616,7 +612,7 @@ void WriteEntry::writeFromJSON(const std::string &json)
 
   DCOWriter wr(*w_token, ts);
   try {
-    JSONtoDCO(doc["data"], wr);
+    CodedToDCO(doc["data"], wr);
   }
   catch (const dueca::ConversionNotDefined &e) {
     /* DUECA websockets.
@@ -625,7 +621,7 @@ void WriteEntry::writeFromJSON(const std::string &json)
        string received. Check the correspondence between your
        (external) program and the DUECA object definitions. */
     W_XTR("Websockets, cannot extract '" << w_token->getDataClassName()
-                                         << "' from 'data' in '" << json << "'")
+                                         << "' from 'data' in '" << doc << "'")
     wr.failed();
   }
 }

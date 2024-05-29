@@ -858,5 +858,24 @@ bool WebSocketsServer<Encoder>::complete()
   return true;
 }
 
+template<typename Encoder>
+void WebSocketsServer<Encoder>::codeData(std::ostream& s, const DCOReader& r) const
+{
+  Encoder writer(s);
+  DataTimeSpec dtd = r.timeSpec();
+  writer.StartObject(2);
+  writer.Key("tick");
+  writer.Uint(dtd.getValidityStart());
+  writer.Key("data");
+  writer.dco(r);
+  writer.EndObject();
+}
+
+template<typename Encoder>
+  void WebSocketsServer<Encoder>::codeEntryInfo(std::ostream& s,
+    const std::string& w_dataname, unsigned w_entryid,
+    const std::string& r_dataname, unsigned r_entryid) const final;
+
+
 WEBSOCK_NS_END;
 DUECA_NS_END;
