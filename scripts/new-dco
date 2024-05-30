@@ -136,7 +136,11 @@ class Enum(Type):
 
     def __init__(self, args):
         self.type = args[0]
-        self.representation = args[1]
+        try:
+            self.representation = args[1]
+        except IndexError:
+            raise ValueError(
+                "Supply the integer type for representing/packing the enum")
         self.c_instructions = (len(args) > 2) and args[2] or ''
         self.values = []
 
