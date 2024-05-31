@@ -140,14 +140,14 @@ public:
   ~DCOReader();
 
   /** Return the time specification of the data. */
-  inline const DataTimeSpec& timeSpec()
+  inline const DataTimeSpec& timeSpec() const
   {
     // access();
     return this->ts_data;
   }
 
   /** Return the origin/sender of the data */
-  inline const GlobalId& origin()
+  inline const GlobalId& origin() const
   {
     // access();
     return this->data_origin;

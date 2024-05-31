@@ -66,20 +66,16 @@ SingleEntryRead::SingleEntryRead(const std::string &channelname,
 
 SingleEntryRead::~SingleEntryRead() {}
 
-SingleEntryFollow::SingleEntryFollow(const std::string &channelname,
-                                     const std::string &datatype,
-                                     entryid_type eid,
-                                     const WebSocketsServerBase* master,
-                                     const PrioritySpec &ps,
-                                     const DataTimeSpec &ts, bool extended,
-                                     bool autostart) :
+SingleEntryFollow::SingleEntryFollow(
+  const std::string &channelname, const std::string &datatype, entryid_type eid,
+  const WebSocketsServerBase *master, const PrioritySpec &ps,
+  const DataTimeSpec &ts, bool extended, bool autostart) :
   ConnectionList(channelname + std::string(" (entry ") +
                  boost::lexical_cast<std::string>(eid) + std::string(")")),
-  master(master),
-  autostart_cb(this, &SingleEntryFollow::tokenValid),
-  r_token(master->getId(), NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
-          Channel::OneOrMoreEntries, Channel::ReadAllData, 0.0,
-          autostart ? &autostart_cb : NULL),
+  master(master), autostart_cb(this, &SingleEntryFollow::tokenValid),
+  r_token(master->getId(), NameSet(channelname), datatype, eid,
+          Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
+          Channel::ReadAllData, 0.0, autostart ? &autostart_cb : NULL),
   cb(this, &SingleEntryFollow::passData),
   do_calc(master->getId(), "read for server", &cb, ps), datatype(datatype),
   inactive(true), extended(extended), firstwrite(true)
@@ -168,8 +164,8 @@ void ConnectionList::sendOne(const std::string &data, const char *desc,
     if (ec) {
         /* DUECA websockets.
 
-         Error in a send action, will remove the connection from the
-         list of clients. */
+       Error in a send action, will remove the connection from the
+       list of clients. */
       W_XTR("Error sending " << desc << ", " << ec.message()
                              << " removing connenction form "
                              << this->identification);
@@ -185,8 +181,8 @@ void ConnectionList::sendOne(const std::string &data, const char *desc,
     if (ec) {
         /* DUECA websockets.
 
-         Error in a send action, will remove the connection from the
-         list of clients. */
+       Error in a send action, will remove the connection from the
+       list of clients. */
       W_XTR("Error sending " << desc << ", " << ec.message()
                              << " removing connenction form "
                              << this->identification);
@@ -212,17 +208,17 @@ void SingleEntryFollow::passData(const TimeSpec &ts)
   // ScopeLock l(flock);
   DCOReader r(datatype.c_str(), r_token, ts);
 /*   Encoder writer;
-  DataTimeSpec dtd = r.timeSpec();
-  writer.StartObject(2);
-  writer.Key("tick");
-  writer.Uint(dtd.getValidityStart());
-  writer.Key("data");
-  writer.dco(r);
-  writer.EndObject();
+    DataTimeSpec dtd = r.timeSpec();
+    writer.StartObject(2);
+    writer.Key("tick");
+    writer.Uint(dtd.getValidityStart());
+    writer.Key("data");
+    writer.dco(r);
+    writer.EndObject();
 
-  DEB3("SingleEntryFollow::passData " << writer.GetString());
-  sendAll(writer.GetString(), "channel data");
-  */
+    DEB3("SingleEntryFollow::passData " << writer.GetString());
+    sendAll(writer.GetString(), "channel data");
+    */
   std::stringstream buffer;
   master->codeData(buffer, r);
   sendAll(buffer.str(), "channel data");
@@ -263,68 +259,15 @@ bool SingleEntryFollow::stop(const TimeSpec &ts)
   return true;
 }
 
-template <typename Encoder>
-void writeTypeInfo(Encoder &writer, const std::string &dataclass)
-{
-  std::stringstream
-  CommObjectReaderWriter rw(dataclass.c_str());
-  writer.StartArray(rw.getNumMembers());
-  for (size_t ii = 0; ii < rw.getNumMembers(); ii++) {
-    unsigned nelts =
-      (DataClassRegistry::single().isRegistered(rw.getMemberClass(ii)) ? 3 : 2) +
-      ((rw.getMemberArity(ii) == FixedIterable ||
-        rw.getMemberArity(ii) == Iterable ) ? 1: 0) +
-        (rw.getMemberArity(ii) == Mapped ? 2 : 0);
-    writer.StartObject(nelts);
-    writer.Key("name");
-    writer.String(rw.getMemberName(ii));
-    writer.Key("type");
-    writer.String(rw.getMemberClass(ii));
-    if (DataClassRegistry::single().isRegistered(rw.getMemberClass(ii))) {
-      writer.Key("typeinfo");
-      writeTypeInfo(writer, rw.getMemberClass(ii));
-    }
-    switch (rw.getMemberArity(ii)) {
-    case Single:
-      break;
-    case FixedIterable:
-      writer.Key("size");
-      writer.Int(rw.getMemberSize(ii));
-    case Iterable:
-      writer.Key("array");
-      writer.Bool(true);
-      break;
-    case Mapped:
-      writer.Key("map");
-      writer.Bool(true);
-      writer.Key("keytype");
-      writer.String(rw.getMemberKeyClass(ii));
-    }
-    writer.EndObject();
-  }
-  writer.EndArray();
-}
-
-ChannelMonitor::ChannelMonitor(const std::string &channelname,
+ChannelMonitor::ChannelMonitor(const WebSocketsServerBase *server,
+                               const std::string &channelname,
                                const DataTimeSpec &ts) :
+  server(server),
   ChannelWatcher(channelname), ConnectionList(channelname),
   channelname(channelname), time_spec(ts)
 {}
 
 ChannelMonitor::~ChannelMonitor() {}
-
-static void writeAdded(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                       unsigned entryid, const std::string &data_class)
-{
-  writer.StartObject();
-  writer.Key("dataclass");
-  writer.String(data_class.c_str());
-  writer.Key("entry");
-  writer.Int(entryid);
-  writer.Key("typeinfo");
-  writeTypeInfo(writer, data_class);
-  writer.EndObject();
-}
 
 void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
 {
@@ -337,11 +280,9 @@ void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
   entrydataclass[info.entry_id] = info.data_class;
 
   // manually construct a small JSON message
-  rapidjson::StringBuffer doc;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
-  writeAdded(writer, info.entry_id, info.data_class);
-  DEB("entryAdded " << doc.GetString());
-  sendAll(doc.GetString(), "entry addition");
+  std::stringstream buffer;
+  server->codeEntryInfo(buffer, "", 0, info.data_class, info.entry_id);
+  sendAll(buffer.str(), "entry addition");
 }
 
 void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
@@ -353,10 +294,10 @@ void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
   entrydataclass[info.entry_id] = std::string();
 
   // manually construct a small JSON message
-  std::stringstream msg;
-  msg << "{\"dataclass\":\"\",\"entry\":" << info.entry_id << "}";
-  DEB("entryRemoved " << msg.str());
-  sendAll(msg.str(), "entry removal");
+  std::stringstream buffer;
+  server->codeEntryInfo(buffer, "", info.entry_id, "", info.entry_id);
+  DEB("entryRemoved " << info.entry_id);
+  sendAll(buffer.str(), "entry removal");
 }
 
 void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection> &c)
@@ -365,10 +306,9 @@ void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection> &c)
   // ScopeLock l(flock);
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
-      rapidjson::StringBuffer doc;
-      rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
-      writeAdded(writer, ii, entrydataclass[ii]);
-      sendOne(doc.GetString(), "entry catch up", c);
+      std::stringstream buffer;
+      server->codeEntryInfo(buffer, "", 0, entrydataclass[ii], ii);
+      sendOne(buffer.str(), "entry catch up", c);
     }
   }
 }
@@ -379,10 +319,9 @@ void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection> &c)
   // ScopeLock l(flock);
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
-      rapidjson::StringBuffer doc;
-      rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
-      writeAdded(writer, ii, entrydataclass[ii]);
-      sendOne(doc.GetString(), "entry catch up", c);
+      std::stringstream buffer;
+      server->codeEntryInfo(buffer, "", 0, entrydataclass[ii], ii);
+      sendOne(buffer.str(), "entry catch up", c);
     }
   }
 }
@@ -403,12 +342,6 @@ WriteableSetup::WriteableSetup(const std::string &channelname,
 {}
 
 CODE_REFCOUNT(WriteEntry);
-#if 0
-void intrusive_ptr_add_ref(const WriteEntry*)
-{ t->intrusive_refcount++; }
-void intrusive_ptr_release(const WriteEntry*)
-{ if (--(t->intrusive_refcount) == 0) { delete t; } }
-#endif
 
 WriteEntry::WriteEntry(const std::string &channelname,
                        const std::string &datatype, bool bulk, bool diffpack,
@@ -461,9 +394,9 @@ void WriteEntry::complete(const std::string &message1, const GlobalId &master)
       if (!im->value.IsBool()) {
       /* DUECA websockets.
 
-           Error the initial JSON data for a "write" URL. A "ctiming"
-           member cannot be interpreted as a boolean.
-        */
+             Error the initial JSON data for a "write" URL. A "ctiming"
+             member cannot be interpreted as a boolean.
+          */
         W_XTR("JSON parse error \"ctiming\" needs to be bool");
         throw connectionparseerror();
       }
@@ -563,8 +496,7 @@ bool WriteEntry::checkToken()
   return res;
 }
 
-template<typename Decoder>
-void WriteEntry::writeFromCoded(const Decoder &doc)
+template <typename Decoder> void WriteEntry::writeFromCoded(const Decoder &doc)
 {
 
   DataTimeSpec ts;
@@ -811,8 +743,8 @@ unsigned WriteReadSetup::getNextId() { return cnt_clients++; }
 CODE_REFCOUNT(WriteReadEntry);
 
 WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
-                               WebSocketsServer *master, const PrioritySpec &ps,
-                               bool extended,
+                               WebSocketsServerBase *master,
+                               const PrioritySpec &ps, bool extended,
                                WriteReadEntry::WRState initstate) :
   ChannelWatcher(setup->r_channelname),
   INIT_REFCOUNT_COMMA autostart_cb(this, &WriteReadEntry::tokenValid),
@@ -968,8 +900,8 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
       if (ec) {
            /* DUECA websockets.
 
-           Error in a send action for a "write-and-read" URL, will
-           remove the connection from the list of clients. */
+        Error in a send action for a "write-and-read" URL, will
+        remove the connection from the list of clients. */
         W_XTR("Error sending " << desc << ", " << ec.message()
                                << " removing connenction form "
                                << this->identification);
@@ -981,8 +913,8 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
       if (ec) {
            /* DUECA websockets.
 
-           Error in a send action for a "write-and-read" URL, will
-           remove the connection from the list of clients. */
+        Error in a send action for a "write-and-read" URL, will
+        remove the connection from the list of clients. */
         W_XTR("Error sending " << desc << ", " << ec.message()
                                << " removing connenction form "
                                << this->identification);

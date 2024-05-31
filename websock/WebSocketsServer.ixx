@@ -20,14 +20,13 @@
 
 // include the definition of the module class
 #include "WebSocketsServer.hxx"
-#include "jsonpacker.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <dueca/DCOtoJSON.hxx>
-#include <fstream>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/reader.h>
+#include <dueca/DataClassRegistry.hxx>
 
 // include the debug writing header, by default, write warning and
 // error messages
@@ -217,7 +216,7 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
                           << " sending empty {}");
     }
     writer.EndObject();
-    connection->send(doc.getstring(), [](const SimpleWeb::error_code &ec) {
+    connection->send(writer.getstring(), [](const SimpleWeb::error_code &ec) {
       if (ec) {
              /* DUECA websockets.
 
@@ -871,10 +870,86 @@ void WebSocketsServer<Encoder>::codeData(std::ostream& s, const DCOReader& r) co
   writer.EndObject();
 }
 
+
+template<typename Encoder>
+void codeTypeInfo(Encoder& writer, const std::string& dataclass)
+{
+  CommObjectReaderWriter rw(dataclass.c_str());
+  writer.StartArray(rw.getNumMembers());
+  for (size_t ii = 0; ii < rw.getNumMembers(); ii++) {
+    unsigned nelts =
+      (DataClassRegistry::single().isRegistered(rw.getMemberClass(ii)) ? 3 : 2) +
+      ((rw.getMemberArity(ii) == FixedIterable ||
+        rw.getMemberArity(ii) == Iterable ) ? 1: 0) +
+        (rw.getMemberArity(ii) == Mapped ? 2 : 0);
+    writer.StartObject(nelts);
+    writer.Key("name");
+    writer.String(rw.getMemberName(ii));
+    writer.Key("type");
+    writer.String(rw.getMemberClass(ii));
+    if (DataClassRegistry::single().isRegistered(rw.getMemberClass(ii))) {
+      writer.Key("typeinfo");
+      codeTypeInfo(writer, rw.getMemberClass(ii));
+    }
+    switch (rw.getMemberArity(ii)) {
+    case Single:
+      break;
+    case FixedIterable:
+      writer.Key("size");
+      writer.Int(rw.getMemberSize(ii));
+    case Iterable:
+      writer.Key("array");
+      writer.Bool(true);
+      break;
+    case Mapped:
+      writer.Key("map");
+      writer.Bool(true);
+      writer.Key("keytype");
+      writer.String(rw.getMemberKeyClass(ii));
+    }
+    writer.EndObject();
+  }
+  writer.EndArray();
+}
+
 template<typename Encoder>
   void WebSocketsServer<Encoder>::codeEntryInfo(std::ostream& s,
     const std::string& w_dataname, unsigned w_entryid,
-    const std::string& r_dataname, unsigned r_entryid) const final;
+    const std::string& r_dataname, unsigned r_entryid) const
+{
+  Encoder writer(s);
+  if (w_dataname.size() && r_dataname.size()) {
+    writer.StartObject(2);
+    writer.Key("read");
+    writer.StartObject(3);
+    writer.Key("dataclass");
+    writer.String(r_dataname);
+    writer.Key("entry");
+    writer.Uint(r_entryid);
+    writer.Key("typeinfo");
+    codeTypeInfo(writer, r_dataname);
+    writer.Key("write");
+    writer.StartObject(3);
+    writer.Key("dataclass");
+    writer.String(w_dataname);
+    writer.Key("entry");
+    writer.Uint(w_entryid);
+    writer.Key("typeinfo");
+    codeTypeInfo(writer, w_dataname);
+    writer.EndObject();
+  }
+  else {
+    const std::string& dataname = r_dataname.size() == 0 ? w_dataname : r_dataname;
+    const unsigned entryid = r_dataname.size() == 0? w_entryid : r_entryid;
+    writer.StartObject(3);
+    writer.Key("dataclass");
+    writer.String(dataname);
+    writer.Key("entry");
+    writer.Uint(entryid);
+    writer.Key("typeinfo");
+    codeTypeInfo(writer, dataname);
+  }
+}
 
 
 WEBSOCK_NS_END;
