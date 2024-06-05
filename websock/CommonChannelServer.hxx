@@ -14,6 +14,7 @@
 #ifndef CommonChannelServer_hxx
 #define CommonChannelServer_hxx
 
+#include "WebsockExceptions.hxx"
 #include <boost/intrusive_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <dueca/ChannelWatcher.hxx>
@@ -23,15 +24,12 @@
 #include <dueca/StateGuard.hxx>
 #include <dueca/TriggerRegulatorGreedy.hxx>
 #include <dueca/dueca.h>
-#include <exception>
 #include <map>
 #include <memory>
 #include <simple-websocket-server/server_ws.hpp>
 #include <simple-websocket-server/server_wss.hpp>
 #include <string>
 
-#define WEBSOCK_NS_START namespace websock {
-#define WEBSOCK_NS_END }
 
 DUECA_NS_START;
 WEBSOCK_NS_START;
@@ -40,33 +38,8 @@ using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 using WssServer = SimpleWeb::SocketServer<SimpleWeb::WSS>;
 
 class WebSocketsServerBase;
-template <typename Encoder> class WebSocketsServer;
+template <typename Encoder, typename Decoder> class WebSocketsServer;
 
-/** Indicate that a preset channel mis-matches.
-
-    A WebSockets endpoint can be pre-defined with channel entry,
-    timing and datatype. Thrown when the client connects and the data
-    type or timing does not match.
- */
-class presetmismatch : public std::exception
-{
-  /** Print description of exception. */
-  const char *what() const throw() final;
-};
-
-/** Exception to throw when connection error is wrong */
-class connectionparseerror : public std::exception
-{
-  /** Print description of exception. */
-  const char *what() const throw() final;
-};
-
-/** Exception to throw when data cannot be read */
-class dataparseerror : public std::exception
-{
-  /** Re-implementation of std:exception what. */
-  const char *what() const throw() final;
-};
 
 /** Access to a single entry in a channel.
 

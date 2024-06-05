@@ -20,13 +20,12 @@
 
 // include the definition of the module class
 #include "WebSocketsServer.hxx"
+#include "jsonpacker.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <dueca/DCOtoJSON.hxx>
-#include <rapidjson/document.h>
-#include <rapidjson/error/en.h>
-#include <rapidjson/reader.h>
 #include <dueca/DataClassRegistry.hxx>
+#include <sstream>
+#include <fstream>
 
 // include the debug writing header, by default, write warning and
 // error messages
@@ -43,12 +42,147 @@
 #define DEBPRINTLEVEL 0
 #include <debprint.h>
 
+#ifdef BOOST1_65
+#define BOOST_POSTCALL runcontext->post
+#define BOOST_POSTARG1
+#else
+#define BOOST_POSTCALL boost::asio::post
+#define BOOST_POSTARG1 *runcontext,
+#endif
+
 DUECA_NS_START;
 WEBSOCK_NS_START;
 
-template <typename Encoder>
+// class/module names
+template <>
+const char *const WebSocketsServer<jsonpacker, jsonunpacker>::classname =
+  "web-sockets-server";
+
+//template <>
+//const char *const WebSocketsServer<msgpackpacker, msgpackunpacker>::classname =
+//  "web-sockets-server-msgpack";
+
+template <typename Encoder, typename Decoder>
+WebSocketsServer<Encoder,Decoder>::WebSocketsServer(Entity *e, const char *part,
+                                           const PrioritySpec &ps) :
+WebSocketsServerBase(e, part, ps, classname)
+{ }
+
+template <typename Encoder, typename Decoder>
+WebSocketsServer<Encoder,Decoder>::~WebSocketsServer()
+{ }
+
+/** Local function for sending the response data, using 64K chunks */
+template <typename R>
+static void read_and_send(const R &response,
+                          const std::shared_ptr<ifstream> &ifs)
+{
+  // single-thread only
+  static vector<char> buffer(0x10000);
+  streamsize read_length;
+
+  if ((read_length =
+         ifs->read(&buffer[0], static_cast<streamsize>(buffer.size()))
+           .gcount()) > 0) {
+    response->write(&buffer[0], read_length);
+    if (read_length == static_cast<streamsize>(buffer.size())) {
+      response->send([response, ifs](const SimpleWeb::error_code &ec) {
+        if (!ec) {
+          read_and_send(response, ifs);
+        }
+        else {
+          /* DUECA websockets.
+
+             An error occured in attempting to send a requested
+             file data in 64K chunks, as answer to an HTTP
+             request. File sending is incomplete.
+           */
+          E_XTR("File connection interrupted");
+        }
+      });
+    }
+  }
+}
+
 template <typename S>
-bool WebSocketsServer<Encoder>::_complete(S &server)
+bool WebSocketsServerBase::_complete_http(S &server)
+{
+  server.config.port = http_port;
+
+  // create a generic URL
+  server.default_resource["GET"] =
+    [this](shared_ptr<typename S::Response> response,
+           shared_ptr<typename S::Request> request) {
+      try {
+        auto web_root_path = boost::filesystem::canonical(this->document_root);
+        auto path = boost::filesystem::canonical(web_root_path / request->path);
+
+        DEB("http request for " << request->path);
+
+        // Check if path is within document_root
+        if (distance(web_root_path.begin(), web_root_path.end()) >
+              distance(path.begin(), path.end()) ||
+            !equal(web_root_path.begin(), web_root_path.end(), path.begin())) {
+          throw(invalid_argument("path outside root requested"));
+        }
+
+        // If this is a folder, get the index file
+        if (boost::filesystem::is_directory(path)) {
+          path /= "index.html";
+        }
+
+        SimpleWeb::CaseInsensitiveMultimap header;
+        auto ifs = make_shared<ifstream>();
+        ifs->open(path.string(), ifstream::in | ios::binary | ios::ate);
+
+        if (*ifs) {
+          auto length = ifs->tellg();
+          ifs->seekg(0, ios::beg);
+          header.emplace("Content-Length", to_string(length));
+          string ext = boost::filesystem::extension(path);
+          auto mime = mimemap.find(ext);
+          if (mime == mimemap.end()) {
+            /* DUECA websockets.
+
+               The http server cannot determine this mime type
+            */
+            W_XTR("Cannot determine mime type for " << path);
+          }
+          else {
+            header.emplace("Content-Type", mime->second);
+          }
+          response->write(header);
+          read_and_send(response, ifs);
+        }
+      }
+      catch (const exception &e) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request,
+                        "Could not open " + request->path + ": " + e.what());
+        DEB("HTTP fails for " << request->path << ": " << e.what());
+      }
+    };
+
+  server.on_error = [](shared_ptr<typename S::Request> request,
+                       const SimpleWeb::error_code &ec) {
+    // note, error 125 is returned when a client pauses too much
+    if (ec.value() != 125) {
+      /* DUECA websockets.
+
+         Unexpected error in the HTTP static file server. */
+      E_XTR("Http server error code " << ec << " (" << ec.message()
+                                      << ") for request :" << request->path
+                                      << ' ' << request->query_string);
+    }
+  };
+
+  server.io_service = runcontext;
+
+  return true;
+}
+
+template <typename Encoder, typename Decoder>
+template <typename S>
+bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
 {
   server.config.port = port;
 
@@ -58,15 +192,15 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
                            const SimpleWeb::error_code &ec) {
       /* DUECA websockets.
 
-   Unexpected error in the "configuration" URL connection. */
+ Unexpected error in the "configuration" URL connection. */
     W_XTR("Error in info connection " << connection.get() << ". "
                                       << "Error: " << ec
                                       << ", error message: " << ec.message());
   };
   configinfo.on_open = [this](shared_ptr<typename S::Connection> connection) {
-
     // Encoder class converts data to binary/ascii
-    Encoder writer;
+    std::stringstream buf;
+    Encoder writer(buf);
       // create a response
       // rapidjson::StringBuffer doc;
       // rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
@@ -82,12 +216,12 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
       writer.Key("dataclass");
       writer.String(sr.second->datatype.c_str());
       writer.Key("typeinfo");
-      writeTypeInfo(writer, sr.second->datatype);
+      codeTypeInfo(writer, sr.second->datatype);
       writer.Key("entry");
       writer.Int(sr.first.id);
       writer.EndObject();
     }
-    writer.array();
+    writer.EndArray();
 
     writer.Key("read");
     writer.StartArray(followers.size());
@@ -98,7 +232,7 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
       writer.Key("dataclass");
       writer.String(fr.second->datatype.c_str());
       writer.Key("typeinfo");
-      writeTypeInfo(writer, fr.second->datatype);
+      codeTypeInfo(writer, fr.second->datatype);
       writer.Key("entry");
       writer.Int(fr.first.id);
       writer.EndObject();
@@ -124,7 +258,7 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
       writer.Key("dataclass");
       writer.String(wr.second->dataclass.c_str());
       writer.Key("typeinfo");
-      writeTypeInfo(writer, wr.second->dataclass);
+      codeTypeInfo(writer, wr.second->dataclass);
       writer.EndObject();
     }
     writer.EndArray();
@@ -145,16 +279,16 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
     writer.EndObject();
     writer.EndLine();
 
-    connection->send(writer.getstring(), [](const SimpleWeb::error_code &ec) {
+    connection->send(buf.str(), [](const SimpleWeb::error_code &ec) {
       if (ec) {
              /* DUECA websockets.
 
- Unexpected error in sending the configuration
- information. */
+Unexpected error in sending the configuration
+information. */
         W_XTR("Error sending message " << ec);
       }
     });
-    DEB("New connection on ^/configuration, sent data" << writer.getstring());
+    DEB("New connection on ^/configuration, sent data" << buf.str());
 
       // removed, closing at this point upsets some clients
       // const std::string reason("Configuration data sent");
@@ -164,10 +298,10 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
                                int status, const std::string &reason) {
       /* DUECA websockets.
 
-   Information on the closing of the connection of a client with
-   the configuration URL. */
-    I_XTR("Closing configuration endpoint " << " code: " << status
-                                            << " reason: \"" << reason << '"');
+ Information on the closing of the connection of a client with
+ the configuration URL. */
+    I_XTR("Closing configuration endpoint "
+          << " code: " << status << " reason: \"" << reason << '"');
   };
 
   // access channel data on request; each message (no data needed)
@@ -187,8 +321,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
     if (em == this->singlereadsmapped.end()) {
         /* DUECA websockets.
 
-     Cannot find the connection entry for a message to the
-     "current" URL. */
+   Cannot find the connection entry for a message to the
+   "current" URL. */
       E_XTR("Cannot find connection");
       const std::string reason("Server failure, cannot find connection data");
       connection->send_close(1001, reason);
@@ -196,32 +330,33 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
     }
 
       // room for response
-    Encoder writer;
+    std::stringstream buf;
+    Encoder writer(buf);
     writer.StartObject(2);
     try {
         // create the reader
       DCOReader r(em->second->datatype.c_str(), em->second->r_token);
       DataTimeSpec dtd = r.timeSpec();
       writer.Key("tick");
-      writer.uinteger(dtd.getValidityStart());
+      writer.Uint(dtd.getValidityStart());
       writer.Key("data");
       writer.dco(r);
     }
     catch (const NoDataAvailable &e) {
         /* DUECA websockets.
 
-     There is no current data on the requested stream.
-  */
+   There is no current data on the requested stream.
+*/
       W_XTR("No data on " << em->second->r_token.getName()
                           << " sending empty {}");
     }
     writer.EndObject();
-    connection->send(writer.getstring(), [](const SimpleWeb::error_code &ec) {
+    connection->send(buf.str(), [](const SimpleWeb::error_code &ec) {
       if (ec) {
              /* DUECA websockets.
 
- Unexpected error in sending a message to a client for
- the "current" URL */
+Unexpected error in sending a message to a client for
+the "current" URL */
         W_XTR("Error sending message " << ec);
       }
     });
@@ -231,8 +366,9 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
                         const SimpleWeb::error_code &ec) {
       /* DUECA websockets.
 
-   Unexpected error in the "current" URL connection. */
-    W_XTR("Error in connection " << connection.get() << ". " << "Error: " << ec
+ Unexpected error in the "current" URL connection. */
+    W_XTR("Error in connection " << connection.get() << ". "
+                                 << "Error: " << ec
                                  << ", error message: " << ec.message());
   };
 
@@ -250,8 +386,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
 
       /* DUECA websockets.
 
-   Information on the closing of the connection of a client with
-   a "current" URL. */
+ Information on the closing of the connection of a client with
+ a "current" URL. */
     I_XTR("Closing endpoint at /current/"
           << connection->path_match[1] << "?entry=" << ename
           << " code: " << status << " reason: \"" << reason << '"');
@@ -264,9 +400,9 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
     else {
         /* DUECA websockets.
 
-     Programming error? Cannot find the connection corresponding
-     to a close attempt on a "current" URL.
-  */
+   Programming error? Cannot find the connection corresponding
+   to a close attempt on a "current" URL.
+*/
       W_XTR("Cannot find mapping for endpoint at /current/"
             << connection->path_match[1] << "?entry=" << ename);
     }
@@ -331,7 +467,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
     /* DUECA websockets.
 
        Unexpected error in the "follow" URL connection. */
-    W_XTR("Error in connection " << connection.get() << ". " << "Error: " << ec
+    W_XTR("Error in connection " << connection.get() << ". "
+                                 << "Error: " << ec
                                  << ", error message: " << ec.message());
   };
 
@@ -419,7 +556,7 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
                                           << " entry " << entry << "("
                                           << dataclass << ")");
             std::shared_ptr<SingleEntryFollow> newfollow(new SingleEntryFollow(
-              mm->second->channelname, dataclass, entry, this->getId(),
+              mm->second->channelname, dataclass, entry, this,
               this->read_prio, mm->second->time_spec, extended, true));
             this->autofollowers[key] = newfollow;
             ee = this->autofollowers.find(key);
@@ -445,7 +582,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
     /* DUECA websockets.
 
        Unexpected error in an "info" URL connection. */
-    W_XTR("Error in connection " << connection.get() << ". " << "Error: " << ec
+    W_XTR("Error in connection " << connection.get() << ". "
+                                 << "Error: " << ec
                                  << ", error message: " << ec.message());
   };
 
@@ -464,8 +602,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
          Programming error? Cannot find the connection corresponding
          to a close attempt on an "info" URL.
       */
-      E_XTR("Closing connection, cannot find mapping at "
-            << "/info/" << connection->path_match[1]);
+      E_XTR("Closing connection, cannot find mapping at /info/"
+            << connection->path_match[1]);
     }
     else {
       if (!ee->second->removeConnection(connection)) {
@@ -474,8 +612,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
            Programming error? Cannot remove the connection corresponding
            to a close attempt on an "info" URL.
         */
-        E_XTR("Closing connection, cannot find connection at "
-              << "/info/" << connection->path_match[1]);
+        E_XTR("Closing connection, cannot find connection at /info/"
+              << connection->path_match[1]);
       }
     }
   };
@@ -606,7 +744,7 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
 
   writer.on_message = [this](shared_ptr<typename S::Connection> connection,
                              shared_ptr<typename S::InMessage> in_message) {
-    // find the entry
+    // find the entry, of type WriteEntry
     auto ww = this->writers.find(reinterpret_cast<void *>(connection.get()));
 
     // check it is there
@@ -620,7 +758,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
     if (ww->second->isComplete()) {
       if (ww->second->checkToken()) {
         try {
-          ww->second->writeFromJSON(in_message->string());
+          Decoder dec(in_message->string());
+          ww->second->writeFromCoded(dec);
         }
         catch (const dataparseerror &) {
           const std::string reason("data coding error");
@@ -733,7 +872,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
       if (ww->second->isComplete()) {
         if (ww->second->checkToken()) {
           try {
-            ww->second->writeFromJSON(in_message->string());
+            Decoder dec(in_message->string());
+            ww->second->writeFromCoded(dec);
           }
           catch (const exception &e) {
             /* DUECA websockets.
@@ -813,8 +953,8 @@ bool WebSocketsServer<Encoder>::_complete(S &server)
 #define BOOST_POSTARG1 *runcontext,
 #endif
 
-template<typename Encoder>
-bool WebSocketsServer<Encoder>::complete()
+template <typename Encoder, typename Decoder>
+bool WebSocketsServer<Encoder, Decoder>::complete()
 {
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
@@ -857,8 +997,9 @@ bool WebSocketsServer<Encoder>::complete()
   return true;
 }
 
-template<typename Encoder>
-void WebSocketsServer<Encoder>::codeData(std::ostream& s, const DCOReader& r) const
+template <typename Encoder, typename Decoder>
+void WebSocketsServer<Encoder, Decoder>::codeData(std::ostream &s,
+                                                  const DCOReader &r) const
 {
   Encoder writer(s);
   DataTimeSpec dtd = r.timeSpec();
@@ -870,18 +1011,20 @@ void WebSocketsServer<Encoder>::codeData(std::ostream& s, const DCOReader& r) co
   writer.EndObject();
 }
 
-
-template<typename Encoder>
-void codeTypeInfo(Encoder& writer, const std::string& dataclass)
+template <typename Encoder>
+void codeTypeInfo(Encoder &writer, const std::string &dataclass)
 {
   CommObjectReaderWriter rw(dataclass.c_str());
   writer.StartArray(rw.getNumMembers());
   for (size_t ii = 0; ii < rw.getNumMembers(); ii++) {
     unsigned nelts =
-      (DataClassRegistry::single().isRegistered(rw.getMemberClass(ii)) ? 3 : 2) +
+      (DataClassRegistry::single().isRegistered(rw.getMemberClass(ii)) ? 3
+                                                                       : 2) +
       ((rw.getMemberArity(ii) == FixedIterable ||
-        rw.getMemberArity(ii) == Iterable ) ? 1: 0) +
-        (rw.getMemberArity(ii) == Mapped ? 2 : 0);
+        rw.getMemberArity(ii) == Iterable)
+         ? 1
+         : 0) +
+      (rw.getMemberArity(ii) == Mapped ? 2 : 0);
     writer.StartObject(nelts);
     writer.Key("name");
     writer.String(rw.getMemberName(ii));
@@ -912,10 +1055,10 @@ void codeTypeInfo(Encoder& writer, const std::string& dataclass)
   writer.EndArray();
 }
 
-template<typename Encoder>
-  void WebSocketsServer<Encoder>::codeEntryInfo(std::ostream& s,
-    const std::string& w_dataname, unsigned w_entryid,
-    const std::string& r_dataname, unsigned r_entryid) const
+template <typename Encoder, typename Decoder>
+void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
+  std::ostream &s, const std::string &w_dataname, unsigned w_entryid,
+  const std::string &r_dataname, unsigned r_entryid) const
 {
   Encoder writer(s);
   if (w_dataname.size() && r_dataname.size()) {
@@ -939,8 +1082,9 @@ template<typename Encoder>
     writer.EndObject();
   }
   else {
-    const std::string& dataname = r_dataname.size() == 0 ? w_dataname : r_dataname;
-    const unsigned entryid = r_dataname.size() == 0? w_entryid : r_entryid;
+    const std::string &dataname =
+      r_dataname.size() == 0 ? w_dataname : r_dataname;
+    const unsigned entryid = r_dataname.size() == 0 ? w_entryid : r_entryid;
     writer.StartObject(3);
     writer.Key("dataclass");
     writer.String(dataname);
@@ -948,6 +1092,58 @@ template<typename Encoder>
     writer.Uint(entryid);
     writer.Key("typeinfo");
     codeTypeInfo(writer, dataname);
+  }
+}
+
+template <typename Decoder>
+void WriteReadEntry::writeFromCoded(const Decoder &doc)
+{
+  DCOWriter wr(*w_token, DataTimeSpec::now());
+  try {
+    doc.codedToDCO(wr);
+  }
+  catch (const dueca::ConversionNotDefined &e) {
+    /* DUECA websockets.
+
+       Failed to decode a DCO object from the received JSON
+       string. Check the correspondence between the DCO object and the
+       external program. */
+    W_XTR("Websockets, cannot decode '" << w_token->getDataClassName()
+                                        << "' from 'data'");
+    wr.failed();
+  }
+}
+
+
+template <typename Decoder> void WriteEntry::writeFromCoded(const Decoder &doc)
+{
+  DataTimeSpec ts;
+  if (ctiming) {
+    if (stream) {
+      ts = doc.getStreamTime();
+    }
+    else {
+      ts = doc.getTime();
+    }
+  }
+  else {
+    // follow current time
+    ts.validity_start = ts.validity_end = SimTime::now();
+  }
+
+  DCOWriter wr(*w_token, ts);
+  try {
+    doc.codedToDCO(wr);
+  }
+  catch (const dueca::ConversionNotDefined &e) {
+    /* DUECA websockets.
+
+       Failed to decode an object of the given dataclass from the JSON
+       string received. Check the correspondence between your
+       (external) program and the DUECA object definitions. */
+    W_XTR("Websockets, cannot extract '" << w_token->getDataClassName()
+                                         << "' from 'data'");
+    wr.failed();
   }
 }
 

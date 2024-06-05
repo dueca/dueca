@@ -11,6 +11,7 @@
         license         : EUPL-1.2
 */
 
+#include <rapidjson/ostreamwrapper.h>
 #include <stdexcept>
 #define DCOtoJSON_cxx
 #include "DCOtoJSON.hxx"
@@ -34,19 +35,18 @@ namespace json = rapidjson;
 
 DUECA_NS_START;
 
-template<class T>
-void writeAny(json::Writer<json::StringBuffer>& writer,
-                     const boost::any& val);
+template<typename WRITER, class T>
+void writeAny(WRITER& writer, const boost::any& val);
 
-template<typename F>
-void writefloatflex(json::Writer<json::StringBuffer>& writer,
+template<typename WRITER, typename F>
+void writefloatflex(WRITER& writer,
                     const boost::any& val) {
   F v = boost::any_cast<F>(val);
   writer.Double(v);
 };
 
-template<typename F>
-void writefloatstrict(json::Writer<json::StringBuffer>& writer,
+template<typename WRITER, typename F>
+void writefloatstrict(WRITER& writer,
                       const boost::any &val) {
   F v = boost::any_cast<F>(val);
   if (std::isfinite(v)) {
@@ -63,90 +63,159 @@ void writefloatstrict(json::Writer<json::StringBuffer>& writer,
   }
 };
 
-template<unsigned mxsize>
-void writeAnyDstring(json::Writer<json::StringBuffer>& writer,
-                             const boost::any& val)
+template<typename WRITER, unsigned mxsize>
+void writeAnyDstring(WRITER& writer,
+                     const boost::any& val)
 {
   writer.String(boost::any_cast<Dstring<mxsize> >(val).c_str(),
                 boost::any_cast<Dstring<mxsize> >(val).size(), true);
 }
 
 template<>
-void writeAny<char>(json::Writer<json::StringBuffer>& writer,
-                    const boost::any& val)
+void writeAny<json::Writer<json::StringBuffer>,char>
+(json::Writer<json::StringBuffer>& writer, const boost::any& val)
 {
   char tmp[2] = { boost::any_cast<char>(val), '\0' };
   writer.String(tmp, 1, true);
 }
 
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,char>
+(json::Writer<json::OStreamWrapper>& writer, const boost::any& val)
+{
+  char tmp[2] = { boost::any_cast<char>(val), '\0' };
+  writer.String(tmp, 1, true);
+}
 
 template<>
-void writeAny<uint8_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,uint8_t>
+(json::Writer<json::StringBuffer>& writer,
+                       const boost::any& val)
+{
+  writer.Uint(boost::any_cast<uint8_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,uint8_t>
+(json::Writer<json::OStreamWrapper>& writer,
                        const boost::any& val)
 {
   writer.Uint(boost::any_cast<uint8_t>(val));
 }
 
 template<>
-void writeAny<uint16_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,uint16_t>
+(json::Writer<json::StringBuffer>& writer,
+                        const boost::any& val)
+{
+  writer.Uint(boost::any_cast<uint16_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,uint16_t>
+(json::Writer<json::OStreamWrapper>& writer,
                         const boost::any& val)
 {
   writer.Uint(boost::any_cast<uint16_t>(val));
 }
 
 template<>
-void writeAny<uint32_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,uint32_t>
+(json::Writer<json::StringBuffer>& writer,
+                        const boost::any& val)
+{
+  writer.Uint(boost::any_cast<uint32_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,uint32_t>
+(json::Writer<json::OStreamWrapper>& writer,
                         const boost::any& val)
 {
   writer.Uint(boost::any_cast<uint32_t>(val));
 }
 
 template<>
-void writeAny<uint64_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,uint64_t>
+(json::Writer<json::StringBuffer>& writer,
+                        const boost::any& val)
+{
+  writer.Uint64(boost::any_cast<uint64_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,uint64_t>(json::Writer<json::OStreamWrapper>& writer,
                         const boost::any& val)
 {
   writer.Uint64(boost::any_cast<uint64_t>(val));
 }
 
 template<>
-void writeAny<int8_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,int8_t>(json::Writer<json::StringBuffer>& writer,
+                      const boost::any& val)
+{
+  writer.Int(boost::any_cast<int8_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,int8_t>(json::Writer<json::OStreamWrapper>& writer,
                       const boost::any& val)
 {
   writer.Int(boost::any_cast<int8_t>(val));
 }
 
 template<>
-void writeAny<int16_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,int16_t>(json::Writer<json::StringBuffer>& writer,
+                       const boost::any& val)
+{
+  writer.Int(boost::any_cast<int16_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,int16_t>(json::Writer<json::OStreamWrapper>& writer,
                        const boost::any& val)
 {
   writer.Int(boost::any_cast<int16_t>(val));
 }
 
 template<>
-void writeAny<int32_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,int32_t>(json::Writer<json::StringBuffer>& writer,
+                       const boost::any& val)
+{
+  writer.Int(boost::any_cast<int32_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,int32_t>(json::Writer<json::OStreamWrapper>& writer,
                        const boost::any& val)
 {
   writer.Int(boost::any_cast<int32_t>(val));
 }
 
 template<>
-void writeAny<int64_t>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,int64_t>(json::Writer<json::StringBuffer>& writer,
+                       const boost::any& val)
+{
+  writer.Int64(boost::any_cast<int64_t>(val));
+}
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,int64_t>(json::Writer<json::OStreamWrapper>& writer,
                        const boost::any& val)
 {
   writer.Int64(boost::any_cast<int64_t>(val));
 }
 
 template<>
-void writeAny<bool>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,bool>(json::Writer<json::StringBuffer>& writer,
+                    const boost::any& val)
+{
+  writer.Bool(boost::any_cast<bool>(val));
+}
+
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,bool>(json::Writer<json::OStreamWrapper>& writer,
                     const boost::any& val)
 {
   writer.Bool(boost::any_cast<bool>(val));
 }
 
 
-template<typename F,
-         void (*FN)(json::Writer<json::StringBuffer>&, const F&)>
-void writeAnyFloat(json::Writer<json::StringBuffer>& writer,
+template<typename WRITER, typename F,
+         void (*FN)(WRITER&, const F&)>
+void writeAnyFloat(WRITER& writer,
                    const boost::any& val)
 {
   F v = boost::any_cast<F>(val);
@@ -154,7 +223,7 @@ void writeAnyFloat(json::Writer<json::StringBuffer>& writer,
 }
 
 template<>
-void writeAny<ActivityContext>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::StringBuffer>,ActivityContext>(json::Writer<json::StringBuffer>& writer,
                                const boost::any& val)
 {
   std::stringstream o;
@@ -163,7 +232,26 @@ void writeAny<ActivityContext>(json::Writer<json::StringBuffer>& writer,
 }
 
 template<>
-void writeAny<std::string>(json::Writer<json::StringBuffer>& writer,
+void writeAny<json::Writer<json::OStreamWrapper>,ActivityContext>(json::Writer<json::OStreamWrapper>& writer,
+                               const boost::any& val)
+{
+  std::stringstream o;
+  boost::any_cast<ActivityContext>(val).print(o);
+  writer.String(o.str().c_str());
+}
+
+template<>
+void writeAny<json::Writer<json::StringBuffer>,std::string>
+(json::Writer<json::StringBuffer>& writer,
+                           const boost::any& val)
+{
+  writer.String(boost::any_cast<std::string>(val).data(),
+                boost::any_cast<std::string>(val).size());
+}
+template<>
+
+void writeAny<json::Writer<json::OStreamWrapper>,std::string>
+(json::Writer<json::OStreamWrapper>& writer,
                            const boost::any& val)
 {
   writer.String(boost::any_cast<std::string>(val).data(),
@@ -171,8 +259,16 @@ void writeAny<std::string>(json::Writer<json::StringBuffer>& writer,
 }
 
 template<>
-void writeAny<smartstring>(json::Writer<json::StringBuffer>& writer,
-                           const boost::any& val)
+void writeAny<json::Writer<json::StringBuffer>,smartstring>
+(json::Writer<json::StringBuffer>& writer, const boost::any& val)
+{
+  writer.String(boost::any_cast<smartstring>(val).data(),
+                boost::any_cast<smartstring>(val).size());
+}
+
+template<>
+void writeAny<json::Writer<json::OStreamWrapper>,smartstring>
+(json::Writer<json::OStreamWrapper>& writer, const boost::any& val)
 {
   writer.String(boost::any_cast<smartstring>(val).data(),
                 boost::any_cast<smartstring>(val).size());
@@ -181,7 +277,7 @@ void writeAny<smartstring>(json::Writer<json::StringBuffer>& writer,
 // last resort, generic is not OK
 #if 0
 template<class T>
-static void writeAny(json::Writer<json::StringBuffer>& writer,
+static void writeAny(WRITER& writer,
                      const boost::any& val)
 {
   std::cerr << "not implemented" << std::endl;
@@ -189,44 +285,43 @@ static void writeAny(json::Writer<json::StringBuffer>& writer,
 #endif
 
 
-template<void (*Ff)(json::Writer<json::StringBuffer>&,
-                    const boost::any&),
-         void (*Fd)(json::Writer<json::StringBuffer>&,
-                    const boost::any&)>
-void writeAnyValue(json::Writer<json::StringBuffer>& writer,
+template<typename WRITER,
+        void (*Ff)(WRITER&, const boost::any&),
+         void (*Fd)(WRITER&, const boost::any&)>
+void writeAnyValue(WRITER& writer,
                    const boost::any& val)
 {
-  typedef std::function<void(json::Writer<json::StringBuffer>&,
+  typedef std::function<void(WRITER&,
                            const boost::any&)> avfunction;
   typedef std::map<typeindex_t,avfunction>
     writermap_t;
 
   static writermap_t wmap;
   if (wmap.size() == 0) {
-    wmap[TYPEID(uint8_t)] = avfunction(writeAny<uint8_t>);
-    wmap[TYPEID(uint16_t)] = avfunction(writeAny<uint16_t>);
-    wmap[TYPEID(uint32_t)] = avfunction(writeAny<uint32_t>);
-    wmap[TYPEID(uint64_t)] = avfunction(writeAny<uint64_t>);
-    wmap[TYPEID(char)] = avfunction(writeAny<char>);
-    wmap[TYPEID(int8_t)] = avfunction(writeAny<int8_t>);
-    wmap[TYPEID(int16_t)] = avfunction(writeAny<int16_t>);
-    wmap[TYPEID(int32_t)] = avfunction(writeAny<int32_t>);
-    wmap[TYPEID(int64_t)] = avfunction(writeAny<int64_t>);
-    wmap[TYPEID(bool)] = avfunction(writeAny<bool>);
+    wmap[TYPEID(uint8_t)] = avfunction(writeAny<WRITER,uint8_t>);
+    wmap[TYPEID(uint16_t)] = avfunction(writeAny<WRITER,uint16_t>);
+    wmap[TYPEID(uint32_t)] = avfunction(writeAny<WRITER,uint32_t>);
+    wmap[TYPEID(uint64_t)] = avfunction(writeAny<WRITER,uint64_t>);
+    wmap[TYPEID(char)] = avfunction(writeAny<WRITER,char>);
+    wmap[TYPEID(int8_t)] = avfunction(writeAny<WRITER,int8_t>);
+    wmap[TYPEID(int16_t)] = avfunction(writeAny<WRITER,int16_t>);
+    wmap[TYPEID(int32_t)] = avfunction(writeAny<WRITER,int32_t>);
+    wmap[TYPEID(int64_t)] = avfunction(writeAny<WRITER,int64_t>);
+    wmap[TYPEID(bool)] = avfunction(writeAny<WRITER,bool>);
     //wmap[TYPEID(float)] = avfunction(writeAny<float>);
     //wmap[TYPEID(double)] = avfunction(writeAny<double>);
     wmap[TYPEID(float)] = avfunction(Ff);
     wmap[TYPEID(double)] = avfunction(Fd);
-    wmap[TYPEID(std::string)] = avfunction(writeAny<std::string>);
-    wmap[TYPEID(smartstring)] = avfunction(writeAny<smartstring>);
-    wmap[TYPEID(Dstring<8>)] = avfunction(writeAnyDstring<8>);
-    wmap[TYPEID(Dstring<16>)] = avfunction(writeAnyDstring<16>);
-    wmap[TYPEID(Dstring<32>)] = avfunction(writeAnyDstring<32>);
-    wmap[TYPEID(Dstring<64>)] = avfunction(writeAnyDstring<64>);
-    wmap[TYPEID(Dstring<128>)] = avfunction(writeAnyDstring<128>);
-    wmap[TYPEID(Dstring<LSSIZE>)] = avfunction(writeAnyDstring<LSSIZE>);
+    wmap[TYPEID(std::string)] = avfunction(writeAny<WRITER,std::string>);
+    wmap[TYPEID(smartstring)] = avfunction(writeAny<WRITER,smartstring>);
+    wmap[TYPEID(Dstring<8>)] = avfunction(writeAnyDstring<WRITER,8>);
+    wmap[TYPEID(Dstring<16>)] = avfunction(writeAnyDstring<WRITER,16>);
+    wmap[TYPEID(Dstring<32>)] = avfunction(writeAnyDstring<WRITER,32>);
+    wmap[TYPEID(Dstring<64>)] = avfunction(writeAnyDstring<WRITER,64>);
+    wmap[TYPEID(Dstring<128>)] = avfunction(writeAnyDstring<WRITER,128>);
+    wmap[TYPEID(Dstring<LSSIZE>)] = avfunction(writeAnyDstring<WRITER,LSSIZE>);
     wmap[TYPEID(dueca::ActivityContext)] =
-      avfunction(writeAny<dueca::ActivityContext>);
+      avfunction(writeAny<WRITER,dueca::ActivityContext>);
   }
   try {
     wmap.at(val.type())(writer, val);
@@ -242,7 +337,7 @@ void writeAnyValue(json::Writer<json::StringBuffer>& writer,
   catch (const std::out_of_range& e) {
     /* DUECA JSON.
 
-       Have no mapping to serialize a DCO object member of this datatype 
+       Have no mapping to serialize a DCO object member of this datatype
        to JSON. Use other datatypes in your DCO, or try to get
        the serialize expanded. */
     E_XTR("No mapping to serialize type '" << val.type().name());
@@ -257,12 +352,13 @@ void writeAnyValue(json::Writer<json::StringBuffer>& writer,
   }
 }
 
-template<void (*Ff)(json::Writer<json::StringBuffer>&,
+template<typename WRITER,
+         void (*Ff)(WRITER&,
                     const boost::any&),
-         void (*Fd)(json::Writer<json::StringBuffer>&,
+         void (*Fd)(WRITER&,
                     const boost::any&)>
-static void DCOtoJSON(json::Writer<json::StringBuffer>& writer,
-                      CommObjectReader& reader)
+static void DCOtoJSON(WRITER& writer,
+                      const CommObjectReader& reader)
 {
   writer.StartObject();
   for (size_t ii = 0; ii < reader.getNumMembers(); ii++) {
@@ -289,15 +385,15 @@ static void DCOtoJSON(json::Writer<json::StringBuffer>& writer,
           // for mapped objects,
           writer.StartObject();
           writer.Key("key");
-          writeAnyValue<Ff,Fd>(writer, key);
+          writeAnyValue<WRITER,Ff,Fd>(writer, key);
           writer.Key("value");
 
           // recursively call
-          DCOtoJSON<Ff,Fd>(writer, rec);
+          DCOtoJSON<WRITER,Ff,Fd>(writer, rec);
           writer.EndObject();
         }
         else {
-          DCOtoJSON<Ff,Fd>(writer, rec);
+          DCOtoJSON<WRITER,Ff,Fd>(writer, rec);
         }
       }
     }
@@ -310,13 +406,13 @@ static void DCOtoJSON(json::Writer<json::StringBuffer>& writer,
           // for mapped objects,
           writer.StartObject();
           writer.Key("key");
-          writeAnyValue<Ff,Fd>(writer, key);
+          writeAnyValue<WRITER,Ff,Fd>(writer, key);
           writer.Key("value");
-          writeAnyValue<Ff,Fd>(writer, value);
+          writeAnyValue<WRITER,Ff,Fd>(writer, value);
           writer.EndObject();
         }
         else {
-          writeAnyValue<Ff,Fd>(writer, value);
+          writeAnyValue<WRITER,Ff,Fd>(writer, value);
         }
       }
     }
@@ -332,14 +428,20 @@ void DCOtoJSONcompact(json::StringBuffer &doc,
 {
   CommObjectReader reader(dcoclass, object);
   json::Writer<json::StringBuffer> writer(doc);
-  DCOtoJSON<writefloatflex<float>, writefloatflex<double> >(writer, reader);
+  DCOtoJSON<json::Writer<json::StringBuffer>, writefloatflex<json::Writer<json::StringBuffer>,float>, writefloatflex<json::Writer<json::StringBuffer>,double> >(writer, reader);
 }
 
 
 void DCOtoJSONcompact(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                      CommObjectReader& reader)
+                      const CommObjectReader& reader)
 {
-  DCOtoJSON<writefloatflex<float>, writefloatflex<double> >(writer, reader);
+  DCOtoJSON<json::Writer<json::StringBuffer>, writefloatflex<json::Writer<json::StringBuffer>,float>, writefloatflex<json::Writer<json::StringBuffer>,double> >(writer, reader);
+}
+
+void DCOtoJSONcompact(rapidjson::Writer<rapidjson::OStreamWrapper> &writer,
+                      const CommObjectReader& reader)
+{
+  DCOtoJSON<json::Writer<json::OStreamWrapper>, writefloatflex<json::Writer<rapidjson::OStreamWrapper>,float>, writefloatflex<json::Writer<rapidjson::OStreamWrapper>,double> >(writer, reader);
 }
 
 void DCOtoJSONstrict(json::StringBuffer &doc,
@@ -347,14 +449,20 @@ void DCOtoJSONstrict(json::StringBuffer &doc,
 {
   CommObjectReader reader(dcoclass, object);
   json::Writer<json::StringBuffer> writer(doc);
-  DCOtoJSON<writefloatstrict<float>, writefloatstrict<double> >(writer, reader);
+  DCOtoJSON<json::Writer<json::StringBuffer>, writefloatstrict<json::Writer<json::StringBuffer>,float>, writefloatstrict<json::Writer<json::StringBuffer>,double> >(writer, reader);
 }
 
 
 void DCOtoJSONstrict(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                     CommObjectReader& reader)
+                     const CommObjectReader& reader)
 {
-  DCOtoJSON<writefloatstrict<float>, writefloatstrict<double> >(writer, reader);
+  DCOtoJSON<json::Writer<json::StringBuffer>, writefloatstrict<json::Writer<json::StringBuffer>,float>, writefloatstrict<json::Writer<json::StringBuffer>,double> >(writer, reader);
+}
+
+void DCOtoJSONstrict(rapidjson::Writer<rapidjson::OStreamWrapper> &writer,
+                     const CommObjectReader& reader)
+{
+  DCOtoJSON<json::Writer<json::OStreamWrapper>, writefloatstrict<json::Writer<rapidjson::OStreamWrapper>,float>, writefloatstrict<json::Writer<json::OStreamWrapper>,double> >(writer, reader);
 }
 
 DUECA_NS_END;

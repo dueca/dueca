@@ -18,6 +18,7 @@
 #define WebSocketsServer_hxx
 
 // include the dusime header
+#include "WebsockExceptions.hxx"
 #include <ChannelWatcher.hxx>
 #include <StateGuard.hxx>
 #include <boost/asio.hpp>
@@ -396,10 +397,11 @@ public: // coding function
     program), the module may be configured to act as a very simple web
     server as well, serving files from a single folder.
  */
-template <typename Encoder> class WebSocketsServer : public WebSocketsServerBase
+template <typename Encoder,typename Decoder>
+class WebSocketsServer : public WebSocketsServerBase
 {
   /** self-define the module type, to ease writing the parameter table */
-  typedef WebSocketsServer<Encoder> _ThisModule_;
+  typedef WebSocketsServer<Encoder,Decoder> _ThisModule_;
 
 private: // simulation data
 

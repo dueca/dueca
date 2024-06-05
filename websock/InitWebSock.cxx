@@ -11,6 +11,8 @@
         license         : EUPL-1.2 - Rene van Paassen
 */
 
+#include "jsonpacker.hxx"
+//#include "msgpackpacker.hxx"
 #include <dueca/Init.hxx>
 #include <dueca/visibility.h>
 #include "DuecaEnv.hxx"
@@ -23,7 +25,6 @@
 #include "TypeCreator.hxx"
 #include <dueca_ns.h>
 #include <iostream>
-#include "jsonpacker.hxx"
 
 #if defined(SCRIPT_SCHEME)
 #include <SchemeClassData.hxx>
@@ -44,8 +45,13 @@ LNK_PUBLICC void InitWebSock()
   if (!DuecaEnv::scriptSpecific()) {
     std::cout << "Init from     [dueca-websock]" << std::endl;
   }
-  static dueca::TypeCreator<websock::WebSocketsServer<jsonpacker> >
+  static dueca::TypeCreator<websock::WebSocketsServer
+    <websock::jsonpacker,websock::jsonunpacker> >
     a(websock::WebSocketsServerBase::getMyParameterTable());
+
+//  static dueca::TypeCreator<websock::WebSocketsServer
+//    <websock::msgpackpacker,websock::msgpackunpacker> >
+//    a(websock::WebSocketsServerBase::getMyParameterTable());
 
   static TypeCreator<ConfigStorage>
     b(ConfigStorage::getMyParameterTable());

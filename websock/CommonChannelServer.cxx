@@ -29,6 +29,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/reader.h>
+#include "WebsockExceptions.hxx"
 
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
@@ -496,68 +497,6 @@ bool WriteEntry::checkToken()
   return res;
 }
 
-template <typename Decoder> void WriteEntry::writeFromCoded(const Decoder &doc)
-{
-
-  DataTimeSpec ts;
-  if (ctiming) {
-    if (stream) {
-      auto it = doc.FindMember("tick");
-      if (it == doc.MemberEnd() || !it->value.IsArray() ||
-          it->value.Size() != 2 || !it->value[0].IsInt()) {
-        /* DUECA websockets.
-
-           For writing data as stream (dueca::Channel::Continuous),
-           the client needs to supply a "tick" member in the JSON with
-           two integer values for the time tick. Check/correct the
-           configuration or your external client program.
-        */
-        W_XTR("JSON data needs 2 elt tick");
-        throw dataparseerror();
-      }
-
-      // need two elements in tick, tick needs to be array
-      ts.validity_start = it->value[0].GetInt();
-      ts.validity_end = it->value[1].GetInt();
-    }
-    else {
-      auto it = doc.FindMember("tick");
-      if (it == doc.MemberEnd() || !it->value.IsInt()) {
-        /* DUECA websockets.
-
-           For writing data as stream (dueca::Channel::Continuous),
-           the client needs to supply a "tick" member in the JSON with
-           one integer value for the time tick. Check/correct the
-           configuration or your external client program.
-        */
-        W_XTR("JSON data needs 1 elt tick");
-        throw dataparseerror();
-      }
-      // tick needs to be a single value
-      ts.validity_start = ts.validity_end = it->value.GetInt();
-    }
-  }
-  else {
-    // follow current time
-    ts.validity_start = ts.validity_end = SimTime::now();
-  }
-
-  DCOWriter wr(*w_token, ts);
-  try {
-    CodedToDCO(doc["data"], wr);
-  }
-  catch (const dueca::ConversionNotDefined &e) {
-    /* DUECA websockets.
-
-       Failed to decode an object of the given dataclass from the JSON
-       string received. Check the correspondence between your
-       (external) program and the DUECA object definitions. */
-    W_XTR("Websockets, cannot extract '" << w_token->getDataClassName()
-                                         << "' from 'data' in '" << doc << "'")
-    wr.failed();
-  }
-}
-
 PresetWriteEntry::PresetWriteEntry(const std::string &channelname,
                                    const std::string &datatype,
                                    const std::string &label,
@@ -841,42 +780,16 @@ const GlobalId &WriteReadEntry::getId() const { return master->getId(); }
 
 void WriteReadEntry::tokenValid(const TimeSpec &ts)
 {
-  rapidjson::StringBuffer doc;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
-  writer.StartObject();
-
-  // write side information, dataclass and typeinfo
-  writer.Key("write");
-  writer.StartObject();
-  writer.Key("dataclass");
-  writer.String(w_dataclass.c_str());
-  writer.Key("entry");
-  writer.Int(w_token->getEntryId());
-  writer.Key("typeinfo");
-  writeTypeInfo(writer, w_dataclass);
-  writer.EndObject();
-
-  // read side information, dataclass and typeinfo
-  writer.Key("read");
-  writer.StartObject();
-  writer.Key("dataclass");
-  writer.String(r_dataclass.c_str());
-  writer.Key("entry");
-  writer.Int(r_token->getEntryId());
-  writer.Key("typeinfo");
-  writeTypeInfo(writer, r_dataclass);
-  writer.EndObject();
-
-  // close off the JSON
-  writer.EndObject();
+  std::stringstream buf;
+  master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(),
+    r_dataclass, r_token->getEntryId());
 
   // both tokens valid now, return information on entries
-  sendOne(doc.GetString(), "WriterReader info");
+  sendOne(buf.str(), "WriterReader info");
 }
 
 void WriteReadEntry::passData(const TimeSpec &ts)
 {
-  Encoder writer;
   DCOReader r(r_dataclass.c_str(), *r_token, ts);
   /*
   DataTimeSpec dtd = r.timeSpec();
@@ -890,7 +803,9 @@ void WriteReadEntry::passData(const TimeSpec &ts)
   DEB2("WriteReadEntry::passData " << doc.GetString());
   sendOne(doc.GetString(), "channel data");
   */
-  sendOne(master->codeData(r), "channel data");
+  std::stringstream buf;
+  master->codeData(buf, r);
+  sendOne(buf.str(), "channel data");
 }
 
 void WriteReadEntry::sendOne(const std::string &data, const char *desc)
@@ -931,36 +846,6 @@ void WriteReadEntry::entryRemoved(const ChannelEntryInfo &i)
   }
 }
 
-template <typename Decoder>
-void WriteReadEntry::writeFromCoded(const Decoder &doc)
-{
-  auto data = doc.FindMember("data");
-  if (data == doc.MemberEnd()) {
-    /* DUECA websockets.
-
-       Error in interpreting the recurring JSON data for a
-       "write-and-read" URL, it needs a member "data" with the
-       to-be-written data.
-    */
-    W_XTR("Coded message has no member data");
-    throw dataparseerror();
-  }
-
-  DCOWriter wr(*w_token, DataTimeSpec::now());
-  try {
-    Decoder::todco(data->value, wr);
-  }
-  catch (const dueca::ConversionNotDefined &e) {
-    /* DUECA websockets.
-
-       Failed to decode a DCO object from the received JSON
-       string. Check the correspondence between the DCO object and the
-       external program. */
-    W_XTR("Websockets, cannot decode '" << w_token->getDataClassName()
-                                        << "' from 'data' in '" << doc << "'");
-    wr.failed();
-  }
-}
 
 DUECA_NS_END;
 WEBSOCK_NS_END;
