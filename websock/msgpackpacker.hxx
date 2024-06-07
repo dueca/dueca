@@ -11,6 +11,7 @@
 */
 
 #pragma once
+// https://stackoverflow.com/questions/44725299/messagepack-c-how-to-iterate-through-an-unknown-data-structure
 
 #include "WebsockExceptions.hxx"
 #include <dueca/CommObjectElementWriter.hxx>
@@ -22,6 +23,7 @@
 #include <dueca/CommObjectReader.hxx>
 #include <dueca/CommObjectElementReader.hxx>
 #include <dueca_ns.h>
+#define MSGPACK_USE_BOOST
 #include <msgpack.hpp>
 #include <dueca/debug.h>
 #include <DCOTypeIndex.hxx>
@@ -326,9 +328,8 @@ boost::any decode_value(const msgpack::object& doc, typeindex_t tix)
   return val;
 }
 
-
-typedef std::map<std::string, msgpack::object> mainmap_t;
-typedef std::vector<msgpack::object> mainvec_t;
+typedef std::map<std::string, msgpack::type::variant_ref> mainmap_t;
+typedef std::vector<msgpack::type::variant_ref> mainvec_t;
 
 void decode_dco(const mainmap_t& obj, CommObjectWriter& dco)
 {
@@ -444,12 +445,22 @@ struct msgpackpacker
 
 struct msgpackunpacker
 {
+  /** Object handle, must remain alive while unpacking the object */
+  msgpack::object_handle oh;
+
+  /** Object itself */
+  msgpack::object obj;
+
+  /** Map with immediate objects */
   mainmap_t doc;
+
   msgpackunpacker(const std::string &s) : doc()
   {
-    msgpack::object_handle msg = msgpack::unpack(s.c_str(), s.size());
-    msgpack::object obj = msg.get();
-    doc = obj.as<mainmap_t>();
+    oh = msgpack::unpack(s.c_str(), s.size());
+    obj = oh.get();
+    for (auto mp = obj.via.map.ptr; mp != obj.via.map.ptr + obj.via.map.size; mp++) {
+      doc[mp->key.as<std::string>()] = mp->val;
+    }
   }
 
   inline DataTimeSpec getStreamTime() const
