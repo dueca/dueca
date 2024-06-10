@@ -21,6 +21,7 @@
 // include the definition of the module class
 #include "WebSocketsServer.hxx"
 #include "jsonpacker.hxx"
+#include "msgpackpacker.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <dueca/DataClassRegistry.hxx>
@@ -58,9 +59,9 @@ template <>
 const char *const WebSocketsServer<jsonpacker, jsonunpacker>::classname =
   "web-sockets-server";
 
-//template <>
-//const char *const WebSocketsServer<msgpackpacker, msgpackunpacker>::classname =
-//  "web-sockets-server-msgpack";
+template <>
+const char *const WebSocketsServer<msgpackpacker, msgpackunpacker>::classname =
+  "web-sockets-server-msgpack";
 
 template <typename Encoder, typename Decoder>
 WebSocketsServer<Encoder,Decoder>::WebSocketsServer(Entity *e, const char *part,

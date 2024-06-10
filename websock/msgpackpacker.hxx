@@ -23,11 +23,14 @@
 #include <dueca/CommObjectReader.hxx>
 #include <dueca/CommObjectElementReader.hxx>
 #include <dueca_ns.h>
+#include <map>
+#include <msgpack/v3/null_visitor_decl.hpp>
 #define MSGPACK_USE_BOOST
 #include <msgpack.hpp>
 #include <dueca/debug.h>
 #include <DCOTypeIndex.hxx>
 #include <msgpack/v3/object_fwd_decl.hpp>
+#include <list>
 
 DUECA_NS_START;
 WEBSOCK_NS_START;
@@ -328,10 +331,65 @@ boost::any decode_value(const msgpack::object& doc, typeindex_t tix)
   return val;
 }
 
-typedef std::map<std::string, msgpack::type::variant_ref> mainmap_t;
-typedef std::vector<msgpack::type::variant_ref> mainvec_t;
+// typedef std::map<std::string, msgpack::type::variant_ref> mainmap_t;
+#if 0
+struct mainmap_t: public std::map<std::string, const msgpack::object>
+{
+  mainmap_t(const msgpack::object& obj) {
+    assert(obj.type == msgpack::type::MAP);
+    for (unsigned ii = 0; ii < obj.via.map.size; ii++) {
+      auto &elt = *(obj.via.map.ptr + ii);
+      assert(elt.key.type == msgpack::type::STR);
+      emplace(std::string(elt.key.via.str.ptr, elt.key.via.str.size), elt.val);
+    }
+  }
+  mainmap_t() {}
+};
+#endif
 
-void decode_dco(const mainmap_t& obj, CommObjectWriter& dco)
+typedef std::map<std::string, msgpack::object> mainmap_t;
+typedef std::vector<msgpack::object> mainvec_t;
+WEBSOCK_NS_END;
+DUECA_NS_END;
+
+namespace msgpack {
+namespace adaptor {
+
+template<>
+struct as<dueca::websock::mainvec_t> {
+  dueca::websock::mainvec_t operator() (const msgpack::object& obj)
+  {
+    if (obj.type != msgpack::type::ARRAY) { throw::msgpack::type_error(); }
+    dueca::websock::mainvec_t v; v.resize(obj.via.array.size);
+    for (unsigned ii = 0; ii < obj.via.array.size; ii++) {
+      v[ii] = *(obj.via.array.ptr + ii);
+    }
+    return v;
+  }
+};
+
+template<>
+struct as<dueca::websock::mainmap_t> {
+  dueca::websock::mainmap_t operator() (const msgpack::object& obj)
+  {
+    if (obj.type != msgpack::type::MAP) { throw::msgpack::type_error(); }
+    dueca::websock::mainmap_t v;
+    for (unsigned ii = 0; ii < obj.via.map.size; ii++) {
+      auto &elt = *(obj.via.map.ptr + ii);
+      assert(elt.key.type == msgpack::type::STR);
+      v.emplace(std::string(elt.key.via.str.ptr, elt.key.via.str.size), elt.val);
+    }
+    return v;
+  }
+};
+
+} // namespace adaptor
+}  // namespace msgpack
+
+DUECA_NS_START;
+WEBSOCK_NS_START;
+
+inline void decode_dco(const mainmap_t& obj, CommObjectWriter& dco)
 {
   for (const auto& elt: obj) {
     try {
@@ -341,24 +399,27 @@ void decode_dco(const mainmap_t& obj, CommObjectWriter& dco)
         switch (ew.getArity()) {
           case Single: {
             CommObjectWriter nest = ew.recurse();
-            decode_dco(elt.second.as<const mainmap_t>(), nest);
+            auto args = elt.second.as<mainmap_t>();
+            decode_dco(args, nest);
           }
             break;
           case Mapped: {
-            auto elts = elt.second.as<const mainmap_t>();
+            auto elts = elt.second.as<mainmap_t>();
             for (const auto &e: elts) {
               boost::any key = e.first;
               CommObjectWriter nest = ew.recurse(key);
-              decode_dco(e.second.as<const mainmap_t>(), nest);
+              auto args = e.second.as<mainmap_t>();
+              decode_dco(args, nest);
             }
           }
             break;
           case Iterable:
           case FixedIterable: {
-            auto elts = elt.second.as<const mainvec_t>();
+            auto elts = elt.second.as<mainvec_t>();
             for (const auto &e: elts) {
               CommObjectWriter nest = ew.recurse();
-              decode_dco(e.as<const mainmap_t>(), nest);
+              auto args = e.as<mainmap_t>();
+              decode_dco(args, nest);
             }
           }
         }
@@ -370,7 +431,7 @@ void decode_dco(const mainmap_t& obj, CommObjectWriter& dco)
           }
             break;
           case Mapped: {
-            auto elts = elt.second.as<const mainmap_t>();
+            auto elts = elt.second.as<mainmap_t>();
             for (const auto &e: elts) {
               boost::any key = e.first;
               boost::any val = decode_value(e.second, ew.getTypeIndex());
@@ -420,6 +481,12 @@ struct msgpackpacker
     writer.pack_str_body(s, strlen(s));
   }
 
+  inline void String(const std::string& s)
+  {
+    writer.pack_str(s.size());
+    writer.pack_str_body(s.c_str(), s.size());
+  }
+
   inline void Int(int i) { writer.pack_int(i); }
 
   inline void Uint(unsigned i) { writer.pack_uint32(i); }
@@ -436,7 +503,7 @@ struct msgpackpacker
 
   inline void Double(double d) { writer.pack_double(d); }
 
-  inline void dco(DCOReader &r) {
+  inline void dco(const DCOReader &r) {
     code_dco(writer, r);
   }
 
@@ -458,9 +525,7 @@ struct msgpackunpacker
   {
     oh = msgpack::unpack(s.c_str(), s.size());
     obj = oh.get();
-    for (auto mp = obj.via.map.ptr; mp != obj.via.map.ptr + obj.via.map.size; mp++) {
-      doc[mp->key.as<std::string>()] = mp->val;
-    }
+    doc = obj.as<mainmap_t>();
   }
 
   inline DataTimeSpec getStreamTime() const
@@ -479,7 +544,8 @@ struct msgpackunpacker
   inline void codedToDCO(DCOWriter &wr) const
   {
     auto data = doc.at("data");
-    decode_dco(data.as<mainmap_t>(), wr);
+    auto args = data.as<mainmap_t>();
+    decode_dco(args, wr);
   }
 };
 
