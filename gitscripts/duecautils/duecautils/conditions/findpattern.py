@@ -14,12 +14,14 @@ import re
 import os
 
 class FindPattern(PolicyCondition):
-    
+
+    matchresult = MatchReferenceFile
+
     # Determine how param arguments need to be stripped
     default_strip = dict(fileglob='both', pattern='both', resultvar='both',
                          label='both', limit='both')
 
-    def __init__(self, fileglob: str, pattern: str, label: str='default', 
+    def __init__(self, fileglob: str, pattern: str, label: str='default',
                  resultvar=None, limit=0, **kwargs):
         """
         Check for a pattern in the indicated files.
@@ -41,11 +43,11 @@ class FindPattern(PolicyCondition):
         None.
 
         """
-        self.fileglob, self.pattern = fileglob, pattern
-        self.resultvar = resultvar
-        self.label = label
+        self.fileglob, self.pattern = str(fileglob), str(pattern)
+        self.resultvar = str(resultvar)
+        self.label = str(label)
         try:
-            self.limit = int(limit)
+            self.limit = int(str(limit))
         except ValueError:
             raise ValueError(
                 f"{self.__class__.__name__}, cannont interpret 'limit' "
@@ -61,6 +63,7 @@ class FindPattern(PolicyCondition):
         matching = glob.glob(self.fileglob, recursive=False)
 
         dprint(f"Testing {matching}")
+        res = []
         for fn in matching:
             with open(fn, 'r') as tf:
                 text = tf.read()
@@ -69,19 +72,19 @@ class FindPattern(PolicyCondition):
 
                 # also record a "negative" result; this may be converted
                 # by a not condition
-                result[fn] = MatchReferenceFile(
+                res.append(MatchReferenceFile(
                     module=fn.split(os.sep)[0],
                     fname=f'{p_path}/{fn}',
-                    value=(mres is not None))
+                    value=(mres is not None)))
 
                 if mres is not None:
 
                     offset, count = 0, 0
                     while mres is not None:
-                        result[fn].addSpan(
+                        result[-1].addSpan(
                             MatchSpan(
                                 span=(offset+mres.span()[0],
-                                      offset+mres.span()[1]), 
+                                      offset+mres.span()[1]),
                                 count=count), self.label)
                         offset += mres.span()[-1]
                         count += 1
@@ -90,11 +93,7 @@ class FindPattern(PolicyCondition):
 
         checkAndSet(self.resultvar, newvars, list(result.values()))
         dprint(f"pattern setting {self.resultvar}, files: {len(result)}")
-        return (len(result) > 0, (len(result) > 0 and [
-             f'Found pattern {self.pattern} {len(val.matches)} times in file {fn}'
-             for fn, val in result.items() ]) or
-            [ 'FALSE: No pattern {self.pattern} found in {self.fileglob}'],
-            newvars)
+        return (result, map(self.__class__.matchresult.explain, result), newvars)
 
 PolicyCondition.register('find-pattern', FindPattern)
 

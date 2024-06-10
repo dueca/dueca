@@ -47,7 +47,7 @@ def _combine_not(kwargs, inputvar, trim=False):
     return res
 
 class ConditionNot(ComplexCondition):
-    
+
     # Determine how param arguments need to be stripped
     default_strip = dict(trim='both', resultvar='both', inputvar='both')
 
@@ -58,7 +58,7 @@ class ConditionNot(ComplexCondition):
         if (self.resultvar is not None) and \
             (len(self.inputvars) != 1):
             raise ValueError("NOT condition with output needs one inputvar")
-        self.trim = XML_interpret_bool(kwargs.get('trim', False))
+        self.trim = XML_interpret_bool(str(kwargs.get('trim', "false")))
 
 
     def holds(self, **kwargs):

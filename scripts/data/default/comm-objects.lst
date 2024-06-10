@@ -1,5 +1,10 @@
 # this file contains a list of all communicated objects needed by this
 # specific module
 # specify these with the .dco extension, examples:
-# @AppName@/comm-objects/MyDataObject.dco
+#
+# for DCO files belonging to your project, write this as:
+# @ThisProject@/comm-objects/MyDataObject.dco
+#
+# for DCO files belonging to another project (borrowed), write the
+# actual project name:
 # Generic/comm-objects/PrimaryControls.dco

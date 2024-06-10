@@ -10,9 +10,11 @@ import os
 import re
 from .verboseprint import dprint
 import sys
+from .param import Param
 
 _dcoline = re.compile(
-    r'^[ \t]*([^/]+)/comm-objects/(.*).dco[ \t]*#*.*[ \t\n]*')
+    r'^(([^ \t/]+)(/comm-objects)?/)?([^ \t.]+)\.dco[ \t]*(#.*)?[ \t\n]*$')
+
 _commentline = re.compile(
     r'^[ \t]*#.*[ \t\n]*$')
 '''
@@ -21,14 +23,43 @@ print(res.group(0), res.group(1), res.group(2))
 res = _commentline.fullmatch("blabla #comment")
 '''
 
-
+def noMatch(project, dco):
+    return False
 
 class CommObjectDef:
+    """ Data from a single dco reference in a comm-objects.lst
 
+        Can be either an empty or comment line, or a DCO reference
+    """
     def __init__(self, line=None, project=None, dco=None, comment=''):
+        """Parse a line, or compose a new line
 
-        if line is None and project is not None and dco is not None:
-            line = f'\n{project}/comm-objects/{dco}.dco{comment and "  # " + comment}\n'
+        Parameters
+        ----------
+        line : str, optional
+            single line in comm-objects.lst, to be parsed. If none, a new
+            line is composed from the project, dco and comment values
+        project : str, optional
+            project name, can be None, indicating home project
+        dco : str, optional
+            base name for dco object (without extension), by default None
+        comment : str, optional
+            comment string for the line, by default ''
+
+        Raises
+        ------
+        ValueError
+            If a dco line cannot be parsed
+        """
+
+        if line is None:
+            if dco is not None:
+                if project is None:
+                    line = f'{dco}.dco{comment and "  # " + comment}\n'
+                else:
+                    line = f'{project}/{dco}.dco{comment and "  # " + comment}\n'
+            else:
+                line = f'{comment and "# " + comment}\n'
         self._line = line
         self.base_project = None
         self.dco = None
@@ -39,11 +70,11 @@ class CommObjectDef:
             return
         try:
             res = _dcoline.fullmatch(line)
-            self.base_project = res.group(1).strip()
-            self.dco = res.group(2).strip()
+            self.base_project = res.group(2)
+            self.dco = res.group(4)
             # dprint(f"DCO line {line} decoded as {self}")
         except:
-            raise Exception(
+            raise ValueError(
                 f'cannot decode {line} as dco specification or comment')
 
     def __eq__(self, other):
@@ -102,6 +133,9 @@ class CommObjectsList:
         # dprint(list(map(str, self.dco)), CommObjectDef(None, project, dco))
         return CommObjectDef(None, project, dco) in self.dco
 
+    def matches(self, matchFunction):
+        return [ d for d in self.dco
+            if matchFunction(d.base_project, d.dco)]
 
     def doubles(self):
         found = set()
@@ -114,7 +148,7 @@ class CommObjectsList:
     def add(self, project, dco, comment):
         if self.contains(project, dco):
             print(f'Not adding, {self.fname} already contains '
-                  f'{project}/comm-objects/{dco}.dco', file=sys.stderr)
+                  f'{project}/{dco}.dco', file=sys.stderr)
             return
         self.dco.append(CommObjectDef(None, project, dco, comment))
         self.clean = False

@@ -12,25 +12,23 @@ from ..xmlutil import XML_interpret_bool
 from ..matchreference import doubleFile
 import os
 
-
-
 class ActionInsertText(PolicyAction):
     """
     Insert text at given places
     """
-    
+
     xmlname = "insert-text"
-    
+
     # parameter strip options
-    default_strip = dict(inputvar='both', 
+    default_strip = dict(inputvar='both',
                          mode='both', text='none',
                          substitute='both', substitutevar='both')
 
-    def __init__(self, text, label=None, inputvar=None, mode="before", 
+    def __init__(self, text, label=None, inputvar=None, mode="before",
                  substitute='', **kwargs):
         """
-        Insert text at a given position in a file. Either use the 
-        file names and line numbers produced by a match condition, 
+        Insert text at a given position in a file. Either use the
+        file names and line numbers produced by a match condition,
         or a fixed file name and line number.
 
         Parameters
@@ -38,7 +36,7 @@ class ActionInsertText(PolicyAction):
         text : str
             Text to be inserted.
         inputvar : list, optional
-            List with MatchReference objects as e.g., produced by 
+            List with MatchReference objects as e.g., produced by
             FindPattern.
         mode : str, default 'before'
             Insert before, after or replace match
@@ -49,29 +47,29 @@ class ActionInsertText(PolicyAction):
 
         """
         super().__init__(**kwargs)
-        
+
         if (inputvar is None):
-            raise ValueError("InsertText, specify inputvar and label") 
+            raise ValueError("InsertText, specify inputvar and label")
 
         self.text = text
         self.matchvar = inputvar
         self.label = label
         self.substitute = XML_interpret_bool(substitute)
-        
-        if mode.strip() not in set(("replace", "before", "after")):
+
+        if str(mode) not in set(("replace", "before", "after")):
             raise ValueError(f"InsertText, cannot do mode {mode}")
-        self.mode = mode.strip()
-            
-        
+        self.mode = str(mode)
+
+
     def enact(self, p_path, **kwargs):
-        
+
         todo = [ td for td in kwargs[self.matchvar] if td.value ]
         doubleFile(kwargs[self.matchvar], self.matchvar)
         res = []
         files = []
         text = self.text
         for it in todo:
-            
+
             if not it.value:
                 continue
             try:
@@ -106,7 +104,7 @@ class ActionInsertText(PolicyAction):
             except Exception as e:
                 raise e
                 res.append(f'Failed modification of {it.filename}, error {e}')
-        
+
         return '\n'.join(res), files
-    
+
 PolicyAction.register(ActionInsertText.xmlname, ActionInsertText)

@@ -26,35 +26,36 @@ endif()
 
 # list all python modules and files that create the package
 set(DEPS
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/__init__.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/readcnf.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/readmod.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/schemereader/readscheme.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/changedco.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/changemodule.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/__init__.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/inserttext.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/actions/policyaction.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/commobjects.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/borrowsmodule.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/findpattern.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/hasdco.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/__init__.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/policycondition.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/conditionand.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/conditionor.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/conditions/conditionnot.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/githandler.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/__init__.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/machinemapping.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/matchreference.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/modules.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/policylist.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/policy.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/verboseprint.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/xmlutil.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/codegen/MemberSummary.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/codegen/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/schemereader/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/schemereader/readcnf.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/schemereader/readmod.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/schemereader/readscheme.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/changedco.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/changemodule.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/inserttext.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/policyaction.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/commobjects.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/borrowsmodule.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/findpattern.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/usesdco.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/homedco.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/policycondition.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/conditionand.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/conditionor.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/conditionnot.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/githandler.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/machinemapping.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/matchreference.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/modules.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/policylist.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/policy.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/verboseprint.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/xmlutil.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/codegen/MemberSummary.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/codegen/__init__.py
   ${CMAKE_CURRENT_SOURCE_DIR}/README.md
   ${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg
   ${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml
@@ -111,8 +112,8 @@ if (PYTHON_HAVE_PYPABUILD EQUAL 0)
     ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
 
     COMMAND ${CMAKE_COMMAND} -E create_symlink
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_BINARY_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/duecautils
+    ${CMAKE_CURRENT_BINARY_DIR}/duecautils
 
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/dist
     COMMAND ${Python_EXECUTABLE} -m build
@@ -133,8 +134,8 @@ else()
     ${CMAKE_CURRENT_BINARY_DIR}/README.md
 
     COMMAND ${CMAKE_COMMAND} -E create_symlink
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_BINARY_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/duecautils
+    ${CMAKE_CURRENT_BINARY_DIR}/duecautils
 
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/dist
     COMMAND ${Python_EXECUTABLE} setup.py bdist_wheel

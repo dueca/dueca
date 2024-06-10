@@ -11,23 +11,29 @@ Match results, to be returned
 
 - pattern found in a file:
     filename -> matched file
+    value -> true if any match was found
     module -> module where file was found (if applicable)
-    spans where the pattern was found
+    matches -> spans where the pattern was found
 
 - dco used in a dco list:
-    filename -> the dco list
-    module -> module that uses the dco
-    dco -> dco name
-    dco_project -> dco parent project
+    filename -> the dco comm-objects.lst
+    value -> true if any match was found
+    module -> module that uses the list (where located)
+    module_project -> project where module located (always home project)
+    dco -> list of lines in dco list, either empty, comment or dco definition
+           if value true, is a match to a criterion (uses-dco or home-dco)
 
 - module borrowed or owned in a platform:
     filename -> modules.xml file
+    value -> true if any match was found
     machine_class -> machine class
     module -> module name
     module_project -> module parent project
 
 """
 from collections import defaultdict
+from .commobjects import CommObjectsList
+from .modules import Modules
 
 
 class MatchSpan:
@@ -40,9 +46,8 @@ class MatchSpan:
 
 class MatchReference:
 
-    def __init__(self, fname: str='', value=True):
+    def __init__(self, value=True):
 
-        self.filename = fname
         self.value = value
 
     def __repr__(self):
@@ -60,28 +65,33 @@ class MatchReference:
 
 class MatchReferenceDco(MatchReference):
 
-    def __init__(self, dco: str, dco_project: str,
-                 module: str, module_project: str,
-                 fname: str, value: bool=False):
-        self.dco = dco
-        self.dco_project = dco_project
-        self.module = module
-        self.module_project = module_project
-        super(MatchReferenceDco, self).__init__(fname, value)
+    def __init__(self, matchFunction,
+                 commobjects: CommObjectsList):
+        self.matchFunction = matchFunction
+        self.commobjects = commobjects
+        value = bool([c for c in commobjects if matchFunction(c.base_project, c.dco)])
 
-"""
-    def __repr__(self):
-        return f"MatchReferenceDCO(m:{self.module}, f:{self.filename}, " \
-            f"p:{self.module_project}, d:{self.dco}, dp:{self.dco_project})"""
+        super(MatchReferenceDco, self).__init__(value)
+
+    def explain(self):
+        res = [ f'For {self.commobjects.fname}:' ]
+        if self.value:
+            res.extend([ self.matchFunction.explain(c.base_project, c.dco)
+                         for c in self.commobjects
+                         if self.matchFunction(c.base_project, c.dco) ])
+        else:
+            res.append(self.matchFunction.explain())
+
+        return '\n'.join(res)
+
 
 class MatchReferenceModule(MatchReference):
 
-    def __init__(self, module: str, module_project: str,
-                 machine_class: str, fname: str, value: bool=False):
-        self.module = module
-        self.module_project = module_project
+    def __init__(self, matchFunction, modules: Modules):
+        self.matchFunction = matchFunction
+        self.modules = module
         self.machine_class = machine_class
-        super(MatchReferenceModule, self).__init__(fname, value)
+        super(MatchReferenceModule, self).__init__(value)
 
 """
     def __repr__(self):
@@ -90,9 +100,16 @@ class MatchReferenceModule(MatchReference):
 """
 
 class MatchReferenceFile(MatchReference):
+    """Match on a file (typically given by a pattern)
 
-    def __init__(self, module: str, fname: str, value: bool=True):
-        self.module = module
+    Parameters
+    ----------
+    MatchReference : _type_
+        _description_
+    """
+    matchon = set(('filename',))
+
+    def __init__(self, fname: str, value: bool=True):
 
         # function for dict
         def _empty_list():

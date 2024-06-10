@@ -1,4 +1,5 @@
-from .hasdco import UsesDco
+from .usesdco import UsesDco
+from .homedco import HomeDco
 from .policycondition import PolicyCondition
 from .borrowsmodule import HasModule
 from .findpattern import FindPattern
