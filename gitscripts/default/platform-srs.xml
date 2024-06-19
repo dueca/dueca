@@ -7,10 +7,20 @@
     <machineclass name="srs-ecs" gui="gtk3" />
     <machineclass name="srs-io" gui="none">
       <config>
-        set(PROJECT_LIBRARIES -L$ENV{HOME}/apps/srs-ecat-io/build
-            -lsrs-ecat-io -lethercat)
-        set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/apps/srs-ecat-io/build
-            -I$ENV{HOME}/apps/srs-ecat-io)
+	# find distinctive srs-io headers
+	find_path(SRSIO_INCLUDE_DIR
+                  NAMES HardwareInterface.hxx REQUIRED
+                  PATHS $ENV{HOME}/apps/srs-ecat-io)
+	list(APPEND SRSIO_INCLUDE_DIRS
+	     ${SRSIO_INCLUDE_DIR} ${SRSIO_INCLUDE_DIR}/build)
+
+	# check that the library is there
+	find_library(SRSIO_LIBRARY NAMES srs-ecat-io REQUIRED
+                     PATHS $ENV{HOME}/apps/srs-ecat-io/build)
+
+        # project variables
+	set(PROJECT_LIBRARIES ${SRSIO_LIBRARY})
+        set(PROJECT_INCLUDE_DIRS ${SRSIO_INCLUDE_DIRS})
       </config>
       <modules>
         <module>
@@ -57,9 +67,24 @@
     </machineclass>
     <machineclass name="srs-ig" gui="none">
       <modules>
-        <module>
-          <url>dgrbase:///CitationDemo.git</url>
-          <name>FGVisual</name>
+	<module>
+	  <url>dgrpub:///WorldView.git</url>
+	  <name>FlightGearVisual</name>
+          <version>master</version>
+	</module>
+	<module>
+	  <url>dgrpub:///WorldView.git</url>
+	  <name>WorldView</name>
+          <version>master</version>
+	</module>
+	<module>
+	  <url>dgrpub:///WorldView.git</url>
+	  <name>SpecificationBase</name>
+          <version>master</version>
+	</module>
+	<module>
+	  <url>dgrbase:///SRSVisual.git</url>
+	  <name>flightgear-data</name>
           <version>master</version>
         </module>
       </modules>
