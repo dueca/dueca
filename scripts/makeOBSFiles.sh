@@ -174,8 +174,8 @@ function create_debfiles()
                 ../../../${NAME}-xUbuntu_18.04.dsc
     popd
 
-    # and for xUbuntu 20.04 and 22.04
-    for VER in 20.04 22.04; do
+    # and for xUbuntu 20.04
+    for VER in 20.04; do
 
         # base version debian folder
         pushd obs
@@ -233,7 +233,7 @@ function create_debfiles()
         cp -f dueca*tar.bz2 ${OSCDIRV}
         mv -f debian-versioned.tar ${OSCDIRV}/debian.tar
         mv -f dueca-versioned.dsc ${OSCDIRV}
-        for VER in 18.04 20.04 22.04; do
+        for VER in 18.04 20.04; do
             mv -f dueca-versioned-xUbuntu_${VER}.dsc ${OSCDIRV}
             mv -f debian-versioned-xUbuntu_${VER}.tar \
                ${OSCDIRV}/debian-xUbuntu_${VER}.tar
@@ -257,7 +257,7 @@ function create_debfiles()
         cp -f dueca*tar.bz2 ${OSCDIR}
         mv -f debian.tar ${OSCDIR}/debian.tar
         mv -f dueca.dsc ${OSCDIR}
-        for VER in 18.04 20.04 22.04; do
+        for VER in 18.04 20.04; do
             mv -f dueca-xUbuntu_${VER}.dsc ${OSCDIR}
             mv -f debian-xUbuntu_${VER}.tar \
                ${OSCDIR}/debian-xUbuntu_${VER}.tar
