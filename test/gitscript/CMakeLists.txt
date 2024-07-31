@@ -302,7 +302,7 @@ if(Python3_Interpreter_FOUND)
 
   # check config modified
   add_test(NAME gitscript_prepareplatform_check_config
-    COMMAND grep lethercat .config/class/srs-io/config.cmake
+    COMMAND grep HardwareInterface .config/class/srs-io/config.cmake
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject2/TestProject2)
 
