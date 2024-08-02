@@ -5,7 +5,7 @@ Created on Sun May  2 18:35:52 2021
 
 @author: repa
 
-Conditions filter parts from different file types. 
+Conditions filter parts from different file types.
 
 - Module condition; filters on module name and donating project name
   * HasModule
@@ -13,14 +13,14 @@ Conditions filter parts from different file types.
   * UsesDCO
   * HomeDCO
 - Generic file pattern conditions; may filter either on module, file name regex
-  and pattern regex, on platform, file name regex and pattern regex, or only on file 
+  and pattern regex, on platform, file name regex and pattern regex, or only on file
   path regex?
   * FindPattern
 
 For combining filters, a two-stage process is used; first an "any" match is determined
 for each filter (like, borrows or has a module, and uses a dco from a specific module)
 if true after that, the conditions are run individually, and may produce new variables
-to be consumed in a later process. Variables are true if not-empty, and consist of the 
+to be consumed in a later process. Variables are true if not-empty, and consist of the
 combined matches, e.g., comm-objects.lst file, donating project, used dco.
 """
 
@@ -73,8 +73,9 @@ class ComplexCondition(PolicyCondition):
     def __init__(self, _node, resultvar=None, inputvar=None, **kwargs):
 
         self.subconditions = []
-        self.resultvar = None
         self.inputvars = []
+        if not hasattr(self, 'resultvar'):
+            self.resultvar = None
         try:
             if self.resultvar is not None:
                 self.resultvar = str(resultvar).strip()
@@ -104,7 +105,7 @@ class ConditionConstant(PolicyCondition):
 
     """
     matchon = set()
-    
+
     # Determine how param arguments need to be stripped
     default_strip = dict(value='both')
 

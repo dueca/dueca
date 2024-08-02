@@ -41,10 +41,12 @@ function(DUECA_ADD_DCO)
   # as a dependency
   if(CMAKE_CURRENT_SOURCE_DIR MATCHES ".*/\([^/]+\)/comm-objects$")
     set(OWNPRJ "${CMAKE_MATCH_1}")
+    set(DFLTPRJ "${CMAKE_MATCH_1}")
     set(BASE_TARGET "${CMAKE_MATCH_1}_comm-objects")
   else()
     set(OWNPRJ )
     if (CMAKE_CURRENT_SOURCE_DIR MATCHES ".*/\([^/]+\)/\([^/]+\)$")
+      set(DFLTPRJ "${CMAKE_MATCH_1}")
       set(BASE_TARGET "${CMAKE_MATCH_1}_${CMAKE_MATCH_2}")
     endif()
   endif()
@@ -72,11 +74,17 @@ function(DUECA_ADD_DCO)
     elseif(D MATCHES "^[ \t]*#(.*)$")
       # message(STATUS "comment ${CMAKE_MATCH_1}")
     elseif(D MATCHES
-        "^[ \t]*([^ \t/]+)/comm-objects/([^ \t.]+)\\.dco[ \t]*#?.*$")
-      #message(STATUS
-      #  "RESULT ${CMAKE_MATCH_1};${CMAKE_MATCH_2}")
-      set(PRJ ${CMAKE_MATCH_1})
-      set(DCO ${CMAKE_MATCH_2})
+        "^[ \t]*(([^ \t/]+)/)?comm-objects/([^ \t.]+)\\.dco[ \t]*#?.*$")
+      message(STATUS
+        "RESULT ${CMAKE_MATCH_2};${CMAKE_MATCH_3}")
+      set(PRJ ${CMAKE_MATCH_2})
+      set(DCO ${CMAKE_MATCH_3})
+
+      if (NOT PRJ)
+        message(STATUS
+          "Using default project name ${DEFLTPRJ} for dco ${DCO}")
+        set(PRJ "${DEFLTPRJ}")
+      endif()
 
       # check that the DCO file exists
       if (NOT EXISTS

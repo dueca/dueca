@@ -73,4 +73,5 @@ class UsesDco(PolicyCondition):
 
         return (result, map(self.__class__.matchresult.explain, result), newvars)
 
+
 PolicyCondition.register("uses-dco", UsesDco)

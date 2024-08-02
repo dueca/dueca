@@ -12,6 +12,26 @@ from ..verboseprint import dprint
 import glob
 import re
 import os
+from collections import defaultdict
+
+def _empty_list():
+    return list()
+
+class MatchFunctionPattern:
+
+    def __init__(self, pattern):
+
+        self.pattern = re.compile(pattern)
+
+    def __call__(self, text: str, span=None, fpath='unknown file'):
+
+        if span is None:
+            offset = 0
+        else:
+            offset = span[1]
+        res = self.pattern.search(text, offset)
+        return res and res.span(), res
+
 
 class FindPattern(PolicyCondition):
 
@@ -19,9 +39,9 @@ class FindPattern(PolicyCondition):
 
     # Determine how param arguments need to be stripped
     default_strip = dict(fileglob='both', pattern='both', resultvar='both',
-                         label='both', limit='both')
+                         limit='both')
 
-    def __init__(self, fileglob: str, pattern: str, label: str='default',
+    def __init__(self, fileglob: str, pattern: str,
                  resultvar=None, limit=0, **kwargs):
         """
         Check for a pattern in the indicated files.
@@ -45,7 +65,6 @@ class FindPattern(PolicyCondition):
         """
         self.fileglob, self.pattern = str(fileglob), str(pattern)
         self.resultvar = str(resultvar)
-        self.label = str(label)
         try:
             self.limit = int(str(limit))
         except ValueError:
@@ -56,42 +75,20 @@ class FindPattern(PolicyCondition):
     def holds(self, p_path, **kwargs):
 
         # run and test
-        result = dict()
-        newvars = dict()
+        result = []
+        newvars = defaultdict(_empty_list)
 
         testp = re.compile(self.pattern)
         matching = glob.glob(self.fileglob, recursive=False)
 
         dprint(f"Testing {matching}")
-        res = []
         for fn in matching:
-            with open(fn, 'r') as tf:
-                text = tf.read()
-                mres = testp.search(text)
-                dprint(f"pattern testing {fn}, result {mres}")
+            res = MatchReferenceFile(MatchFunctionPattern(testp), fn, self.limit)
+            if res.value:
+                result.append(res)
 
-                # also record a "negative" result; this may be converted
-                # by a not condition
-                res.append(MatchReferenceFile(
-                    module=fn.split(os.sep)[0],
-                    fname=f'{p_path}/{fn}',
-                    value=(mres is not None)))
 
-                if mres is not None:
-
-                    offset, count = 0, 0
-                    while mres is not None:
-                        result[-1].addSpan(
-                            MatchSpan(
-                                span=(offset+mres.span()[0],
-                                      offset+mres.span()[1]),
-                                count=count), self.label)
-                        offset += mres.span()[-1]
-                        count += 1
-                        dprint(f'Found pattern {self.pattern} at {offset}')
-                        mres = testp.search(text[offset:])
-
-        checkAndSet(self.resultvar, newvars, list(result.values()))
+        checkAndSet(self.resultvar, newvars, result)
         dprint(f"pattern setting {self.resultvar}, files: {len(result)}")
         return (result, map(self.__class__.matchresult.explain, result), newvars)
 

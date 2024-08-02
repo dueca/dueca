@@ -17,16 +17,16 @@ class ActionChangeModule(PolicyAction):
     xmlname = 'change-module'
 
     # parameter strip options
-    default_strip = dict(inputvar='both', 
-                         old_project='both', old_module='both',
+    default_strip = dict(inputvar='both',
+                         mode='both',
                          new_project='both', new_module='both',
                          url='both', version='both')
 
-    def __init__(self, inputvar: str, old_project=None, old_module=None, 
-                 new_project = None, new_module=None, 
+    def __init__(self, inputvar: str, mode='noop',
+                 new_project = None, new_module=None,
                  url=None, version='', **kwargs):
         """
-        Create an action to add a module to a project, remove one or 
+        Create an action to add a module to a project, remove one or
         do both.
 
         Arguments are determined by the parameters given in the xml file.
@@ -35,16 +35,12 @@ class ActionChangeModule(PolicyAction):
         ----------
         modulelists : MatchReference
             details on modules.xml files to be changed
-        old_project : TYPE, optional
-            Project of the module to be removed.
-        old_module : TYPE, optional
-            Module to be removed.
         new_project : TYPE, optional
             Project of the module to be added.
         new_module : TYPE, optional
             Module to be added.
         url : TYPE, optional
-            Full URL of the new project, needed if project is not yet 
+            Full URL of the new project, needed if project is not yet
             part of the project.
         version : TYPE, optional
             Version to be borrowed.
@@ -59,27 +55,15 @@ class ActionChangeModule(PolicyAction):
 
 
         super().__init__(**kwargs)
-        
+
         self.modulelists = inputvar
-        self.old_module, self.new_module = None, None
-        if old_project is not None and old_module is not None:
-            self.old_module = old_project, old_module
-        if new_project is not None and new_module is not None:
-            self.new_module = new_project, new_module
-            if url is None:
+        self.new_module = new_module
+        self.new_project = new_project
+        if url is None and new_project:
                 url = f'dgr:///{new_project}.git'
-        
         self.url = ((url is not None) and url) or url
         self.version = version
-
-        self.mode = 'noop'
-        if self.new_module:
-            if self.old_module:
-                self.mode = 'replace'
-            else:
-                self.mode = 'add'
-        elif self.old_module:
-            self.mode = 'delete'
+        self.mode = mode
 
     def enact(self, p_policy: str, p_polid, **kwargs):
         """
@@ -103,34 +87,36 @@ class ActionChangeModule(PolicyAction):
 
         """
         try:
-            modulelists = [ ml for ml in kwargs[self.modulelists] 
+            modulelists = [ ml for ml in kwargs[self.modulelists]
                             if ml.value ]
         except KeyError as e:
-            print(f"Cannot find variable {self.modulelists}, in {kwargs.keys()}", 
+            print(f"Cannot find variable {self.modulelists}, in {kwargs.keys()}",
                   file=sys.stderr)
             raise e
-        
+
         modified = []
         for ml in modulelists:
-        
+
             if not ml.value:
                 continue
-            
+
             res = [ f'Policy {p_polid}, on file {ml.filename}']
             if self.mode == 'add' or self.mode == 'replace':
                 try:
                     ml.modules.addModule(
-                        self.new_module[0], self.new_module[1],
+                        self.new_project, self.new_module,
                         self.version, self.url)
                     res.append(
                         f'Added {self.new_module[0]}/{self.new_module[1]}')
                 except Exception as e:
                     res.append(
                         f'Failure adding {self.new_module[0]}/{self.new_module[1]}: {str(e)}')
-                
+
             if self.mode == 'delete' or self.mode == 'replace':
-                ml.modules.deleteModule(self.old_module[0], self.old_module[1])
-                res.append(f'Deleted {self.old_module[0]}/{self.old_module[1]}')
+                for m in ml.modules:
+                    if ml.matchFunction(m['project'], m['module']):
+                        ml.modules.deleteModule(m['project'], m['module'])
+                res.append(f'Deleted {m["project"]}/{m["module"]}')
             if self.mode != 'noop':
                 ml.modules._sync()
                 modified.append(ml.filename)

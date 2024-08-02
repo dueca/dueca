@@ -42,8 +42,21 @@ parser.add_argument(
 parser.add_argument(
     '--source', type=str,
     help="File to be copied")
+parser.add_argument(
+    '--verbose', action='store_true',
+    help="Debug printing"
+)
 
 ns = parser.parse_args(sys.argv[1:])
+
+if ns.verbose:
+    def dprint(*args, **kwargs):
+        print(*args, **kwargs)
+else:
+    def dprint(*args, **kwargs):
+        pass
+
+commentstart = '  //'
 
 def free_backup_name(target):
     for i in range(1000):
@@ -54,6 +67,7 @@ def free_backup_name(target):
 
 def run_command(lines, cmd, arg):
 
+    dprint("Running command", cmd, "arg", arg)
     line = None
     try:
         # line number?
@@ -61,34 +75,38 @@ def run_command(lines, cmd, arg):
         line = lines[lno - 1]
         pattern = cmd[1].lstrip()[len(str(lno)):].strip()
 
+        dprint("Line number", lno, "line", line)
     except:
 
         # find with pattern
         pattern = cmd[1].strip()
-        for l in lines:
+        for i, l in enumerate(lines):
             if pattern in l[0]:
                 line = l
+                lno = i
                 break
+
         # last recourse, regex match
         if not line:
             reg = re.compile(pattern)
-            for l in lines:
-                if reg.search(l):
+            for i, l in enumerate(lines):
+                if reg.search(l[0]):
                     line = l
+                    lno = i
                     break
+
+        dprint("found line", line, lno)
+
     if not line:
         raise ValueError(
             f"Unable to find line matching {cmd[1]}")
 
+    if cmd[0] in 'aA':
+        if isinstance(arg, list):
+            line.extend(arg)
+            dprint("inserted", arg)
 
-
-    if cmd[0].upper() == 'A':
-        # append the argument lines
-        line.extend(arg)
-
-    elif cmd[0].upper() == 'R':
-
-
+    elif cmd[0] in 'rR':
 
         # replace something in the line, use direct first, try regex later
         res = line[0].split(pattern)
@@ -100,12 +118,16 @@ def run_command(lines, cmd, arg):
             raise ValueError(
                 f"Unable to replace code on line {line[0]}")
 
-    elif cmd[0].upper() == 'C':
+    elif cmd[0] in 'cC':
         # comment this line
-        line[0] = '//' + line[0]
+        line[0] = commentstart + line[0]
+
+    dprint("After modification: ", lines)
 
     return True
 
+if ns.target[-4:] in ('.txt', '.lst'):
+    commentstart = '# '
 
 if ns.source:
 
@@ -157,6 +179,10 @@ else:
                 else:
                     # must be argument
                     arg.append(l)
+
+        # after all is read
+        if cmd and arg:
+            run_command(lines, cmd, arg)
 
     with open(ns.target, 'w') as f1:
         for line in lines:

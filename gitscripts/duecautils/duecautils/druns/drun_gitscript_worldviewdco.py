@@ -1,3 +1,12 @@
+# test gitscript_applypolicies
+#
+# Command: "/home/repa/dueca/gitscripts/dueca-gproject.py"
+#          "--verbose" "policies" "--policiesurl"
+#          "file:///home/repa/dueca/test/gitscript/example-policies.xml"
+#          "--apply" "21-001"
+#
+# in        testarea/TestProject1
+
 import os
 import sys
 from pathlib import Path
@@ -23,11 +32,9 @@ class MoveAbout:
         os.chdir(cls.dirpath[-1])
         del cls.dirpath[-1]
 
-tpath = os.getenv('HOME', '/home/repa')
 for a, p in (
-    ('gdapps', 'BLETest'),
-    ('gdapps', 'WorldView')
-        ):
+    ("testarea", "TestProject1"),):
+
     # ensure we are not re-using the previous project's repo instance
     try:
         del duecautils.modules.ProjectRepo.instance
@@ -36,8 +43,9 @@ for a, p in (
 
     MoveAbout.push(f"{tpath}/{a}/{p}/{p}")
     policies = Policies(f"{tpath}/{a}/{p}/{p}",
-        False, [f'file://{dpath}/gitscripts/default/homedco.xml'], True)
+        False, [f'file:///{os.getenv("HOME")}/dueca/test/gitscript/worldviewdco.xml'], True)
     report = policies.inventory()
+    policies.apply()
     print(report)
-    MoveAbout.pop()
 
+    MoveAbout.pop()

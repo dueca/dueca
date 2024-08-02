@@ -47,8 +47,7 @@
     <!-- this action changes the dco use, removes the old_dco
          adds the new dco -->
     <action type="change-dco">
-      <param name="old_dco">Some</param>
-      <param name="old_project">TestProject1</param>
+      <param name="mode">replace</param>
       <param name="new_dco">SomeOther</param>
       <param name="new_project">TestProject2</param>
       <param name="inputvar">dcolist</param>

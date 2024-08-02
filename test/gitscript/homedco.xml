@@ -18,16 +18,12 @@
       re-write the comm-objects.lst file, removing the project part from the
       dco specification.
 
-      The advantage is that a project may be re-named or forked, and that the used
+      The advantage is that a project may be copied/cloned, and that the used
       dco's will no longer be pulled from the original project.
     </description>
     <condition type="home-dco">
       <!-- any dco -->
       <param name="dco" regex="true">
-        (^[a-zA-Z0-9_]+)$
-      </param>
-      <!-- from any project -->
-      <param name="project" regex="true">
         ^[a-zA-Z0-9_]+$
       </param>
       <param name="resultvar">
@@ -38,22 +34,26 @@
       <param name="inputvar">
         homedco
       </param>
-      <!-- setting old_dco empty ensures it will be changed (commented out -->
-      <param name="old_dco">
-      </param>
       <!-- new-dco is a match, result is the current dco name -->
       <param name="new_dco" format="true">
-        {g1}
+        {dco}
       </param>
       <!-- new_project is not set, will be "None", and not written -->
+      <!-- mode replace -->
+      <param name="mode">
+        replace
+      </param>
     </action>
   </policy>
-  <policy name="home-include" id="24-002">
+  <policy name="home-depend" id="24-002">
     <description>
-      From DUECA 4.0.9, the interpretation of including / dependency on another module
-      is more flexible. The module name can be supplied without project name, in that
-      case it is assumed that the module is from the home project. Doing this also
-      simplfies re-naming / forking a project.
+      From dueca 4.0.9, CMakeLists.txt files interpretation is more flexible
+      A USEMODULES line with only the name of a module will be interpreted
+      to include a module from the "home" project, i.e., the project that
+      also supplies the module.
+
+      The advantage is that a project may be copied/cloned, and that the used
+      modules no longer be pulled from the original project.
     </description>
     <condition type="home-depend">
       <param name="resultvar">
@@ -63,7 +63,7 @@
     <action type="insert-text">
       <param name="inputvar">homedepend</param>
       <param name="mode">replace</param>
-      <param name="text" format="true">{g1}</param>
+      <param name="text" format="true">{g2} # policy 24-002 {g3}</param>
     </action>
   </policy>
 </policies>

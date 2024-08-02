@@ -910,8 +910,12 @@ sparse-checkout file. Re-run 'git pull'""", file=sys.stderr)
         return os.sep.join(fname.split(os.sep)[nelts:])
 
     def __iter__(self):
-        mlist = [ dict(project=p, module=m)
-            for p, ml in self.projects.items() for m in ml ]
+        #mlist = []
+        ##for p, ml in self.projects.items():
+        #    for m in ml.modules:
+        #        mlist.append(dict(project=p, module=m.xmlnode.text))
+        mlist = [ dict(project=p, module=m.xmlnode.text)
+            for p, ml in self.projects.items() for m in ml.modules ]
         return iter(mlist)
 
 

@@ -22,6 +22,7 @@ class Param:
 
         self.name = par.get('name')
         _regex = par.get('regex', False)
+        self.format = par.get('format', False)
         pstrip = par.get('strip', (_regex and 'both') or default_strip)
 
         if pstrip.lower() == 'left':
@@ -52,6 +53,23 @@ class Param:
                 return val
             raise ValueError(f'Regex parameter {self.name} has no match on {val}')
         raise ValueError(f'Parameter {self.name}; {self.val} != {val}')
+
+    def getString(self, reg=None, vars=None):
+
+        if not self.format:
+            return self.val
+
+        mdict = dict()
+        if isinstance(reg, re.Match):
+            mdict['g0'] = reg.group(0)
+            for i, v in enumerate(reg.groups()):
+                if v is not None:
+                    mdict[f'g{i+1}'] = v
+                else:
+                    mdict[f'g{i+1}'] = ''
+        if vars is None:
+            vars = dict()
+        return self.val.format(**vars, **mdict)
 
     def __str__(self):
         if isinstance(self.val, str): return self.val

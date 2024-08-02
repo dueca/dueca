@@ -22,9 +22,10 @@ class ActionInsertText(PolicyAction):
     # parameter strip options
     default_strip = dict(inputvar='both',
                          mode='both', text='none',
-                         substitute='both', substitutevar='both')
+                         substitute='both', substitutevar='both',
+                         matchvar='both')
 
-    def __init__(self, text, label=None, inputvar=None, mode="before",
+    def __init__(self, text, label='default', inputvar=None, mode="before",
                  substitute='', **kwargs):
         """
         Insert text at a given position in a file. Either use the
@@ -63,8 +64,8 @@ class ActionInsertText(PolicyAction):
 
     def enact(self, p_path, **kwargs):
 
-        todo = [ td for td in kwargs[self.matchvar] if td.value ]
-        doubleFile(kwargs[self.matchvar], self.matchvar)
+        todo = [ td for td in kwargs[str(self.matchvar)] if td.value ]
+        doubleFile(kwargs[str(self.matchvar)], self.matchvar)
         res = []
         files = []
         text = self.text
@@ -73,29 +74,27 @@ class ActionInsertText(PolicyAction):
             if not it.value:
                 continue
             try:
-                print(f"Renaming {it.filename}")
+                dprint(f"Renaming {it.filename}")
                 os.rename(it.filename, it.filename+'~')
                 idxw = 0
                 f0 = open(it.filename+'~', 'r')
-                if self.substitute:
-                    text = self.text.format(**it.__dict__)
                 with open(it.filename, 'w') as f1:
                     txt0 = f0.read()
-                    for rep in it.matches[self.label]:
+                    for rep in it.matches:
                         if self.mode =='replace':
                             f1.write(txt0[idxw:rep.span[0]])
-                            f1.write(text)
+                            f1.write(text.getString(reg=rep.matchre))
                             idxw = rep.span[1]
                         elif self.mode == 'before':
                             f1.write(txt0[idxw:rep.span[0]])
-                            f1.write(text)
+                            f1.write(text.getString(reg=rep.matchre))
                             idxw = rep.span[0]
                         elif self.mode == 'after':
                             f1.write(txt0[idxw:rep.span[1]])
-                            f1.write(text)
+                            f1.write(text.getString(reg=rep.matchre))
                             idxw = rep.span[1]
                         dprint(f'{it.filename} modification {self.mode} at'
-                               f' {self.span}')
+                               f' {rep.span}')
                     # write the remaining
                     f1.write(txt0[idxw:])
                 f0.close()

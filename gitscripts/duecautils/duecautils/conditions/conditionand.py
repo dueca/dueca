@@ -147,30 +147,6 @@ def _combine_and(kwargs, inputvars, matchelts, resultelts, trim):
     dprint(f"result and combination {res}")
     return res
 
-class AndFunction:
-
-    def __init__(self, subconditions):
-        self.subconditions = subconditions
-        self.matchon = sc[0].matchon
-        for sc in subconditions[1:]:
-            if matchon != sc.matchon:
-                raise ValueError("Mixmatch not implemented")
-
-    def __call__(self, **kwargs):
-
-        
-
-        res = True
-        for c in self.subconditions:
-            res = c(**kwargs) and res
-        return res
-
-    def explain(self, **kwargs):
-        elt = []
-        for c in self.subconditions:
-            elt.append(c.explain(**kwargs))
-        return '(' + ' AND\n'.join(elt) + ')'
-
 class ConditionAnd(ComplexCondition):
 
     # Determine how param arguments need to be stripped
@@ -213,13 +189,17 @@ class ConditionAnd(ComplexCondition):
         _match = str(_match)
         self.matchelts = list(map(str.strip, _match.split(',')))
         self.resultelts = {}
+        if 'resultvar' in kwargs:
+            self.resultvar = str(kwargs['resultvar'])
+        else:
+            self.resultvar = None
         for key, val in kwargs.items():
             if key.startswith('result-'):
                 dprint(f"result element {key}, value {val}")
                 self.resultelts[key[len('result-'):]] = str(val).strip()
         self.trim = XML_interpret_bool(str(kwargs.get('trim', 'false')))
         super(ConditionAnd, self).__init__(**kwargs)
-        self.andfunction = AndFunction(self.subconditions)
+
 
     def holds(self, **kwargs):
         motivation = ['AND(']
@@ -228,7 +208,7 @@ class ConditionAnd(ComplexCondition):
 
         for c in self.subconditions:
             res, mot, _nv = c.holds(**kwargs, **newvars)
-            _res = _res and res
+            _res = _res and bool(res)
 
             newvars.update(_nv)
             motivation.extend(mot)

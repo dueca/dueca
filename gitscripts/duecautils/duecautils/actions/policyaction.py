@@ -116,7 +116,8 @@ class PolicyAction:
             if XML_comment(par):
                 continue
             elif XML_tag(par, 'param'):
-                p = Param(par)
+                p = Param(par, cls._actions[name].default_strip.get(
+                          par.get('name'), ''))
                 params[p.name] = p
 
         try:

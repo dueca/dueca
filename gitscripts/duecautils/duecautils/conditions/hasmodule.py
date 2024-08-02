@@ -9,6 +9,7 @@ Created on Sun May  2 20:02:33 2021
 from .policycondition import PolicyCondition, checkAndSet
 from ..xmlutil import XML_interpret_bool
 from ..matchreference import MatchReferenceModule
+from ..modules import Modules
 import itertools as it
 
 class MatchFunctionModule:
@@ -107,10 +108,29 @@ class HasModule(PolicyCondition):
         self.resultvar = str(resultvar)
         self.all_machines = XML_interpret_bool(str(all_machines))
 
-    def holds(self, p_modules, p_project, p_machine, **kwargs):
 
-        if not self.pproject == 0:
-            self.pproject = p_project
+    def holds(self, p_modules: dict, p_project: str,
+              p_machine: str, **kwargs):
+        """Test whether any of the modules in a modules.xml file match
+           the module test condition (project/module name or regex match)
+
+        Parameters
+        ----------
+        p_modules : dict of Modules, with machine class strings as keys
+            Modules objects, from an associated modules.xml file
+        p_project : str
+            "Own/current" project name
+        p_machine : str
+            machine to test, if not all_machines
+
+        Returns
+        -------
+        tuple(list of valid Modules, explanation, new variables)
+            All modules lists with at least one match
+        """
+
+        if not self.project:
+            self.project = p_project
 
         if self.all_machines:
             machines = p_modules.keys()
@@ -123,14 +143,12 @@ class HasModule(PolicyCondition):
         for m in machines:
 
             res.append(MatchReferenceModule(
-                matchFunction=MatchFunctionModule(self.pproject, self.module),
+                matchFunction=MatchFunctionModule(self.project, self.module),
                 modules=p_modules[m]))
-        
+
         checkAndSet(self.resultvar, newvars, res)
         result = [r for r in res if r.value ]
         return (result, map(self.__class__.matchresult.explain, result), newvars)
-
-
 
 
 PolicyCondition.register("has-module", HasModule)

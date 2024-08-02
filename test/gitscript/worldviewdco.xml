@@ -1,0 +1,309 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+    Example file with some try-out definitions for policy editing.
+
+-->
+<policies xmlns="https://dueca.tudelft.nl"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/policies.xsd">
+
+  <policy name="replace-worldview-dco-motion" id="21-001">
+    <description>
+      While WorldView is a commonly-used module, it at one point
+      relied on DCO objects from WorldListener; it was more efficient
+      to move this to WorldView
+    </description>
+    <condition type="uses-dco">
+      <param name="dco">
+        BaseObjectMotion
+      </param>
+      <param name="project">
+        WorldListener
+      </param>
+      <param name="resultvar">
+        dcolist
+      </param>
+    </condition>
+    <action type="change-dco">
+      <param name="new_dco">
+        BaseObjectMotion
+      </param>
+      <param name="new_project">
+        WorldView
+      </param>
+      <param name="inputvar">
+        dcolist
+      </param>
+      <param name="mode">replace</param>
+    </action>
+  </policy>
+
+  <policy name="replace-worldview-dco-position" id="21-002">
+    <description>
+      While WorldView is a commonly-used module, it at one point
+      relied on DCO objects from WorldListener; it was more efficient
+      to move these to WorldView
+    </description>
+
+    <!-- detects a WorldListener/comm-objects/BaseObjectPosition
+         borrowed anywhere -->
+    <condition type="uses-dco">
+      <param name="dco">
+        BaseObjectPosition
+      </param>
+      <param name="project">
+        WorldListener
+      </param>
+      <param name="resultvar">
+        dcolist
+      </param>
+    </condition>
+
+    <!-- removes WorldListener/comm-objects/BaseObjectPosition, and add
+	 WorldView/comm-objects/BaseObjectPosition -->
+    <action type="change-dco">
+      <param name="mode">
+        replace
+      </param>
+      <param name="new_dco">
+        BaseObjectPosition
+      </param>
+      <param name="new_project">
+        WorldView
+      </param>
+      <param name="inputvar">
+        dcolist
+      </param>
+    </action>
+  </policy>
+
+
+  <policy name="add-worldview-dco-position" id="21-003">
+    <description>
+      Old WorldView had ObjectMotion objects that did not inherit. Later
+      these objects inherited from BaseObjectPosition and BaseObjectMotion.
+      Add the relevant parents if not found in a comm-objects.lst file
+    </description>
+    <condition type="and">
+
+      <!-- match on filename (dco file), and pass the dcolist parameter
+	   from the first list -->
+      <param name="match">
+        filename
+      </param>
+      <param name="inputvar">
+	dcolist_uses, dcolist_notcorrected
+      </param>
+      <param name="resultvar">
+	dcolist
+      </param>
+      <param name="result-dcolist">
+	dcolist_uses
+      </param>
+
+      <condition type="uses-dco">
+        <param name="dco">
+          ObjectMotion
+        </param>
+        <param name="project">
+          WorldView
+        </param>
+        <param name="resultvar">
+          dcolist_uses
+        </param>
+      </condition>
+
+      <!-- detect where the objects have not yet been added -->
+      <condition type="not">
+	<param name="inputvar">
+	  dcolist_complete
+	</param>
+        <param name="resultvar">
+          dcolist_notcorrected
+        </param>
+
+        <condition type="and">
+	  <param name="inputvar">
+	    have_bop, have_bom
+	  </param>
+	  <param name="match">
+	    filename
+	  </param>
+          <param name="resultvar">
+            dcolist_complete
+          </param>
+          <condition type="uses-dco">
+            <param name="dco">
+              BaseObjectMotion
+            </param>
+            <param name="project">
+              WorldView
+            </param>
+	    <param name="resultvar">
+	      have_bom
+	    </param>
+          </condition>
+          <condition type="uses-dco">
+            <param name="dco">
+              BaseObjectPosition
+            </param>
+            <param name="project">
+              WorldView
+            </param>
+	    <param name="resultvar">
+	      have_bop
+	    </param>
+          </condition>
+        </condition>
+      </condition>
+    </condition>
+    <action type="change-dco">
+      <param name="new_dco">
+        BaseObjectPosition
+      </param>
+      <param name="new_project">
+        WorldView
+      </param>
+      <param name="inputvar">
+        dcolist
+      </param>
+      <param name="mode">add</param>
+    </action>
+    <action type="change-dco">
+      <param name="new_dco">
+        BaseObjectMotion
+      </param>
+      <param name="new_project">
+        WorldView
+      </param>
+      <param name="inputvar">
+        dcolist
+      </param>
+      <param name="mode">add</param>
+    </action>
+  </policy>
+
+
+  <policy name="add-worldview-specbase" id="21-004">
+    <description>
+      Base objects for specifying the data (file names, numbers,
+      positions, etc.) for audio and video events uses the same set of
+      code. This used to be merged in the WorldView module, but has
+      now been extracted.
+    </description>
+
+    <condition type="and">
+
+      <!-- Combine on filename, look per machine class -->
+      <param name="match">
+        filename
+      </param>
+      <!-- Result variable is a list with filenames pointing to the
+           modules.xml files, and a "modules" member that has a DUECAUTILS
+           Modules class defining the machine. -->
+      <param name="resultvar" trim="true">
+        modlist
+      </param>
+      <param name="inputvar">
+        modlisto, modlistn
+      </param>
+      <param name="result-modules">
+        modlisto
+      </param>
+
+      <!-- OR condition; either borrow the WorldView/WorldView, or the
+           WorldListener/WorldListener module -->
+      <condition type="or">
+
+        <!-- Combine on filename, has the effect of looking per machine class -->
+        <param name="match">
+          filename
+        </param>
+        <param name="resultvar">
+          modlisto
+        </param>
+        <param name="inputvar">
+          modlist1,modlist2
+        </param>
+        <param name="match">
+          filename
+        </param>
+        <param name="result-modules">
+          modlist1
+        </param>
+
+        <!-- Test for WorldView/WorldView, result in modlist1 -->
+        <condition type="has-module">
+          <param name="all_machines">
+            true
+          </param>
+          <param name="project">
+            WorldView
+          </param>
+          <param name="module">
+            WorldView
+          </param>
+          <param name="resultvar">
+            modlist1
+          </param>
+        </condition>
+
+        <!-- Test for WorldListener/WorldListener, result in modlist2 -->
+        <condition type="has-module">
+          <param name="all_machines">
+            true
+          </param>
+           <param name="project">
+            WorldListener
+          </param>
+          <param name="module">
+            WorldListener
+          </param>
+          <param name="resultvar">
+            modlist2
+          </param>
+        </condition>
+
+      </condition> <!-- and or -->
+
+      <!-- Check that the WorldView/SpecificationBase is not yet present -->
+      <condition type="not">
+        <condition type="has-module">
+          <param name="all_machines">
+            true
+          </param>
+           <param name="project">
+            WorldView
+          </param>
+          <param name="module">
+            SpecificationBase
+          </param>
+          <param name="resultvar">
+            modlistn
+          </param>
+        </condition>
+      </condition>
+
+    </condition>
+
+    <!-- Action to add the WorldView/SpecificationBase module to the
+         modules.xml list where this is missing, and the WorldView or
+         WorldListener module is used.
+
+         It uses the modlist list of results, and specifically the
+         modules variable in there to access the modules.xml
+         representation. -->
+    <action type="change-module">
+      <param name="new_project">
+        WorldView
+      </param>
+      <param name="new_module">
+        SpecificationBase
+      </param>
+      <param name="inputvar">
+        modlist
+      </param>
+    </action>
+  </policy>
+
+</policies>

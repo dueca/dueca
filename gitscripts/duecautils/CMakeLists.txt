@@ -35,23 +35,25 @@ set(DEPS
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/__init__.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/inserttext.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/actions/policyaction.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/commobjects.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/borrowsmodule.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/hasmodule.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/findpattern.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/usesdco.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/homedco.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/homedepend.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/__init__.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/policycondition.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/conditionand.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/conditionor.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/conditions/conditionnot.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/githandler.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/commobjects.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/githandler.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/machinemapping.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/matchreference.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/modules.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/policylist.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/param.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/policy.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/policylist.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/verboseprint.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/xmlutil.py
   ${CMAKE_CURRENT_SOURCE_DIR}/duecautils/codegen/MemberSummary.py

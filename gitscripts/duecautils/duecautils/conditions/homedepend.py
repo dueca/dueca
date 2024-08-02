@@ -9,9 +9,61 @@ Created on Wed Jun 30 20:56:53 2021
 from .policycondition import PolicyCondition, checkAndSet
 from ..matchreference import MatchReferenceFile, MatchSpan
 from ..verboseprint import dprint
+from collections import defaultdict
 import glob
 import re
 import os
+import sys
+
+def _empty_list():
+    return list()
+
+class MatchFunctionDepend:
+
+    addmodule = re.compile(r'dueca_add_module\s*\(')
+    startp = re.compile(r'USEMODULES[ \t]*(#[^\n]*)?\n')
+    stopp = re.compile(r'SOURCES|INCLUDEDIRS|DUECA_COMPONENTS|LIBRARIES|COMPILEOPTIONS|COMPILEOPTIONS_PUBLIC|INCLUDEDIRS_PUBLIC|\)')
+    pattern = re.compile(r'([a-zA-Z0-9-_]+/)([a-zA-Z0-9-_]+)[ \t]*(#[^\n]*)?')
+
+    def __init__(self, ownproject):
+        self.ownproject = ownproject + '/'
+        pass
+
+    def __call__(self, text: str, span=None, fpath='CMakeLists.txt'):
+        cls = self.__class__
+
+        if span is None:
+
+            taddm = cls.addmodule.search(text)
+            if taddm is None:
+                dprint(f"No dueca_add_module in {fpath}")
+                return None, None
+            tstart = cls.startp.search(text)#, taddm.span()[1])
+            if tstart is None:
+                dprint(f"No USEMODULES module in {fpath}")
+                return None, None
+            tend = cls.stopp.search(text, tstart.span()[1])
+            if tend is None:
+                print(
+                    "Malformed or mis-read dueca_add_module with USEMODULES"
+                    f"in {fpath}", file=sys.stderr)
+                return None, None
+            istart = tstart.span()[1]
+        else:
+            istart = span[1]
+            tend = cls.stopp.search(text, istart)
+
+        while istart < tend.span()[0]:
+            m = cls.pattern.search(text, istart, tend.span()[0])
+            if m:
+                if m.group(1) == self.ownproject:
+                    return m.span(), m
+                istart = m.span()[1]
+            else:
+                break
+
+        return None, None
+
 
 class HomeDepend(PolicyCondition):
 
@@ -19,10 +71,9 @@ class HomeDepend(PolicyCondition):
     matchresult = MatchReferenceFile
 
     # Determine how param arguments need to be stripped
-    default_strip = dict(resultvar='both', label='both')
+    default_strip = dict(resultvar='both')
 
-    def __init__(self, label: str='default',
-                 resultvar=None, limit=0, **kwargs):
+    def __init__(self, resultvar=None, **kwargs):
         """
         Check for a pattern in the indicated files.
 
@@ -40,79 +91,37 @@ class HomeDepend(PolicyCondition):
 
         """
         self.resultvar = str(resultvar)
-        self.label = str(label)
-        try:
-            self.limit = int(str(limit))
-        except ValueError:
-            raise ValueError(
-                f"{self.__class__.__name__}, cannont interpret 'limit' "
-                f" from '{limit}'")
 
-    def holds(self, p_path, **kwargs):
+    def holds(self, p_project, p_path, **kwargs):
 
         # run and test
-        result = dict()
+        result = []
         newvars = dict()
-
-        startp = re.compile('USEMODULES')
-        stopp = re.compile(r'SOURCES|INCLUDEDIRS|DUECA_COMPONENTS|LIBRARIES|COMPILEOPTIONS|COMPILEOPTIONS_PUBLIC|INCLUDEDIRS_PUBLIC|\)')
-        pattern = re.compile(r'^\s*([a-zA-Z0-9-_]+/)?([a-zA-Z0-9-_]+)\s*(#.*)?$')
 
         matching = glob.glob('*/CMakeLists.txt', recursive=False)
 
-
         dprint(f"Testing {matching}")
-        res = []
         for fn in matching:
-            res.append(MatchReferenceFile(fname=f'{p_path}/{fn})))
-            with open(fn, 'r') as tf:
-                text = tf.read()
-                tstart = startp.search(text)
-                if tstart:
-                    tend = stopp.search(text, tstart.span()[1])
-                istart = tstart.span()[1]
-                m = True
-                while istart < tend.span()[0] and m:
-                    m = pattern.search(text, istart, tend.span()[0])
-                    if m:
-                        res.append(Match)
-                dprint(f"pattern testing {fn}, result {mres}")
+            rf = MatchReferenceFile(MatchFunctionDepend(p_project),
+                                    fname=f'{p_path}/{fn}')
+            if rf.value:
+                result.append(rf)
 
-                # also record a "negative" result; this may be converted
-                # by a not condition
-                res.append(MatchReferenceFile(
-                    module=fn.split(os.sep)[0],
-                    fname=f'{p_path}/{fn}',
-                    value=(mres is not None)))
-
-                if mres is not None:
-
-                    offset, count = 0, 0
-                    while mres is not None:
-                        result[-1].addSpan(
-                            MatchSpan(
-                                span=(offset+mres.span()[0],
-                                      offset+mres.span()[1]),
-                                count=count), self.label)
-                        offset += mres.span()[-1]
-                        count += 1
-                        dprint(f'Found pattern {self.pattern} at {offset}')
-                        mres = testp.search(text[offset:])
-
-        checkAndSet(self.resultvar, newvars, list(result.values()))
+        checkAndSet(self.resultvar, newvars, result)
         dprint(f"pattern setting {self.resultvar}, files: {len(result)}")
-        return (result, map(self.__class__.matchresult.explain, result), newvars)
+        return (result,
+                map(self.__class__.matchresult.explain, result), newvars)
 
-PolicyCondition.register('find-pattern', FindPattern)
+PolicyCondition.register('home-depend', HomeDepend)
 
 
-"""
+r"""
 test = re.compile('^find this')
 
 res = test.search('there is a string with find this in it')
 print(res)
 
-pattern = re.compile(r'([a-zA-Z0-9-_]+/)?([a-zA-Z0-9-_]+)(\ws)?(#.*)?(\ws)?')
+pattern = re.compile(r'([a-zA-Z0-9-_]+/)?([a-zA-Z0-9-_]+)(\ws)?(#.*)?(\w)?')
 
 res = pattern.match('  Aproject/a-module')
 res = pattern.search('  Aproject/a-module # and comment ')

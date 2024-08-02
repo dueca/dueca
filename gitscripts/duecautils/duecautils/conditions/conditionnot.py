@@ -55,6 +55,12 @@ class ConditionNot(ComplexCondition):
         super(ConditionNot, self).__init__(**kwargs)
         if len(self.subconditions) != 1:
             raise ValueError("NOT condition needs 1 subcondition")
+
+        if 'resultvar' in kwargs:
+            self.resultvar = str(kwargs['resultvar'])
+        else:
+            self.resultvar = None
+
         if (self.resultvar is not None) and \
             (len(self.inputvars) != 1):
             raise ValueError("NOT condition with output needs one inputvar")

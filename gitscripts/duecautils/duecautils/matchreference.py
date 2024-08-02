@@ -35,14 +35,21 @@ from collections import defaultdict
 from .commobjects import CommObjectsList
 from .modules import Modules
 
+def _empty_list():
+    return list()
 
 class MatchSpan:
 
     def __init__(self, line: int=0,
-                 span=None, count=0, label=''):
+                 span=None, count=0, matchre=None):
         self.line = line
         self.span = span
         self.count = count
+        self.matchre = matchre
+
+    def explain(self, label='default'):
+        return f"Match in category {label}, l: {self.line}, {self.span[0]}-{self.span[1]} on {self.matchre}"
+
 
 class MatchReference:
 
@@ -84,48 +91,81 @@ class MatchReferenceDco(MatchReference):
 
         return '\n'.join(res)
 
+    @property
+    def filename(self):
+        return self.commobjects.fname
+
 
 class MatchReferenceModule(MatchReference):
 
     def __init__(self, matchFunction, modules: Modules):
+        """Create a reference match of matchine modules
+
+        Parameters
+        ----------
+        matchFunction : function
+            Function to filter project/module combinations from a list
+        modules : Modules
+            Modules object with the projec/module combinations
+        """
         self.matchFunction = matchFunction
-        self.modules = module
-        self.machine_class = machine_class
+        self.modules = modules
+        value = bool([m for m in modules if matchFunction(m['project'], m['module'])])
         super(MatchReferenceModule, self).__init__(value)
 
-"""
-    def __repr__(self):
-        return f"MatchReferenceModule(m:{self.module}, f:{self.filename}, " \
-            f"p:{self.module_project}, mc:{self.machine_class}, v:{self.value})"
-"""
+    def explain(self):
+        if self.value:
+            res = [ f"For {self.modules.fname}:" ]
+            res.extend([ self.matchFunction.explain(m['project'], m['module'])
+                for m in self.modules
+                if self.matchFunction(m['project'], m['module']) ])
+            return '\n'.join(res)
+        return f'No match found in {self.modules.fname}'
+
+    @property
+    def filename(self):
+        return modules.fname
+
 
 class MatchReferenceFile(MatchReference):
     """Match on a file (typically given by a pattern)
-
-    Parameters
-    ----------
-    MatchReference : _type_
-        _description_
     """
     matchon = set(('filename',))
 
-    def __init__(self, fname: str, value: bool=True):
+    def __init__(self, matchFunction, fname: str, limit = 0):
+        """_summary_
 
-        # function for dict
-        def _empty_list():
-            return list()
+        Parameters
+        ----------
+        fname : str
+            _description_
+        value : bool, optional
+            _description_, by default True
 
-        self.matches = defaultdict(_empty_list)
-        super(MatchReferenceFile, self).__init__(fname, value)
+        Returns
+        -------
+        _type_
+            _description_
+        """
 
-    def addSpan(self, det: MatchSpan, label: str):
-        self.matches[label].append(det)
+        self.matches = list()
+        self.filename = fname
+        with open(fname, 'r') as tf:
+            text = tf.read()
+            span, match = matchFunction(text, fpath=fname)
+            while match and (limit == 0 or len(self.matches) < limit):
+                self.matches.append(
+                    MatchSpan(span=span, matchre=match))
+                span, match = matchFunction(text, span, fpath=fname)
 
-"""
-    def __repr__(self):
-        return f"MatchReferenceFile(m:{self.module}, f:{self.filename}, " \
-            f"n:{len(self.matches)} v:{self.value})"
-"""
+        super(MatchReferenceFile, self).__init__(bool(self.matches))
+
+    def explain(self):
+        res = [ f"For {self.filename}:" ]
+        for m in self.matches:
+            res.append(m.explain())
+        return '\n'.join(res)
+
 
 def trimList(l: list):
     return [ e for e in l if e.value ]
