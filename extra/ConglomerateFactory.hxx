@@ -188,6 +188,10 @@ public:
     return jj->second->create(key, spec);
   }
 
+  /** Check for presence of a specific key */
+  bool haveSubcontractor(const typename X::Key& key)
+  { return subcontractors.find(key) != subcontractors.end(); }
+
   /** Add a subcontractor, who can make a specific type of
       object. The subcontractor needs to be derived from
       SubcontractorBase, and implement the create function.

@@ -53,7 +53,7 @@ def removeComments(list):
         list[i] = list[i].strip()
 
     # filter the list, first take out all comments (starting with #)
-    only_comment = re.compile("\s*\#")
+    only_comment = re.compile(r"\s*\#")
     for i in list[:]:
         if only_comment.match(i):
             list.remove(i)

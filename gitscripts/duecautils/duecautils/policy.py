@@ -53,7 +53,7 @@ class Policy:
         """ Determine if the relevant condition for policy change is present.
 
         The keyword arguments are:
-        - path: str         - path of the project folder
+        - p_path: str         - path of the project folder
         - module: str       - currently considered module, if applicable
         - modules: Modules  - object with available own and borrowed modules
         - commobjects: CommObjectsList - list of comm objects
@@ -66,6 +66,7 @@ class Policy:
         and a list of arguments on decision details
         """
         res, motivation, newvars = self.condition.holds(p_plist=p_plist, **kwargs)
+        motivation = list(motivation)
         if p_plist.status(self.polid) == 'ignore':
             motivation.append(
                 f" Status for policy {self.polid} is set to ignore for this project")
@@ -103,14 +104,28 @@ def _readPolicyFile(fname, openedFiles=None):
         dprint(f"Reading policies from {fname}")
         parser = etree.XMLParser(remove_blank_text=True)
         xmltree = etree.XML(f.read(), parser=parser)
+
+    except ValueError as e:
+        # can happen if URL not valid
+        print(f"Cannot read policies from url {fname}: {e}",
+             file=sys.stderr)
+        raise FileNotFoundError()
+
+    except FileNotFoundError as e:
+        print(f"Cannot read policies from file {fname}: {e}",
+              file=sys.stderr)
+        raise e
+
+    # when here, opened, and have xmltree, try to parse
+    try:
         for node in xmltree:
             if XML_comment(node):
                 continue
 
-            if XML_tag(node, 'policy'):
+            elif XML_tag(node, 'policy'):
                 policies.append(Policy(node))
 
-            if XML_tag(node, 'policyfile'):
+            elif XML_tag(node, 'policyfile'):
                 fname2 = node.text.strip()
                 if fname2 in openedFiles:
                     print(
@@ -121,22 +136,20 @@ def _readPolicyFile(fname, openedFiles=None):
                 # file
                 try:
                     policies.extend(_readPolicyFile(fname2))
-                except Exception:
-                    pdir = '/'.join(fname.split('/')[:-1])
+                except FileNotFoundError:
+                    # try with a relative url, based on the current filename
+                    pdir = os.sep.join(fname.split(os.sep)[:-1])
                     policies.extend(_readPolicyFile(pdir + '/' + fname2))
 
-            elif len(policies) == 0:
+            else:
+                print(f"Unknown tag in policy file {fname}: {node}")
                 # probably not a policy file
-                f.close()
                 return policies
 
-    except FileNotFoundError as e:
-        print(f"Cannot read policies from file {fname}: {e}",
-              file=sys.stderr)
-    try:
-        f.close()
-    except:
-        pass
+    except ValueError as e:
+        print(f"Cannot parse policies from url {fname}: {e}",
+             file=sys.stderr)
+
     return policies
 
 class Policies:
@@ -151,7 +164,7 @@ class Policies:
         self.explain = explain
 
         # read a user's own policies
-        if urls is None or defaultpol:
+        if not urls or defaultpol:
             homedir = os.environ.get('HOME', '/dev/null')
 
             # user-defined policy file

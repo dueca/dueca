@@ -71,7 +71,7 @@ class DoxyFile:
 
     def __init__(self, name):
         """
-        Create an doxygen file writing object
+        Create a doxygen file writing object
 
         Parameters
         ----------
@@ -84,7 +84,7 @@ class DoxyFile:
 
         """
         self.fp = open(name, 'w')
-        self.fp.write("""
+        self.fp.write(r"""
 // -*-c++-*-
 /**
 \page loglist List of DUECA's log messages
@@ -123,7 +123,7 @@ the table alphabetically according to the requested column.
             self.fp.write("  </tr>\n")
 
     def close(self):
-        self.fp.write("""
+        self.fp.write(r"""
 </table>
 @endhtmlonly
 */
@@ -243,7 +243,7 @@ class FileMessages:
             dprint("Combination from ", toks[0], toks[1])
             currentline += toks[0].lines
             self.messages.append(
-                (self.fname, currentline+1, toks[1].logcode, 
+                (self.fname, currentline+1, toks[1].logcode,
                  toks[0].comment, toks[0].chapter))
             currentline += toks[1].lines
         return toks
@@ -287,7 +287,7 @@ currentline = 0
 def make_comment(s: str, loc: int, toks: ParseResults):
     global currentline
     #currentline += toks[0].count('\n') + 1
-    dprint("Comment", toks)    
+    dprint("Comment", toks)
     return Comment(toks[1], toks[3][0], toks[3][1]+2)
 
 def make_logmessage(s: str, loc: int, toks: ParseResults):
@@ -332,7 +332,7 @@ def read_rest(s: str, loc: int, toks: ParseResults):
     global currentline
     dprint("Rest", toks, "loc", loc)
     return ' '.join(toks[0][:-2].split()), 1 + toks[0].count('\n')
-    
+
 parse_chapter = SkipTo(LineEnd())
 parse_chapter.setParseAction(read_chapter)
 parse_rest = SkipTo(Literal('*/'), include=True, failOn=Literal('/*'))
@@ -355,7 +355,7 @@ parse_otherline.setParseAction(read_otherline)
 parse_emptyline = LineStart() + LineEnd()
 parse_emptyline.setParseAction(read_emptyline)
 parse_elt = MatchFirst(
-    (parse_oneline, parse_combined, parse_lmiss, 
+    (parse_oneline, parse_combined, parse_lmiss,
      parse_emptyline, parse_otherline))
 parse_file = OneOrMore(parse_elt)
 
@@ -385,7 +385,7 @@ if __name__ == '__main__':
         #parse_rest.parseString("blablae */")
         #parse_rest.parseString(" help me\nline 2 */")
         #parse_comment.parseString("""/* chapter.
-        #                          
+        #
         #                          and the comment
         #                          line 2 */""")
         #parse_comment.parseString("""/* chapter.
@@ -396,28 +396,28 @@ if __name__ == '__main__':
         #                          /* DUSIME replay&initial
         #
         #     Exception in replay filer. Unknown cause, please report. */
-        #    
+        #
         #                               """)
-        
+
         parse_lmessage.parseString("""
-                                   
+
             E_XTR("ReplayControl, exception " << e.what());
               """)
         print()
-        parse_comment.parseString(""" 
+        parse_comment.parseString("""
                             /* DUSIME replay&initial
 
       Exception in replay filer. Unknown cause, please reportx. */ and more
       """)
         print()
-        parse_combined.parseString(""" 
+        parse_combined.parseString("""
                             /* DUSIME replay&initial
 
       Exception in replay filer. Unknown cause, please report. */
-      
+
       E_XTR("ReplayControl, exception " << e.what());""")
-                         
-        print()                           
+
+        print()
         parse_file.parseString("""catch (const std::exception& e) {
    /* DUSIME replay&initial
 

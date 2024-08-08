@@ -42,6 +42,12 @@ default, policies can be installed in several locations:
   * In the user's home folder; ${HOME}/.config/dueca/policies.xml
   * Folders or URL's indicated in the the environment variable DUECA_POLICIES
 
+    For users at Control and Simulation, the common policies are available
+    through setting:
+
+        DUECA_POLICIES=https://gitlab.tudelft.nl/dueca-ae-cs-policies/common/-/raw/master/index.xml
+
+
 ## Background
 
 The policy checking system is expandable, so the capabilities might
@@ -53,6 +59,10 @@ change in the future, but the following is roughly possible:
 - Check whether a module uses a specific dco file.
 
 - Check for a certain pattern in files.
+
+- Specifically check that the .dco references in comm-objects.lst do
+  not include the name of the "own" project, and similarly for USEMODULES
+  references in CMakeLists.txt files.
 
 These checks can be logically combined. For example, for streamlining
 the use of projects with common modules for outside visual (WorldView)
@@ -251,6 +261,7 @@ The action here is to add an include line to the `CMakeLists.txt` file:
       </param>
     </action>
     <action type="change-module">
+      <param name="mode">add</param>
       <param name="new_project">
         SRSMotion
       </param>
@@ -342,6 +353,23 @@ Constant true or false
 
 - value
 
+### 'home-dco'
+
+Figure out if a dco reference is for the current project
+
+Parameters:
+
+- resultvar
+- dco, typically a regex expression
+
+### `home-depend'
+
+Figure out if a USEMODULES variable references the current project
+
+Parameters:
+
+- resultvar
+
 ## Actions
 
 ### 'change-dco'
@@ -351,13 +379,14 @@ Adapt relevant the comm-objects.lst files to swith over to a new dco
 Parameters:
 
 - inputvar, from the match, indicates in which modules to adapt comm-objects.lst
-- old_project, project donating dco to remove
-- old_dco, old dco object
 - new_project, project now donating dco
 - new_dco, new dco object
+- mode, "add", "replace" or "delete"
 
-By providing only old, or only new variables, or both, the action either
-removes, adds, or replaces.
+For delete you don't need to provide the new variables. If you matched the
+input with a regular expression (attribute `regex="true"` on the search
+parameters), replacement can use the old match, if you set attribute
+`format="true"` on the parameter.
 
 ### 'change-module'
 
@@ -367,8 +396,7 @@ Parameters:
 
 - inputvar, from the match, list of modules.xml files that match a module
   (or not)
-- old_project, project donating module to remove
-- old_module, module to remove
+- mode, "add", "replace" or "delete"
 - new_project, project donating new module
 - new_module, module to add
 - url, url of new project

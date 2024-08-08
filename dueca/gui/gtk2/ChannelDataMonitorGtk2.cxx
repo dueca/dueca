@@ -342,7 +342,7 @@ void ChannelDataMonitorGtk2::refreshData(const ChannelMonitorResult& rdata)
   if (rdata.json.size()) {
 
     JDocument doc;
-    doc.Parse(rdata.json.c_str());
+    doc.Parse<json::kParseNanAndInfFlag>(rdata.json.c_str());
 
     insertJson(NULL, doc);
   }

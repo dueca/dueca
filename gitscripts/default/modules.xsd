@@ -13,6 +13,14 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:complexType name="module_t">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+	<xs:attribute name="pseudo" type="xs:boolean" default="false"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
   <xs:complexType name="project_t">
     <xs:sequence>
       <xs:element name="url"
@@ -23,7 +31,7 @@
 		  type="xs:string"
 		  minOccurs="0"/>
       <xs:element name="module"
-		  type="xs:string"
+		  type="module_t"
 		  minOccurs="0"
 		  maxOccurs="unbounded"/>
     </xs:sequence>

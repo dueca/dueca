@@ -109,114 +109,136 @@ function create_debfiles()
         echo "Could not configure"
         exit 1
     fi
+    popd
+
+    # default deb-based, currently focused on Ubuntu 24.04
+    pushd obs
+    sed -e "s/@dueca_VERSION@/${VERSION}/" \
+        debian/changelog.in >debian/changelog
+    tar cvf ../../debian.tar debian
+
+    # control will later be modified for different build versions
+    mv debian/control debian/control.bak
+    popd
 
     # to build/obs; dueca-versioned and dsc/spec files are here
-    pushd obs
+    pushd build/obs
 
     # rpm-based distros
     cp $NAME.spec ../../..
     cp $NAME-versioned.spec ../../..
     cp $NAME-rpmlintrc ../..
 
-    # first the versioned packages
-    # default deb-based, currently focused on Ubuntu 20.04
+    # build description for the default config
+    cp $NAME.dsc ../../../$NAME.dsc
+
+    # the versioned packages
+    # default deb-based, currently focused on Ubuntu 24.04
     tar cvf ../../../debian-versioned.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
     cp dueca-versioned.dsc ../../../dueca-versioned.dsc
-    cp $NAME.dsc ../../../$NAME.dsc
 
-    # hack/adapt for xUbuntu_22.04
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/' -i.bak \
-        debian-versioned/control
-    tar cvf ../../../debian-versioned-xUbuntu_22.04.tar \
-        --transform "s/debian-versioned/debian/" \
-        debian-versioned
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-xUbuntu_22\.04.tar/' dueca-versioned.dsc > \
-                ../../../dueca-versioned-xUbuntu_22.04.dsc
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-xUbuntu_22\.04.tar/' ${NAME}.dsc > \
-		../../../$NAME-xUbuntu_22.04.dsc
-
-    # same for Debian_12, only regular dsc file
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/
-            s/debian\.tar/debian-Debian_12.tar/' ${NAME}.dsc > \
-		../../../$NAME-Debian_12.dsc
+    # variants in guile use, 2.0 for 22.04, 20.04, 1.8 for 18.04
+    # also this control will later be modified for different build versions
+    mv debian-versioned/control debian-versioned/control.bak
+    popd
 
     # now hack/adapt for xUbuntu_18.04
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+    # base version
+    pushd obs
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
+            s/python3-xlwt/python-xlwt/' debian/control.bak > \
+            debian/control
+    tar cvf ../../debian-xUbuntu_18.04.tar \
+        debian
+    popd
+
+    # versioned
+    pushd build/obs
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/python3-xlwt/python-xlwt/' debian-versioned/control.bak > \
             debian-versioned/control
     tar cvf ../../../debian-versioned-xUbuntu_18.04.tar \
         --transform "s/debian-versioned/debian/" \
         debian-versioned
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+
+    # and the dsc files, versioned and normal
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/debian\.tar/debian-xUbuntu_18\.04.tar/
             s/python3-xlwt/python-xlwt/' dueca-versioned.dsc > \
                 ../../../dueca-versioned-xUbuntu_18.04.dsc
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
+    sed -e 's/guile-2\.2-dev/guile-1\.8-dev/
             s/debian\.tar/debian-xUbuntu_18\.04.tar/
             s/python3-xlwt/python-xlwt/' ${NAME}.dsc > \
                 ../../../${NAME}-xUbuntu_18.04.dsc
+    popd
+
+    # and for xUbuntu 20.04
+    for VER in 20.04; do
+
+        # base version debian folder
+        pushd obs
+        sed -e 's/guile-2\.2-dev/guile-2\.0-dev/' debian/control.bak > \
+            debian/control
+        tar cvf ../../debian-xUbuntu_${VER}.tar \
+            debian
+        popd
+
+        # versioned version debian folder and the dsc files
+        pushd build/obs
+        sed -e 's/guile-2\.2-dev/guile-2\.0-dev/' \
+            debian-versioned/control.bak > \
+            debian-versioned/control
+        tar cvf ../../../debian-versioned-xUbuntu_${VER}.tar \
+            --transform "s/debian-versioned/debian/" \
+            debian-versioned
+        sed -e "s/guile-2\.2-dev/guile-2\.0-dev/
+            s/debian\.tar/debian-xUbuntu_${VER}.tar/" dueca.dsc > \
+                ../../../dueca-xUbuntu_${VER}.dsc
+        sed -e "s/guile-2\.2-dev/guile-2\.0-dev/
+            s/debian\.tar/debian-xUbuntu_${VER}.tar/" dueca-versioned.dsc > \
+                ../../../dueca-versioned-xUbuntu_${VER}.dsc
+        popd
+    done
 
     # Portfile for mac osx builds
+    pushd build/obs
     cp Portfile ../../..
 
     # back to main dueca folder, & clean the build
     popd
+
+    if test -d build; then
+        rm -rf build
+    else
+        echo "Cannot find build dir, at `pwd`"
+        exit 1
+    fi
+
+    # back to the temporary
     popd
-    rm -rf build
-
-    # now to obs source folder
-    pushd obs
-
-    # default deb-based, currently focused on Ubuntu 20.04
-    sed -e "s/@dueca_VERSION@/${VERSION}/" \
-        debian/changelog.in >debian/changelog
-    tar cvf ../../debian.tar debian
-
-    # hack/adapt for xUbuntu_22.04
-    sed -e 's/guile-2\.0-dev/guile-2\.2-dev/' -i.bak \
-        debian/control
-    tar cvf ../../debian-xUbuntu_22.04.tar \
-        debian
-
-    # same pack for Debian_12
-    tar cvf ../../debian-Debian_12.tar debian
-
-    # now hack/adapt for xUbuntu_18.04
-    sed -e 's/guile-2\.0-dev/guile-1\.8-dev/
-            s/python3-xlwt/python-xlwt/' debian/control.bak > \
-            debian/control
-    tar cvf ../../debian-xUbuntu_18.04.tar \
-        debian
-
-    # back to the tmp folder with checked out source
-    popd
-    popd
-    pwd
 
     # create source file here
     tar cfj dueca-${VERSION}.tar.bz2 dueca-${VERSION}
 
-    # these are like Ubuntu 22.04
-    for sfx in Debian_11 Raspbian_11; do
-        cp $NAME-xUbuntu_22.04.dsc $NAME-${sfx}.dsc
-        cp debian-versioned-xUbuntu_22.04.tar debian-${sfx}.tar
-    done
+    if test -d dueca-${VERSION}; then
+        rm -rf dueca-${VERSION}
+    else
+        echo "Cannot find checked out dueca copy, at `pwd`"
+        exit 1
+    fi
 
-    rm -rf dueca-${VERSION}
     if [ -z "$KEEPTMP" -a -d "${OSCDIRV}" ]; then
         cp -f dueca*tar.bz2 ${OSCDIRV}
-        mv -f dueca-versioned.dsc ${OSCDIRV}
-        mv -f dueca-versioned-xUbuntu_18.04.dsc ${OSCDIRV}
-        mv -f dueca-versioned-xUbuntu_22.04.dsc ${OSCDIRV}
         mv -f debian-versioned.tar ${OSCDIRV}/debian.tar
-        mv -f debian-versioned-xUbuntu_18.04.tar \
-           ${OSCDIRV}/debian-xUbuntu_18.04.tar
-        mv -f debian-versioned-xUbuntu_22.04.tar \
-           ${OSCDIRV}/debian-xUbuntu_22.04.tar
+        mv -f dueca-versioned.dsc ${OSCDIRV}
+        mv -f dueca-versioned.spec ${OSCDIRV}
+        for VER in 18.04 20.04; do
+            mv -f dueca-versioned-xUbuntu_${VER}.dsc ${OSCDIRV}
+            mv -f debian-versioned-xUbuntu_${VER}.tar \
+               ${OSCDIRV}/debian-xUbuntu_${VER}.tar
+        done
     fi
 
     FILES=`ls *`
@@ -233,7 +255,15 @@ function create_debfiles()
     fi
 
     if [ -z "$KEEPTMP" -a -d "${OSCDIR}" ]; then
-        mv -f $FILES "${OSCDIR}"
+        cp -f dueca*tar.bz2 ${OSCDIR}
+        mv -f debian.tar ${OSCDIR}/debian.tar
+        mv -f dueca.dsc ${OSCDIR}
+        mv -f dueca.spec ${OSCDIR}
+        for VER in 18.04 20.04; do
+            mv -f dueca-xUbuntu_${VER}.dsc ${OSCDIR}
+            mv -f debian-xUbuntu_${VER}.tar \
+               ${OSCDIR}/debian-xUbuntu_${VER}.tar
+        done
         echo "Copied"
         echo $FILES
         echo "to ${OSCDIR}"

@@ -7,6 +7,7 @@ Created on Sun May  2 15:58:35 2021
 """
 
 from ..xmlutil import XML_tag, XML_comment
+from ..param import Param
 
 class PolicyAction:
     """ Interface class for actions/edits for implementing a policy.
@@ -115,23 +116,12 @@ class PolicyAction:
             if XML_comment(par):
                 continue
             elif XML_tag(par, 'param'):
-                pname = par.get('name')
-                pstrip = par.get('strip', None)
-                
-                if pstrip is None:
-                    pstrip = \
-                        cls._actions[name].default_strip.get(pname, '')
-                if pstrip.lower() == 'left':
-                    pval = par.text.lstrip()
-                elif pstrip.lower() == 'right':
-                    pval = par.text.rstrip()
-                elif pstrip.lower() == 'true' or pstrip.lower() == 'both':
-                    pval = par.text.strip()
-                params[pname] = pval
+                p = Param(par, cls._actions[name].default_strip.get(
+                          par.get('name'), ''))
+                params[p.name] = p
 
         try:
             return cls._actions[name](_node=node, **params)
         except TypeError as e:
             print(f"failing to create action of type {name} with {params}: {e}")
             raise e
-

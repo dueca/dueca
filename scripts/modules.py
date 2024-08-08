@@ -172,8 +172,8 @@ class ModulesList:
                     borrowed_from = self.modules[i].split(os.sep)[0]
                     modname = self.modules[i].split(os.sep)[1]
                     t2 = daux.TempCd(borrowed_from)
-                    to_ignore = ['.+\.o', '.*\.depend', \
-                                 '.*comm-objects\.h', '.*\~']
+                    to_ignore = [r'.+\.o', r'.*\.depend', \
+                                 r'.*comm-objects\.h', r'.*\~']
                     ismodified = daux.compareAndPatch(modname, modname+ext, \
                                                       to_ignore)
                     t2.goBack()

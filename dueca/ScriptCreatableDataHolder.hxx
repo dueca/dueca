@@ -83,7 +83,7 @@ USING_DUECA_NS;
         cout << obj->data() << endl;
       }
       else {
-        E_MOD("You probably passed something that is not a MyObject");
+        E_MOD ("You probably passed something that is not a MyObject");
         return false;
       }
       return true;

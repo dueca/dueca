@@ -7,10 +7,20 @@
     <machineclass name="srs-ecs" gui="gtk3" />
     <machineclass name="srs-io" gui="none">
       <config>
-        set(PROJECT_LIBRARIES -L$ENV{HOME}/apps/srs-ecat-io/build
-            -lsrs-ecat-io -lethercat)
-        set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/apps/srs-ecat-io/build
-            -I$ENV{HOME}/apps/srs-ecat-io)
+	# find distinctive srs-io headers
+	find_path(SRSIO_INCLUDE_DIR
+                  NAMES HardwareInterface.hxx REQUIRED
+                  PATHS $ENV{HOME}/apps/srs-ecat-io)
+	list(APPEND SRSIO_INCLUDE_DIRS
+	     ${SRSIO_INCLUDE_DIR} ${SRSIO_INCLUDE_DIR}/build)
+
+	# check that the library is there
+	find_library(SRSIO_LIBRARY NAMES srs-ecat-io REQUIRED
+                     PATHS $ENV{HOME}/apps/srs-ecat-io/build)
+
+        # project variables
+	set(PROJECT_LIBRARIES ${SRSIO_LIBRARY})
+        set(PROJECT_INCLUDE_DIRS ${SRSIO_INCLUDE_DIRS})
       </config>
       <modules>
         <module>
@@ -57,14 +67,52 @@
     </machineclass>
     <machineclass name="srs-ig" gui="none">
       <modules>
-        <module>
-          <url>dgrbase:///CitationDemo.git</url>
-          <name>FGVisual</name>
+	<module>
+	  <url>dgrpub:///WorldView.git</url>
+	  <name>FlightGearVisual</name>
+          <version>master</version>
+	</module>
+	<module>
+	  <url>dgrpub:///WorldView.git</url>
+	  <name>WorldView</name>
+          <version>master</version>
+	</module>
+	<module>
+	  <url>dgrpub:///WorldView.git</url>
+	  <name>SpecificationBase</name>
+          <version>master</version>
+	</module>
+	<module>
+	  <url>dgrbase:///SRSVisual.git</url>
+	  <name>flightgear-data</name>
           <version>master</version>
         </module>
       </modules>
     </machineclass>
-    <machineclass name="srs-host" gui="none" />
+    <machineclass name="srs-host" gui="none">
+      <modules>
+	<module>
+	  <url>dgrbase:///SRSMotion.git</url>
+	  <name>motion-common</name>
+	  <version>master</version>
+	</module>
+	<module>
+	  <url>dgrbase:///SRSMotion.git</url>
+	  <name>motion-limiter</name>
+	  <version>master</version>
+	</module>
+	<module>
+	  <url>dgrbase:///SRSMotion.git</url>
+	  <name>motion-filter-classical-16</name>
+	  <version>master</version>
+	</module>
+	<module>
+	  <url>dgrbase:///SRSMotion.git</url>
+	  <name>motion-filter-tuner</name>
+	  <version>master</version>
+	</module>
+      </modules>
+    </machineclass>
     <machineclass name="srs-efis" gui="none" />
     <machineclass name="srs-sound" gui="none">
       <modules>
@@ -101,6 +149,17 @@
       if this_node_id == cl_node:
           stick_priority = dueca.PrioritySpec(4, 0)
           io_priority = dueca.PrioritySpec(5, 0)
+
+      if (this_node_id == host_node):
+          # priority of blocking return communication from the motion base
+          rs422_priority = dueca.PrioritySpec(1, 0)
+          # simulation one priority higher
+          sim_priority = dueca.PrioritySpec(2, 0)
+          # priority of sidestick modules
+          stick_priority = dueca.PrioritySpec(3, 0)
+          # priority of motion limiter and control signals to motion base
+          motion_priority = dueca.PrioritySpec(4, 0)
+          # communication priority is at 5 on the host, highest and ticker in 6
     </scriptlet>
     <scriptlet place="## [timing]">
       if this_node_id == cl_node:
@@ -109,6 +168,76 @@
     </scriptlet>
     <scriptlet place="## [modules]">
       # extend with the module creation here
+
+      # motion filter(s)
+      if (host_node == this_node_id):
+          # settings tuned on a Piper Seneca
+          cw16param0 = dueca.Cw16ParameterSet().param(
+              ("id", 0),
+              ("tilt-coordination-method", 1),
+              ("surge-gain", 0.7),
+              ("surge-hp-wn", 1.5),
+              ("surge-hp-z", 0.9),
+              ("surge-hp-wb", 0.0),
+              ("surge-lp-wn", 3.0),
+              ("surge-lp-z", 0.9),
+              ("sway-gain", 0.7),
+              ("sway-hp-wn", 1.5),
+              ("sway-hp-z", 0.9),
+              ("sway-hp-wb", 0.0),
+              ("sway-lp-wn", 3.0),
+              ("sway-lp-z", 0.9),
+              ("heave-gain", 0.5),
+              ("heave-hp-wn", 2.0),
+              ("heave-hp-z", 0.9),
+	      ("heave-hp-wb", 0.1),
+              ("roll-gain", 0.5),
+              ("roll-hp-wn", 1.0),
+              ("roll-hp-z", 0.9),
+              ("roll-hp-wb", 0.0),
+              ("pitch-gain", 0.5),
+              ("pitch-hp-wn", 1.0),
+              ("pitch-hp-z", 0.9),
+              ("pitch-hp-wb", 0.0),
+              ("yaw-gain", 0.5),
+              ("yaw-hp-wn", 1.0),
+              ("yaw-hp-z", 0.9),
+              ("yaw-hp-wb", 0.0),
+              ("surge-tilt-gain", 1.0),
+              ("sway-tilt-gain", 1.0),
+              ("surge-selection-gain", 1.0),
+              ("sway-selection-gain", 1.0),
+              ("heave-selection-gain", 1.0),
+              ("roll-selection-gain", 1.0),
+              ("pitch-selection-gain", 1.0),
+              ("yaw-selection-gain", 1.0),
+              ("tilt-rate-limit", 3.0),
+              ("ac-ref-pos-x", -3.2),
+              ("ac-ref-pos-y", 0.0),
+              ("ac-ref-pos-z", (-1.2075 + 0.75)),
+              ("filt-ref-pos-x", 0.0),
+              ("filt-ref-pos-y", 0.0),
+              ("filt-ref-pos-z", (-1.2075 + 0.35))
+              )
+          mymotionfilter = dueca.CW16().param(
+              add_parameter_set = cw16param0,
+              select_parameter_set = 0)
+          mymods.append(
+              dueca.Module("motion-limiter", "", motion_priority).param(
+                  ("fake-io", (not use_motion)),
+                  ("set-timing", motion_timing),
+                  ("set-motion-filter", mymotionfilter),
+                  ("check-timing", (2000, 5000)),
+                  ("surge-limit", 3.0),
+                  ("sway-limit", 2.5),
+                  ("heave-limit", 5.0),
+                  ("motion-delay", -0.01),
+                  ("loose-timing", True),
+                  ("delay-tolerance", 5),
+                  ("stay-still", False),
+		  ("set-rx-prio", rs422-priority)
+		  ))
+
     </scriptlet>
     <node name="srsecs" machineclass="srs-ecs" node-number="0"
       if-address="192.168.2.11" />

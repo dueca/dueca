@@ -42,7 +42,7 @@ def _combine_elts(inputvars, selection, ekey, inputs):
         eitlist = list(map(str.strip, selection.split(',')))
         idx = inputvars.index(eitlist[0])
         res = copy.copy(inputs[idx].__dict__[ekey])
-        cfun = _funmapping[inputs[idx].__dict__[ekey].__class__]        
+        cfun = _funmapping[inputs[idx].__dict__[ekey].__class__]
 
         for eit in eitlist[1:]:
             idx = inputvars.index(eit)
@@ -122,13 +122,13 @@ def _combine_and(kwargs, inputvars, matchelts, resultelts, trim):
             for k, v in matchresult.items():
                 mr.__dict__[k] = v
                 dprint(f"matched all {k} to {v}")
-            
-            # add other results as defined in result-.... values    
+
+            # add other results as defined in result-.... values
             for ekey, eit in resultelts.items():
                 mr.__dict__[ekey] = _combine_elts(
                     inputvars, eit, ekey, inputs)
                 dprint(f"Setting {ekey} on new match from {eit}")
-                
+
             '''
             try:
                 for ekey, eit in resultelts.items():
@@ -153,7 +153,7 @@ class ConditionAnd(ComplexCondition):
     default_strip = dict(trim='both', match='both',
                          resultvar='both', inputvar='both')
 
-    def __init__(self, match='', **kwargs):
+    def __init__(self, _match='', **kwargs):
         """
         Create an 'and' combination of conditions
 
@@ -166,7 +166,7 @@ class ConditionAnd(ComplexCondition):
                       same module
             'module_project': the module match is from the same parent project
             'dco': match on the same DCO object
-            'dco_project': match on the parent project
+            'dco_project': match on the DCO's parent project
             'filename': refers to the same file
             The default is ''.
         **kwargs : dict of str
@@ -186,14 +186,18 @@ class ConditionAnd(ComplexCondition):
         None.
 
         """
-
-        self.matchelts = list(map(str.strip, match.split(',')))
+        _match = str(_match)
+        self.matchelts = list(map(str.strip, _match.split(',')))
         self.resultelts = {}
+        if 'resultvar' in kwargs:
+            self.resultvar = str(kwargs['resultvar'])
+        else:
+            self.resultvar = None
         for key, val in kwargs.items():
             if key.startswith('result-'):
                 dprint(f"result element {key}, value {val}")
-                self.resultelts[key[len('result-'):]] = val.strip()
-        self.trim = XML_interpret_bool(kwargs.get('trim', False))
+                self.resultelts[key[len('result-'):]] = str(val).strip()
+        self.trim = XML_interpret_bool(str(kwargs.get('trim', 'false')))
         super(ConditionAnd, self).__init__(**kwargs)
 
 
@@ -204,7 +208,7 @@ class ConditionAnd(ComplexCondition):
 
         for c in self.subconditions:
             res, mot, _nv = c.holds(**kwargs, **newvars)
-            _res = _res and res
+            _res = _res and bool(res)
 
             newvars.update(_nv)
             motivation.extend(mot)

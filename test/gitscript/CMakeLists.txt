@@ -21,6 +21,12 @@ if(Python3_Interpreter_FOUND)
 
   set(DUECA_GPROJECT
     ${CMAKE_SOURCE_DIR}/gitscripts/dueca-gproject.py --verbose)
+  set(NEW_MODULE
+    ${CMAKE_SOURCE_DIR}/scripts/new-module)
+  set(TESTCODER
+    ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/testcoder.py)
+  set(NEW_DCO
+    ${CMAKE_SOURCE_DIR}/scripts/new-dco)
 
   # set up two empty git repositories; clean them out if they already
   # exist
@@ -84,6 +90,65 @@ if(Python3_Interpreter_FOUND)
     COMMAND grep TestModule1
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1/.config/class/solo/modules.xml)
 
+  # create another module
+  add_test(NAME gitscript_newmoduleX
+    COMMAND ${DUECA_GPROJECT} new-module --name "test-module-x"
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
+
+  # code for that module
+  add_test(NAME moduleX_addcode
+    COMMAND ${NEW_MODULE} dusime TestModuleX 0 "another activity"
+    WORKING_DIRECTORY
+    "${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1/test-module-x")
+
+  # add a direct dependency on TestModule1
+  add_test(NAME moduleX_adddepend
+    COMMAND ${TESTCODER}
+    --target CMakeLists.txt
+    --mods ${CMAKE_CURRENT_SOURCE_DIR}/moduleX_CMakeLists.txt.txt
+    WORKING_DIRECTORY
+    "${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1/test-module-x")
+
+  # for fun, add a dco with the new-dco script
+  add_test(NAME newdco_script
+    COMMAND ${NEW_DCO} object --name AnyDCO
+      --description "Test DCO created from script"
+      --enum AnEnum uint8_t
+      --enumvalue One "first" 1
+      --enumvalue Two "second" 2
+      --type double
+      --type std::string "#include <string>"
+      --option hdf5
+      --option msgpack
+      --member double adouble "comment first member"
+      --member AnEnum counter "comment second member"
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1/comm-objects
+  )
+
+  add_test(NAME moduleX_claimdco
+    COMMAND ${TESTCODER}
+      --target comm-objects.lst
+      --mods ${CMAKE_CURRENT_SOURCE_DIR}/moduleX_comm-objects.lst.txt
+      WORKING_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1/test-module-x
+  )
+
+  add_test(NAME moduleX_editcode
+    COMMAND ${TESTCODER}
+    --target TestModuleX.cxx
+    --mods ${CMAKE_CURRENT_SOURCE_DIR}/TestModuleX.cxx.txt
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1/test-module-x
+  )
+
+  add_test(NAME moduleX_addtogit
+    COMMAND git add test-module-x/TestModuleX.?xx comm-objects/AnyDCO.dco
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1
+    )
+
   # commit the changes
   add_test(NAME git_commit1
     COMMAND git commit -a -m "ADDED MODULE"
@@ -96,7 +161,7 @@ if(Python3_Interpreter_FOUND)
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
 
-  # borrow this module in the other project
+  # borrow a module in the other project
   add_test(NAME gitscript_borrowmodule
     COMMAND ${DUECA_GPROJECT}
     borrow-module --name TestModule1
@@ -302,7 +367,7 @@ if(Python3_Interpreter_FOUND)
 
   # check config modified
   add_test(NAME gitscript_prepareplatform_check_config
-    COMMAND grep lethercat .config/class/srs-io/config.cmake
+    COMMAND grep HardwareInterface .config/class/srs-io/config.cmake
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject2/TestProject2)
 
@@ -402,7 +467,21 @@ if(Python3_Interpreter_FOUND)
     file://${CMAKE_CURRENT_SOURCE_DIR}/example-policies.xml
     --apply 21-001
     --force
-    --include-default
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
+
+  add_test(NAME gitscript_policies_worldviewdco
+    COMMAND ${DUECA_GPROJECT}
+    policies --policiesurl
+    file://${CMAKE_CURRENT_SOURCE_DIR}/worldviewdco.xml
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
+
+  add_test(NAME gitscript_policies_homedco
+    COMMAND ${DUECA_GPROJECT}
+    policies --policiesurl
+    file://${CMAKE_CURRENT_SOURCE_DIR}/homedco.xml
+    --apply-all
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
 
@@ -419,6 +498,12 @@ if(Python3_Interpreter_FOUND)
     policies --policiesurl
     file://${CMAKE_CURRENT_SOURCE_DIR}/example-policies.xml
     --apply-all
+    WORKING_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
+
+  add_test(NAME gitscript_compilewithpolicies
+    COMMAND ${DUECA_GPROJECT}
+    build --debug
     WORKING_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR}/testarea/TestProject1/TestProject1)
 

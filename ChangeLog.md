@@ -2,6 +2,18 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.1.0] - 2024-08-07
+
+- Change to the git/cmake build system and scripts. DCO file listings without
+  project component, and USEMODULES definitions without project component
+  are interpreted as being from the "same/own" project. This facilitates
+  forking and re-naming, since these won't point to the project with
+  the "old" name.
+- Associated changes in documentation
+- Fixes to guile build versions for ubuntu 20.04, 22.04
+- small fix new-dco script
+- configure for building on ubuntu 24.04
+
 ## [4.0.8] - 2024-04-17
 
 - Fixes to the xml schemas, install xsd defs these on dueca server
@@ -12,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [4.0.7] - 2024-02-15
 
-- extensions for dueca-gproject; prepareplatform with scriptlets, 
+- extensions for dueca-gproject; prepareplatform with scriptlets,
   speudo module creation, vscode tweaks
 
 ## [4.0.6] - 2024-01-31
@@ -46,19 +58,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Removed the calculation of config/master url for the udp server, url's
   to be directly entered now to the config
 - Robustness fixes for dueca inter
-- Considerable rework of channel handling for sequential read access; 
-  now correctly cleans read datapoints, more efficient transmission of 
+- Considerable rework of channel handling for sequential read access;
+  now correctly cleans read datapoints, more efficient transmission of
   changes to channel configuration
 - Add a warning on sequential reading when too many datapoints are left
   in an entry after removing entry or read token.
 - Add a new test scenario with actual replay of a recorded data
-- Add a new test scenario with SimpleSimulation, involving/testing the 
+- Add a new test scenario with SimpleSimulation, involving/testing the
   DUECA inter communication, with two teams and a central hub
 - Enhancements to the python testrunner
 
 ## [4.0.2] - 2023-10-17
 
-- A new script, dueca-startlink, to create automatic links to start script, 
+- A new script, dueca-startlink, to create automatic links to start script,
   on links.script running
 - Many fixes to the dueca-scheme-to-python script, works quite OK now
 - Corrections to the code generator with default size / argument
@@ -68,7 +80,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Add "dueca-gproject build" command, to configure and build projects
 - Some corrections to automatic classname calculation
-- Added a test case with snapshot, recording and replay using 
+- Added a test case with snapshot, recording and replay using
   DuecaTestCommunication
 - Extend the ddff python code, and add a script for ddff conversion
 - Create and add a ddff logger python program
@@ -89,7 +101,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - improved/updated printing of dco objects
 - New codegen version, to account for changes in packing order. If you have
   dco objects that have an "Extra.?xx" include, check the following:
-  * You have either NOT redefined the "packData" "unPackData", 
+  * You have either NOT redefined the "packData" "unPackData",
     "amorphrestore constructor", and/or the pair of "packDataDiff",
     and "unPackDataDiff", or you redefined them ALL and they still compile:
     - Add "#define __CUSTOM_COMPATLEVEL_111" to your .cxx include file
@@ -101,14 +113,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Test hdf5 logging for various datatypes
 - Handle msgpack nil value for list or for resizing arrays
 - More flexibly handle msgpack reading:
-  * accept int, float and double for c++ float and double 
+  * accept int, float and double for c++ float and double
   * accept nil to clear variable size arrays, lists and maps
   * accept nil to fixvector_withdefault to set default value
 
 ## [3.2.11] - 2023-05-23
 
 - Fix in the appdevelopmentg.md documentation
-- Fix the hdf5 logging of std::map members as vararray of 
+- Fix the hdf5 logging of std::map members as vararray of
   hdf5 composite objects
 - Add tests hdf5 logging
 - Speed up doc targets, avoid rebuild

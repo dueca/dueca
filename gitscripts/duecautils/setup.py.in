@@ -6,7 +6,7 @@ setup(
     description='Support code for DUECA python scripts',
     author="Rene van Paassen",
     author_email="rene.vanpaassen@gmail.com",
-    package_dir = { 'duecautils' : './src' },
+    package_dir = { 'duecautils' : './duecautils' },
     url = 'https://dueca.tudelft.nl/',
     packages=["duecautils",
               "duecautils.actions",
