@@ -1,0 +1,4 @@
+# Insert a ref to a DCO
+
+A PrimaryControls.dco
+TestProject1/comm-objects/AnyDCO.dco

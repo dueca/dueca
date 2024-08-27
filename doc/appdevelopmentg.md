@@ -12,7 +12,7 @@ simulation or data acquisition projects on desktop computers, and
 deployment of these projects on simulation or data acquisition
 facilities that typically use networked computers with IO capabilities
 and hardware to drive these facilities and collect and process
-real-time data. 
+real-time data.
 
 Normally, you will develop your simulation or experiment on a desktop
 computer without all that hardware, and later bring the simulation to
@@ -84,7 +84,7 @@ consider the following definitions:
                               into c++ code. </td></tr>
 
 <tr><td> module </td><td> A module is the smallest software unit in a
-                          DUECA project.  Each module will be given an
+                          DUECA project. Each module will be given an
                           object ID within a running DUECA project,
                           and modules are named. A module can
                           communicate with other modules in DUECA
@@ -411,7 +411,15 @@ etc.</td></tr>
 <td>Currently active student projects.</td></tr>
 </table>
 
-If a student needs to base his or her work on an existing project, which may be one of  the projects in active or in archive, a fork  is created for that project into the students group. Students (everyone actually), should work in a named branch. After completion of the project, the students' branch can then be pushed to the base project in the archive or active group. If the work is an extension, and keeps current capabilities of the project intact, these branches can be merged into main.  
+If a student needs to base his or her work on an existing project, which may be one of  the projects in active or in archive, a fork is created for that project into the students group. Students (everyone actually), should work in a named branch. After completion of the project, the students' branch can then be pushed to the base project in the archive or active group. If the work is an extension, and keeps current capabilities of the project intact, these branches can be merged into main.
+
+A forked project may have a different name from the original project. When
+multiple students are working with a variant of the same project (forks)
+at the same time on the simulator or another lab, it may be useful to
+have different names for these forks. Since DUECA 4.1, the build system
+has been modified to accomodate this, see the remarks on "own" and "foreign"
+DCO objects in the section on [comm-objects.lst](#appdevelg_commobjects), as
+well as the remarks on [referencing other module](#appdevelg_modulecmake).
 
 When specifying a repository to the `dueca-gproject` script, the
 shortened URL may then be used. The repository will be stored in the
@@ -693,7 +701,7 @@ file for that class, and copy over the relevant modules from the
 `dueca-gproject` refresh to actually get the needed modules and dco
 files.
 
-### DCO objects and comm-objects.lst
+### DCO objects and comm-objects.lst {#appdevelg_commobjects}
 
 Each module folder also has a `comm-objects.lst` file. That file is
 converted into a `comm-objects.h` file that is included in the module
@@ -701,11 +709,82 @@ code, and used for determining which dco files have to be converted
 with the code generator. Simply edit these files, adding the needed
 dco files; lines starting with a "#" or empty lines will be ignored.
 
+Each line in a `comm-objects.lst` file refers to a DCO object, either
+from the "own" project, or from another project. DCO objects liv in the
+`comm-objects` folder, which is treated as a standard module, with some
+additional configuration that ensures that c++ code is generated from the
+`.dco` files. A single non-comment line there would look like:
+
+    SomeProject/comm-objects/SomeObject.dco
+
+That ensures that the build system will be looking for a (borrowed, unless
+`SomeProject` is the active project) project, and configures that the
+`SomeObject.dco` file will be converted to c++ code and built. It also makes
+sure that the `SomeProject/comm-objects` folder can be found by include
+statements in your code.
+
+If you use a DCO object from your "own" project, as you will be likely to
+do, then it is better to use a shortened reference in the `comm-objects.lst`
+file:
+
+    comm-objects/MyObject.dco
+
+If you are working in, e.g., `MyProject`, the build system will interpret
+that as `MyProject/comm-objects/MyObject.dco`. Also if someone else later
+borrows your module to re-use your code, the build system figures out that
+the "own" DCO file still corresponds to `MyProject`. This also ensures that
+you don't have to go in and edit your `comm-objects.lst` file if you later
+re-name `MyProject` to something else. This is in fact so useful (and we were
+for historical reasons stuck with a number of projects that did not have
+this), that there is a "policy" to check this and fix it on existing projects.
+
+run:
+
+    dueca-gproject policies
+
+to check whether this (and other 'good' practices) should be applied to
+your code, and
+
+    dueca-gproject policies --apply
+
+To run this. Also see [the chapter on policies](#policies)
+
 ### A module's CMakeLists.txt
 
 The `CMakeLists.txt` files in the module folders are the proper place
 to add dependencies on external libraries. See also the page on
 [using cmake](@ref cmake).
+
+If you need a dependency on another module (or module code) in your project,
+you can also do that here. Note that in principle, modules should be
+stand-alone, but in some cases it can be convenient to share some code,
+like a mini-library, or headers with for example the definition of all your
+simulation data. In that case you can add that module to the `USEMODULES`
+variable in your `CMakeLists.txt` file, like so:
+
+    USEMODULES
+
+    SomeProject/SomeModule
+
+    MyOtherModule
+
+Note again, like with the references to DCO files in the `comm-objects.lst`
+file, that you can and should omit the name of the current project; in this
+case, it means that there is a dependency on a module from the same project.
+
+The dependency will do the following:
+
+- Configure and build the other module before the dependent one. This ensures
+  that any generated code is available in the proper order
+
+- Pull in the "PUBLIC" (check CMake documentation) dependencies of the other
+  module
+
+- Add the paths to the other module (both to the source folder and the folder
+  for any generated code) to the include path for the compiler.
+
+TLDR; in most cases, you can simply use headers and compiled code from the
+other module.
 
 ## Run configuration and deployment
 
@@ -788,7 +867,7 @@ There is a shortcut if you have a configuration file for the platform:
 
 This populates the proper machine classes, and creates the platform
 and nodes. Optionally, you can uses a `--nodes` argument selecting
-only a part of the nodes.
+only a part of the nodes configured in the `platform-srs.xml` file.
 
 ### Preparing a node's run configuration
 

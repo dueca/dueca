@@ -33,6 +33,7 @@ Then I recomment the following extensions, using the extension manager ("four bl
 - "clangd", by llvm-vs-code-extensions
 - "Scheme", by jeandeaual
 - "XML", by redhat
+- "autoDocstring", by njpwerner
 
 ## Use
 
@@ -66,4 +67,4 @@ From any file, you can run (Ctrl+Shift+B) to build your project.
 
 ### Debug run
 
-Using the "Run and Debug" icon, or (Ctrl+Shift+D), you can start the debugger. Debugging will be done for the solo/solo node.
+Using the "Run and Debug" icon, or (Ctrl+Shift+D), you can start the debugger. Debugging will be done for the solo/solo node. If you have special wishes (debugging for a different node, commandline arguments), you can adapt the '.vscode/launch.json` file, and then add this file to version control. 

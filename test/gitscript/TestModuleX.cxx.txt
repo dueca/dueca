@@ -1,0 +1,6 @@
+# remove these two
+
+C do_calc.setTrigger
+C or enter the clock here
+C trimCalculationCondition
+

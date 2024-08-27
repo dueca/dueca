@@ -45,7 +45,7 @@
 #
 # This call adds a static library target <PROJECT>_<MODULE>, sets
 # optional dependencies on other module targets, dco files, and compile
-# options. 
+# options.
 
 include(CMakeParseArguments)
 include(DuecaGetConfig)
@@ -60,6 +60,7 @@ function(DUECA_ADD_MODULE)
   # create module name on basis of current source dir name
   if (CMAKE_CURRENT_SOURCE_DIR MATCHES ".*/\([^/]+\)/\([^/]+\)$")
     set(MODULETARGET "${CMAKE_MATCH_1}_${CMAKE_MATCH_2}")
+    set(DEFLTPRJ "${CMAKE_MATCH_1}")
     set(MODULENAME "${CMAKE_MATCH_1}/${CMAKE_MATCH_2}")
     message(STATUS "Adding module ${MODULETARGET}")
    else()
@@ -120,7 +121,7 @@ function(DUECA_ADD_MODULE)
   set_target_properties(${MODULETARGET} PROPERTIES
     OUTPUT_NAME "module"
     LINKER_LANGUAGE CXX)
-  
+
   # check if we are in a GIT controlled repo, and if so, add a DUECA_GITHASH
   # define to the compile options
   execute_process(COMMAND git rev-parse --short HEAD
@@ -159,23 +160,30 @@ function(DUECA_ADD_MODULE)
   foreach(M ${ADDMODULE_USEMODULES})
 
     # check that this follows the PROJECT/Module pattern
-    if (M MATCHES "^\([^/]+\)/\([^/]+\)$")
+    if (M MATCHES "^\(\([^/]+\)/\)?\([^/]+\)$")
 
-      if (M IN_LIST TMPMODLIST OR CMAKE_MATCH_2 STREQUAL "comm-objects")
+      set(MDL "${CMAKE_MATCH_3}")
+      if (NOT CMAKE_MATCH_2)
+        set(PRJ "${DEFLTPRJ}")
+      else()
+        set(PRJ "${CMAKE_MATCH_2}")
+      endif()
+
+      if ("${PRJ}/${MDL}" IN_LIST TMPMODLIST OR MDL STREQUAL "comm-objects")
         message(STATUS "${MODULENAME} depends on ${M}")
 
         # add the dependency on the module, so code is generated in the right order
-        add_dependencies(${MODULETARGET} "${CMAKE_MATCH_1}_${CMAKE_MATCH_2}")
+        add_dependencies(${MODULETARGET} "${PRJ}_${MDL}")
 
         # extend the include path to the source and generated source of this module
         list(APPEND OTHERMODULE_INCLUDES
-          "${CMAKE_SOURCE_DIR}/../${CMAKE_MATCH_1}/${CMAKE_MATCH_2}"
-          "${CMAKE_BINARY_DIR}/${CMAKE_MATCH_1}/${CMAKE_MATCH_2}")
+          "${CMAKE_SOURCE_DIR}/../${PRJ}/${MDL}"
+          "${CMAKE_BINARY_DIR}/${PRJ}/${MDL}")
 
       else()
         message(STATUS "${MODULENAME} depends on source only ${M}")
         list(APPEND OTHERMODULE_INCLUDES
-           "${CMAKE_SOURCE_DIR}/../${CMAKE_MATCH_1}/${CMAKE_MATCH_2}")
+           "${CMAKE_SOURCE_DIR}/../${PRJ}/${MDL}")
       endif()
     else()
       message(FATAL_ERROR

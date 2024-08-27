@@ -174,7 +174,7 @@ def setup_vars():
         from generation import codegen_version
         from DCOplugins import plugins
         from EnumPlugins import plugins as enum_plugins
-        from src.codegen import summarise_member
+        from duecautils.codegen import summarise_member
 
         # for loading the jinja templates
         environment = Environment(
@@ -1875,7 +1875,7 @@ class Member:
             #return IterableMember(
             #    master, self.comments, self.name, klassref,
             #    self.default, self.defaultsize, self.defaultarg)
-            
+
             return SingleMember(
                 master, self.comments, self.name, klassref,
                 self.default, self.defaultsize, self.defaultarg)
@@ -2701,7 +2701,7 @@ if __name__ == "__main__":
     from platform import python_version
 
     # find the location of
-    
+
 
     if pvals.dcofile:
         for fname in pvals.dcofile:

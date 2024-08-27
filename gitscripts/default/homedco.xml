@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+    Re-write the dco lines for dco objects that are from the same project as
+    the module in which it is used; omit the module part.
+-->
+<policies xmlns="https://dueca.tudelft.nl"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/policies.xsd">
+  <policy name="home-dco" id="24-001">
+    <description>
+      From dueca 4.0.9, comm-objects.lst files interpretation is more flexible
+      A line with only the name of a dco object (with .dco extension, and
+      optionally a comment), will be interpreted to include a dco object from
+      the "home" project, i.e., the project that also supplies the module.
+
+      This policy will search for dco lines where the project matches the
+      home project, and produce a match list, which can then be used to
+      re-write the comm-objects.lst file, removing the project part from the
+      dco specification.
+
+      The advantage is that a project may be re-named or forked, and that the used
+      dco's will no longer be pulled from the original project.
+    </description>
+    <condition type="home-dco">
+      <!-- any dco -->
+      <param name="dco" regex="true">
+        (^[a-zA-Z0-9_]+)$
+      </param>
+      <!-- from any project -->
+      <param name="project" regex="true">
+        ^[a-zA-Z0-9_]+$
+      </param>
+      <param name="resultvar">
+        homedco
+      </param>
+    </condition>
+    <action type="change-dco">
+      <param name="inputvar">
+        homedco
+      </param>
+      <!-- setting old_dco empty ensures it will be changed (commented out -->
+      <param name="old_dco">
+      </param>
+      <!-- new-dco is a match, result is the current dco name -->
+      <param name="new_dco" format="true">
+        {g1}
+      </param>
+      <!-- new_project is not set, will be "None", and not written -->
+    </action>
+  </policy>
+  <policy name="home-include" id="24-002">
+    <description>
+      From DUECA 4.0.9, the interpretation of including / dependency on another module
+      is more flexible. The module name can be supplied without project name, in that
+      case it is assumed that the module is from the home project. Doing this also
+      simplfies re-naming / forking a project.
+    </description>
+    <condition type="home-depend">
+      <param name="resultvar">
+        homedepend
+      </param>
+    </condition>
+    <action type="insert-text">
+      <param name="inputvar">homedepend</param>
+      <param name="mode">replace</param>
+      <param name="text" format="true">{g1}</param>
+    </action>
+  </policy>
+</policies>

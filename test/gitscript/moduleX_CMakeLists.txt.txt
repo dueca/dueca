@@ -1,0 +1,3 @@
+A USEMODULES\s*$
+  TestProject1/TestModule1
+

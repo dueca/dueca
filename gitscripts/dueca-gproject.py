@@ -638,7 +638,7 @@ class NewModule(OnExistingProject):
 
     files = (("CMakeLists.txt.mod",
               "{module}/CMakeLists.txt"),
-             ("comm-objects.txt",
+             ("comm-objects.lst",
               "{module}/comm-objects.lst"),)
     filesalt = (("README-pseudomodule.md",
                  "{module}/README.md"),)

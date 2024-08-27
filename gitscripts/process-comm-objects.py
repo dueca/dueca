@@ -12,10 +12,15 @@ import sys
 _empty = re.compile('^[ \t]*$')
 _comment = re.compile("^#(.*)$")
 _dco = re.compile(
-    '^([^ \t/]+)/comm-objects/([^ \t.]+)\\.dco[ \t]*([^ \t#]*).*$')
+    '^(([^ \t/]+)(/comm-objects)?/)?([^ \t.]+)\\.dco[ \t]*(#.*)?$')
 
 includelines = []
 cmake_binary_dir = sys.argv[2]
+try:
+    thisproject = sys.argv[1].split('/')[-3]
+except IndexError:
+    print(f"Could not find project name from {sys.argv[1]}")
+    thisproject = ""
 
 with open(sys.argv[1], 'r') as f:
     for l in f:
@@ -35,7 +40,11 @@ with open(sys.argv[1], 'r') as f:
                   f"{l}")
             continue
 
-        project, dco = res.group(1), res.group(2)
+        project, dco, comment = res.group(2), res.group(4), res.group(5)
+
+        if project is None:
+            project = thisproject
+
         # includelines.append(
         #     f'#include "../../{project}/comm-objects/{dco}.hxx"\n')
         #includelines.append(
