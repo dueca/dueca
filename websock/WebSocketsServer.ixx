@@ -20,8 +20,8 @@
 
 // include the definition of the module class
 #include "WebSocketsServer.hxx"
-#include "jsonpacker.hxx"
-#include "msgpackpacker.hxx"
+//#include "jsonpacker.hxx"
+//#include "msgpackpacker.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <dueca/DataClassRegistry.hxx>
@@ -55,19 +55,12 @@ DUECA_NS_START;
 WEBSOCK_NS_START;
 
 // class/module names
-template <>
-const char *const WebSocketsServer<jsonpacker, jsonunpacker>::classname =
-  "web-sockets-server";
-
-template <>
-const char *const WebSocketsServer<msgpackpacker, msgpackunpacker>::classname =
-  "web-sockets-server-msgpack";
 
 template <typename Encoder, typename Decoder>
 WebSocketsServer<Encoder, Decoder>::WebSocketsServer(Entity *e,
                                                      const char *part,
                                                      const PrioritySpec &ps) :
-  WebSocketsServerBase(e, part, ps, classname)
+  WebSocketsServerBase(e, part, ps, classname, Encoder::OpCode())
 {}
 
 template <typename Encoder, typename Decoder>
@@ -283,14 +276,14 @@ Unexpected error in the "configuration" URL connection. */
 
     connection->send(buf.str(), [](const SimpleWeb::error_code &ec) {
       if (ec) {
-             /* DUECA websockets.
+        /* DUECA websockets.
 
-Unexpected error in sending the configuration
-information. */
+           Unexpected error in sending the configuration
+           information. */
         W_XTR("Error sending message " << ec);
       }
-    });
-    DEB("New connection on ^/configuration, sent data" << buf.str());
+    }, writer.OpCode());
+    DEB("New connection on ^/configuration");
 
       // removed, closing at this point upsets some clients
       // const std::string reason("Configuration data sent");
@@ -323,8 +316,8 @@ the configuration URL. */
     if (em == this->singlereadsmapped.end()) {
         /* DUECA websockets.
 
- Cannot find the connection entry for a message to the
- "current" URL. */
+Cannot find the connection entry for a message to the
+"current" URL. */
       E_XTR("Cannot find connection");
       const std::string reason("Server failure, cannot find connection data");
       connection->send_close(1001, reason);
@@ -347,7 +340,7 @@ the configuration URL. */
     catch (const NoDataAvailable &e) {
         /* DUECA websockets.
 
- There is no current data on the requested stream.
+There is no current data on the requested stream.
 */
       W_XTR("No data on " << em->second->r_token.getName()
                           << " sending empty {}");
@@ -362,7 +355,7 @@ Unexpected error in sending a message to a client for
 the "current" URL */
         W_XTR("Error sending message " << ec);
       }
-    });
+    }, writer.OpCode());
   };
 
   current.on_error = [](shared_ptr<typename S::Connection> connection,
@@ -403,8 +396,8 @@ a "current" URL. */
     else {
         /* DUECA websockets.
 
- Programming error? Cannot find the connection corresponding
- to a close attempt on a "current" URL.
+Programming error? Cannot find the connection corresponding
+to a close attempt on a "current" URL.
 */
       W_XTR("Cannot find mapping for endpoint at /current/"
             << connection->path_match[1] << "?entry=" << ename);
@@ -852,7 +845,7 @@ a "current" URL. */
     // create an initial write-read-entry
     this->writersreaders[reinterpret_cast<void *>(connection.get())] =
       boost::intrusive_ptr<WriteReadEntry>(
-        new WriteReadEntry(ee->second, this, read_prio, extended));
+        new WriteReadEntry(ee->second, this, read_prio, extended, marker));
     this->writersreaders[reinterpret_cast<void *>(connection.get())]
       ->setConnection(connection);
   };
@@ -1162,3 +1155,6 @@ template <typename Decoder> void WriteEntry::writeFromCoded(const Decoder &doc)
 
 WEBSOCK_NS_END;
 DUECA_NS_END;
+
+#include <dueca/undebug.h>
+#include <undebprint.h>

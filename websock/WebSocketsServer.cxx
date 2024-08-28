@@ -16,6 +16,9 @@
         license         : EUPL-1.2
 */
 
+#include "WebsockExceptions.hxx"
+#include "dueca_ns.h"
+#include "jsonpacker.hxx"
 #define WebSocketsServer_cxx
 
 // include the definition of the module class
@@ -211,13 +214,15 @@ const ParameterTable *WebSocketsServerBase::getMyParameterTable()
 // constructor
 WebSocketsServerBase::WebSocketsServerBase(Entity *e, const char *part,
                                            const PrioritySpec &ps,
-                                           const char *classname) :
+                                           const char *classname, 
+                                           unsigned char marker) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
      part arguments. */
   Module(e, classname, part),
 
   // initialize the data you need in your simulation or process
+  marker(marker),
   server(), sserver(), http_server(), https_server(), server_crt(),
   server_key(), runcontext(new boost::asio::io_context), port(8001),
   http_port(8000), document_root(), aggressive_reconnect(false),
@@ -390,7 +395,7 @@ bool WebSocketsServerBase::setFollowData(const std::vector<std::string> &def)
   try {
     followread_t::mapped_type nentry(
       new followread_t::mapped_type::element_type(
-        def[1], def[2], entryid, this, read_prio, time_spec, extended));
+        def[1], def[2], entryid, this, read_prio, time_spec, extended, marker));
     followers[key] = nentry;
   }
   catch (const std::exception &e) {
@@ -432,7 +437,7 @@ bool WebSocketsServerBase::setChannelInfo(const std::vector<std::string> &def)
 
   try {
     std::shared_ptr<ChannelMonitor> nentry(
-      new ChannelMonitor(this, def[1], time_spec));
+      new ChannelMonitor(this, def[1], time_spec, marker));
     monitors[def[0]] = nentry;
   }
   catch (const std::exception &e) {
@@ -731,5 +736,25 @@ void WebSocketsServerBase::doTransfer(const TimeSpec &ts)
 #endif
 }
 
+
+WEBSOCK_NS_END;
+DUECA_NS_END;
+#include <dueca/undebug.h>
+#include <undebprint.h>
+
+#include "jsonpacker.hxx"
+#include "msgpackpacker.hxx"
+#include "WebSocketsServer.ixx"
+
+DUECA_NS_START;
+WEBSOCK_NS_START;
+template <>
+const char *const WebSocketsServer<jsonpacker, jsonunpacker>::classname =
+  "web-sockets-server";
+template <>
+const char *const WebSocketsServer<msgpackpacker, msgpackunpacker>::classname =
+  "web-sockets-server-msgpack";
+template class WebSocketsServer<msgpackpacker,msgpackunpacker>;
+template class WebSocketsServer<jsonpacker, jsonunpacker>;
 WEBSOCK_NS_END;
 DUECA_NS_END;

@@ -75,6 +75,9 @@ struct jsonpacker
   }
 
   inline void EndLine() { rapidjson::PutUnsafe(osw, '\n'); }
+
+  /** websockets opcode for a packet, in this case text encoded */
+  static inline unsigned char OpCode() { return 129; }
 };
 
 struct jsonunpacker

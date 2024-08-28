@@ -70,9 +70,9 @@ SingleEntryRead::~SingleEntryRead() {}
 SingleEntryFollow::SingleEntryFollow(
   const std::string &channelname, const std::string &datatype, entryid_type eid,
   const WebSocketsServerBase *master, const PrioritySpec &ps,
-  const DataTimeSpec &ts, bool extended, bool autostart) :
+  const DataTimeSpec &ts, bool extended, unsigned char marker, bool autostart) :
   ConnectionList(channelname + std::string(" (entry ") +
-                 boost::lexical_cast<std::string>(eid) + std::string(")")),
+                 boost::lexical_cast<std::string>(eid) + std::string(")"), marker),
   master(master), autostart_cb(this, &SingleEntryFollow::tokenValid),
   r_token(master->getId(), NameSet(channelname), datatype, eid,
           Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
@@ -105,8 +105,8 @@ void SingleEntryFollow::tokenValid(const TimeSpec &ts)
   }
 }
 
-ConnectionList::ConnectionList(const std::string &ident) :
-  flock(ident.c_str(), false), identification(ident)
+ConnectionList::ConnectionList(const std::string &ident, unsigned char marker) :
+  marker(marker), flock(ident.c_str(), false), identification(ident)
 {}
 
 ConnectionList::~ConnectionList() {}
@@ -172,7 +172,7 @@ void ConnectionList::sendOne(const std::string &data, const char *desc,
                              << this->identification);
       this->removeConnection(cn);
     }
-  });
+  }, marker);
 }
 
 void ConnectionList::sendOne(const std::string &data, const char *desc,
@@ -189,7 +189,7 @@ void ConnectionList::sendOne(const std::string &data, const char *desc,
                              << this->identification);
       this->removeConnection(cn);
     }
-  });
+  }, marker);
 }
 
 void SingleEntryFollow::passData(const TimeSpec &ts)
@@ -262,10 +262,10 @@ bool SingleEntryFollow::stop(const TimeSpec &ts)
 
 ChannelMonitor::ChannelMonitor(const WebSocketsServerBase *server,
                                const std::string &channelname,
-                               const DataTimeSpec &ts) :
-  server(server),
-  ChannelWatcher(channelname), ConnectionList(channelname),
-  channelname(channelname), time_spec(ts)
+                               const DataTimeSpec &ts,
+                               unsigned char marker) :
+  ChannelWatcher(channelname), ConnectionList(channelname, marker),
+  channelname(channelname), time_spec(ts), server(server)
 {}
 
 ChannelMonitor::~ChannelMonitor() {}
@@ -683,10 +683,12 @@ CODE_REFCOUNT(WriteReadEntry);
 
 WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                                WebSocketsServerBase *master,
-                               const PrioritySpec &ps, bool extended,
+                               const PrioritySpec &ps, bool extended, 
+                               unsigned char marker,
                                WriteReadEntry::WRState initstate) :
   ChannelWatcher(setup->r_channelname),
   INIT_REFCOUNT_COMMA autostart_cb(this, &WriteReadEntry::tokenValid),
+  marker(marker),
   state(initstate), w_token(), r_token(), identification("not initialized"),
   w_channelname(setup->w_channelname), r_channelname(setup->r_channelname),
   w_dataclass(), r_dataclass(),
@@ -821,7 +823,7 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
                                << " removing connenction form "
                                << this->identification);
       }
-    });
+    }, marker);
   }
   else {
     sconnection->send(data, [this, desc](const SimpleWeb::error_code &ec) {
@@ -834,7 +836,7 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
                                << " removing connenction form "
                                << this->identification);
       }
-    });
+    }, marker);
   }
 }
 

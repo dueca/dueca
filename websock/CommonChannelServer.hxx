@@ -72,6 +72,8 @@ struct SingleEntryRead
 /** Base class for maintaining a set of connections to send data to. */
 struct ConnectionList
 {
+  /** close off marker */
+  unsigned char marker;
 
   /** Locking for access */
   dueca::StateGuard flock;
@@ -115,7 +117,7 @@ struct ConnectionList
                const std::shared_ptr<WssServer::Connection> &c);
 
   /** Constructor */
-  ConnectionList(const std::string &ident);
+  ConnectionList(const std::string &ident, unsigned char marker);
 
   /** Destructor */
   ~ConnectionList();
@@ -184,7 +186,7 @@ struct SingleEntryFollow : public ConnectionList
   SingleEntryFollow(const std::string &channelname, const std::string &datatype,
                     entryid_type eid, const WebSocketsServerBase *master,
                     const PrioritySpec &ps, const DataTimeSpec &ts,
-                    bool extended, bool autostart = false);
+                    bool extended, unsigned char marker, bool autostart = false);
 
   /** Verify token OK */
   bool checkToken();
@@ -208,7 +210,6 @@ private:
     all connected websockets */
 struct ChannelMonitor : public ChannelWatcher, public ConnectionList
 {
-
   /** Channel name */
   std::string channelname;
 
@@ -241,7 +242,7 @@ struct ChannelMonitor : public ChannelWatcher, public ConnectionList
 
   /** Constructor */
   ChannelMonitor(const WebSocketsServerBase *server,
-                 const std::string &channelname, const DataTimeSpec &ts);
+                 const std::string &channelname, const DataTimeSpec &ts, unsigned char marker);
 
     /** Destructor */
   virtual ~ChannelMonitor();
@@ -455,6 +456,9 @@ struct WriteReadEntry :
   /** Autostart callback function */
   Callback<WriteReadEntry> autostart_cb;
 
+  /** close off marker */
+  unsigned char marker;
+
   /** State for this entry */
   enum WRState {
     UnConnected, /**< Not connected to a socket */
@@ -547,7 +551,7 @@ struct WriteReadEntry :
   */
   WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                  WebSocketsServerBase *master, const PrioritySpec &ps,
-                 bool extended,
+                 bool extended, unsigned char marker,
                  WriteReadEntry::WRState initstate = WriteReadEntry::Connected);
 
   /** Destructor */

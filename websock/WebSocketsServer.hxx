@@ -57,6 +57,9 @@ class WebSocketsServerBase : public dueca::Module
   typedef WebSocketsServerBase _ThisModule_;
 
 protected: // simulation data
+  /** Marker token for the websocket send calls */
+  unsigned char marker;
+
   /** Server, uncoded */
   boost::scoped_ptr<WsServer> server;
 
@@ -194,7 +197,7 @@ public: // class name and trim/parameter tables
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
   WebSocketsServerBase(Entity *e, const char *part, const PrioritySpec &ts,
-                       const char *classname);
+                       const char *classname, unsigned char marker);
 
   /** Helper function, templated with the server type */
   template <typename S> bool _complete_http(S &server);

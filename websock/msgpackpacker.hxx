@@ -332,21 +332,6 @@ boost::any decode_value(const msgpack::object& doc, typeindex_t tix)
 }
 
 // typedef std::map<std::string, msgpack::type::variant_ref> mainmap_t;
-#if 0
-struct mainmap_t: public std::map<std::string, const msgpack::object>
-{
-  mainmap_t(const msgpack::object& obj) {
-    assert(obj.type == msgpack::type::MAP);
-    for (unsigned ii = 0; ii < obj.via.map.size; ii++) {
-      auto &elt = *(obj.via.map.ptr + ii);
-      assert(elt.key.type == msgpack::type::STR);
-      emplace(std::string(elt.key.via.str.ptr, elt.key.via.str.size), elt.val);
-    }
-  }
-  mainmap_t() {}
-};
-#endif
-
 typedef std::map<std::string, msgpack::object> mainmap_t;
 typedef std::vector<msgpack::object> mainvec_t;
 WEBSOCK_NS_END;
@@ -508,6 +493,9 @@ struct msgpackpacker
   }
 
   inline void EndLine() {}
+
+  /** websockets opcode for a packet, in this case binary */
+  static inline unsigned char OpCode() { return 130; }
 };
 
 struct msgpackunpacker
@@ -549,7 +537,8 @@ struct msgpackunpacker
   }
 };
 
-#include <dueca/undebug.h>
-
 WEBSOCK_NS_END;
 DUECA_NS_END;
+
+#include <dueca/undebug.h>
+
