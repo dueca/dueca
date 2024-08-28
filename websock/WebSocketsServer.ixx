@@ -19,6 +19,7 @@
 #pragma once
 
 // include the definition of the module class
+#include "ChannelDef.hxx"
 #include "WebSocketsServer.hxx"
 //#include "jsonpacker.hxx"
 //#include "msgpackpacker.hxx"
@@ -1087,7 +1088,7 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
 
     writer.EndObject();
   }
-  else {
+  else if (w_dataname.size() || r_dataname.size()) {
     const std::string &dataname =
       r_dataname.size() == 0 ? w_dataname : r_dataname;
     const unsigned entryid = r_dataname.size() == 0 ? w_entryid : r_entryid;
@@ -1099,6 +1100,36 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
     writer.Key("typeinfo");
     codeTypeInfo(writer, dataname);
     writer.EndObject();
+  }
+  else {
+    // entry removed
+    if (r_entryid != entry_end && w_entryid != entry_end) {
+      writer.StartObject(2);
+      writer.Key("read");
+      writer.StartObject(2);
+      writer.Key("dataclass");  // 1.1
+      writer.String(r_dataname);
+      writer.Key("entry");      // 1.2
+      writer.Uint(r_entryid);
+      writer.EndObject();
+      writer.Key("write");
+      writer.StartObject(2);
+      writer.Key("dataclass");  // 1.1
+      writer.String(w_dataname);
+      writer.Key("entry");      // 1.2
+      writer.Uint(w_entryid);
+      writer.EndObject();
+      writer.EndObject();
+    }
+    else {
+      const auto entryid = (r_entryid != entry_end) ? r_entryid : w_entryid;
+      writer.StartObject(2);
+      writer.Key("dataclass");  // 1.1
+      writer.String(r_dataname);
+      writer.Key("entry");      // 1.2
+      writer.Uint(entryid);
+      writer.EndObject();
+    }
   }
 }
 

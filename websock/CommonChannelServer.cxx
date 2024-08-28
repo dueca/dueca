@@ -282,7 +282,7 @@ void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
 
   // manually construct a small JSON message
   std::stringstream buffer;
-  server->codeEntryInfo(buffer, "", 0, info.data_class, info.entry_id);
+  server->codeEntryInfo(buffer, "", entry_end, info.data_class, info.entry_id);
   sendAll(buffer.str(), "entry addition");
 }
 
@@ -296,7 +296,7 @@ void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
 
   // manually construct a small JSON message
   std::stringstream buffer;
-  server->codeEntryInfo(buffer, "", info.entry_id, "", info.entry_id);
+  server->codeEntryInfo(buffer, "", entry_end, "", info.entry_id);
   DEB("entryRemoved " << info.entry_id);
   sendAll(buffer.str(), "entry removal");
 }
@@ -308,7 +308,7 @@ void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection> &c)
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
       std::stringstream buffer;
-      server->codeEntryInfo(buffer, "", 0, entrydataclass[ii], ii);
+      server->codeEntryInfo(buffer, "", entry_end, entrydataclass[ii], ii);
       sendOne(buffer.str(), "entry catch up", c);
     }
   }
@@ -321,7 +321,7 @@ void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection> &c)
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
       std::stringstream buffer;
-      server->codeEntryInfo(buffer, "", 0, entrydataclass[ii], ii);
+      server->codeEntryInfo(buffer, "", entry_end, entrydataclass[ii], ii);
       sendOne(buffer.str(), "entry catch up", c);
     }
   }
@@ -683,7 +683,7 @@ CODE_REFCOUNT(WriteReadEntry);
 
 WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                                WebSocketsServerBase *master,
-                               const PrioritySpec &ps, bool extended, 
+                               const PrioritySpec &ps, bool extended,
                                unsigned char marker,
                                WriteReadEntry::WRState initstate) :
   ChannelWatcher(setup->r_channelname),
