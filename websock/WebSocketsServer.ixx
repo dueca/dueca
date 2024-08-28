@@ -25,8 +25,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <dueca/DataClassRegistry.hxx>
-#include <sstream>
 #include <fstream>
+#include <sstream>
 
 // include the debug writing header, by default, write warning and
 // error messages
@@ -64,14 +64,15 @@ const char *const WebSocketsServer<msgpackpacker, msgpackunpacker>::classname =
   "web-sockets-server-msgpack";
 
 template <typename Encoder, typename Decoder>
-WebSocketsServer<Encoder,Decoder>::WebSocketsServer(Entity *e, const char *part,
-                                           const PrioritySpec &ps) :
-WebSocketsServerBase(e, part, ps, classname)
-{ }
+WebSocketsServer<Encoder, Decoder>::WebSocketsServer(Entity *e,
+                                                     const char *part,
+                                                     const PrioritySpec &ps) :
+  WebSocketsServerBase(e, part, ps, classname)
+{}
 
 template <typename Encoder, typename Decoder>
-WebSocketsServer<Encoder,Decoder>::~WebSocketsServer()
-{ }
+WebSocketsServer<Encoder, Decoder>::~WebSocketsServer()
+{}
 
 /** Local function for sending the response data, using 64K chunks */
 template <typename R>
@@ -105,8 +106,7 @@ static void read_and_send(const R &response,
   }
 }
 
-template <typename S>
-bool WebSocketsServerBase::_complete_http(S &server)
+template <typename S> bool WebSocketsServerBase::_complete_http(S &server)
 {
   server.config.port = http_port;
 
@@ -140,7 +140,8 @@ bool WebSocketsServerBase::_complete_http(S &server)
           auto length = ifs->tellg();
           ifs->seekg(0, ios::beg);
           header.emplace("Content-Length", to_string(length));
-          string ext = boost::filesystem::extension(path);
+          string ext =
+            path.extension().c_str(); // boost::filesystem::extension(path);
           auto mime = mimemap.find(ext);
           if (mime == mimemap.end()) {
             /* DUECA websockets.
@@ -193,7 +194,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
                            const SimpleWeb::error_code &ec) {
       /* DUECA websockets.
 
- Unexpected error in the "configuration" URL connection. */
+Unexpected error in the "configuration" URL connection. */
     W_XTR("Error in info connection " << connection.get() << ". "
                                       << "Error: " << ec
                                       << ", error message: " << ec.message());
@@ -299,8 +300,8 @@ information. */
                                int status, const std::string &reason) {
       /* DUECA websockets.
 
- Information on the closing of the connection of a client with
- the configuration URL. */
+Information on the closing of the connection of a client with
+the configuration URL. */
     I_XTR("Closing configuration endpoint "
           << " code: " << status << " reason: \"" << reason << '"');
   };
@@ -322,8 +323,8 @@ information. */
     if (em == this->singlereadsmapped.end()) {
         /* DUECA websockets.
 
-   Cannot find the connection entry for a message to the
-   "current" URL. */
+ Cannot find the connection entry for a message to the
+ "current" URL. */
       E_XTR("Cannot find connection");
       const std::string reason("Server failure, cannot find connection data");
       connection->send_close(1001, reason);
@@ -333,11 +334,11 @@ information. */
       // room for response
     std::stringstream buf;
     Encoder writer(buf);
-    writer.StartObject(2);
     try {
         // create the reader
       DCOReader r(em->second->datatype.c_str(), em->second->r_token);
       DataTimeSpec dtd = r.timeSpec();
+      writer.StartObject(2);
       writer.Key("tick");
       writer.Uint(dtd.getValidityStart());
       writer.Key("data");
@@ -346,10 +347,11 @@ information. */
     catch (const NoDataAvailable &e) {
         /* DUECA websockets.
 
-   There is no current data on the requested stream.
+ There is no current data on the requested stream.
 */
       W_XTR("No data on " << em->second->r_token.getName()
                           << " sending empty {}");
+      writer.StartObject(0);
     }
     writer.EndObject();
     connection->send(buf.str(), [](const SimpleWeb::error_code &ec) {
@@ -367,7 +369,7 @@ the "current" URL */
                         const SimpleWeb::error_code &ec) {
       /* DUECA websockets.
 
- Unexpected error in the "current" URL connection. */
+Unexpected error in the "current" URL connection. */
     W_XTR("Error in connection " << connection.get() << ". "
                                  << "Error: " << ec
                                  << ", error message: " << ec.message());
@@ -387,8 +389,8 @@ the "current" URL */
 
       /* DUECA websockets.
 
- Information on the closing of the connection of a client with
- a "current" URL. */
+Information on the closing of the connection of a client with
+a "current" URL. */
     I_XTR("Closing endpoint at /current/"
           << connection->path_match[1] << "?entry=" << ename
           << " code: " << status << " reason: \"" << reason << '"');
@@ -401,8 +403,8 @@ the "current" URL */
     else {
         /* DUECA websockets.
 
-   Programming error? Cannot find the connection corresponding
-   to a close attempt on a "current" URL.
+ Programming error? Cannot find the connection corresponding
+ to a close attempt on a "current" URL.
 */
       W_XTR("Cannot find mapping for endpoint at /current/"
             << connection->path_match[1] << "?entry=" << ename);
@@ -557,8 +559,8 @@ the "current" URL */
                                           << " entry " << entry << "("
                                           << dataclass << ")");
             std::shared_ptr<SingleEntryFollow> newfollow(new SingleEntryFollow(
-              mm->second->channelname, dataclass, entry, this,
-              this->read_prio, mm->second->time_spec, extended, true));
+              mm->second->channelname, dataclass, entry, this, this->read_prio,
+              mm->second->time_spec, extended, true));
             this->autofollowers[key] = newfollow;
             ee = this->autofollowers.find(key);
           }
@@ -1026,7 +1028,9 @@ void codeTypeInfo(Encoder &writer, const std::string &dataclass)
          ? 1
          : 0) +
       (rw.getMemberArity(ii) == Mapped ? 2 : 0);
+
     writer.StartObject(nelts);
+
     writer.Key("name");
     writer.String(rw.getMemberName(ii));
     writer.Key("type");
@@ -1051,6 +1055,7 @@ void codeTypeInfo(Encoder &writer, const std::string &dataclass)
       writer.Key("keytype");
       writer.String(rw.getMemberKeyClass(ii));
     }
+
     writer.EndObject();
   }
   writer.EndArray();
@@ -1064,22 +1069,29 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
   Encoder writer(s);
   if (w_dataname.size() && r_dataname.size()) {
     writer.StartObject(2);
-    writer.Key("read");
+
+    writer.Key("read");   // 1
+
     writer.StartObject(3);
-    writer.Key("dataclass");
+    writer.Key("dataclass");  // 1.1
     writer.String(r_dataname);
-    writer.Key("entry");
+    writer.Key("entry");      // 1.2
     writer.Uint(r_entryid);
-    writer.Key("typeinfo");
+    writer.Key("typeinfo");   // 1.3
     codeTypeInfo(writer, r_dataname);
-    writer.Key("write");
+    writer.EndObject();
+
+    writer.Key("write");  // 2
+
     writer.StartObject(3);
-    writer.Key("dataclass");
+    writer.Key("dataclass");  // 2.1
     writer.String(w_dataname);
-    writer.Key("entry");
+    writer.Key("entry");      // 2.2
     writer.Uint(w_entryid);
-    writer.Key("typeinfo");
+    writer.Key("typeinfo");   // 2.3
     codeTypeInfo(writer, w_dataname);
+    writer.EndObject();
+
     writer.EndObject();
   }
   else {
@@ -1093,6 +1105,7 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
     writer.Uint(entryid);
     writer.Key("typeinfo");
     codeTypeInfo(writer, dataname);
+    writer.EndObject();
   }
 }
 
@@ -1114,7 +1127,6 @@ void WriteReadEntry::writeFromCoded(const Decoder &doc)
     wr.failed();
   }
 }
-
 
 template <typename Decoder> void WriteEntry::writeFromCoded(const Decoder &doc)
 {
@@ -1147,7 +1159,6 @@ template <typename Decoder> void WriteEntry::writeFromCoded(const Decoder &doc)
     wr.failed();
   }
 }
-
 
 WEBSOCK_NS_END;
 DUECA_NS_END;
