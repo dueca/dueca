@@ -294,7 +294,7 @@ void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
          entrydataclass[info.entry_id].size() > 0);
   entrydataclass[info.entry_id] = std::string();
 
-  // manually construct a small JSON message
+  // manually construct a small JSON message, empty dataname
   std::stringstream buffer;
   server->codeEntryInfo(buffer, "", entry_end, "", info.entry_id);
   DEB("entryRemoved " << info.entry_id);
@@ -496,6 +496,7 @@ bool WriteEntry::checkToken()
   }
   return res;
 }
+
 
 PresetWriteEntry::PresetWriteEntry(const std::string &channelname,
                                    const std::string &datatype,

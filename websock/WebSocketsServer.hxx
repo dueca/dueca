@@ -48,7 +48,7 @@ WEBSOCK_NS_START;
 using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
 
-/** Common base type wor websocket servers
+/** Common base type for websocket servers
 
 */
 class WebSocketsServerBase : public dueca::Module
@@ -256,12 +256,12 @@ public: // the member functions that are called for activities
 
 public: // coding function
   /** Send data with, in a "tick"/"data" struct */
-  virtual void codeData(std::ostream& s, const DCOReader& r) const = 0;
+  virtual void codeData(std::ostream &s, const DCOReader &r) const = 0;
 
   /** Write type information to given stream */
-  virtual void codeEntryInfo(std::ostream& s,
-    const std::string& w_dataname, unsigned w_entryid,
-    const std::string& r_dataname, unsigned r_entryid) const = 0;
+  virtual void codeEntryInfo(std::ostream &s, const std::string &w_dataname,
+                             unsigned w_entryid, const std::string &r_dataname,
+                             unsigned r_entryid) const = 0;
 };
 
 /** Webserver providing access to DUECA channels
@@ -274,10 +274,12 @@ public: // coding function
     <tr>
     <td> /configuration </td>
 
-    <td> After opening the configuration URL receives a JSON with all
-    possible configured URL', in the sections "current", "read",
-    "monitor" and "write". With the exception of "monitor", all
-    endpoints also receive a description of the datatype.</td>
+    <td> After opening the configuration URL, the client receives a JSON with
+    all possible configured URL's, in the sections "current", "read",
+    "info", "write" and "write-and-read". With the exception of "info" and
+    "write-and-read" (where any type of data can be expected), all endpoints
+    also receive a description of the datatype. As a last element in the URL,
+    the value of a time granule (a single increment), is sent, in seconds.</td>
     </tr>
 
     <tr>
@@ -289,7 +291,9 @@ public: // coding function
     "tick", indicating the time tick and single set of data defined in
     a member "data". If omitted from the URL, the entry id is assumed
     to be 0. The entry may have been explicitly configured from the
-    start script, or it was added by a channelwatcher (see later).
+    start script, and thus its information was provided in the
+    /configuration URL, or it was added by a channelwatcher, and information
+    was provided in an /info/... url (see later).
     </td>
     </tr>
 
@@ -299,9 +303,9 @@ public: // coding function
     following read token. Receives all data as it comes in. Data push
     is provided by the DUECA side. For each new set of data, this
     returns a JSON array with objects containing time tick and set of
-    data defined. The followdata entries were either specifically
-    configured, or they are available from information obtained through
-    the channelinfo URL
+    data defined. The read entries were either specifically
+    configured (from /configuration), or they are available from
+    information obtained through an info URL.
     </td></tr>
 
     <tr>
@@ -322,8 +326,37 @@ public: // coding function
     in the start script of the module. The first message must be a
     json object with the member 'label'. Optionally, if this has a
     member 'ctiming' equal to true, the json client provides the
-    timing. If this object has a member 'event' equal to false, an
+    timing. If this object has a member 'event' equal to false, a
     stream channel is created; in that case ctiming must be true.
+
+    Optionally a /write/name entry can have been created as preset. In
+    that case, the write token is created at startup of the server,
+    and writing will be immediately available. The write token and
+    channel entry will also persist after a connection is lost, and
+    then a new connection can assume the write entry and continue.
+    </td>
+    </tr>
+
+    <tr>
+    <td> /write-and-read/name </td>
+
+    <td> This uses a single bi-directional websocket connection for
+    writing a single entry and reading a corresponding entry in another
+    channel. Information on the data types is provided after completion
+    of the connection. This needs a DUECA module that acts as a server,
+    monitors the channel that is written to from the websocket connection,
+    and creates a matching entry in the reply channel.
+
+    The first message from the client must contain a member "dataclass",
+    indicating the DCO type the client wishes to write. An entry in the
+    configured channel is created with this dataclass.
+
+    After the server has created a corresponding entry in the reply
+    channel, (having the exact same label), a websocket message is
+    sent back, defining the read and write entry numbers, dataclass and
+    type information. After this, messages can be written, to which
+    the server module should provide replies.
+
     </td>
 
     </tr></table>
@@ -394,20 +427,23 @@ public: // coding function
     in the channel. This mode is useful if you want the channel entry to
     be present for the rest of the simulation. If for some reason the
     websockets connection is broken, a new connection will take its place.
+
+    <li> Setting up a /write-and-read URL.
     </ol>
 
     To provide static datafiles (e.g., to start off your javascript
     program), the module may be configured to act as a very simple web
-    server as well, serving files from a single folder.
+    server as well, serving files from a single folder. To get better
+    compatibility with browsers, also configure the mime types for
+    these files.
  */
-template <typename Encoder,typename Decoder>
+template <typename Encoder, typename Decoder>
 class WebSocketsServer : public WebSocketsServerBase
 {
   /** self-define the module type, to ease writing the parameter table */
-  typedef WebSocketsServer<Encoder,Decoder> _ThisModule_;
+  typedef WebSocketsServer<Encoder, Decoder> _ThisModule_;
 
 private: // simulation data
-
 public: // class name and trim/parameter tables
   /** Name of the module. */
   static const char *const classname;
@@ -429,12 +465,12 @@ public: // construction and further specification
   template <typename S> bool _complete(S &server);
 
   /** Code the data in the reader object. */
-  void codeData(std::ostream& s, const DCOReader& r) const final;
+  void codeData(std::ostream &s, const DCOReader &r) const final;
 
   /** Code the type information in the reader object. */
-  void codeEntryInfo(std::ostream& s,
-    const std::string& w_dataname, unsigned w_entryid,
-    const std::string& r_dataname, unsigned r_entryid) const final;
+  void codeEntryInfo(std::ostream &s, const std::string &w_dataname,
+                     unsigned w_entryid, const std::string &r_dataname,
+                     unsigned r_entryid) const final;
 
   /** Destructor. */
   ~WebSocketsServer();

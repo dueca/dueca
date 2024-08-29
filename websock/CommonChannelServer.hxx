@@ -30,7 +30,6 @@
 #include <simple-websocket-server/server_wss.hpp>
 #include <string>
 
-
 DUECA_NS_START;
 WEBSOCK_NS_START;
 
@@ -40,8 +39,7 @@ using WssServer = SimpleWeb::SocketServer<SimpleWeb::WSS>;
 class WebSocketsServerBase;
 template <typename Encoder, typename Decoder> class WebSocketsServer;
 
-
-/** Access to a single entry in a channel.
+/** Definition of access to a single entry in a channel.
 
     Reads the latest/current data in the channel, upon a dummy
     message from a connected websocket.
@@ -69,7 +67,8 @@ struct SingleEntryRead
   ~SingleEntryRead();
 };
 
-/** Base class for maintaining a set of connections to send data to. */
+/** Base class for maintaining a set of websocket connections to send data to.
+ */
 struct ConnectionList
 {
   /** close off marker */
@@ -186,7 +185,8 @@ struct SingleEntryFollow : public ConnectionList
   SingleEntryFollow(const std::string &channelname, const std::string &datatype,
                     entryid_type eid, const WebSocketsServerBase *master,
                     const PrioritySpec &ps, const DataTimeSpec &ts,
-                    bool extended, unsigned char marker, bool autostart = false);
+                    bool extended, unsigned char marker,
+                    bool autostart = false);
 
   /** Verify token OK */
   bool checkToken();
@@ -242,7 +242,8 @@ struct ChannelMonitor : public ChannelWatcher, public ConnectionList
 
   /** Constructor */
   ChannelMonitor(const WebSocketsServerBase *server,
-                 const std::string &channelname, const DataTimeSpec &ts, unsigned char marker);
+                 const std::string &channelname, const DataTimeSpec &ts,
+                 unsigned char marker);
 
     /** Destructor */
   virtual ~ChannelMonitor();
@@ -461,9 +462,9 @@ struct WriteReadEntry :
 
   /** State for this entry */
   enum WRState {
-    UnConnected, /**< Not connected to a socket */
-    Connected, /**< Connected to a socket, but no entry, or not
-                    confirmed */
+    UnConnected,     /**< Not connected to a socket */
+    Connected,       /**< Connected to a socket, but no entry, or not
+              confirmed */
     ValidatingWrite, /**< Waiting until writing end is validated */
     ExpectingRead, /**< Waiting for the corresponding read entry to arrive */
     Linked /**< Connected, and linked to two entries */
