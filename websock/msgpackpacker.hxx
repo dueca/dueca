@@ -29,7 +29,6 @@
 #define MSGPACK_USE_BOOST
 #include <DCOTypeIndex.hxx>
 #include <dueca/debug.h>
-#include <list>
 #include <msgpack.hpp>
 #include <msgpack/v3/object_fwd_decl.hpp>
 

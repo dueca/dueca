@@ -22,11 +22,10 @@
 #include "ChannelDef.hxx"
 #include "WebSocketsServer.hxx"
 #include "WebsockExceptions.hxx"
-// #include "jsonpacker.hxx"
-// #include "msgpackpacker.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <dueca/DataClassRegistry.hxx>
+#include <dueca/CommObjectElementWriter.hxx>
 #include <fstream>
 #include <sstream>
 

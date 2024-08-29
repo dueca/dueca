@@ -11,8 +11,7 @@
         license         : EUPL-1.2
 */
 
-#include "CommObjectMemberArity.hxx"
-#include "udpcom/NetCommunicatorExceptions.hxx"
+
 #include <sstream>
 #define CommonChannelServer_cxx
 #include "CommonChannelServer.hxx"
@@ -25,9 +24,7 @@
 #include <dueca/CommObjectReaderWriter.hxx>
 #include <dueca/CommObjectWriter.hxx>
 #include <dueca/DataClassRegistry.hxx>
-#include <rapidjson/document.h>
-#include <rapidjson/error/en.h>
-#include <rapidjson/reader.h>
+
 #include "WebsockExceptions.hxx"
 
 #define DEBPRINTLEVEL -1
@@ -35,9 +32,6 @@
 
 DUECA_NS_START;
 WEBSOCK_NS_START;
-
-namespace json = rapidjson;
-typedef json::GenericDocument<json::UTF8<>> JDocument;
 
 const char *presetmismatch::what() const throw()
 {
@@ -212,18 +206,7 @@ void SingleEntryFollow::passData(const TimeSpec &ts)
 
   // ScopeLock l(flock);
   DCOReader r(datatype.c_str(), r_token, ts);
-/*   Encoder writer;
-    DataTimeSpec dtd = r.timeSpec();
-    writer.StartObject(2);
-    writer.Key("tick");
-    writer.Uint(dtd.getValidityStart());
-    writer.Key("data");
-    writer.dco(r);
-    writer.EndObject();
 
-    DEB3("SingleEntryFollow::passData " << writer.GetString());
-    sendAll(writer.GetString(), "channel data");
-    */
   std::stringstream buffer;
   master->codeData(buffer, r);
   sendAll(buffer.str(), "channel data");

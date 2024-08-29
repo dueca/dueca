@@ -18,14 +18,12 @@
 
 #include "WebsockExceptions.hxx"
 #include "dueca_ns.h"
-#include "jsonpacker.hxx"
 #define WebSocketsServer_cxx
 
 // include the definition of the module class
 #include "WebSocketsServer.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <fstream>
 
 // include the debug writing header, by default, write warning and
 // error messages
@@ -66,8 +64,8 @@ const ParameterTable *WebSocketsServerBase::getMyParameterTable()
       "optionally (in a string) the entry number. Data is returned whenever\n"
       "requested by (an empty) message\n"
       "This results in a URL /current/name?entry=...\n"
-      "The returned JSON objects have members \"tick\" for timing and \n"
-      "\"data\" with the DCO object encoded in JSON" },
+      "The returned objects objects have members \"tick\" for timing and \n"
+      "\"data\" with the DCO object encoded in JSON or msgpack" },
 
     { "read-timing",
       new VarProbe<_ThisModule_, TimeSpec>(&_ThisModule_::time_spec),
@@ -204,7 +202,7 @@ const ParameterTable *WebSocketsServerBase::getMyParameterTable()
        name and MemberCall/VarProbe object. The description is used to
        give an overall description of the module. */
     { NULL, NULL,
-      "JSON server providing access to selected channels and channel\n"
+      "JSON/msgpack server providing access to selected channels and channel\n"
       "entries with websockets." }
   };
 
@@ -236,14 +234,6 @@ WebSocketsServerBase::WebSocketsServerBase(Entity *e, const char *part,
   // connect the triggers for simulation
   do_transfer.setTrigger(myclock);
 }
-
-// in the commonchannelserver code
-namespace json = rapidjson;
-void writeTypeInfo(json::Writer<json::StringBuffer> &writer,
-                   const std::string &dataclass);
-
-
-
 
 #ifdef BOOST1_65
 #define BOOST_POSTCALL runcontext->post
@@ -742,8 +732,8 @@ DUECA_NS_END;
 #include <dueca/undebug.h>
 #include <undebprint.h>
 
-#include "jsonpacker.hxx"
 #include "msgpackpacker.hxx"
+#include "jsonpacker.hxx"
 #include "WebSocketsServer.ixx"
 
 DUECA_NS_START;
