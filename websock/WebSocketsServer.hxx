@@ -264,9 +264,13 @@ public: // coding function
                              unsigned r_entryid) const = 0;
 };
 
-/** Webserver providing access to DUECA channels
+/** Webserver providing access to DUECA channels.
 
-    This server can define a number of URL's
+    There are two possible variants for this server, "web-sockets-server", which
+    communicates with JSON-coded messages, and "web-sockets-server-msgpack", which
+    uses msgpack (binary) messages for communication.
+
+    This server can define a number of URL's:
 
     <table>
     <tr><th>URL</th><th>Description</th></tr>
@@ -274,12 +278,13 @@ public: // coding function
     <tr>
     <td> /configuration </td>
 
-    <td> After opening the configuration URL, the client receives a JSON with
+    <td> After opening the configuration URL, the client receives a message with
     all possible configured URL's, in the sections "current", "read",
     "info", "write" and "write-and-read". With the exception of "info" and
     "write-and-read" (where any type of data can be expected), all endpoints
     also receive a description of the datatype. As a last element in the URL,
-    the value of a time granule (a single increment), is sent, in seconds.</td>
+    the value of a time granule (a single increment in DUECA integer time), 
+    is sent, in seconds.</td>
     </tr>
 
     <tr>
@@ -287,7 +292,7 @@ public: // coding function
 
     <td> From a channel labeled "name", reads the current/latest data
     from the entry given. To get fresh data, write an empty message on the
-    socket (will be discarded). Returns a JSON object with a member
+    socket (will be discarded). Returns a object with a member
     "tick", indicating the time tick and single set of data defined in
     a member "data". If omitted from the URL, the entry id is assumed
     to be 0. The entry may have been explicitly configured from the
