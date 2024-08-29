@@ -335,7 +335,9 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
       @param message1     JSON-encoded first message
       @param master       ID of controlling entity, for assigning channel entry.
   */
-  virtual void complete(const std::string &message1, const GlobalId &master);
+  virtual void complete(const std::string &datatype, const std::string &label,
+                        bool stream, bool ctiming, bool bulk, bool diffpack,
+                        const GlobalId &master);
 
   /** Check whether completion has been done
 
@@ -397,13 +399,20 @@ struct PresetWriteEntry : public WriteEntry
       the first message, as a normal WriteEntry, but only uses it to check
       against configuration.
 
-      @param message1     JSON-encoded first message
+      @param datatype     Data class
+      @param label        Label for the entry
+      @param stream       Stream entry
+      @param ctiming      Provide controlling timing
+      @param bulk         Bulk data transfor
+      @param diffpack     Differential packing
       @param master       ID of controlling entity, ignored here.
 
       @throws presetmismatch  When the data in message1 does not match
                           configuration.
   */
-  void complete(const std::string &message1, const GlobalId &master);
+  void complete(const std::string &datatype, const std::string &label,
+                bool stream, bool ctiming, bool bulk, bool diffpack,
+                const GlobalId &master);
 };
 
 /** Configuration of entry writing reading combination */
@@ -464,7 +473,7 @@ struct WriteReadEntry :
   enum WRState {
     UnConnected,     /**< Not connected to a socket */
     Connected,       /**< Connected to a socket, but no entry, or not
-              confirmed */
+  confirmed */
     ValidatingWrite, /**< Waiting until writing end is validated */
     ExpectingRead, /**< Waiting for the corresponding read entry to arrive */
     Linked /**< Connected, and linked to two entries */
@@ -575,7 +584,7 @@ struct WriteReadEntry :
       @param message1     JSON-encoded first message
       @param master       ID of controlling entity, for assigning channel entry.
   */
-  void complete(const std::string &message1);
+  void complete(const std::string &datatype);
 
   /** Check whether completion has been done
 

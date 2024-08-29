@@ -39,6 +39,13 @@ class connectionparseerror : public std::exception
   const char *what() const throw() final;
 };
 
+/** Exception to throw when connection error is wrong */
+class connectionconfigerror : public std::exception
+{
+  /** Print description of exception. */
+  const char *what() const throw() final;
+};
+
 /** Exception to throw when data cannot be read */
 class dataparseerror : public std::exception
 {

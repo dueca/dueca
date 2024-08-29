@@ -21,8 +21,9 @@
 // include the definition of the module class
 #include "ChannelDef.hxx"
 #include "WebSocketsServer.hxx"
-//#include "jsonpacker.hxx"
-//#include "msgpackpacker.hxx"
+#include "WebsockExceptions.hxx"
+// #include "jsonpacker.hxx"
+// #include "msgpackpacker.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <dueca/DataClassRegistry.hxx>
@@ -275,15 +276,18 @@ Unexpected error in the "configuration" URL connection. */
     writer.EndObject();
     writer.EndLine();
 
-    connection->send(buf.str(), [](const SimpleWeb::error_code &ec) {
-      if (ec) {
+    connection->send(
+      buf.str(),
+      [](const SimpleWeb::error_code &ec) {
+        if (ec) {
         /* DUECA websockets.
 
-           Unexpected error in sending the configuration
-           information. */
-        W_XTR("Error sending message " << ec);
-      }
-    }, writer.OpCode());
+             Unexpected error in sending the configuration
+             information. */
+          W_XTR("Error sending message " << ec);
+        }
+      },
+      writer.OpCode());
     DEB("New connection on ^/configuration");
 
       // removed, closing at this point upsets some clients
@@ -348,15 +352,18 @@ There is no current data on the requested stream.
       writer.StartObject(0);
     }
     writer.EndObject();
-    connection->send(buf.str(), [](const SimpleWeb::error_code &ec) {
-      if (ec) {
+    connection->send(
+      buf.str(),
+      [](const SimpleWeb::error_code &ec) {
+        if (ec) {
              /* DUECA websockets.
 
 Unexpected error in sending a message to a client for
 the "current" URL */
-        W_XTR("Error sending message " << ec);
-      }
-    }, writer.OpCode());
+          W_XTR("Error sending message " << ec);
+        }
+      },
+      writer.OpCode());
   };
 
   current.on_error = [](shared_ptr<typename S::Connection> connection,
@@ -767,15 +774,27 @@ to a close attempt on a "current" URL.
     }
     else {
       try {
-        ww->second->complete(in_message->string(), this->getId());
+        // TODO decode message here, and call with arguments
+        Decoder dec(in_message->string());
+        std::string label;
+        if (!dec.findMember("label", label))
+          throw connectionparseerror();
+        bool ctiming = false;
+        dec.findMember("ctiming", ctiming);
+        bool event = true;
+        dec.findMember("event", event);
+        bool bulk = false;
+        dec.findMember("bulk", bulk);
+        bool diffpack = false;
+        dec.findMember("diffpack", diffpack);
+        std::string dataclass;
+        if (!dec.findMember("dataclass", dataclass))
+          throw connectionparseerror();
+        ww->second->complete(dataclass, label, !event, ctiming, bulk, diffpack,
+                             this->getId());
       }
-      catch (const connectionparseerror &) {
-        const std::string reason("connection start incorrect");
-        connection->send_close(1007, reason);
-        return;
-      }
-      catch (const presetmismatch &) {
-        const std::string reason("connection start does not match preset");
+      catch (const std::exception &e) {
+        const std::string reason(e.what());
         connection->send_close(1007, reason);
         return;
       }
@@ -899,10 +918,15 @@ to a close attempt on a "current" URL.
       else {
         try {
           // call on the connection to complete itself
-          ww->second->complete(in_message->string());
+          // TODO: decode JSON or msgpack here, and call with decoded info
+          Decoder dec(in_message->string());
+          std::string dataclass;
+          if (!dec.findMember("dataclass", dataclass))
+            throw connectionparseerror();
+          ww->second->complete(dataclass);
         }
-        catch (const connectionparseerror &) {
-          const std::string reason("connection start incorrect");
+        catch (const std::exception &e) {
+          const std::string reason(e.what());
           connection->send_close(1007, reason);
           return;
         }
@@ -1064,25 +1088,25 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
   if (w_dataname.size() && r_dataname.size()) {
     writer.StartObject(2);
 
-    writer.Key("read");   // 1
+    writer.Key("read"); // 1
 
     writer.StartObject(3);
-    writer.Key("dataclass");  // 1.1
+    writer.Key("dataclass"); // 1.1
     writer.String(r_dataname);
-    writer.Key("entry");      // 1.2
+    writer.Key("entry"); // 1.2
     writer.Uint(r_entryid);
-    writer.Key("typeinfo");   // 1.3
+    writer.Key("typeinfo"); // 1.3
     codeTypeInfo(writer, r_dataname);
     writer.EndObject();
 
-    writer.Key("write");  // 2
+    writer.Key("write"); // 2
 
     writer.StartObject(3);
-    writer.Key("dataclass");  // 2.1
+    writer.Key("dataclass"); // 2.1
     writer.String(w_dataname);
-    writer.Key("entry");      // 2.2
+    writer.Key("entry"); // 2.2
     writer.Uint(w_entryid);
-    writer.Key("typeinfo");   // 2.3
+    writer.Key("typeinfo"); // 2.3
     codeTypeInfo(writer, w_dataname);
     writer.EndObject();
 
@@ -1107,16 +1131,16 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
       writer.StartObject(2);
       writer.Key("read");
       writer.StartObject(2);
-      writer.Key("dataclass");  // 1.1
+      writer.Key("dataclass"); // 1.1
       writer.String(r_dataname);
-      writer.Key("entry");      // 1.2
+      writer.Key("entry"); // 1.2
       writer.Uint(r_entryid);
       writer.EndObject();
       writer.Key("write");
       writer.StartObject(2);
-      writer.Key("dataclass");  // 1.1
+      writer.Key("dataclass"); // 1.1
       writer.String(w_dataname);
-      writer.Key("entry");      // 1.2
+      writer.Key("entry"); // 1.2
       writer.Uint(w_entryid);
       writer.EndObject();
       writer.EndObject();
@@ -1124,9 +1148,9 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
     else {
       const auto entryid = (r_entryid != entry_end) ? r_entryid : w_entryid;
       writer.StartObject(2);
-      writer.Key("dataclass");  // 1.1
+      writer.Key("dataclass"); // 1.1
       writer.String(r_dataname);
-      writer.Key("entry");      // 1.2
+      writer.Key("entry"); // 1.2
       writer.Uint(entryid);
       writer.EndObject();
     }

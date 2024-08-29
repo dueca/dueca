@@ -12,6 +12,7 @@
 */
 
 #include "CommObjectMemberArity.hxx"
+#include "udpcom/NetCommunicatorExceptions.hxx"
 #include <sstream>
 #define CommonChannelServer_cxx
 #include "CommonChannelServer.hxx"
@@ -23,9 +24,7 @@
 #include <dueca.h>
 #include <dueca/CommObjectReaderWriter.hxx>
 #include <dueca/CommObjectWriter.hxx>
-#include <dueca/DCOtoJSON.hxx>
 #include <dueca/DataClassRegistry.hxx>
-#include <dueca/JSONtoDCO.hxx>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/reader.h>
@@ -47,12 +46,17 @@ const char *presetmismatch::what() const throw()
 
 const char *connectionparseerror::what() const throw()
 {
-  return "JSON parse error at connection defining message";
+  return "Parse error at connection defining message";
+}
+
+const char *connectionconfigerror::what() const throw()
+{
+  return "Requested configuration is not possible";
 }
 
 const char *dataparseerror::what() const throw()
 {
-  return "JSON parse error at connection defining message";
+  return "Parse error at data message";
 }
 
 SingleEntryRead::SingleEntryRead(const std::string &channelname,
@@ -280,7 +284,7 @@ void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
   assert(entrydataclass[info.entry_id].size() == 0);
   entrydataclass[info.entry_id] = info.data_class;
 
-  // manually construct a small JSON message
+  // let the server code entry type information
   std::stringstream buffer;
   server->codeEntryInfo(buffer, "", entry_end, info.data_class, info.entry_id);
   sendAll(buffer.str(), "entry addition");
@@ -294,7 +298,7 @@ void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
          entrydataclass[info.entry_id].size() > 0);
   entrydataclass[info.entry_id] = std::string();
 
-  // manually construct a small JSON message, empty dataname
+  // let the server code empty entry type information
   std::stringstream buffer;
   server->codeEntryInfo(buffer, "", entry_end, "", info.entry_id);
   DEB("entryRemoved " << info.entry_id);
@@ -358,120 +362,17 @@ WriteEntry::~WriteEntry()
   //
 }
 
-void WriteEntry::complete(const std::string &message1, const GlobalId &master)
+void WriteEntry::complete(const std::string& datatype, const std::string& label, 
+  bool stream, bool ctiming, bool bulk, bool diffpack, const GlobalId &master)
 {
-  JDocument doc;
-  json::ParseResult res = doc.Parse(message1.c_str());
-  if (!res) {
-    /* DUECA websockets.
-
-       Error in parsing the initial JSON data for a "write" URL. Check
-       your channel definition and the external client program.
-    */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
-                              << " at " << res.Offset());
-    throw connectionparseerror();
+  this->datatype = datatype;
+  this->ctiming = ctiming;
+  this->stream = stream;
+  if (stream && !ctiming) {
+    throw connectionconfigerror();
   }
-
-  std::string label;
-  {
-    auto iv = doc.FindMember("label");
-    if (iv == doc.MemberEnd() || !iv->value.IsString()) {
-      /* DUECA websockets.
-
-         Error the initial JSON data for a "write" URL. The entry
-         "label" should be specified in this initial message.
-      */
-      W_XTR("JSON parse error no label specified");
-      throw connectionparseerror();
-    }
-    label = iv->value.GetString();
-  }
-
-  ctiming = false;
-  {
-    auto im = doc.FindMember("ctiming");
-    if (im != doc.MemberEnd()) {
-      if (!im->value.IsBool()) {
-      /* DUECA websockets.
-
-             Error the initial JSON data for a "write" URL. A "ctiming"
-             member cannot be interpreted as a boolean.
-          */
-        W_XTR("JSON parse error \"ctiming\" needs to be bool");
-        throw connectionparseerror();
-      }
-      ctiming = im->value.GetBool();
-    }
-  }
-
-  stream = false;
-  {
-    auto im = doc.FindMember("event");
-    if (im != doc.MemberEnd()) {
-      if (!im->value.IsBool()) {
-        /* DUECA websockets.
-
-           Error the initial JSON data for a "write" URL. An "event"
-           member cannot be interpreted as a boolean.
-        */
-        W_XTR("JSON parse error \"event\" needs to be bool");
-        throw connectionparseerror();
-      }
-      stream = !im->value.GetBool();
-    }
-  }
-
-  bulk = false;
-  {
-    auto im = doc.FindMember("bulk");
-    if (im != doc.MemberEnd()) {
-      if (!im->value.IsBool()) {
-        /* DUECA websockets.
-
-           Error the initial JSON data for a "write" URL. A "bulk"
-           member cannot be interpreted as a boolean.
-        */
-        W_XTR("JSON parse error \"bulk\" needs to be bool");
-        throw connectionparseerror();
-      }
-      bulk = !im->value.GetBool();
-    }
-  }
-
-  diffpack = false;
-  {
-    auto im = doc.FindMember("diffpack");
-    if (im != doc.MemberEnd()) {
-      if (!im->value.IsBool()) {
-        /* DUECA websockets.
-
-           Error the initial JSON data for a "write" URL. A "diffpack"
-           member cannot be interpreted as a boolean.
-        */
-        W_XTR("JSON parse error \"diffpack\" needs to be bool");
-        throw connectionparseerror();
-      }
-      diffpack = !im->value.GetBool();
-    }
-  }
-
-  auto dc = doc.FindMember("dataclass");
-  if (dc != doc.MemberEnd() && datatype.size() != 0 &&
-      datatype != dc->value.GetString()) {
-    /* DUECA websockets.
-
-       Error the initial JSON data for a "write" URL. The name of the
-       data class in \"dataclass\" does not match the configured
-       name. Check your configuration or the external client program.
-    */
-    W_XTR("JSON parse error mis-matched dataclass " << dc->value.GetString()
-                                                    << " needed " << datatype);
-    throw connectionparseerror();
-  }
-  if (datatype.size() == 0) {
-    datatype = dc->value.GetString();
-  }
+  this->bulk = bulk;
+  this->diffpack = diffpack;
 
   identification = channelname + std::string(" type:") + datatype +
                    std::string(" label:\"") + label + std::string("\"");
@@ -522,59 +423,10 @@ PresetWriteEntry::~PresetWriteEntry()
   //
 }
 
-void PresetWriteEntry::complete(const std::string &message1,
+void PresetWriteEntry::complete(const std::string &datatype, const std::string &label,
+                                bool _stream, bool _ctiming, bool _bulk, bool _diffpack,
                                 const GlobalId &master)
 {
-  JDocument doc;
-  json::ParseResult res = doc.Parse(message1.c_str());
-  if (!res) {
-    /* DUECA websockets.
-
-       Error in parsing the initial JSON data for a "write" URL with
-       preset. Check your channel definition and the external client
-       program.
-    */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
-                              << " at " << res.Offset());
-    throw connectionparseerror();
-  }
-
-  bool _ctiming = false;
-  {
-    auto im = doc.FindMember("ctiming");
-    if (im != doc.MemberEnd()) {
-      if (!im->value.IsBool()) {
-        /* DUECA websockets.
-
-           Error the initial JSON data for a "write" URL with
-           preset. A "ctiming" member cannot be interpreted as a
-           boolean.
-        */
-        W_XTR("JSON parse error \"ctiming\" needs to be bool");
-        throw connectionparseerror();
-      }
-      _ctiming = im->value.GetBool();
-    }
-  }
-
-  bool _stream = false;
-  {
-    auto im = doc.FindMember("event");
-    if (im != doc.MemberEnd()) {
-      if (!im->value.IsBool()) {
-        /* DUECA websockets.
-
-           Error the initial JSON data for a "write" URL with
-           preset. An "event" member cannot be interpreted as a
-           boolean.
-        */
-        W_XTR("JSON parse error \"event\" needs to be bool");
-        throw connectionparseerror();
-      }
-      _stream = !im->value.GetBool();
-    }
-  }
-
   if (_ctiming != this->ctiming || _stream != this->stream) {
     throw(presetmismatch());
   }
@@ -716,34 +568,8 @@ void WriteReadEntry::setConnection(sconnection_t connection)
   this->sconnection = connection;
 }
 
-void WriteReadEntry::complete(const std::string &message1)
+void WriteReadEntry::complete(const std::string &w_dataclass)
 {
-  JDocument doc;
-  json::ParseResult res = doc.Parse(message1.c_str());
-  if (!res) {
-    /* DUECA websockets.
-
-       Error in parsing the initial JSON data for a "write-and-read"
-       URL. Check your channel definition and the external client
-       program.
-    */
-    W_XTR("JSON parse error " << rapidjson::GetParseError_En(res.Code())
-                              << " at " << res.Offset());
-    throw connectionparseerror();
-  }
-
-  auto dc = doc.FindMember("dataclass");
-  if (dc == doc.MemberEnd()) {
-    /* DUECA websockets.
-
-       Error the initial JSON data for a "write" URL. The entry
-       "dataclass" should be specified in this initial message.
-      */
-    W_XTR("Read-Write entry needs write dataclass");
-    throw connectionparseerror();
-  }
-  w_dataclass = dc->value.GetString();
-
   identification = w_channelname + std::string(" type:") + w_dataclass +
                    std::string(" label:\"") + label + std::string("\" <-> ") +
                    r_channelname;

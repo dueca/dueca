@@ -95,11 +95,11 @@ struct jsonunpacker
         it->value.Size() != 2 || !it->value[0].IsInt()) {
         /* DUECA websockets.
 
-         For writing data as stream (dueca::Channel::Continuous),
-         the client needs to supply a "tick" member in the JSON with
-         two integer values for the time tick. Check/correct the
-         configuration or your external client program.
-      */
+       For writing data as stream (dueca::Channel::Continuous),
+       the client needs to supply a "tick" member in the JSON with
+       two integer values for the time tick. Check/correct the
+       configuration or your external client program.
+    */
       W_XTR("JSON data needs 2 elt tick");
       throw dataparseerror();
     }
@@ -139,6 +139,31 @@ struct jsonunpacker
     }
     JSONtoDCO(doc["data"], wr);
   }
+
+  inline bool findMember(const char *name, std::string &result)
+  {
+    auto im = doc.FindMember(name);
+    if (im == doc.MemberEnd())
+      return false;
+    if (!im->value.IsString()) {
+      throw connectionparseerror();
+    }
+    result = im->value.GetString();
+    return true;
+  }
+
+  inline bool findMember(const char*name, bool &result)
+  {
+    auto im = doc.FindMember(name);
+    if (im == doc.MemberEnd())
+      return false;
+    if (!im->value.IsBool()) {
+      throw connectionparseerror();
+    }
+    result = im->value.GetBool();
+    return true;
+  }
+
 };
 #include <undebug.h>
 
