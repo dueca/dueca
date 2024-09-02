@@ -82,8 +82,8 @@ function(DUECA_ADD_DCO)
 
       if (NOT PRJ)
         message(STATUS
-          "Using default project name ${DEFLTPRJ} for dco ${DCO}")
-        set(PRJ "${DEFLTPRJ}")
+          "Using default project name \"${DFLTPRJ}\" for dco ${DCO}")
+        set(PRJ "${DFLTPRJ}")
       endif()
 
       # check that the DCO file exists

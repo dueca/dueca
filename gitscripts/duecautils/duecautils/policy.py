@@ -107,13 +107,13 @@ def _readPolicyFile(fname, openedFiles=None):
 
     except ValueError as e:
         # can happen if URL not valid
-        print(f"Cannot read policies from url {fname}: {e}",
-             file=sys.stderr)
+        dprint(f"Cannot read policies from url {fname}: {e}",
+               file=sys.stderr)
         raise FileNotFoundError()
 
     except FileNotFoundError as e:
-        print(f"Cannot read policies from file {fname}: {e}",
-              file=sys.stderr)
+        dprint(f"Cannot read policies from file {fname}: {e}",
+               file=sys.stderr)
         raise e
 
     # when here, opened, and have xmltree, try to parse

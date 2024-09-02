@@ -12,7 +12,7 @@ import sys
 _empty = re.compile('^[ \t]*$')
 _comment = re.compile("^#(.*)$")
 _dco = re.compile(
-    '^(([^ \t/]+)(/comm-objects)?/)?([^ \t.]+)\\.dco[ \t]*(#.*)?$')
+    '^(([^ \t/]+)/)?comm-objects/([^ \t.]+)\\.dco[ \t]*(#.*)?$')
 
 includelines = []
 cmake_binary_dir = sys.argv[2]
@@ -40,7 +40,7 @@ with open(sys.argv[1], 'r') as f:
                   f"{l}")
             continue
 
-        project, dco, comment = res.group(2), res.group(4), res.group(5)
+        project, dco, comment = res.group(2), res.group(3), res.group(3)
 
         if project is None:
             project = thisproject
