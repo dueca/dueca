@@ -432,13 +432,19 @@ public:
   /** Return the span of the oldest data in the current entry.
       Note that you cannot count on this if reading mode is JumpToMatchTime,
       since the channel may be cleaned in the meantime.
-      @returns     Time span (or tick) of the oldest accessible data point */
+
+      @returns     Time span (or tick) of the oldest accessible data point. 
+                   If there is no data, it returns the improbable 
+                   DataTimeSpec(0,0)
+       */
   DataTimeSpec getOldestDataTime() const;
 
   /** Return the span of the latest data in the current entry.
       Note that you cannot always count on this,
       since the channel may receive new data in the meantime.
-      @returns     Time span (or tick) of the newest data point */
+
+      @returns     Time span (or tick) of the newest data point. If there
+                   is no data, it returns the improbable DataTimeSpec(0,0) */
   DataTimeSpec getLatestDataTime() const;
 
 public:

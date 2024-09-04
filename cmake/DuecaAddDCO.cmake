@@ -75,8 +75,8 @@ function(DUECA_ADD_DCO)
       # message(STATUS "comment ${CMAKE_MATCH_1}")
     elseif(D MATCHES
         "^[ \t]*(([^ \t/]+)/)?comm-objects/([^ \t.]+)\\.dco[ \t]*#?.*$")
-      message(STATUS
-        "RESULT ${CMAKE_MATCH_2};${CMAKE_MATCH_3}")
+      #message(STATUS
+      #  "RESULT ${CMAKE_MATCH_2};${CMAKE_MATCH_3}")
       set(PRJ ${CMAKE_MATCH_2})
       set(DCO ${CMAKE_MATCH_3})
 
@@ -136,8 +136,8 @@ function(DUECA_ADD_DCO)
         ${CMAKE_BINARY_DIR}/${PRJ}/comm-objects/${DCO}.hxx)
 
     else()
-      message(STATUS
-        "RESULT ${CMAKE_MATCH_1};${CMAKE_MATCH_2}")
+      #message(STATUS
+      #  "RESULT ${CMAKE_MATCH_1};${CMAKE_MATCH_2}")
       message(FATAL_ERROR "Failed analysis of dco line ${D}")
     endif()
   endforeach()
