@@ -1,5 +1,0 @@
-# this file contains a list of all communicated objects needed by this
-# specific module
-# specify these with the .dco extension, examples:
-# @project@/comm-objects/MyDataObject.dco
-# Generic/comm-objects/PrimaryControls.dco

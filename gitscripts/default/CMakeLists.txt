@@ -8,7 +8,7 @@ set(PLATFORMS
 set(DATA
 
   CMakeLists.txt.com CMakeLists.txt.mod CMakeLists.txt.app modules.txt
-  config.cmake machine comm-objects.txt machinemapping.xml
+  config.cmake machine machinemapping.xml
   policylist.xml modules.xml README-pseudomodule.md build.gitignore
   run-data-README.md ${PLATFORMS} RunProject project.gitignore
   project-README.md platform.xsd testscenario.xsd machinemapping.xsd
