@@ -24,8 +24,8 @@
 #include "WebsockExceptions.hxx"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <dueca/DataClassRegistry.hxx>
 #include <dueca/CommObjectElementWriter.hxx>
+#include <dueca/DataClassRegistry.hxx>
 #include <fstream>
 #include <sstream>
 
@@ -41,7 +41,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL 3
 #include <debprint.h>
 
 #ifdef BOOST1_65
@@ -186,9 +186,10 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
   auto &configinfo = server.endpoint["^/configuration"];
   configinfo.on_error = [](shared_ptr<typename S::Connection> connection,
                            const SimpleWeb::error_code &ec) {
-      /* DUECA websockets.
+    /* DUECA websockets.
 
-Unexpected error in the "configuration" URL connection. */
+       Unexpected error in the "configuration" URL connection.
+    */
     W_XTR("Error in info connection " << connection.get() << ". "
                                       << "Error: " << ec
                                       << ", error message: " << ec.message());
@@ -279,7 +280,7 @@ Unexpected error in the "configuration" URL connection. */
       buf.str(),
       [](const SimpleWeb::error_code &ec) {
         if (ec) {
-        /* DUECA websockets.
+          /* DUECA websockets.
 
              Unexpected error in sending the configuration
              information. */
@@ -295,10 +296,10 @@ Unexpected error in the "configuration" URL connection. */
   };
   configinfo.on_close = [this](shared_ptr<typename S::Connection> connection,
                                int status, const std::string &reason) {
-      /* DUECA websockets.
+    /* DUECA websockets.
 
-Information on the closing of the connection of a client with
-the configuration URL. */
+       Information on the closing of the connection of a client with
+       the configuration URL. */
     I_XTR("Closing configuration endpoint "
           << " code: " << status << " reason: \"" << reason << '"');
   };
@@ -318,21 +319,21 @@ the configuration URL. */
       this->singlereadsmapped.find(reinterpret_cast<void *>(connection.get()));
 
     if (em == this->singlereadsmapped.end()) {
-        /* DUECA websockets.
+      /* DUECA websockets.
 
-Cannot find the connection entry for a message to the
-"current" URL. */
+         Cannot find the connection entry for a message to the
+         "current" URL. */
       E_XTR("Cannot find connection");
       const std::string reason("Server failure, cannot find connection data");
       connection->send_close(1001, reason);
       return;
     }
 
-      // room for response
+    // room for response
     std::stringstream buf;
     Encoder writer(buf);
     try {
-        // create the reader
+      // create the reader
       DCOReader r(em->second->datatype.c_str(), em->second->r_token);
       DataTimeSpec dtd = r.timeSpec();
       writer.StartObject(2);
@@ -342,10 +343,10 @@ Cannot find the connection entry for a message to the
       writer.dco(r);
     }
     catch (const NoDataAvailable &e) {
-        /* DUECA websockets.
+      /* DUECA websockets.
 
-There is no current data on the requested stream.
-*/
+         There is no current data on the requested stream.
+       */
       W_XTR("No data on " << em->second->r_token.getName()
                           << " sending empty {}");
       writer.StartObject(0);
@@ -355,7 +356,7 @@ There is no current data on the requested stream.
       buf.str(),
       [](const SimpleWeb::error_code &ec) {
         if (ec) {
-             /* DUECA websockets.
+          /* DUECA websockets.
 
 Unexpected error in sending a message to a client for
 the "current" URL */
@@ -387,10 +388,11 @@ Unexpected error in the "current" URL connection. */
       ename = ekey->second;
     }
 
-      /* DUECA websockets.
+    /* DUECA websockets.
 
-Information on the closing of the connection of a client with
-a "current" URL. */
+       Information on the closing of the connection of a client with
+       a "current" URL.
+    */
     I_XTR("Closing endpoint at /current/"
           << connection->path_match[1] << "?entry=" << ename
           << " code: " << status << " reason: \"" << reason << '"');
@@ -401,11 +403,11 @@ a "current" URL. */
         // OK
     }
     else {
-        /* DUECA websockets.
+      /* DUECA websockets.
 
-Programming error? Cannot find the connection corresponding
-to a close attempt on a "current" URL.
-*/
+         Programming error? Cannot find the connection corresponding
+         to a close attempt on a "current" URL.
+      */
       W_XTR("Cannot find mapping for endpoint at /current/"
             << connection->path_match[1] << "?entry=" << ename);
     }
@@ -469,7 +471,8 @@ to a close attempt on a "current" URL.
                        const SimpleWeb::error_code &ec) {
     /* DUECA websockets.
 
-       Unexpected error in the "follow" URL connection. */
+       Unexpected error in the "follow" URL connection.
+    */
     W_XTR("Error in connection " << connection.get() << ". "
                                  << "Error: " << ec
                                  << ", error message: " << ec.message());
@@ -849,7 +852,7 @@ to a close attempt on a "current" URL.
 
     // just accept the connection.
     std::string key = connection->path_match[1];
-    DEB("Opened /write-and-read/" << key);
+    I_XTR("Opened /write-and-read/" << key);
 
     // this must be defined
     auto ee = this->writereadsetup.find(key);
@@ -922,6 +925,8 @@ to a close attempt on a "current" URL.
           std::string dataclass;
           if (!dec.findMember("dataclass", dataclass))
             throw connectionparseerror();
+          I_XTR("/write-and-read/" << connection->path_match[1] <<
+                " client type " << dataclass);
           ww->second->complete(dataclass);
         }
         catch (const std::exception &e) {
@@ -954,7 +959,8 @@ to a close attempt on a "current" URL.
 
          Information on the closing of the connection of a client with
          a "write-and-read" URL. */
-      I_XTR("Closing connection and writer " << wr->second->identification);
+      I_XTR("Closing connection and writer " << wr->second->identification <<
+            " on connection " << reinterpret_cast<void *>(connection.get()));
       wr->second->doDisconnect();
       this->writersreaders.erase(wr);
     }

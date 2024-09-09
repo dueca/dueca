@@ -27,7 +27,7 @@
 
 #include "WebsockExceptions.hxx"
 
-#define DEBPRINTLEVEL -1
+#define DEBPRINTLEVEL 1
 #include <debprint.h>
 
 DUECA_NS_START;
@@ -543,11 +543,13 @@ WriteReadEntry::~WriteReadEntry()
 
 void WriteReadEntry::setConnection(connection_t connection)
 {
+  assert(!this->connection.get() && !this->sconnection.get());
   this->connection = connection;
 }
 
 void WriteReadEntry::setConnection(sconnection_t connection)
 {
+  assert(!this->connection.get() && !this->sconnection.get());
   this->sconnection = connection;
 }
 
@@ -580,9 +582,9 @@ void WriteReadEntry::entryAdded(const ChannelEntryInfo &i)
     r_token.reset(new ChannelReadToken(
       master->getId(), NameSet(r_channelname), r_dataclass, i.entry_id,
       i.time_aspect, i.arity, Channel::ReadAllData, 0.0, &autostart_cb));
-    if (checkToken()) {
+    /* if (checkToken()) {
       state = Linked;
-    }
+    } */
     do_calc.setTrigger(*r_token);
     do_calc.switchOn();
   }
@@ -592,16 +594,30 @@ const GlobalId &WriteReadEntry::getId() const { return master->getId(); }
 
 void WriteReadEntry::tokenValid(const TimeSpec &ts)
 {
+  
   std::stringstream buf;
   master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(),
     r_dataclass, r_token->getEntryId());
+  DEB("Write read entry, write token valid " << buf.str());
 
   // both tokens valid now, return information on entries
   sendOne(buf.str(), "WriterReader info");
+
+  state = Linked;
 }
 
 void WriteReadEntry::passData(const TimeSpec &ts)
 {
+#if 0
+  if (state == ExpectingRead) {
+    std::stringstream buf;
+    master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(),
+      r_dataclass, r_token->getEntryId());
+    // both tokens valid now, return information on entries
+    sendOne(buf.str(), "WriterReader info");
+    state = Linked;
+  }
+#endif
   DCOReader r(r_dataclass.c_str(), *r_token, ts);
   /*
   DataTimeSpec dtd = r.timeSpec();
@@ -653,8 +669,19 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
 void WriteReadEntry::entryRemoved(const ChannelEntryInfo &i)
 {
   if (i.entry_label == label) {
-    state = Connected;
+
+    const std::string reason("Termination of service.");
+    if (connection) {
+      connection->send_close(1000, reason);
+      connection.reset();
+    }
+    if (sconnection) {
+      sconnection->send_close(1000, reason);
+      sconnection.reset();
+    }
+    state = DisConnected;
     r_token.reset();
+    w_token.reset();
   }
 }
 

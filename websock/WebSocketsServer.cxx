@@ -706,6 +706,7 @@ void WebSocketsServerBase::stopModule(const TimeSpec &time)
 
 void WebSocketsServerBase::doTransfer(const TimeSpec &ts)
 {
+  // check late activation
   if (do_transfer.numScheduledBehind()) {
     if (do_transfer.getCheck()) {
       do_transfer.getCheck()->userReportsAnomaly();
@@ -718,6 +719,7 @@ void WebSocketsServerBase::doTransfer(const TimeSpec &ts)
     I_XTR("WebSocketsServer, running behind at " << ts);
   }
   DEB3("WebSocketsServer::doTransfer " << ts);
+  
   runcontext->poll();
 #ifdef BOOST1_65
   runcontext->reset();

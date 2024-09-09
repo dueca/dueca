@@ -473,10 +473,11 @@ struct WriteReadEntry :
   enum WRState {
     UnConnected,     /**< Not connected to a socket */
     Connected,       /**< Connected to a socket, but no entry, or not
-  confirmed */
+confirmed */
     ValidatingWrite, /**< Waiting until writing end is validated */
     ExpectingRead, /**< Waiting for the corresponding read entry to arrive */
-    Linked /**< Connected, and linked to two entries */
+    Linked, /**< Connected, and linked to two entries */
+    DisConnected /**< Disconnected by the server after use */
   };
 
   /** State for this entry */
