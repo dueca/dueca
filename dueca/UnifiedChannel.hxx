@@ -21,6 +21,7 @@
 #include <list>
 #include "AsyncQueueMT.hxx"
 #include "NamedChannel.hxx"
+#include "UCallbackOrActivity.hxx"
 #include "dueca_ns.h"
 #include "UChannelEntry.hxx"
 #include "UCClientHandle.hxx"
@@ -43,6 +44,7 @@ class UCEntryDataCache;
 class ChannelWatcher;
 struct EntryConfigurationChange;
 typedef EntryConfigurationChange* EntryConfigurationChangePtr;
+class UCallbackOrActivity;
 
 /* Design considerations:
 
@@ -490,7 +492,7 @@ public:
                                  entryid_type attach_entry,
                                  Channel::EntryTimeAspect time_aspect,
                                  Channel::ReadingMode readmode,
-                                 GenericCallback* valid,
+                                 const UCallbackOrActivity& valid,
                                  double requested_span,
                                  unsigned requested_depth=0);
 
@@ -526,7 +528,7 @@ public:
                                   bool fullpackonly,
                                   Channel::TransportClass tclass,
                                   const std::string& entrylabel,
-                                  GenericCallback* valid);
+                                  const UCallbackOrActivity& valid);
 
   /** Remove a write token. This also removes the corresponding entry */
   void removeWriteToken(UCWriterHandlePtr& client);

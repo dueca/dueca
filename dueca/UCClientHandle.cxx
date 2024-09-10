@@ -25,7 +25,7 @@ DUECA_NS_START;
 UCClientHandle::UCClientHandle(ChannelReadToken* token,
                                const std::string& dataclassname,
                                const std::string& entrylabel,
-                               GenericCallback* callback,
+                               const UCallbackOrActivity& callback,
                                entryid_type requested_entry,
                                Channel::ReadingMode readmode,
                                double requested_span,
@@ -82,7 +82,7 @@ const GlobalId& UCClientHandle::getId() const
 UCWriterHandle::UCWriterHandle(ChannelWriteToken* token,
                                UChannelEntryPtr entry,
                                const std::string& dataclassname,
-                               GenericCallback* valid) :
+                               const UCallbackOrActivity& valid) :
   token(token),
   writer_id(token == NULL? GlobalId(): token->getTokenHolder()),
   dataclassname(dataclassname),

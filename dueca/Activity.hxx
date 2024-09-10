@@ -33,6 +33,7 @@
 #include <iostream>
 #include "GlobalId.hxx"
 #include "Trigger.hxx"
+#include "UCallbackOrActivity.hxx"
 #include "dstypes.h"
 #include "PrioritySpec.hxx"
 #include "TimingCheck.hxx"
@@ -47,6 +48,7 @@ class GenericCallback;
 class GenericChannel;
 class TimingCheck;
 class ActivityManager;
+class UCallbackOrActivity;
 
 /** Activity objects represent a metafor for allocation of
     locus-of-control in DUECA.

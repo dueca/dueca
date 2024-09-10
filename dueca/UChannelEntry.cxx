@@ -230,8 +230,7 @@ void UChannelEntry::runCallback()
 {
   // perform validity callback if present
   if (writer && writer->callback) {
-    writer->callback->operator()(TimeSpec(0, 0));
-    writer->callback = NULL;
+    writer->callback(TimeSpec(0, 0));
   }
 }
 
@@ -517,7 +516,7 @@ void UChannelEntry::refreshTransporters()
     for (unsigned ii = 0; ii < channel->transporters.size(); ii++ ) {
       if (pclients[ii].handle == NULL) {
         pclients[ii].handle = new UCClientHandle
-          (NULL, dataclassname, entrylabel, NULL, entry_id,
+          (NULL, dataclassname, entrylabel, reinterpret_cast<GenericCallback*>(NULL), entry_id,
            Channel::ReadAllData, 0.0, 1, 0);
         pclients[ii].handle->class_lead =
           pclients[ii].handle->entry = new UCEntryClientLink

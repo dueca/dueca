@@ -520,12 +520,11 @@ CODE_REFCOUNT(WriteReadEntry);
 WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                                WebSocketsServerBase *master,
                                const PrioritySpec &ps, bool extended,
-                               unsigned char marker,
-                               WriteReadEntry::WRState initstate) :
+                               unsigned char marker) :
   ChannelWatcher(setup->r_channelname),
   INIT_REFCOUNT_COMMA autostart_cb(this, &WriteReadEntry::tokenValid),
   marker(marker),
-  state(initstate), w_token(), r_token(), identification("not initialized"),
+  state(UnConnected), w_token(), r_token(), identification("not initialized"),
   w_channelname(setup->w_channelname), r_channelname(setup->r_channelname),
   w_dataclass(), r_dataclass(),
   label(boost::lexical_cast<std::string>(setup->getNextId())), master(master),
@@ -545,16 +544,19 @@ void WriteReadEntry::setConnection(connection_t connection)
 {
   assert(!this->connection.get() && !this->sconnection.get());
   this->connection = connection;
+  state = Connected;
 }
 
 void WriteReadEntry::setConnection(sconnection_t connection)
 {
   assert(!this->connection.get() && !this->sconnection.get());
   this->sconnection = connection;
+  state = Connected;
 }
 
 void WriteReadEntry::complete(const std::string &w_dataclass)
 {
+  assert(state == Connected);
   identification = w_channelname + std::string(" type:") + w_dataclass +
                    std::string(" label:\"") + label + std::string("\" <-> ") +
                    r_channelname;
@@ -563,20 +565,19 @@ void WriteReadEntry::complete(const std::string &w_dataclass)
     master->getId(), NameSet(w_channelname), w_dataclass, label,
     Channel::Events, Channel::OneOrMoreEntries,
     diffpack ? Channel::MixedPacking : Channel::OnlyFullPacking,
-    bulk ? Channel::Bulk : Channel::Regular));
-  state = ValidatingWrite;
-  checkToken();
+    bulk ? Channel::Bulk : Channel::Regular, &autostart_cb));
+  state = ValidatingTokens;
 }
 
 bool WriteReadEntry::checkToken()
 {
-  return (w_token->isValid() && r_token && r_token->isValid());
+  return state == Linked;
 }
 
 void WriteReadEntry::entryAdded(const ChannelEntryInfo &i)
 {
   DEB("WriteReadEntry::entryAdded " << i);
-  if (i.entry_label == label) {
+  if (state == ValidatingTokens && i.entry_label == label) {
     r_dataclass = i.data_class;
     assert(!r_token);
     r_token.reset(new ChannelReadToken(
@@ -585,8 +586,6 @@ void WriteReadEntry::entryAdded(const ChannelEntryInfo &i)
     /* if (checkToken()) {
       state = Linked;
     } */
-    do_calc.setTrigger(*r_token);
-    do_calc.switchOn();
   }
 }
 
@@ -594,16 +593,19 @@ const GlobalId &WriteReadEntry::getId() const { return master->getId(); }
 
 void WriteReadEntry::tokenValid(const TimeSpec &ts)
 {
-  
-  std::stringstream buf;
-  master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(),
-    r_dataclass, r_token->getEntryId());
-  DEB("Write read entry, write token valid " << buf.str());
+   if (w_token->isValid() && r_token && r_token->isValid() && state == ValidatingTokens) {
 
-  // both tokens valid now, return information on entries
-  sendOne(buf.str(), "WriterReader info");
+    std::stringstream buf;
+    master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(),
+      r_dataclass, r_token->getEntryId());
+    DEB("Write read entry, tokens valid " << buf.str());
 
-  state = Linked;
+    // both tokens valid now, return information on entries
+    sendOne(buf.str(), "WriterReader info");
+      state = Linked;
+      do_calc.setTrigger(*r_token);
+      do_calc.switchOn();
+  }
 }
 
 void WriteReadEntry::passData(const TimeSpec &ts)

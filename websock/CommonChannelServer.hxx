@@ -471,11 +471,10 @@ struct WriteReadEntry :
 
   /** State for this entry */
   enum WRState {
-    UnConnected,     /**< Not connected to a socket */
-    Connected,       /**< Connected to a socket, but no entry, or not
-confirmed */
-    ValidatingWrite, /**< Waiting until writing end is validated */
-    ExpectingRead, /**< Waiting for the corresponding read entry to arrive */
+    UnConnected,      /**< Not yet connected to a socket, right after creation of the entry. */
+    Connected,        /**< Connected to a socket, but no entry, or not confirmed */
+    ValidatingTokens, /**< Waiting until writing end and reading ends are connected */
+    ActivateClient,   /**< Send a message with read/write config to client */
     Linked, /**< Connected, and linked to two entries */
     DisConnected /**< Disconnected by the server after use */
   };
@@ -537,12 +536,6 @@ confirmed */
   /** Verify token OK */
   bool checkToken();
 
-  /** Indicate this is no longer connected to a socket. */
-  inline void doDisconnect() { state = UnConnected; }
-
-  /** From now on connected to a socket. */
-  inline void doConnect() { state = Connected; }
-
   /** Available is for re-used PresetWriters, needs unconnected. */
   inline bool isAvailable() { return state == UnConnected; }
 
@@ -562,36 +555,38 @@ confirmed */
   */
   WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                  WebSocketsServerBase *master, const PrioritySpec &ps,
-                 bool extended, unsigned char marker,
-                 WriteReadEntry::WRState initstate = WriteReadEntry::Connected);
+                 bool extended, unsigned char marker);
 
   /** Destructor */
   virtual ~WriteReadEntry();
 
-  /** Set the connection link */
+  /** Set the connection link, right after creation */
   void setConnection(connection_t connection);
 
   /** Set the connection link */
   void setConnection(sconnection_t connection);
 
+  /** Disconnect */
+  inline void doDisconnect() { state = DisConnected; }
+
   /** Return host ID */
   const GlobalId &getId() const;
 
-  /** Completion, using information in the first written message
+  /** Completion, uses information in the first written message
 
-      This will create the write token, using information in the first
-      written message.
+      This will create the write token, using information on the data type in
+      the first received on the socket. State will change to ValidatingWrite.
 
-      @param message1     JSON-encoded first message
-      @param master       ID of controlling entity, for assigning channel entry.
+      @param datatype     Type of data for the write channel.
   */
   void complete(const std::string &datatype);
 
-  /** Check whether completion has been done
+  /** Check whether communication is possible. Both read and write tokens
+      need to be valid.
 
       @returns            True if first message processed and token created
   */
-  inline bool isComplete() const { return state >= ValidatingWrite; }
+  inline bool isComplete() const { return state == Linked; }
 
   /** Write data to channel using JSON
 

@@ -11,6 +11,7 @@
         license         : EUPL-1.2
 */
 
+#include "UCallbackOrActivity.hxx"
 #include "ChannelDef.hxx"
 #include "ChannelReadInfo.hxx"
 #include "TimeSpec.hxx"
@@ -867,8 +868,8 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
       while (check_valid2.notEmpty()) {
         AsyncQueueReader<UCClientHandlePtr> r(check_valid2);
         if (r.data()->release()) {
-          r.data()->callback->operator() (TimeSpec(0, 0));
-          r.data()->callback = NULL;
+          r.data()->callback(TimeSpec(0, 0));
+          //r.data()->callback = NULL;
         }
       }
 
@@ -1361,8 +1362,8 @@ void UnifiedChannel::service()
     if (r.data()->release()) {
       if (refreshClientHandle(r.data())) {
         if (r.data()->callback) {
-          r.data()->callback->operator() (TimeSpec(0,0));
-          r.data()->callback = NULL;
+          r.data()->callback(TimeSpec(0,0));
+          // r.data()->callback = NULL;
         }
         else {
           DEB("No callback after all??");
@@ -1435,7 +1436,7 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
                              entryid_type attach_entry,
                              Channel::EntryTimeAspect time_aspect,
                              Channel::ReadingMode readmode,
-                             GenericCallback* valid,
+                             const UCallbackOrActivity& valid,
                              double requested_span,
                              unsigned requested_depth)
 {
@@ -1742,7 +1743,7 @@ void UnifiedChannel::removeWriteToken(UCWriterHandlePtr& client)
 
   // reset the validity of the entry, no more data given by the
   // entry
-  client->callback = NULL;
+  client->callback.reset();
   {
     ScopeLock l(entries_lock);
     client->entry->resetValid();

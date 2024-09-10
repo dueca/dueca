@@ -23,6 +23,7 @@
 
 DUECA_NS_START;
 
+class Activity;
 class GenericCallback;
 class UnifiedChannel;
 struct DataTimeSpec;
@@ -127,6 +128,52 @@ public:
                     Channel::TransportClass tclass = Channel::Regular,
                     GenericCallback *when_valid = NULL,
                     unsigned nreservations = 0);
+
+  /** Constructor, creates a token to write data in the channel, and
+      if needed it creates the associated channel end.
+      @param owner         Identification of the owner.
+      @param channelname   Name of the channel end, for the connecting
+                           publish-subscribe mechanism.
+      @param dataclassname Name of the data type to be written. This must
+                           match an existing DUECA %Channel Object (DCO) type.
+      @param entrylabel    Fixed identifying label to be given to this entry.
+      @param time_aspect   The data in the entry may represent a continuous
+                           time approximation (EntryTimeAspect::Continuous,
+                           "stream") data, which has a contiguous time
+                           span associated with it, or it
+                           may represent individual data items
+                           (EntryTimeAspect::Events, "event"),
+                           which are marked with a time point.
+      @param arity         If OnlyOneEntry, the channel is limited to one
+                           entry only. If another entry is already present,
+                           the token will not become valid. If
+                           OneOrMoreEntries, multiple entries may be written
+                           to the channel.
+      @param packmode      Indicate whether differential packing should be
+                           used or the default full packing is
+                           used. Differential packing packs only the
+                           difference with respect to the previous
+                           data point.
+      @param tclass        Transportation priority for the channel. Must match
+                           the priority specified by other write tokens.
+      @param when_valid    Optional callback activity, to be triggered when the token
+                           becomes valid.
+      @param nreservations Please do not attempt to use this; no
+                           support for user code!
+                           A specific counter for channels used in start-up
+                           code for DUECA that need to guarantee transmission
+                           of all inital data to a known number of clients.
+  */
+  ChannelWriteToken(const GlobalId& owner,
+                    const NameSet& channelname,
+                    const std::string& dataclassname,
+                    const std::string& entrylabel,
+                    Channel::EntryTimeAspect time_aspect,
+                    Channel::EntryArity arity,
+                    Channel::PackingMode packmode,
+                    Channel::TransportClass tclass,
+                    Activity *when_valid,
+                    unsigned nreservations);
 
   /** Destructor */
   ~ChannelWriteToken();

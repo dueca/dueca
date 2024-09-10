@@ -84,6 +84,7 @@ set(DUECASOURCES
   ChronoTimePoint.hxx ChronoTimePoint.cxx AssociateObject.hxx
   EasyId.cxx EasyId.hxx InformationStash.cxx
   UCEntryConfigurationChange.hxx UCEntryConfigurationChange.cxx
+  UCallbackOrActivity.hxx UCallbackOrActivity.cxx
   )
 
 

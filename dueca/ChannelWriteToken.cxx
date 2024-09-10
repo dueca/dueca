@@ -52,6 +52,35 @@ ChannelWriteToken::ChannelWriteToken(const GlobalId& owner,
                                   entrylabel, when_valid);
 }
 
+ChannelWriteToken::ChannelWriteToken(const GlobalId& owner,
+                                     const NameSet& channelname,
+                                     const std::string& dataclassname,
+                                     const std::string& entrylabel,
+                                     Channel::EntryTimeAspect time_aspect,
+                                     Channel::EntryArity arity,
+                                     Channel::PackingMode packmode,
+                                     TransportClass tclass,
+                                     Activity *when_valid,
+                                     unsigned nreservations) :
+  GenericToken(owner, channelname, dataclassname),
+  handle(NULL)
+{
+  channel = ChannelManager::single()->findOrCreateChannel(this->getName());
+
+  /* DUECA channels
+
+     Informational message on the issuing of a new write token.
+   */
+  I_CHN("write token for " << owner << " on " << channelname);
+  handle = channel->addWriteToken(this, dataclassname,
+                                  isTimeAspectEvent(time_aspect),
+                                  isSingleEntryOption(arity),
+                                  nreservations,
+                                  isFullPacking(packmode),
+                                  tclass,
+                                  entrylabel, when_valid);
+}
+
 
 
 ChannelWriteToken::~ChannelWriteToken()
