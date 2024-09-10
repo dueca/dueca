@@ -14,6 +14,7 @@
 #ifndef CommonChannelServer_hxx
 #define CommonChannelServer_hxx
 
+#include "Activity.hxx"
 #include "WebsockExceptions.hxx"
 #include <boost/intrusive_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -135,6 +136,9 @@ struct SingleEntryFollow : public ConnectionList
 
   /** Autostart callback function */
   Callback<SingleEntryFollow> autostart_cb;
+
+  /** Activity for receiving channel validatation */
+  ActivityCallback do_valid;
 
   /** Channel access token */
   ChannelReadToken r_token;
@@ -465,6 +469,9 @@ struct WriteReadEntry :
 
   /** Autostart callback function */
   Callback<WriteReadEntry> autostart_cb;
+
+  /** Activity for receiving channel validatation */
+  ActivityCallback do_valid;
 
   /** close off marker */
   unsigned char marker;

@@ -52,12 +52,57 @@ ChannelReadToken::ChannelReadToken(const GlobalId& owner,
 ChannelReadToken::ChannelReadToken(const GlobalId& owner,
                                    const NameSet& channelname,
                                    const std::string& dataclassname,
+                                   const std::string& entrylabel,
+                                   Channel::EntryTimeAspect time_aspect,
+                                   Channel::EntryArity arity,
+                                   Channel::ReadingMode rmode,
+                                   double requested_span,
+                                   Activity *when_valid) :
+  GenericToken(owner, channelname, dataclassname),
+
+  handle(NULL),
+  arity(arity)
+{
+  // finds or creates the channel. Id request comes later in constructor
+  channel = ChannelManager::single()->findOrCreateChannel(this->getName());
+
+  // read token with optional entry match
+  handle = channel->addReadToken(this, dataclassname, entrylabel,
+                                 isSingleEntryOption(arity) ?
+                                 0xfffe : 0xffff,
+                                 time_aspect, rmode,
+                                 when_valid, requested_span);
+}
+
+
+ChannelReadToken::ChannelReadToken(const GlobalId& owner,
+                                   const NameSet& channelname,
+                                   const std::string& dataclassname,
                                    entryid_type attach_entry,
                                    Channel::EntryTimeAspect time_aspect,
                                    Channel::EntryArity arity,
                                    Channel::ReadingMode rmode,
                                    double requested_span,
                                    GenericCallback *when_valid) :
+  GenericToken(owner, channelname, dataclassname),
+  handle(NULL),
+  arity(arity)
+{
+  channel = ChannelManager::single()->findOrCreateChannel(this->getName());
+  handle = channel->addReadToken(this, dataclassname, "", attach_entry,
+                                 time_aspect, rmode,
+                                 when_valid, requested_span);
+}
+
+ChannelReadToken::ChannelReadToken(const GlobalId& owner,
+                                   const NameSet& channelname,
+                                   const std::string& dataclassname,
+                                   entryid_type attach_entry,
+                                   Channel::EntryTimeAspect time_aspect,
+                                   Channel::EntryArity arity,
+                                   Channel::ReadingMode rmode,
+                                   double requested_span,
+                                   Activity *when_valid) :
   GenericToken(owner, channelname, dataclassname),
   handle(NULL),
   arity(arity)

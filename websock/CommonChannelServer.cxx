@@ -11,7 +11,6 @@
         license         : EUPL-1.2
 */
 
-
 #include <sstream>
 #define CommonChannelServer_cxx
 #include "CommonChannelServer.hxx"
@@ -70,15 +69,22 @@ SingleEntryFollow::SingleEntryFollow(
   const WebSocketsServerBase *master, const PrioritySpec &ps,
   const DataTimeSpec &ts, bool extended, unsigned char marker, bool autostart) :
   ConnectionList(channelname + std::string(" (entry ") +
-                 boost::lexical_cast<std::string>(eid) + std::string(")"), marker),
-  master(master), autostart_cb(this, &SingleEntryFollow::tokenValid),
+                   boost::lexical_cast<std::string>(eid) + std::string(")"),
+                 marker),
+  master(master),
+  autostart_cb(this, &SingleEntryFollow::tokenValid),
+  do_valid(master->getId(), "token valid", &autostart_cb, ps),
   r_token(master->getId(), NameSet(channelname), datatype, eid,
           Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
-          Channel::ReadAllData, 0.0, autostart ? &autostart_cb : NULL),
+          Channel::ReadAllData, 0.0, autostart ? &do_valid : NULL),
   cb(this, &SingleEntryFollow::passData),
-  do_calc(master->getId(), "read for server", &cb, ps), datatype(datatype),
-  inactive(true), extended(extended), firstwrite(true)
+  do_calc(master->getId(), "read for server", &cb, ps),
+  datatype(datatype),
+  inactive(true),
+  extended(extended),
+  firstwrite(true)
 {
+  do_valid.switchOn();
   if (ts.getValiditySpan() != 0) {
     regulator.reset(new TriggerRegulatorGreedy(r_token, ts));
     DEB("SingleEntryFollow " << identification << " regulator " << ts);
@@ -104,7 +110,9 @@ void SingleEntryFollow::tokenValid(const TimeSpec &ts)
 }
 
 ConnectionList::ConnectionList(const std::string &ident, unsigned char marker) :
-  marker(marker), flock(ident.c_str(), false), identification(ident)
+  marker(marker),
+  flock(ident.c_str(), false),
+  identification(ident)
 {}
 
 ConnectionList::~ConnectionList() {}
@@ -159,35 +167,41 @@ void ConnectionList::sendAll(const std::string &data, const char *desc)
 void ConnectionList::sendOne(const std::string &data, const char *desc,
                              const std::shared_ptr<WssServer::Connection> &cn)
 {
-  cn->send(data, [cn, this, desc](const SimpleWeb::error_code &ec) {
-    if (ec) {
+  cn->send(
+    data,
+    [cn, this, desc](const SimpleWeb::error_code &ec) {
+      if (ec) {
         /* DUECA websockets.
 
        Error in a send action, will remove the connection from the
        list of clients. */
-      W_XTR("Error sending " << desc << ", " << ec.message()
-                             << " removing connenction form "
-                             << this->identification);
-      this->removeConnection(cn);
-    }
-  }, marker);
+        W_XTR("Error sending " << desc << ", " << ec.message()
+                               << " removing connenction form "
+                               << this->identification);
+        this->removeConnection(cn);
+      }
+    },
+    marker);
 }
 
 void ConnectionList::sendOne(const std::string &data, const char *desc,
                              const std::shared_ptr<WsServer::Connection> &cn)
 {
-  cn->send(data, [cn, this, desc](const SimpleWeb::error_code &ec) {
-    if (ec) {
+  cn->send(
+    data,
+    [cn, this, desc](const SimpleWeb::error_code &ec) {
+      if (ec) {
         /* DUECA websockets.
 
        Error in a send action, will remove the connection from the
        list of clients. */
-      W_XTR("Error sending " << desc << ", " << ec.message()
-                             << " removing connenction form "
-                             << this->identification);
-      this->removeConnection(cn);
-    }
-  }, marker);
+        W_XTR("Error sending " << desc << ", " << ec.message()
+                               << " removing connenction form "
+                               << this->identification);
+        this->removeConnection(cn);
+      }
+    },
+    marker);
 }
 
 void SingleEntryFollow::passData(const TimeSpec &ts)
@@ -249,10 +263,12 @@ bool SingleEntryFollow::stop(const TimeSpec &ts)
 
 ChannelMonitor::ChannelMonitor(const WebSocketsServerBase *server,
                                const std::string &channelname,
-                               const DataTimeSpec &ts,
-                               unsigned char marker) :
-  ChannelWatcher(channelname), ConnectionList(channelname, marker),
-  channelname(channelname), time_spec(ts), server(server)
+                               const DataTimeSpec &ts, unsigned char marker) :
+  ChannelWatcher(channelname),
+  ConnectionList(channelname, marker),
+  channelname(channelname),
+  time_spec(ts),
+  server(server)
 {}
 
 ChannelMonitor::~ChannelMonitor() {}
@@ -326,7 +342,8 @@ const std::string &ChannelMonitor::findEntry(unsigned entryid)
 
 WriteableSetup::WriteableSetup(const std::string &channelname,
                                const std::string &dataclass) :
-  channelname(channelname), dataclass(dataclass)
+  channelname(channelname),
+  dataclass(dataclass)
 {}
 
 CODE_REFCOUNT(WriteEntry);
@@ -334,9 +351,15 @@ CODE_REFCOUNT(WriteEntry);
 WriteEntry::WriteEntry(const std::string &channelname,
                        const std::string &datatype, bool bulk, bool diffpack,
                        WriteEntry::WEState initstate) :
-  INIT_REFCOUNT_COMMA state(initstate), w_token(),
-  identification("not initialized"), channelname(channelname),
-  datatype(datatype), ctiming(false), active(true), stream(false), bulk(bulk),
+  INIT_REFCOUNT_COMMA state(initstate),
+  w_token(),
+  identification("not initialized"),
+  channelname(channelname),
+  datatype(datatype),
+  ctiming(false),
+  active(true),
+  stream(false),
+  bulk(bulk),
   diffpack(diffpack)
 {}
 
@@ -345,8 +368,9 @@ WriteEntry::~WriteEntry()
   //
 }
 
-void WriteEntry::complete(const std::string& datatype, const std::string& label, 
-  bool stream, bool ctiming, bool bulk, bool diffpack, const GlobalId &master)
+void WriteEntry::complete(const std::string &datatype, const std::string &label,
+                          bool stream, bool ctiming, bool bulk, bool diffpack,
+                          const GlobalId &master)
 {
   this->datatype = datatype;
   this->ctiming = ctiming;
@@ -381,7 +405,6 @@ bool WriteEntry::checkToken()
   return res;
 }
 
-
 PresetWriteEntry::PresetWriteEntry(const std::string &channelname,
                                    const std::string &datatype,
                                    const std::string &label,
@@ -406,8 +429,9 @@ PresetWriteEntry::~PresetWriteEntry()
   //
 }
 
-void PresetWriteEntry::complete(const std::string &datatype, const std::string &label,
-                                bool _stream, bool _ctiming, bool _bulk, bool _diffpack,
+void PresetWriteEntry::complete(const std::string &datatype,
+                                const std::string &label, bool _stream,
+                                bool _ctiming, bool _bulk, bool _diffpack,
                                 const GlobalId &master)
 {
   if (_ctiming != this->ctiming || _stream != this->stream) {
@@ -456,7 +480,8 @@ void *PresetWriteEntry::disConnect()
 }
 
 NameEntryId::NameEntryId(const std::string &name, unsigned id) :
-  name(name), id(id)
+  name(name),
+  id(id)
 {}
 
 bool NameEntryId::operator<(const NameEntryId &other) const
@@ -472,7 +497,9 @@ bool NameEntryId::operator<(const NameEntryId &other) const
 
 NameEntryTokenId::NameEntryTokenId(const std::string &name, unsigned id,
                                    const std::string token) :
-  name(name), id(id), token(token)
+  name(name),
+  id(id),
+  token(token)
 {}
 
 bool NameEntryTokenId::operator<(const NameEntryTokenId &other) const
@@ -491,7 +518,8 @@ bool NameEntryTokenId::operator<(const NameEntryTokenId &other) const
 }
 
 NameTokenId::NameTokenId(const std::string &name, const std::string token) :
-  name(name), token(token)
+  name(name),
+  token(token)
 {}
 
 bool NameTokenId::operator<(const NameTokenId &other) const
@@ -507,8 +535,11 @@ bool NameTokenId::operator<(const NameTokenId &other) const
 
 WriteReadSetup::WriteReadSetup(const std::string &wchannelname,
                                const std::string &rchannelname) :
-  cnt_clients(0U), w_channelname(wchannelname), r_channelname(rchannelname),
-  bulk(false), diffpack(false)
+  cnt_clients(0U),
+  w_channelname(wchannelname),
+  r_channelname(rchannelname),
+  bulk(false),
+  diffpack(false)
 {
   //
 }
@@ -523,25 +554,34 @@ WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                                unsigned char marker) :
   ChannelWatcher(setup->r_channelname),
   INIT_REFCOUNT_COMMA autostart_cb(this, &WriteReadEntry::tokenValid),
+  do_valid(master->getId(), "channel valid", &autostart_cb, ps),
   marker(marker),
-  state(UnConnected), w_token(), r_token(), identification("not initialized"),
-  w_channelname(setup->w_channelname), r_channelname(setup->r_channelname),
-  w_dataclass(), r_dataclass(),
-  label(boost::lexical_cast<std::string>(setup->getNextId())), master(master),
-  active(true), bulk(setup->bulk), diffpack(setup->diffpack),
-  extended(extended), cb(this, &WriteReadEntry::passData),
+  state(UnConnected),
+  w_token(),
+  r_token(),
+  identification("not initialized"),
+  w_channelname(setup->w_channelname),
+  r_channelname(setup->r_channelname),
+  w_dataclass(),
+  r_dataclass(),
+  label(boost::lexical_cast<std::string>(setup->getNextId())),
+  master(master),
+  active(true),
+  bulk(setup->bulk),
+  diffpack(setup->diffpack),
+  extended(extended),
+  cb(this, &WriteReadEntry::passData),
   do_calc(master->getId(), "read for server", &cb, ps)
 {
-  //
+  do_valid.switchOn();
+  DEB("New writereadEntry " << label);
 }
 
-WriteReadEntry::~WriteReadEntry()
-{
-  //
-}
+WriteReadEntry::~WriteReadEntry() { DEB("Deleting WriteReadEntry " << label); }
 
 void WriteReadEntry::setConnection(connection_t connection)
 {
+  DEB("WriteReadEntry set connection");
   assert(!this->connection.get() && !this->sconnection.get());
   this->connection = connection;
   state = Connected;
@@ -549,6 +589,7 @@ void WriteReadEntry::setConnection(connection_t connection)
 
 void WriteReadEntry::setConnection(sconnection_t connection)
 {
+  DEB("WriteReadEntry set sconnection");
   assert(!this->connection.get() && !this->sconnection.get());
   this->sconnection = connection;
   state = Connected;
@@ -556,6 +597,7 @@ void WriteReadEntry::setConnection(sconnection_t connection)
 
 void WriteReadEntry::complete(const std::string &w_dataclass)
 {
+  DEB("WriteReadEntry completing with write dataclass" << w_dataclass);
   assert(state == Connected);
   identification = w_channelname + std::string(" type:") + w_dataclass +
                    std::string(" label:\"") + label + std::string("\" <-> ") +
@@ -565,14 +607,11 @@ void WriteReadEntry::complete(const std::string &w_dataclass)
     master->getId(), NameSet(w_channelname), w_dataclass, label,
     Channel::Events, Channel::OneOrMoreEntries,
     diffpack ? Channel::MixedPacking : Channel::OnlyFullPacking,
-    bulk ? Channel::Bulk : Channel::Regular, &autostart_cb));
+    bulk ? Channel::Bulk : Channel::Regular, &do_valid));
   state = ValidatingTokens;
 }
 
-bool WriteReadEntry::checkToken()
-{
-  return state == Linked;
-}
+bool WriteReadEntry::checkToken() { return state == Linked; }
 
 void WriteReadEntry::entryAdded(const ChannelEntryInfo &i)
 {
@@ -593,46 +632,28 @@ const GlobalId &WriteReadEntry::getId() const { return master->getId(); }
 
 void WriteReadEntry::tokenValid(const TimeSpec &ts)
 {
-   if (w_token->isValid() && r_token && r_token->isValid() && state == ValidatingTokens) {
+  DEB("WriteReadEntry::tokenValid " << w_token->isValid()
+                                    << (r_token != NULL && r_token->isValid()));
+  if (w_token->isValid() && r_token && r_token->isValid() &&
+      state == ValidatingTokens) {
 
     std::stringstream buf;
-    master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(),
-      r_dataclass, r_token->getEntryId());
+    master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(), r_dataclass,
+                          r_token->getEntryId());
     DEB("Write read entry, tokens valid " << buf.str());
 
     // both tokens valid now, return information on entries
     sendOne(buf.str(), "WriterReader info");
-      state = Linked;
-      do_calc.setTrigger(*r_token);
-      do_calc.switchOn();
+    state = Linked;
+    do_calc.setTrigger(*r_token);
+    do_calc.switchOn();
   }
 }
 
 void WriteReadEntry::passData(const TimeSpec &ts)
 {
-#if 0
-  if (state == ExpectingRead) {
-    std::stringstream buf;
-    master->codeEntryInfo(buf, w_dataclass, w_token->getEntryId(),
-      r_dataclass, r_token->getEntryId());
-    // both tokens valid now, return information on entries
-    sendOne(buf.str(), "WriterReader info");
-    state = Linked;
-  }
-#endif
+  DEB("WriteReadEntry::passData " << ts);
   DCOReader r(r_dataclass.c_str(), *r_token, ts);
-  /*
-  DataTimeSpec dtd = r.timeSpec();
-  writer.StartObject(2);
-  writer.Key("tick");
-  writer.Uint(dtd.getValidityStart());
-  writer.Key("data");
-  writer.dco(r);
-  writer.EndObject();
-
-  DEB2("WriteReadEntry::passData " << doc.GetString());
-  sendOne(doc.GetString(), "channel data");
-  */
   std::stringstream buf;
   master->codeData(buf, r);
   sendOne(buf.str(), "channel data");
@@ -640,38 +661,45 @@ void WriteReadEntry::passData(const TimeSpec &ts)
 
 void WriteReadEntry::sendOne(const std::string &data, const char *desc)
 {
+  DEB("WriteReadEntry::sendOne " << data);
   if (connection) {
-    connection->send(data, [this, desc](const SimpleWeb::error_code &ec) {
-      if (ec) {
-           /* DUECA websockets.
+    connection->send(
+      data,
+      [this, desc](const SimpleWeb::error_code &ec) {
+        if (ec) {
+        /* DUECA websockets.
 
-        Error in a send action for a "write-and-read" URL, will
-        remove the connection from the list of clients. */
-        W_XTR("Error sending " << desc << ", " << ec.message()
-                               << " removing connenction form "
-                               << this->identification);
-      }
-    }, marker);
+            Error in a send action for a "write-and-read" URL, will
+            remove the connection from the list of clients. */
+          W_XTR("Error sending " << desc << ", " << ec.message()
+                                 << " removing connenction form "
+                                 << this->identification);
+        }
+      },
+      marker);
   }
   else {
-    sconnection->send(data, [this, desc](const SimpleWeb::error_code &ec) {
-      if (ec) {
-           /* DUECA websockets.
+    sconnection->send(
+      data,
+      [this, desc](const SimpleWeb::error_code &ec) {
+        if (ec) {
+        /* DUECA websockets.
 
-        Error in a send action for a "write-and-read" URL, will
-        remove the connection from the list of clients. */
-        W_XTR("Error sending " << desc << ", " << ec.message()
-                               << " removing connenction form "
-                               << this->identification);
-      }
-    }, marker);
+            Error in a send action for a "write-and-read" URL, will
+            remove the connection from the list of clients. */
+          W_XTR("Error sending " << desc << ", " << ec.message()
+                                 << " removing connenction form "
+                                 << this->identification);
+        }
+      },
+      marker);
   }
 }
 
 void WriteReadEntry::entryRemoved(const ChannelEntryInfo &i)
 {
   if (i.entry_label == label) {
-
+    DEB("WriteReadEntry::entryRemoved " << i);
     const std::string reason("Termination of service.");
     if (connection) {
       connection->send_close(1000, reason);
@@ -686,7 +714,6 @@ void WriteReadEntry::entryRemoved(const ChannelEntryInfo &i)
     w_token.reset();
   }
 }
-
 
 DUECA_NS_END;
 WEBSOCK_NS_END;

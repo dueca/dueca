@@ -173,7 +173,7 @@ public:
                     Channel::PackingMode packmode,
                     Channel::TransportClass tclass,
                     Activity *when_valid,
-                    unsigned nreservations);
+                    unsigned nreservations = 0);
 
   /** Destructor */
   ~ChannelWriteToken();
@@ -259,7 +259,7 @@ protected:
 
   /** Discard the read access, abandoning an attempted write
       @param data_ptr    Must match previously obtained pointer, data
-                         access is returned. 
+                         access is returned.
   */
   void discardAccess(const void* data_ptr);
 
