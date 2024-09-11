@@ -11,6 +11,7 @@
         license         : EUPL-1.2
 */
 
+#include "PrioritySpec.hxx"
 #include <sstream>
 #define CommonChannelServer_cxx
 #include "CommonChannelServer.hxx"
@@ -54,15 +55,101 @@ const char *dataparseerror::what() const throw()
 
 SingleEntryRead::SingleEntryRead(const std::string &channelname,
                                  const std::string &datatype, entryid_type eid,
-                                 const GlobalId &master) :
-  r_token(master, NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
-          Channel::OneOrMoreEntries, Channel::JumpToMatchTime),
-  datatype(datatype)
+                                 const WebSocketsServerBase *master,
+                                 const PrioritySpec &ps, unsigned char marker) :
+  ConnectionList(channelname + std::string("(entry :)") +
+                 boost::lexical_cast<std::string>(eid) + std::string(")"),
+                 marker),
+  autostart_cb(this, &SingleEntryRead::tokenValid),
+  do_valid(master->getId(), "token valid", &autostart_cb, ps),
+  r_token(master->getId(), NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
+          Channel::OneOrMoreEntries, Channel::JumpToMatchTime, 0.1, &do_valid),
+  datatype(datatype),
+  inactive(true)
 {
-  r_token.isValid();
+  do_valid.switchOn();
 }
 
 SingleEntryRead::~SingleEntryRead() {}
+
+const GlobalId &SingleEntryRead::getId() { return master->getId(); }
+
+template<typename C>
+void SingleEntryRead::addConnection(C &c)
+{
+  if (!inactive) {
+    // send the entry configuration in the first message
+    std::stringstream buf;
+
+    master->codeEntryInfo(buf, "", 0, datatype, r_token.getEntryId());
+
+    sendOne(buf.str(), "WriterReader info", c);
+  }
+  this->ConnectionList::addConnection(c);
+}
+
+template
+void SingleEntryRead::addConnection<std::shared_ptr<WsServer::Connection> >
+  (std::shared_ptr<WsServer::Connection>& connection);
+template
+void SingleEntryRead::addConnection<std::shared_ptr<WssServer::Connection> >
+  (std::shared_ptr<WssServer::Connection>& connection);
+
+
+template<typename C>
+void SingleEntryRead::passData(const TimeSpec &ts, C& connection)
+{
+  std::stringstream buffer;
+
+  // Fix for initial triggering when not enough data in the channel,
+  // cause not exactly clear @TODO investigate
+  if (!inactive && r_token.haveVisibleSets()) {
+    DCOReader r(datatype.c_str(), r_token);
+    master->codeData(buffer, r);
+  }
+  else {
+    DEB("SingleEntryRead, no data for time step " << ts);
+    master->codeEmpty(buffer);
+  }
+  sendOne(buffer.str(), "channel data", connection);
+}
+
+template
+void SingleEntryRead::passData<std::shared_ptr<WsServer::Connection> >
+  (const TimeSpec &ts,
+  std::shared_ptr<WsServer::Connection>& connection);
+template
+void SingleEntryRead::passData<std::shared_ptr<WssServer::Connection> >
+  (const TimeSpec &ts,
+  std::shared_ptr<WssServer::Connection>& connection);
+
+void SingleEntryRead::tokenValid(const TimeSpec &ts)
+{
+  if (inactive) {
+    // send the entry configuration in the first message
+    std::stringstream buf;
+
+    master->codeEntryInfo(buf, "", 0, datatype, r_token.getEntryId());
+    DEB("read entry, token valid " << buf.str());
+
+    sendAll(buf.str(), "WriterReader info");
+    inactive = false;
+  }
+}
+
+bool SingleEntryRead::checkToken()
+{
+  bool res = r_token.isValid();
+  if (!res) {
+    /* DUECA websockets.
+
+       The channel read token for a "current" URL entry is not (yet)
+       valid. Check your configuration and opening mode. */
+    W_XTR("Channel read token not (yet) valid for " << identification);
+  }
+  return res;
+}
+
 
 SingleEntryFollow::SingleEntryFollow(
   const std::string &channelname, const std::string &datatype, entryid_type eid,
@@ -76,7 +163,7 @@ SingleEntryFollow::SingleEntryFollow(
   do_valid(master->getId(), "token valid", &autostart_cb, ps),
   r_token(master->getId(), NameSet(channelname), datatype, eid,
           Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
-          Channel::ReadAllData, 0.0,  &do_valid),
+          Channel::ReadAllData, 0.0, &do_valid),
   cb(this, &SingleEntryFollow::passData),
   do_calc(master->getId(), "read for server", &cb, ps),
   datatype(datatype),
@@ -105,10 +192,9 @@ void SingleEntryFollow::tokenValid(const TimeSpec &ts)
 
     DEB("Starting follow activity " << identification << " at " << ts);
     do_calc.switchOn(ts);
-       std::stringstream buf;
+    std::stringstream buf;
 
-    master->codeEntryInfo(buf, "", 0, datatype,
-                          r_token.getEntryId());
+    master->codeEntryInfo(buf, "", 0, datatype, r_token.getEntryId());
     DEB("follow entry, token valid " << buf.str());
 
     sendAll(buf.str(), "WriterReader info");
@@ -116,26 +202,35 @@ void SingleEntryFollow::tokenValid(const TimeSpec &ts)
   }
 }
 
-void SingleEntryFollow::addConnection(std::shared_ptr<WsServer::Connection> &c)
+template<typename C>
+void SingleEntryFollow::addConnection(C &c)
 {
   if (!inactive) {
     std::stringstream buf;
-    master->codeEntryInfo(buf, "", 0, datatype,
-                          r_token.getEntryId());
+    master->codeEntryInfo(buf, "", 0, datatype, r_token.getEntryId());
     sendOne(buf.str(), "Read targeted info", c);
   }
   this->ConnectionList::addConnection(c);
 }
 
-void SingleEntryFollow::addConnection(std::shared_ptr<WssServer::Connection> &c)
+template
+void SingleEntryFollow::addConnection<std::shared_ptr<WsServer::Connection> >
+  (std::shared_ptr<WsServer::Connection>& connection);
+template
+void SingleEntryFollow::addConnection<std::shared_ptr<WssServer::Connection> >
+  (std::shared_ptr<WssServer::Connection>& connection);
+
+bool SingleEntryFollow::checkToken()
 {
-  if (!inactive) {
-    std::stringstream buf;
-    master->codeEntryInfo(buf, "", 0, datatype,
-                          r_token.getEntryId());
-    sendOne(buf.str(), "Read targeted info", c);
+  bool res = r_token.isValid();
+  if (!res) {
+    /* DUECA websockets.
+
+       The channel read token for a "read" URL entry is not (yet)
+       valid. Check your configuration and opening mode. */
+    W_XTR("Channel read token not (yet) valid for " << identification);
   }
-  this->ConnectionList::addConnection(c);
+  return res;
 }
 
 ConnectionList::ConnectionList(const std::string &ident, unsigned char marker) :
@@ -249,27 +344,11 @@ void SingleEntryFollow::passData(const TimeSpec &ts)
   sendAll(buffer.str(), "channel data");
 }
 
-bool SingleEntryFollow::checkToken()
-{
-  bool res = r_token.isValid();
-  if (!res) {
-    /* DUECA websockets.
-
-       The channel reading token for a "read" URL is not valid. */
-    W_XTR("Channel following token not (yet) valid for " << identification);
-  }
-  return res;
-}
-
 bool SingleEntryFollow::start(const TimeSpec &ts)
 {
-  if (inactive) {
-    if (r_token.isValid()) {
-      do_calc.switchOn(ts);
-      inactive = false;
-      return true;
-    }
-    return false;
+  if (inactive) return false;
+  if (r_token.isValid()) {
+    do_calc.switchOn(ts);
   }
   return true;
 }
@@ -279,7 +358,6 @@ bool SingleEntryFollow::stop(const TimeSpec &ts)
   if (inactive)
     return false;
   do_calc.switchOff(ts);
-  inactive = true;
   firstwrite = true;
   return true;
 }
@@ -686,8 +764,8 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
         if (ec) {
         /* DUECA websockets.
 
-            Error in a send action for a "write-and-read" URL, will
-            remove the connection from the list of clients. */
+              Error in a send action for a "write-and-read" URL, will
+              remove the connection from the list of clients. */
           W_XTR("Error sending " << desc << ", " << ec.message()
                                  << " removing connenction form "
                                  << this->identification);
@@ -702,8 +780,8 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
         if (ec) {
         /* DUECA websockets.
 
-            Error in a send action for a "write-and-read" URL, will
-            remove the connection from the list of clients. */
+              Error in a send action for a "write-and-read" URL, will
+              remove the connection from the list of clients. */
           W_XTR("Error sending " << desc << ", " << ec.message()
                                  << " removing connenction form "
                                  << this->identification);

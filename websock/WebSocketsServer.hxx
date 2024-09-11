@@ -258,6 +258,9 @@ public: // coding function
   /** Send data with, in a "tick"/"data" struct */
   virtual void codeData(std::ostream &s, const DCOReader &r) const = 0;
 
+  /** Code empty, no data */
+  virtual void codeEmpty(std::ostream &s) const = 0;
+
   /** Write type information to given stream */
   virtual void codeEntryInfo(std::ostream &s, const std::string &w_dataname,
                              unsigned w_entryid, const std::string &r_dataname,
@@ -283,7 +286,7 @@ public: // coding function
     "info", "write" and "write-and-read". With the exception of "info" and
     "write-and-read" (where any type of data can be expected), all endpoints
     also receive a description of the datatype. As a last element in the URL,
-    the value of a time granule (a single increment in DUECA integer time), 
+    the value of a time granule (a single increment in DUECA integer time),
     is sent, in seconds.</td>
     </tr>
 
@@ -471,6 +474,9 @@ public: // construction and further specification
 
   /** Code the data in the reader object. */
   void codeData(std::ostream &s, const DCOReader &r) const final;
+
+  /** Code the data in the reader object. */
+  void codeEmpty(std::ostream &s) const final;
 
   /** Code the type information in the reader object. */
   void codeEntryInfo(std::ostream &s, const std::string &w_dataname,

@@ -314,7 +314,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
     DEB("Message on connection 0x"
         << std::hex << reinterpret_cast<void *>(connection.get()) << std::dec);
 
-      // find the channel access corresponding to the connection
+    // find the channel access corresponding to the connection
     auto em =
       this->singlereadsmapped.find(reinterpret_cast<void *>(connection.get()));
 
@@ -322,7 +322,8 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       /* DUECA websockets.
 
          Cannot find the connection entry for a message to the
-         "current" URL. */
+         "current" URL.
+      */
       E_XTR("Cannot find connection");
       const std::string reason("Server failure, cannot find connection data");
       connection->send_close(1001, reason);
@@ -346,7 +347,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       /* DUECA websockets.
 
          There is no current data on the requested stream.
-       */
+      */
       W_XTR("No data on " << em->second->r_token.getName()
                           << " sending empty {}");
       writer.StartObject(0);
@@ -358,8 +359,9 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
         if (ec) {
           /* DUECA websockets.
 
-Unexpected error in sending a message to a client for
-the "current" URL */
+             Unexpected error in sending a message to a client for
+             the "current" URL
+          */
           W_XTR("Error sending message " << ec);
         }
       },
@@ -419,7 +421,7 @@ Unexpected error in the "current" URL connection. */
         << std::hex << reinterpret_cast<void *>(connection.get()) << std::dec);
     DEB("New connection currentdata");
 
-      // find the specific URL, and entry number
+    // find the specific URL, and entry number
     auto qpars = SimpleWeb::QueryString::parse(connection->query_string);
     auto ekey = qpars.find("entry");
     unsigned entry = 0;
@@ -427,22 +429,22 @@ Unexpected error in the "current" URL connection. */
       entry = boost::lexical_cast<unsigned>(ekey->second);
     }
 
-      // try to find the mapped reader
+    // try to find the mapped reader
     NameEntryId key(connection->path_match[1], entry);
-      // ScopeLock l(this->thelock);
     auto ee = this->readsingles.find(key);
     auto ea = this->autosingles.find(key);
 
-      // if not found, try to look in the channelinfo bag
+    // if not found, try to look in the channelinfo bag
     if (ee == this->readsingles.end() && ea == this->autosingles.end()) {
       auto mon = this->monitors.find(connection->path_match[1]);
 
-        // try to create an entry if possible
+      // try to create an entry if possible
       if (mon != this->monitors.end()) {
         std::string datatype = mon->second->findEntry(entry);
         if (datatype.size()) {
-          std::shared_ptr<SingleEntryRead> newcur(new SingleEntryRead(
-            mon->second->channelname, datatype, entry, this->getId()));
+          std::shared_ptr<SingleEntryRead> newcur(
+            new SingleEntryRead(mon->second->channelname, datatype, entry, this,
+                                this->read_prio, marker));
 
             // insert the entry, and find it again
           this->autosingles[key] = newcur;
@@ -459,8 +461,16 @@ Unexpected error in the "current" URL connection. */
     }
     else {
       // connect the connection to the located or created channel reader
-      this->singlereadsmapped[reinterpret_cast<void *>(connection.get())] =
-        ee != this->readsingles.end() ? ee->second : ea->second;
+      if (ee != this->readsingles.end()) {
+        this->singlereadsmapped[reinterpret_cast<void *>(connection.get())] =
+          ee->second;
+        ee->second->addConnection(connection);
+      }
+      else {
+        this->singlereadsmapped[reinterpret_cast<void *>(connection.get())] =
+          ea->second;
+        ea->second->addConnection(connection);
+      }
     }
   };
 
@@ -925,8 +935,8 @@ Unexpected error in the "current" URL connection. */
           std::string dataclass;
           if (!dec.findMember("dataclass", dataclass))
             throw connectionparseerror();
-          I_XTR("/write-and-read/" << connection->path_match[1] <<
-                " client type " << dataclass);
+          I_XTR("/write-and-read/" << connection->path_match[1]
+                                   << " client type " << dataclass);
           ww->second->complete(dataclass);
         }
         catch (const std::exception &e) {
@@ -959,8 +969,9 @@ Unexpected error in the "current" URL connection. */
 
          Information on the closing of the connection of a client with
          a "write-and-read" URL. */
-      I_XTR("Closing connection and writer " << wr->second->identification <<
-            " on connection " << reinterpret_cast<void *>(connection.get()));
+      I_XTR("Closing connection and writer "
+            << wr->second->identification << " on connection "
+            << reinterpret_cast<void *>(connection.get()));
       wr->second->doDisconnect();
       this->writersreaders.erase(wr);
     }
@@ -1037,6 +1048,14 @@ void WebSocketsServer<Encoder, Decoder>::codeData(std::ostream &s,
   writer.EndObject();
 }
 
+template <typename Encoder, typename Decoder>
+void WebSocketsServer<Encoder, Decoder>::codeEmpty(std::ostream &s) const
+{
+  Encoder writer(s);
+  writer.StartObject(0);
+  writer.EndObject();
+}
+
 template <typename Encoder>
 void codeTypeInfo(Encoder &writer, const std::string &dataclass)
 {
@@ -1090,50 +1109,46 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
   const std::string &r_dataname, unsigned r_entryid) const
 {
   Encoder writer(s);
-  if (w_dataname.size() && r_dataname.size()) {
-    writer.StartObject(2);
 
-    writer.Key("read"); // 1
+  if (r_dataname.size() > 0 || w_dataname.size() >0) {
 
-    writer.StartObject(3);
-    writer.Key("dataclass"); // 1.1
-    writer.String(r_dataname);
-    writer.Key("entry"); // 1.2
-    writer.Uint(r_entryid);
-    writer.Key("typeinfo"); // 1.3
-    codeTypeInfo(writer, r_dataname);
-    writer.EndObject();
+    // object added
+    writer.StartObject((w_dataname.size() > 0 ? 1 : 0) +
+                      (r_dataname.size() > 0 ? 1 : 0));
 
-    writer.Key("write"); // 2
+    if (r_dataname.size()) {
+      writer.Key("read"); // 1
 
-    writer.StartObject(3);
-    writer.Key("dataclass"); // 2.1
-    writer.String(w_dataname);
-    writer.Key("entry"); // 2.2
-    writer.Uint(w_entryid);
-    writer.Key("typeinfo"); // 2.3
-    codeTypeInfo(writer, w_dataname);
-    writer.EndObject();
+      writer.StartObject(3);
+      writer.Key("dataclass"); // 1.1
+      writer.String(r_dataname);
+      writer.Key("entry"); // 1.2
+      writer.Uint(r_entryid);
+      writer.Key("typeinfo"); // 1.3
+      codeTypeInfo(writer, r_dataname);
+      writer.EndObject();
+    }
+    if (w_dataname.size()) {
+      writer.Key("write"); // 2
 
-    writer.EndObject();
-  }
-  else if (w_dataname.size() || r_dataname.size()) {
-    const std::string &dataname =
-      r_dataname.size() == 0 ? w_dataname : r_dataname;
-    const unsigned entryid = r_dataname.size() == 0 ? w_entryid : r_entryid;
-    writer.StartObject(3);
-    writer.Key("dataclass");
-    writer.String(dataname);
-    writer.Key("entry");
-    writer.Uint(entryid);
-    writer.Key("typeinfo");
-    codeTypeInfo(writer, dataname);
+      writer.StartObject(3);
+      writer.Key("dataclass"); // 2.1
+      writer.String(w_dataname);
+      writer.Key("entry"); // 2.2
+      writer.Uint(w_entryid);
+      writer.Key("typeinfo"); // 2.3
+      codeTypeInfo(writer, w_dataname);
+      writer.EndObject();
+    }
+
     writer.EndObject();
   }
+
   else {
     // entry removed
-    if (r_entryid != entry_end && w_entryid != entry_end) {
-      writer.StartObject(2);
+    writer.StartObject( (r_entryid != entry_end ? 1 : 0) +
+                        (w_entryid != entry_end ? 1 : 0));
+    if (r_entryid != entry_end) {
       writer.Key("read");
       writer.StartObject(2);
       writer.Key("dataclass"); // 1.1
@@ -1141,6 +1156,8 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
       writer.Key("entry"); // 1.2
       writer.Uint(r_entryid);
       writer.EndObject();
+    }
+    if (w_entryid != entry_end) {
       writer.Key("write");
       writer.StartObject(2);
       writer.Key("dataclass"); // 1.1
@@ -1148,17 +1165,8 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
       writer.Key("entry"); // 1.2
       writer.Uint(w_entryid);
       writer.EndObject();
-      writer.EndObject();
     }
-    else {
-      const auto entryid = (r_entryid != entry_end) ? r_entryid : w_entryid;
-      writer.StartObject(2);
-      writer.Key("dataclass"); // 1.1
-      writer.String(r_dataname);
-      writer.Key("entry"); // 1.2
-      writer.Uint(entryid);
-      writer.EndObject();
-    }
+    writer.EndObject();
   }
 }
 

@@ -212,7 +212,7 @@ const ParameterTable *WebSocketsServerBase::getMyParameterTable()
 // constructor
 WebSocketsServerBase::WebSocketsServerBase(Entity *e, const char *part,
                                            const PrioritySpec &ps,
-                                           const char *classname, 
+                                           const char *classname,
                                            unsigned char marker) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
@@ -322,7 +322,7 @@ bool WebSocketsServerBase::setCurrentData(const std::vector<std::string> &def)
 
   try {
     std::shared_ptr<SingleEntryRead> nentry(
-      new SingleEntryRead(def[1], def[2], entryid, getId()));
+      new SingleEntryRead(def[1], def[2], entryid, this, this->read_prio, marker));
     readsingles[key] = nentry;
   }
   catch (const std::exception &e) {
@@ -657,8 +657,17 @@ bool WebSocketsServerBase::isPrepared()
 {
   bool res = true;
 
+  // check the fixed configured entries
+  for (auto &rs: readsingles) {
+    res = res && rs.second->checkToken();
+  }
+
   for (auto &fl : followers) {
     res = res && fl.second->checkToken();
+  }
+
+  for (auto &pw: presetwriters) {
+    res = res && pw.second->checkToken();
   }
 
   if (res && immediate_start && !auto_started) {
@@ -719,7 +728,7 @@ void WebSocketsServerBase::doTransfer(const TimeSpec &ts)
     I_XTR("WebSocketsServer, running behind at " << ts);
   }
   DEB3("WebSocketsServer::doTransfer " << ts);
-  
+
   runcontext->poll();
 #ifdef BOOST1_65
   runcontext->reset();

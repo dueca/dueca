@@ -40,49 +40,25 @@ using WssServer = SimpleWeb::SocketServer<SimpleWeb::WSS>;
 class WebSocketsServerBase;
 template <typename Encoder, typename Decoder> class WebSocketsServer;
 
-/** Definition of access to a single entry in a channel.
 
-    Reads the latest current data in the channel, upon a dummy
-    message from a connected websocket.
+/** Base class for maintaining a set of websocket connections to send
+    data to.
 
-    After opening the read, a first message provides the
-    structure of the data.
+    Approach for making websocket connections that receive data:
 
-    Subsequent messages follow after a dummy (empty/null) message
-    written to the websocket.
-*/
-struct SingleEntryRead
-{
-  /** Autostart callback function */
-  // Callback<SingleEntryRead> autostart_cb;
+    - When message comes in on the configured socket, see if there is
+      a connection object. If not, create it.
 
-  /** Activity for receiving channel validatation */
-  // ActivityCallback do_valid;
+    - Create a map entry linking the connection to the connection object.
 
-  /** Channel access token */
-  ChannelReadToken r_token;
+    - Add the connection to the connection object/list.
 
-  /** Data type */
-  std::string datatype;
+    - Once the link to the channel is valid, all connections receive an
+      initial message with information on the channel configuration
+      (datatype, entry, datatype info).
 
-  /** Constructor, based on entry id
-
-      @param channelname Name of the channel.
-      @param datatype    Type of data read.
-      @param eid         Entry number in the channel.
-      @param master      ID for creating the read token.
-  */
-  SingleEntryRead(const std::string &channelname, const std::string &datatype,
-                  entryid_type eid, const GlobalId &master);
-
-  /** Destructor */
-  ~SingleEntryRead();
-
-private:
-  void tokenValid(const TimeSpec &ts);
-};
-
-/** Base class for maintaining a set of websocket connections to send data to.
+    - If a connection is created when the channel is already valid, the
+      initial message is sent immediately.
  */
 struct ConnectionList
 {
@@ -135,6 +111,72 @@ struct ConnectionList
   ~ConnectionList();
 };
 
+
+/** Definition of access to a single entry in a channel.
+
+    Reads the latest current data in the channel, upon a dummy
+    message from a connected websocket.
+
+    After opening the read, a first message provides the
+    structure of the data.
+
+    Subsequent messages follow after a dummy (empty/null) message
+    written to the websocket.
+*/
+struct SingleEntryRead : public ConnectionList
+{
+  /** Server and provider of id */
+  const WebSocketsServerBase *master;
+
+  /** Autostart callback function */
+  Callback<SingleEntryRead> autostart_cb;
+
+  /** Activity for receiving channel validatation */
+  ActivityCallback do_valid;
+
+  /** Channel access token */
+  ChannelReadToken r_token;
+
+  /** Data type */
+  std::string datatype;
+
+  /** Flag to remember init state. */
+  bool inactive;
+
+  /** Constructor, based on entry id
+
+      @param channelname Name of the channel.
+      @param datatype    Type of data read.
+      @param eid         Entry number in the channel.
+      @param master      ID for creating the read token.
+  */
+  SingleEntryRead(const std::string &channelname, const std::string &datatype,
+                  entryid_type eid, const WebSocketsServerBase *master,
+                  const PrioritySpec &ps, unsigned char marker);
+
+  /** Destructor */
+  ~SingleEntryRead();
+
+  /** For the callback function */
+  const GlobalId &getId();
+
+  /** Check the token valid */
+  bool checkToken();
+
+  /** Add an additional data reading connection */
+  template<typename C>
+  void addConnection(C &c);
+
+  /** Code data */
+  template<typename C>
+  void passData(const TimeSpec& ts, C& connection);
+
+private:
+  /** Callback invoked when the token is valid. */
+  void tokenValid(const TimeSpec &ts);
+};
+
+
 /** Access to a single entry in a channel
 
     Reads all data from a channel, sends it to zero or more connected
@@ -143,7 +185,7 @@ struct ConnectionList
     When the channel token is valid, each connection will first receive
     a definition of the data. Subsequent data follows as it is received
     on the channel.
-   */
+  */
 struct SingleEntryFollow : public ConnectionList
 {
 
@@ -187,10 +229,8 @@ struct SingleEntryFollow : public ConnectionList
   ~SingleEntryFollow();
 
   /** Add an additional data reading connection */
-  void addConnection(std::shared_ptr<WsServer::Connection> &c);
-
-  /** Add an additional data reading connection, secure socket */
-  void addConnection(std::shared_ptr<WssServer::Connection> &c);
+  template<typename C>
+  void addConnection(C &c);
 
   /** Pass data, callback from DUECA */
   void passData(const TimeSpec &ts);
@@ -210,7 +250,7 @@ struct SingleEntryFollow : public ConnectionList
                     const PrioritySpec &ps, const DataTimeSpec &ts,
                     unsigned char marker);
 
-  /** Verify token OK */
+  /** Check the token valid */
   bool checkToken();
 
   /** Start following the channel data */
@@ -223,6 +263,7 @@ struct SingleEntryFollow : public ConnectionList
   void disconnect();
 
 private:
+  /** Callback invoked when the token is valid. */
   void tokenValid(const TimeSpec &ts);
 };
 
