@@ -47,9 +47,10 @@ class ChannelReadToken;
 void environment_main_thread(int phase);
 
 
-/** This class handles the main thread of controls. It will dip in and
-    out of Scheme code, start up the graphics thread and also start up
-    the high-priority real-time threads. */
+/** This class handles the main thread of control. It will dip in and
+    out of scripting code, start up the graphics thread and also start
+    up the high-priority real-time threads. At closing DUECA, all
+    threads will join here again. */
 class Environment:
   public ScriptCreatable,
   public NamedObject
