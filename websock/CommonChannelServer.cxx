@@ -67,7 +67,7 @@ SingleEntryRead::~SingleEntryRead() {}
 SingleEntryFollow::SingleEntryFollow(
   const std::string &channelname, const std::string &datatype, entryid_type eid,
   const WebSocketsServerBase *master, const PrioritySpec &ps,
-  const DataTimeSpec &ts, bool extended, unsigned char marker, bool autostart) :
+  const DataTimeSpec &ts, unsigned char marker) :
   ConnectionList(channelname + std::string(" (entry ") +
                    boost::lexical_cast<std::string>(eid) + std::string(")"),
                  marker),
@@ -76,12 +76,11 @@ SingleEntryFollow::SingleEntryFollow(
   do_valid(master->getId(), "token valid", &autostart_cb, ps),
   r_token(master->getId(), NameSet(channelname), datatype, eid,
           Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
-          Channel::ReadAllData, 0.0, autostart ? &do_valid : NULL),
+          Channel::ReadAllData, 0.0,  &do_valid),
   cb(this, &SingleEntryFollow::passData),
   do_calc(master->getId(), "read for server", &cb, ps),
   datatype(datatype),
   inactive(true),
-  extended(extended),
   firstwrite(true)
 {
   do_valid.switchOn();
@@ -101,17 +100,46 @@ void SingleEntryFollow::disconnect() { do_calc.clearTriggers(); }
 
 void SingleEntryFollow::tokenValid(const TimeSpec &ts)
 {
-  /** The callback for this is only connected when autostart was active */
   if (inactive) {
+    // send the entry configuration in the first message
+
     DEB("Starting follow activity " << identification << " at " << ts);
     do_calc.switchOn(ts);
+       std::stringstream buf;
+
+    master->codeEntryInfo(buf, "", 0, datatype,
+                          r_token.getEntryId());
+    DEB("follow entry, token valid " << buf.str());
+
+    sendAll(buf.str(), "WriterReader info");
     inactive = false;
   }
 }
 
+void SingleEntryFollow::addConnection(std::shared_ptr<WsServer::Connection> &c)
+{
+  if (!inactive) {
+    std::stringstream buf;
+    master->codeEntryInfo(buf, "", 0, datatype,
+                          r_token.getEntryId());
+    sendOne(buf.str(), "Read targeted info", c);
+  }
+  this->ConnectionList::addConnection(c);
+}
+
+void SingleEntryFollow::addConnection(std::shared_ptr<WssServer::Connection> &c)
+{
+  if (!inactive) {
+    std::stringstream buf;
+    master->codeEntryInfo(buf, "", 0, datatype,
+                          r_token.getEntryId());
+    sendOne(buf.str(), "Read targeted info", c);
+  }
+  this->ConnectionList::addConnection(c);
+}
+
 ConnectionList::ConnectionList(const std::string &ident, unsigned char marker) :
   marker(marker),
-  flock(ident.c_str(), false),
   identification(ident)
 {}
 
@@ -119,20 +147,17 @@ ConnectionList::~ConnectionList() {}
 
 void ConnectionList::addConnection(std::shared_ptr<WsServer::Connection> &c)
 {
-  // ScopeLock l(flock);
   connections.push_back(c);
 }
 
 void ConnectionList::addConnection(std::shared_ptr<WssServer::Connection> &c)
 {
-  // ScopeLock l(flock);
   sconnections.push_back(c);
 }
 
 bool ConnectionList::removeConnection(
   const std::shared_ptr<WsServer::Connection> &c)
 {
-  // ScopeLock l(flock);
   auto toremove = std::find(connections.begin(), connections.end(), c);
   if (toremove != connections.end()) {
     connections.erase(toremove);
@@ -144,7 +169,6 @@ bool ConnectionList::removeConnection(
 bool ConnectionList::removeConnection(
   const std::shared_ptr<WssServer::Connection> &c)
 {
-  // ScopeLock l(flock);
   auto toremove = std::find(sconnections.begin(), sconnections.end(), c);
   if (toremove != sconnections.end()) {
     sconnections.erase(toremove);
@@ -218,7 +242,6 @@ void SingleEntryFollow::passData(const TimeSpec &ts)
     return;
   }
 
-  // ScopeLock l(flock);
   DCOReader r(datatype.c_str(), r_token, ts);
 
   std::stringstream buffer;
@@ -275,8 +298,6 @@ ChannelMonitor::~ChannelMonitor() {}
 
 void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
 {
-  // ScopeLock l(flock);
-
   if (info.entry_id >= entrydataclass.size()) {
     entrydataclass.resize(info.entry_id + 1);
   }
@@ -291,8 +312,6 @@ void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
 
 void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
 {
-  // ScopeLock l(flock);
-
   assert(info.entry_id < entrydataclass.size() &&
          entrydataclass[info.entry_id].size() > 0);
   entrydataclass[info.entry_id] = std::string();
@@ -307,7 +326,6 @@ void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
 void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection> &c)
 {
   ConnectionList::addConnection(c);
-  // ScopeLock l(flock);
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
       std::stringstream buffer;
@@ -320,7 +338,6 @@ void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection> &c)
 void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection> &c)
 {
   ConnectionList::addConnection(c);
-  // ScopeLock l(flock);
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
       std::stringstream buffer;
@@ -332,7 +349,6 @@ void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection> &c)
 
 const std::string &ChannelMonitor::findEntry(unsigned entryid)
 {
-  // ScopeLock l(flock);
   static std::string empty;
   if (entryid >= entrydataclass.size()) {
     return empty;
@@ -597,6 +613,7 @@ void WriteReadEntry::setConnection(sconnection_t connection)
 
 void WriteReadEntry::complete(const std::string &w_dataclass)
 {
+  this->w_dataclass = w_dataclass;
   DEB("WriteReadEntry completing with write dataclass" << w_dataclass);
   assert(state == Connected);
   identification = w_channelname + std::string(" type:") + w_dataclass +

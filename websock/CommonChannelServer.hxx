@@ -42,11 +42,22 @@ template <typename Encoder, typename Decoder> class WebSocketsServer;
 
 /** Definition of access to a single entry in a channel.
 
-    Reads the latest/current data in the channel, upon a dummy
+    Reads the latest current data in the channel, upon a dummy
     message from a connected websocket.
+
+    After opening the read, a first message provides the
+    structure of the data.
+
+    Subsequent messages follow after a dummy (empty/null) message
+    written to the websocket.
 */
 struct SingleEntryRead
 {
+  /** Autostart callback function */
+  // Callback<SingleEntryRead> autostart_cb;
+
+  /** Activity for receiving channel validatation */
+  // ActivityCallback do_valid;
 
   /** Channel access token */
   ChannelReadToken r_token;
@@ -66,17 +77,18 @@ struct SingleEntryRead
 
   /** Destructor */
   ~SingleEntryRead();
+
+private:
+  void tokenValid(const TimeSpec &ts);
 };
 
 /** Base class for maintaining a set of websocket connections to send data to.
  */
 struct ConnectionList
 {
-  /** close off marker */
+  /** Close off marker for the messages, used to distinguish between binary
+      (msgpack) and utf-8 text (JSON) */
   unsigned char marker;
-
-  /** Locking for access */
-  dueca::StateGuard flock;
 
   /** What this is for, for error messages */
   std::string identification;
@@ -127,6 +139,10 @@ struct ConnectionList
 
     Reads all data from a channel, sends it to zero or more connected
     websockets as new data comes in.
+
+    When the channel token is valid, each connection will first receive
+    a definition of the data. Subsequent data follows as it is received
+    on the channel.
    */
 struct SingleEntryFollow : public ConnectionList
 {
@@ -158,9 +174,6 @@ struct SingleEntryFollow : public ConnectionList
   /** ID copy of the host */
   GlobalId host_id;
 
-  /** Extended JSON */
-  bool extended;
-
   /** Flag to remember first write access */
   bool firstwrite;
 
@@ -172,6 +185,12 @@ struct SingleEntryFollow : public ConnectionList
 
   /** Destructor */
   ~SingleEntryFollow();
+
+  /** Add an additional data reading connection */
+  void addConnection(std::shared_ptr<WsServer::Connection> &c);
+
+  /** Add an additional data reading connection, secure socket */
+  void addConnection(std::shared_ptr<WssServer::Connection> &c);
 
   /** Pass data, callback from DUECA */
   void passData(const TimeSpec &ts);
@@ -189,8 +208,7 @@ struct SingleEntryFollow : public ConnectionList
   SingleEntryFollow(const std::string &channelname, const std::string &datatype,
                     entryid_type eid, const WebSocketsServerBase *master,
                     const PrioritySpec &ps, const DataTimeSpec &ts,
-                    bool extended, unsigned char marker,
-                    bool autostart = false);
+                    unsigned char marker);
 
   /** Verify token OK */
   bool checkToken();
@@ -478,10 +496,12 @@ struct WriteReadEntry :
 
   /** State for this entry */
   enum WRState {
-    UnConnected,      /**< Not yet connected to a socket, right after creation of the entry. */
-    Connected,        /**< Connected to a socket, but no entry, or not confirmed */
-    ValidatingTokens, /**< Waiting until writing end and reading ends are connected */
-    ActivateClient,   /**< Send a message with read/write config to client */
+    UnConnected, /**< Not yet connected to a socket, right after creation of the
+                    entry. */
+    Connected, /**< Connected to a socket, but no entry, or not confirmed */
+    ValidatingTokens, /**< Waiting until writing end and reading ends are
+                         connected */
+    ActivateClient, /**< Send a message with read/write config to client */
     Linked, /**< Connected, and linked to two entries */
     DisConnected /**< Disconnected by the server after use */
   };

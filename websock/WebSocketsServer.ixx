@@ -563,7 +563,7 @@ Unexpected error in the "current" URL connection. */
                                           << dataclass << ")");
             std::shared_ptr<SingleEntryFollow> newfollow(new SingleEntryFollow(
               mm->second->channelname, dataclass, entry, this, this->read_prio,
-              mm->second->time_spec, extended, true));
+              mm->second->time_spec, marker));
             this->autofollowers[key] = newfollow;
             ee = this->autofollowers.find(key);
           }

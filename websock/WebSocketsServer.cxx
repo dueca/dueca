@@ -385,7 +385,7 @@ bool WebSocketsServerBase::setFollowData(const std::vector<std::string> &def)
   try {
     followread_t::mapped_type nentry(
       new followread_t::mapped_type::element_type(
-        def[1], def[2], entryid, this, read_prio, time_spec, extended, marker));
+        def[1], def[2], entryid, this, read_prio, time_spec, marker));
     followers[key] = nentry;
   }
   catch (const std::exception &e) {
