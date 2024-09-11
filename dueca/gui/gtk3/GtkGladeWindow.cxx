@@ -772,8 +772,8 @@ bool GtkGladeWindow::_fillOptions(const char* wname,
     if (warn) {
       /* DUECA graphics.
 
-	 Cannot find the given object; check whether it is in the interface,
-	 or check for spelling errors.
+	       Cannot find the given object; check whether it is in the interface,
+	       or check for spelling errors.
       */
       W_XTR("GtkGladeWindow::fillOptions: Could not find gtk object with id \""
 	    << wname << "\"");
@@ -808,7 +808,7 @@ bool GtkGladeWindow::_fillOptions(const char* wname,
     if (warn) {
       /* DUECA graphics.
 
-	 The store object attached to this combobox is not compatible.
+	       The store object attached to this combobox is not compatible.
       */
       W_XTR("GtkGladeWindow::fillOptions: ComboBox object \"" << wname
 	    << "\", store is not compatible");
