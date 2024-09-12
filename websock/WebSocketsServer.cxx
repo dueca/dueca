@@ -548,7 +548,7 @@ bool WebSocketsServerBase::setPresetWriterSetup(const std::vector<std::string> &
 
   try {
     boost::intrusive_ptr<PresetWriteEntry> nentry(new PresetWriteEntry(
-      def[1], def[2], def[3], this->getId(), ctiming, stream, bulk, diffpack));
+      def[1], def[2], def[3], this, this->read_prio, ctiming, stream, bulk, diffpack));
     presetwriters[def[0]] = nentry;
   }
   catch (const std::exception &e) {

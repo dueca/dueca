@@ -15,6 +15,7 @@
 #define CommonChannelServer_hxx
 
 #include "Activity.hxx"
+#include "PrioritySpec.hxx"
 #include "WebsockExceptions.hxx"
 #include <boost/intrusive_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -39,7 +40,6 @@ using WssServer = SimpleWeb::SocketServer<SimpleWeb::WSS>;
 
 class WebSocketsServerBase;
 template <typename Encoder, typename Decoder> class WebSocketsServer;
-
 
 /** Base class for maintaining a set of websocket connections to send
     data to.
@@ -66,6 +66,9 @@ struct ConnectionList
       (msgpack) and utf-8 text (JSON) */
   unsigned char marker;
 
+  /** Server and provider of id */
+  const WebSocketsServerBase *master;
+
   /** What this is for, for error messages */
   std::string identification;
 
@@ -80,6 +83,9 @@ struct ConnectionList
 
   /** List of connections through secure server */
   sconnectionlist_t sconnections;
+
+  /** For the callback function */
+  const GlobalId &getId();
 
   /** Add an additional data reading connection */
   void addConnection(std::shared_ptr<WsServer::Connection> &c);
@@ -105,12 +111,12 @@ struct ConnectionList
                const std::shared_ptr<WssServer::Connection> &c);
 
   /** Constructor */
-  ConnectionList(const std::string &ident, unsigned char marker);
+  ConnectionList(const std::string &ident, unsigned char marker,
+                 const WebSocketsServerBase *master);
 
   /** Destructor */
   ~ConnectionList();
 };
-
 
 /** Definition of access to a single entry in a channel.
 
@@ -125,8 +131,6 @@ struct ConnectionList
 */
 struct SingleEntryRead : public ConnectionList
 {
-  /** Server and provider of id */
-  const WebSocketsServerBase *master;
 
   /** Autostart callback function */
   Callback<SingleEntryRead> autostart_cb;
@@ -157,25 +161,19 @@ struct SingleEntryRead : public ConnectionList
   /** Destructor */
   ~SingleEntryRead();
 
-  /** For the callback function */
-  const GlobalId &getId();
-
   /** Check the token valid */
   bool checkToken();
 
   /** Add an additional data reading connection */
-  template<typename C>
-  void addConnection(C &c);
+  template <typename C> void addConnection(C &c);
 
   /** Code data */
-  template<typename C>
-  void passData(const TimeSpec& ts, C& connection);
+  template <typename C> void passData(const TimeSpec &ts, C &connection);
 
 private:
   /** Callback invoked when the token is valid. */
   void tokenValid(const TimeSpec &ts);
 };
-
 
 /** Access to a single entry in a channel
 
@@ -188,10 +186,6 @@ private:
   */
 struct SingleEntryFollow : public ConnectionList
 {
-
-  /** Server and provider of id */
-  const WebSocketsServerBase *master;
-
   /** Autostart callback function */
   Callback<SingleEntryFollow> autostart_cb;
 
@@ -213,24 +207,17 @@ struct SingleEntryFollow : public ConnectionList
   /** Initial stage */
   bool inactive;
 
-  /** ID copy of the host */
-  GlobalId host_id;
-
   /** Flag to remember first write access */
   bool firstwrite;
 
   /** Trigger regulation, if applicable */
   boost::intrusive_ptr<TriggerRegulatorGreedy> regulator;
 
-  /** For the callback function */
-  inline const GlobalId &getId() { return host_id; }
-
   /** Destructor */
   ~SingleEntryFollow();
 
   /** Add an additional data reading connection */
-  template<typename C>
-  void addConnection(C &c);
+  template <typename C> void addConnection(C &c);
 
   /** Pass data, callback from DUECA */
   void passData(const TimeSpec &ts);
@@ -278,9 +265,6 @@ struct ChannelMonitor : public ChannelWatcher, public ConnectionList
 
   /** Time specification, for data rate reduction */
   DataTimeSpec time_spec;
-
-  /** socket server */
-  const WebSocketsServerBase *server;
 
   /** Type for list of active entries and their datatype */
   typedef std::vector<std::string> entrydataclass_t;
@@ -339,6 +323,15 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   /** State for this entry */
   WEState state;
 
+  /** for id callback */
+  const WebSocketsServerBase *master;
+
+  /** Autostart callback function */
+  Callback<SingleEntryFollow> autostart_cb;
+
+  /** Activity for receiving channel validatation */
+  ActivityCallback do_valid;
+
   /** Write token */
   boost::scoped_ptr<ChannelWriteToken> w_token;
 
@@ -366,6 +359,27 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   /** differential pack, if applicable */
   bool diffpack;
 
+  /** Connections through non-secure server */
+  typedef std::shared_ptr<WsServer::Connection> connection_t;
+
+  /** Connection through secure server */
+  typedef std::shared_ptr<WssServer::Connection> sconnection_t;
+
+  /** List of connections through non-secure server */
+  connection_t connection;
+
+  /** List of connections through secure server */
+  sconnection_t sconnection;
+
+  /** Set the connection link */
+  void doConnect(connection_t connection);
+
+  /** Set the connection link */
+  void doConnect(sconnection_t connection);
+
+  /** global id */
+  const GlobalId &getId();
+
   /** Verify token OK */
   bool checkToken();
 
@@ -378,12 +392,16 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   /** Available is for re-used PresetWriters, needs unconnected. */
   inline bool isAvailable() { return state == UnConnected; }
 
+  /** Send data */
+  void sendOne(const std::string &data, const char *desc);
+
   /** Constructor
 
       @param channelname  Name for the to-be-written channel
       @param datatype     Data class to be written
    */
   WriteEntry(const std::string &channelname, const std::string &datatype,
+             const WebSocketsServerBase *master, const PrioritySpec &ps,
              bool bulk = false, bool diffpack = false,
              WriteEntry::WEState initstate = WriteEntry::Connected);
 
@@ -399,8 +417,7 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
       @param master       ID of controlling entity, for assigning channel entry.
   */
   virtual void complete(const std::string &datatype, const std::string &label,
-                        bool stream, bool ctiming, bool bulk, bool diffpack,
-                        const GlobalId &master);
+                        bool stream, bool ctiming, bool bulk, bool diffpack);
 
   /** Check whether completion has been done
 
@@ -413,6 +430,10 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
       @param json         JSON encoded data
   */
   template <typename Encoder> void writeFromCoded(const Encoder &coded);
+
+private:
+  /** Callback valid token */
+  void tokenValid(const TimeSpec &ts);
 };
 
 /** Single written entry, static and valid from specification
@@ -427,31 +448,14 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
  */
 struct PresetWriteEntry : public WriteEntry
 {
-  /** Connections through non-secure server */
-  typedef std::shared_ptr<WsServer::Connection> connection_t;
-
-  /** Connection through secure server */
-  typedef std::shared_ptr<WssServer::Connection> sconnection_t;
-
-  /** List of connections through non-secure server */
-  connection_t connection;
-
-  /** List of connections through secure server */
-  sconnection_t sconnection;
-
   /** Constructor */
   PresetWriteEntry(const std::string &channelname, const std::string &datatype,
-                   const std::string &label, const GlobalId &master,
-                   bool ctiming, bool stream, bool bulk, bool diffpack);
+                   const std::string &label, const WebSocketsServerBase *master,
+                   const PrioritySpec &ps, bool ctiming, bool stream, bool bulk,
+                   bool diffpack);
 
   /** Destructor */
   ~PresetWriteEntry();
-
-  /** Set the connection link */
-  void doConnect(connection_t connection);
-
-  /** Set the connection link */
-  void doConnect(sconnection_t connection);
 
   /** Disconnect the old link */
   void *disConnect();

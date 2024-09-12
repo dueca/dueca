@@ -249,13 +249,15 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
     writer.Key("write");
     writer.StartArray(writersetup.size());
     for (const auto &wr : writersetup) {
-      writer.StartObject(2);
+      writer.StartObject(1 + (wr.second->dataclass.size() > 0 ? 2 : 0));
       writer.Key("endpoint");
       writer.String(wr.first.c_str());
-      writer.Key("dataclass");
-      writer.String(wr.second->dataclass.c_str());
-      writer.Key("typeinfo");
-      codeTypeInfo(writer, wr.second->dataclass);
+      if (wr.second->dataclass.size()) {
+        writer.Key("dataclass");
+        writer.String(wr.second->dataclass.c_str());
+        writer.Key("typeinfo");
+        codeTypeInfo(writer, wr.second->dataclass);
+      }
       writer.EndObject();
     }
     writer.EndArray();
@@ -755,7 +757,8 @@ Unexpected error in the "current" URL connection. */
     // create an empty write-entry
     this->writers[reinterpret_cast<void *>(connection.get())] =
       boost::intrusive_ptr<WriteEntry>(
-        new WriteEntry(ee->second->channelname, ee->second->dataclass));
+        new WriteEntry(ee->second->channelname, ee->second->dataclass,
+                       this, this->read_prio));
   };
 
   writer.on_message = [this](shared_ptr<typename S::Connection> connection,
@@ -1110,11 +1113,11 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
 {
   Encoder writer(s);
 
-  if (r_dataname.size() > 0 || w_dataname.size() >0) {
+  if (r_dataname.size() > 0 || w_dataname.size() > 0) {
 
     // object added
     writer.StartObject((w_dataname.size() > 0 ? 1 : 0) +
-                      (r_dataname.size() > 0 ? 1 : 0));
+                       (r_dataname.size() > 0 ? 1 : 0));
 
     if (r_dataname.size()) {
       writer.Key("read"); // 1
@@ -1146,8 +1149,8 @@ void WebSocketsServer<Encoder, Decoder>::codeEntryInfo(
 
   else {
     // entry removed
-    writer.StartObject( (r_entryid != entry_end ? 1 : 0) +
-                        (w_entryid != entry_end ? 1 : 0));
+    writer.StartObject((r_entryid != entry_end ? 1 : 0) +
+                       (w_entryid != entry_end ? 1 : 0));
     if (r_entryid != entry_end) {
       writer.Key("read");
       writer.StartObject(2);

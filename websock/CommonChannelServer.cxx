@@ -59,7 +59,7 @@ SingleEntryRead::SingleEntryRead(const std::string &channelname,
                                  const PrioritySpec &ps, unsigned char marker) :
   ConnectionList(channelname + std::string("(entry :)") +
                  boost::lexical_cast<std::string>(eid) + std::string(")"),
-                 marker),
+                 marker, master),
   autostart_cb(this, &SingleEntryRead::tokenValid),
   do_valid(master->getId(), "token valid", &autostart_cb, ps),
   r_token(master->getId(), NameSet(channelname), datatype, eid, Channel::AnyTimeAspect,
@@ -72,7 +72,7 @@ SingleEntryRead::SingleEntryRead(const std::string &channelname,
 
 SingleEntryRead::~SingleEntryRead() {}
 
-const GlobalId &SingleEntryRead::getId() { return master->getId(); }
+const GlobalId &ConnectionList::getId() { return master->getId(); }
 
 template<typename C>
 void SingleEntryRead::addConnection(C &c)
@@ -157,8 +157,7 @@ SingleEntryFollow::SingleEntryFollow(
   const DataTimeSpec &ts, unsigned char marker) :
   ConnectionList(channelname + std::string(" (entry ") +
                    boost::lexical_cast<std::string>(eid) + std::string(")"),
-                 marker),
-  master(master),
+                 marker, master),
   autostart_cb(this, &SingleEntryFollow::tokenValid),
   do_valid(master->getId(), "token valid", &autostart_cb, ps),
   r_token(master->getId(), NameSet(channelname), datatype, eid,
@@ -233,8 +232,9 @@ bool SingleEntryFollow::checkToken()
   return res;
 }
 
-ConnectionList::ConnectionList(const std::string &ident, unsigned char marker) :
+ConnectionList::ConnectionList(const std::string &ident, unsigned char marker, const WebSocketsServerBase *master) :
   marker(marker),
+  master(master),
   identification(ident)
 {}
 
@@ -366,10 +366,9 @@ ChannelMonitor::ChannelMonitor(const WebSocketsServerBase *server,
                                const std::string &channelname,
                                const DataTimeSpec &ts, unsigned char marker) :
   ChannelWatcher(channelname),
-  ConnectionList(channelname, marker),
+  ConnectionList(channelname, marker, server),
   channelname(channelname),
-  time_spec(ts),
-  server(server)
+  time_spec(ts)
 {}
 
 ChannelMonitor::~ChannelMonitor() {}
@@ -384,7 +383,7 @@ void ChannelMonitor::entryAdded(const ChannelEntryInfo &info)
 
   // let the server code entry type information
   std::stringstream buffer;
-  server->codeEntryInfo(buffer, "", entry_end, info.data_class, info.entry_id);
+  master->codeEntryInfo(buffer, "", entry_end, info.data_class, info.entry_id);
   sendAll(buffer.str(), "entry addition");
 }
 
@@ -396,7 +395,7 @@ void ChannelMonitor::entryRemoved(const ChannelEntryInfo &info)
 
   // let the server code empty entry type information
   std::stringstream buffer;
-  server->codeEntryInfo(buffer, "", entry_end, "", info.entry_id);
+  master->codeEntryInfo(buffer, "", entry_end, "", info.entry_id);
   DEB("entryRemoved " << info.entry_id);
   sendAll(buffer.str(), "entry removal");
 }
@@ -407,7 +406,7 @@ void ChannelMonitor::addConnection(std::shared_ptr<WsServer::Connection> &c)
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
       std::stringstream buffer;
-      server->codeEntryInfo(buffer, "", entry_end, entrydataclass[ii], ii);
+      master->codeEntryInfo(buffer, "", entry_end, entrydataclass[ii], ii);
       sendOne(buffer.str(), "entry catch up", c);
     }
   }
@@ -419,7 +418,7 @@ void ChannelMonitor::addConnection(std::shared_ptr<WssServer::Connection> &c)
   for (size_t ii = 0; ii < entrydataclass.size(); ii++) {
     if (entrydataclass[ii].size()) {
       std::stringstream buffer;
-      server->codeEntryInfo(buffer, "", entry_end, entrydataclass[ii], ii);
+      master->codeEntryInfo(buffer, "", entry_end, entrydataclass[ii], ii);
       sendOne(buffer.str(), "entry catch up", c);
     }
   }
@@ -443,9 +442,14 @@ WriteableSetup::WriteableSetup(const std::string &channelname,
 CODE_REFCOUNT(WriteEntry);
 
 WriteEntry::WriteEntry(const std::string &channelname,
-                       const std::string &datatype, bool bulk, bool diffpack,
+                       const std::string &datatype, 
+                       const WebSocketsServerBase *master, const PrioritySpec &ps,
+                       bool bulk, bool diffpack,
                        WriteEntry::WEState initstate) :
   INIT_REFCOUNT_COMMA state(initstate),
+  master(master),
+  autostart_cb(this, &WriteEntry::tokenValid),
+  do_valid(master->getId(), "", &autostart_cb, ps),
   w_token(),
   identification("not initialized"),
   channelname(channelname),
@@ -462,9 +466,13 @@ WriteEntry::~WriteEntry()
   //
 }
 
+const GlobalId& WriteEntry::getId()
+{
+  return master->getId();
+}
+
 void WriteEntry::complete(const std::string &datatype, const std::string &label,
-                          bool stream, bool ctiming, bool bulk, bool diffpack,
-                          const GlobalId &master)
+                          bool stream, bool ctiming, bool bulk, bool diffpack)
 {
   this->datatype = datatype;
   this->ctiming = ctiming;
@@ -478,11 +486,11 @@ void WriteEntry::complete(const std::string &datatype, const std::string &label,
   identification = channelname + std::string(" type:") + datatype +
                    std::string(" label:\"") + label + std::string("\"");
   w_token.reset(new ChannelWriteToken(
-    master, NameSet(channelname), datatype, label,
+    master->getId(), NameSet(channelname), datatype, label,
     stream ? Channel::Continuous : Channel::Events, Channel::OneOrMoreEntries,
     diffpack ? Channel::MixedPacking : Channel::OnlyFullPacking,
-    bulk ? Channel::Bulk : Channel::Regular));
-  checkToken();
+    bulk ? Channel::Bulk : Channel::Regular, &do_valid));
+  //checkToken();
   state = Linked;
 }
 
@@ -499,12 +507,64 @@ bool WriteEntry::checkToken()
   return res;
 }
 
+void WriteEntry::tokenValid(const TimeSpec &ts)
+{
+  if (!active) {
+    // send the entry configuration in the first message
+    std::stringstream buf;
+
+    master->codeEntryInfo(buf, datatype, w_token->getEntryId(),  "", entry_end);
+    DEB("write entry, token valid " << buf.str());
+
+    sendAll(buf.str(), "WriterReader info");
+    inactive = false;
+  }
+
+}
+
+void WriteEntry::sendOne(const std::string &data, const char *desc)
+{
+  DEB("WriteEntry::sendOne " << data);
+  if (connection) {
+    connection->send(
+      data,
+      [this, desc](const SimpleWeb::error_code &ec) {
+        if (ec) {
+        /* DUECA websockets.
+
+              Error in a send action for a "write" URL, will
+              remove the connection from the list of clients. */
+          W_XTR("Error sending " << desc << ", " << ec.message()
+                                 << " removing connenction form "
+                                 << this->identification);
+        }
+      },
+      marker);
+  }
+  else {
+    sconnection->send(
+      data,
+      [this, desc](const SimpleWeb::error_code &ec) {
+        if (ec) {
+        /* DUECA websockets.
+
+              Error in a send action for a "write" URL, will
+              remove the connection from the list of clients. */
+          W_XTR("Error sending " << desc << ", " << ec.message()
+                                 << " removing connenction form "
+                                 << this->identification);
+        }
+      },
+      marker);
+  }
+}
+
 PresetWriteEntry::PresetWriteEntry(const std::string &channelname,
                                    const std::string &datatype,
                                    const std::string &label,
-                                   const GlobalId &master, bool ctiming,
-                                   bool stream, bool bulk, bool diffpack) :
-  WriteEntry(channelname, datatype, bulk, diffpack, UnConnected)
+                                   const WebSocketsServerBase *master, const PrioritySpec& ps,
+                                   bool ctiming, bool stream, bool bulk, bool diffpack) :
+  WriteEntry(channelname, datatype, master, ps, bulk, diffpack, UnConnected)
 {
   this->ctiming = ctiming;
   this->stream = stream;
@@ -514,8 +574,7 @@ PresetWriteEntry::PresetWriteEntry(const std::string &channelname,
     master, NameSet(channelname), datatype, label,
     stream ? Channel::Continuous : Channel::Events, Channel::OneOrMoreEntries,
     diffpack ? Channel::MixedPacking : Channel::OnlyFullPacking,
-    bulk ? Channel::Bulk : Channel::Regular));
-  checkToken();
+    bulk ? Channel::Bulk : Channel::Regular, &do_valid));
 }
 
 PresetWriteEntry::~PresetWriteEntry()
@@ -535,13 +594,13 @@ void PresetWriteEntry::complete(const std::string &datatype,
   checkToken();
 }
 
-void PresetWriteEntry::doConnect(connection_t connection)
+void WriteEntry::doConnect(connection_t connection)
 {
   this->connection = connection;
   WriteEntry::doConnect();
 }
 
-void PresetWriteEntry::doConnect(sconnection_t sconnection)
+void WriteEntry::doConnect(sconnection_t sconnection)
 {
   this->sconnection = sconnection;
   WriteEntry::doConnect();

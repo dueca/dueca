@@ -283,11 +283,47 @@ public: // coding function
 
     <td> After opening the configuration URL, the client receives a message with
     all possible configured URL's, in the sections "current", "read",
-    "info", "write" and "write-and-read". With the exception of "info" and
-    "write-and-read" (where any type of data can be expected), all endpoints
-    also receive a description of the datatype. As a last element in the URL,
-    the value of a time granule (a single increment in DUECA integer time),
-    is sent, in seconds.</td>
+    "info", "write" and "write-and-read". 
+    
+    - current. These endpoints respond to a message from the client and then 
+      produce a reply with data. Information in the information section includes:
+      * endpoint
+      * dataclass
+      * information on the dataclass members
+      * entry id (numeric)
+    
+    - read. These endpoints will produce messages at the rate of channel
+      writing, or "throttled", when a time specification is given. Inforation in
+      the information section includes:
+      * endpoint
+      * dataclass
+      * type info
+      * numeric entry id
+
+    - info. These endpoints provide information on the entries in a specific
+      channel. Inforation only consists of
+      * endpoint
+
+    - write. These endpoints provide information on entries that can be
+      written to. Information consists of 
+      * endpoint
+      * dataclass
+      * type info
+      The latter two are only given if dataclass had been pre-configured. If
+      not given, the dataclass needs to be specified in the first message from
+      a client.
+
+    - write-and-read. These endpoints can be used to establish a two-directional
+      communication on two pre-defined channels. Information consists of
+      * endpoint
+      The first message upon opening needs to define the dataclass and label. 
+      Once bi-directional communication is established, a message is sent with
+      information on both the write direction and read direction.
+    
+    - granule. This is the last element in the struct, it defines the value in
+      seconds of a single integer time increment.
+
+    </td>
     </tr>
 
     <tr>
@@ -330,12 +366,14 @@ public: // coding function
     <tr>
     <td> /write/name </td>
 
-    <td> Open a write entry for a channel. The data type is specified
+    <td> Open a write entry for a channel. The data type may be specified
     in the start script of the module. The first message must be a
     json object with the member 'label'. Optionally, if this has a
     member 'ctiming' equal to true, the json client provides the
     timing. If this object has a member 'event' equal to false, a
-    stream channel is created; in that case ctiming must be true.
+    stream channel is created; in that case ctiming must be true. If
+    the datatype has not been configured beforehand, this needs to 
+    be supplied in the first message.
 
     Optionally a /write/name entry can have been created as preset. In
     that case, the write token is created at startup of the server,
