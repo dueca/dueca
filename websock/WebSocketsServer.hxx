@@ -255,6 +255,9 @@ public: // the member functions that are called for activities
   void doTransfer(const TimeSpec &ts);
 
 public: // coding function
+  /** sending marker, binary or string */
+  inline unsigned char getMarker() const { return marker; }
+
   /** Send data with, in a "tick"/"data" struct */
   virtual void codeData(std::ostream &s, const DCOReader &r) const = 0;
 

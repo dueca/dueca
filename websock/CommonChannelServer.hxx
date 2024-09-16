@@ -103,15 +103,12 @@ struct ConnectionList
   void sendAll(const std::string &data, const char *desc);
 
   /** Send some string or data to specified connection */
+  template <typename C>
   void sendOne(const std::string &data, const char *desc,
-               const std::shared_ptr<WsServer::Connection> &c);
-
-  /** Send some string or data to a connection */
-  void sendOne(const std::string &data, const char *desc,
-               const std::shared_ptr<WssServer::Connection> &c);
+               const C &c);
 
   /** Constructor */
-  ConnectionList(const std::string &ident, unsigned char marker,
+  ConnectionList(const std::string &ident,
                  const WebSocketsServerBase *master);
 
   /** Destructor */
@@ -156,7 +153,7 @@ struct SingleEntryRead : public ConnectionList
   */
   SingleEntryRead(const std::string &channelname, const std::string &datatype,
                   entryid_type eid, const WebSocketsServerBase *master,
-                  const PrioritySpec &ps, unsigned char marker);
+                  const PrioritySpec &ps);
 
   /** Destructor */
   ~SingleEntryRead();
@@ -234,8 +231,7 @@ struct SingleEntryFollow : public ConnectionList
   */
   SingleEntryFollow(const std::string &channelname, const std::string &datatype,
                     entryid_type eid, const WebSocketsServerBase *master,
-                    const PrioritySpec &ps, const DataTimeSpec &ts,
-                    unsigned char marker);
+                    const PrioritySpec &ps, const DataTimeSpec &ts);
 
   /** Check the token valid */
   bool checkToken();
@@ -289,8 +285,7 @@ struct ChannelMonitor : public ChannelWatcher, public ConnectionList
 
   /** Constructor */
   ChannelMonitor(const WebSocketsServerBase *server,
-                 const std::string &channelname, const DataTimeSpec &ts,
-                 unsigned char marker);
+                 const std::string &channelname, const DataTimeSpec &ts);
 
     /** Destructor */
   virtual ~ChannelMonitor();
@@ -327,7 +322,7 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   const WebSocketsServerBase *master;
 
   /** Autostart callback function */
-  Callback<SingleEntryFollow> autostart_cb;
+  Callback<WriteEntry> autostart_cb;
 
   /** Activity for receiving channel validatation */
   ActivityCallback do_valid;
@@ -372,10 +367,8 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   sconnection_t sconnection;
 
   /** Set the connection link */
-  void doConnect(connection_t connection);
-
-  /** Set the connection link */
-  void doConnect(sconnection_t connection);
+  template <typename C>
+  void setConnection(C& connection);
 
   /** global id */
   const GlobalId &getId();
@@ -478,8 +471,7 @@ struct PresetWriteEntry : public WriteEntry
                           configuration.
   */
   void complete(const std::string &datatype, const std::string &label,
-                bool stream, bool ctiming, bool bulk, bool diffpack,
-                const GlobalId &master);
+                bool stream, bool ctiming, bool bulk, bool diffpack);
 };
 
 /** Configuration of entry writing reading combination */
@@ -627,7 +619,7 @@ struct WriteReadEntry :
   */
   WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                  WebSocketsServerBase *master, const PrioritySpec &ps,
-                 bool extended, unsigned char marker);
+                 bool extended);
 
   /** Destructor */
   virtual ~WriteReadEntry();

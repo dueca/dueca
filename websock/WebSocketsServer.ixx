@@ -446,7 +446,7 @@ Unexpected error in the "current" URL connection. */
         if (datatype.size()) {
           std::shared_ptr<SingleEntryRead> newcur(
             new SingleEntryRead(mon->second->channelname, datatype, entry, this,
-                                this->read_prio, marker));
+                                this->read_prio));
 
             // insert the entry, and find it again
           this->autosingles[key] = newcur;
@@ -575,7 +575,7 @@ Unexpected error in the "current" URL connection. */
                                           << dataclass << ")");
             std::shared_ptr<SingleEntryFollow> newfollow(new SingleEntryFollow(
               mm->second->channelname, dataclass, entry, this, this->read_prio,
-              mm->second->time_spec, marker));
+              mm->second->time_spec));
             this->autofollowers[key] = newfollow;
             ee = this->autofollowers.find(key);
           }
@@ -738,7 +738,7 @@ Unexpected error in the "current" URL connection. */
             W_XTR("Could not find old connection to remove");
           }
         }
-        pre->second->doConnect(connection);
+        pre->second->setConnection(connection);
         this->writers[reinterpret_cast<void *>(connection.get())] = pre->second;
         return;
       }
@@ -759,6 +759,9 @@ Unexpected error in the "current" URL connection. */
       boost::intrusive_ptr<WriteEntry>(
         new WriteEntry(ee->second->channelname, ee->second->dataclass,
                        this, this->read_prio));
+
+    // set the connection for sending initial config
+    this->writers[reinterpret_cast<void *>(connection.get())]->setConnection(connection);
   };
 
   writer.on_message = [this](shared_ptr<typename S::Connection> connection,
@@ -805,8 +808,8 @@ Unexpected error in the "current" URL connection. */
         std::string dataclass;
         if (!dec.findMember("dataclass", dataclass))
           throw connectionparseerror();
-        ww->second->complete(dataclass, label, !event, ctiming, bulk, diffpack,
-                             this->getId());
+        // WriteEntry
+        ww->second->complete(dataclass, label, !event, ctiming, bulk, diffpack);
       }
       catch (const std::exception &e) {
         const std::string reason(e.what());
@@ -880,7 +883,7 @@ Unexpected error in the "current" URL connection. */
     // create an initial write-read-entry
     this->writersreaders[reinterpret_cast<void *>(connection.get())] =
       boost::intrusive_ptr<WriteReadEntry>(
-        new WriteReadEntry(ee->second, this, read_prio, extended, marker));
+        new WriteReadEntry(ee->second, this, read_prio, extended));
     this->writersreaders[reinterpret_cast<void *>(connection.get())]
       ->setConnection(connection);
   };

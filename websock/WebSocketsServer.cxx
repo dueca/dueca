@@ -322,7 +322,7 @@ bool WebSocketsServerBase::setCurrentData(const std::vector<std::string> &def)
 
   try {
     std::shared_ptr<SingleEntryRead> nentry(
-      new SingleEntryRead(def[1], def[2], entryid, this, this->read_prio, marker));
+      new SingleEntryRead(def[1], def[2], entryid, this, this->read_prio));
     readsingles[key] = nentry;
   }
   catch (const std::exception &e) {
@@ -385,7 +385,7 @@ bool WebSocketsServerBase::setFollowData(const std::vector<std::string> &def)
   try {
     followread_t::mapped_type nentry(
       new followread_t::mapped_type::element_type(
-        def[1], def[2], entryid, this, read_prio, time_spec, marker));
+        def[1], def[2], entryid, this, read_prio, time_spec));
     followers[key] = nentry;
   }
   catch (const std::exception &e) {
@@ -427,7 +427,7 @@ bool WebSocketsServerBase::setChannelInfo(const std::vector<std::string> &def)
 
   try {
     std::shared_ptr<ChannelMonitor> nentry(
-      new ChannelMonitor(this, def[1], time_spec, marker));
+      new ChannelMonitor(this, def[1], time_spec));
     monitors[def[0]] = nentry;
   }
   catch (const std::exception &e) {
