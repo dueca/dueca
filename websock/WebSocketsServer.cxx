@@ -251,6 +251,24 @@ WebSocketsServerBase::~WebSocketsServerBase()
     TimeSpec now(SimTime::now());
     stopModule(now);
   }
+
+  // close all connections
+  for (auto &c: readsingles) { c.second->close("service ending"); }
+  for (auto &c: autosingles) { c.second->close("service ending"); }
+  for (auto &c: followers) { c.second->close("service ending"); }
+  for (auto &c: autofollowers) { c.second->close("service ending"); }
+  for (auto &c: monitors) { c.second->close("service ending"); }
+  for (auto &c: writers) { c.second->close("service ending"); }
+  for (auto &c: writersreaders) { c.second->close("service ending"); }
+
+  // run the asyncio service to close off connections
+  while (runcontext->poll()) {
+#ifdef BOOST1_65
+    runcontext->reset();
+#else
+    runcontext->restart();
+#endif
+  }
 }
 
 // as an example, the setTimeSpec function

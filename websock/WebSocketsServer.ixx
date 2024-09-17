@@ -41,7 +41,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL 3
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 #ifdef BOOST1_65
@@ -350,7 +350,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
 
          There is no current data on the requested stream.
       */
-      W_XTR("No data on " << em->second->r_token.getName()
+      D_XTR("No data on " << em->second->r_token.getName()
                           << " sending empty {}");
       writer.StartObject(0);
     }
@@ -385,7 +385,7 @@ Unexpected error in the "current" URL connection. */
     DEB("Close on connection 0x"
         << std::hex << reinterpret_cast<void *>(connection.get()) << std::dec);
 
-    std::string ename("unknown");
+    std::string ename("0");
     auto qpars = SimpleWeb::QueryString::parse(connection->query_string);
     auto ekey = qpars.find("entry");
     if (ekey != qpars.end()) {
@@ -941,9 +941,11 @@ Unexpected error in the "current" URL connection. */
           std::string dataclass;
           if (!dec.findMember("dataclass", dataclass))
             throw connectionparseerror();
+          std::string label;
+          dec.findMember("label", label);
           I_XTR("/write-and-read/" << connection->path_match[1]
                                    << " client type " << dataclass);
-          ww->second->complete(dataclass);
+          ww->second->complete(dataclass, label);
         }
         catch (const std::exception &e) {
           const std::string reason(e.what());

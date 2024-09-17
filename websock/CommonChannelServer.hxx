@@ -107,6 +107,9 @@ struct ConnectionList
   void sendOne(const std::string &data, const char *desc,
                const C &c);
 
+  /** Close the connections */
+  void close(const char* reason, int status=1000);
+
   /** Constructor */
   ConnectionList(const std::string &ident,
                  const WebSocketsServerBase *master);
@@ -157,6 +160,9 @@ struct SingleEntryRead : public ConnectionList
 
   /** Destructor */
   ~SingleEntryRead();
+
+  /** Close connection */
+  void close(const char* reason, int status=1000);
 
   /** Check the token valid */
   bool checkToken();
@@ -244,6 +250,9 @@ struct SingleEntryFollow : public ConnectionList
 
   /** Disconnect from the triggering channel */
   void disconnect();
+
+  /** Close the connection */
+  void close(const char* reason, int status=1000);
 
 private:
   /** Callback invoked when the token is valid. */
@@ -424,6 +433,9 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   */
   template <typename Encoder> void writeFromCoded(const Encoder &coded);
 
+  /** Close the connection */
+  void close(const char* reason, int status=1000);
+
 private:
   /** Callback valid token */
   void tokenValid(const TimeSpec &ts);
@@ -453,6 +465,9 @@ struct PresetWriteEntry : public WriteEntry
   /** Disconnect the old link */
   void *disConnect();
 
+  /** Close the connection */
+  void close(const char* reason, int status=1000);
+
   /** Complete
 
       A PresetWriteEntry alread has its write token created. It still accepts
@@ -477,10 +492,6 @@ struct PresetWriteEntry : public WriteEntry
 /** Configuration of entry writing reading combination */
 struct WriteReadSetup
 {
-
-  /** Counter for clients */
-  unsigned cnt_clients;
-
   /** Channel name for writing */
   std::string w_channelname;
 
@@ -498,7 +509,7 @@ struct WriteReadSetup
                  const std::string &rchannelname);
 
   /** Return the next connection ID */
-  unsigned getNextId();
+  static unsigned getNextId();
 };
 
 /** Single write + read entry.
@@ -643,7 +654,10 @@ struct WriteReadEntry :
 
       @param datatype     Type of data for the write channel.
   */
-  void complete(const std::string &datatype);
+  void complete(const std::string &datatype, const std::string& addtolabel);
+
+  /** Close the connection */
+  void close(const char* reason, int status=1000);
 
   /** Check whether communication is possible. Both read and write tokens
       need to be valid.

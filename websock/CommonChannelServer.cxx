@@ -27,7 +27,7 @@
 
 #include "WebsockExceptions.hxx"
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START;
@@ -85,6 +85,12 @@ void SingleEntryRead::addConnection(C &c)
     sendOne(buf.str(), "WriterReader info", c);
   }
   this->ConnectionList::addConnection(c);
+}
+
+void SingleEntryRead::close(const char* reason, int status)
+{
+  this->ConnectionList::close(reason, status);
+  inactive = true;
 }
 
 template
@@ -240,6 +246,16 @@ ConnectionList::ConnectionList(const std::string &ident, const WebSocketsServerB
 
 ConnectionList::~ConnectionList() {}
 
+void ConnectionList::close(const char* reason, int status)
+{
+  for (auto &c: connections) {
+    c->send_close(status, reason);
+  }
+  for (auto &c: sconnections) {
+    c->send_close(status, reason);
+  }
+}
+
 void ConnectionList::addConnection(std::shared_ptr<WsServer::Connection> &c)
 {
   connections.push_back(c);
@@ -332,6 +348,13 @@ void SingleEntryFollow::passData(const TimeSpec &ts)
   master->codeData(buffer, r);
   sendAll(buffer.str(), "channel data");
 }
+
+void SingleEntryFollow::close(const char* reason, int status)
+{
+  this->ConnectionList::close(reason, status);
+  do_calc.switchOff();
+}
+
 
 bool SingleEntryFollow::start(const TimeSpec &ts)
 {
@@ -486,6 +509,20 @@ void WriteEntry::complete(const std::string &datatype, const std::string &label,
   state = Connected;
 }
 
+void WriteEntry::close(const char* reason, int status)
+{
+  w_token.reset();
+  if (connection) {
+    connection->send_close(status, reason);
+    connection.reset();
+  }
+  if (sconnection) {
+    sconnection->send_close(status, reason);
+    sconnection.reset();
+  }
+  state = UnConnected;
+}
+
 bool WriteEntry::checkToken()
 {
   bool res = w_token->isValid();
@@ -597,6 +634,20 @@ void PresetWriteEntry::complete(const std::string &datatype,
   checkToken();
 }
 
+void PresetWriteEntry::close(const char* reason, int status)
+{
+  // does not reset the token
+  if (connection) {
+    connection->send_close(status, reason);
+    connection.reset();
+  }
+  if (sconnection) {
+    sconnection->send_close(status, reason);
+    sconnection.reset();
+  }
+  state = UnConnected;
+}
+
 void *PresetWriteEntry::disConnect()
 {
   const std::string reason("Resource re-allocation to new client");
@@ -679,7 +730,6 @@ bool NameTokenId::operator<(const NameTokenId &other) const
 
 WriteReadSetup::WriteReadSetup(const std::string &wchannelname,
                                const std::string &rchannelname) :
-  cnt_clients(0U),
   w_channelname(wchannelname),
   r_channelname(rchannelname),
   bulk(false),
@@ -688,7 +738,10 @@ WriteReadSetup::WriteReadSetup(const std::string &wchannelname,
   //
 }
 
-unsigned WriteReadSetup::getNextId() { return cnt_clients++; }
+unsigned WriteReadSetup::getNextId() { 
+  static unsigned nid = 0;
+  return nid++; 
+}
 
 CODE_REFCOUNT(WriteReadEntry);
 
@@ -738,7 +791,7 @@ void WriteReadEntry::setConnection(sconnection_t connection)
   state = Connected;
 }
 
-void WriteReadEntry::complete(const std::string &w_dataclass)
+void WriteReadEntry::complete(const std::string &w_dataclass, const std::string& addtolabel)
 {
   this->w_dataclass = w_dataclass;
   DEB("WriteReadEntry completing with write dataclass" << w_dataclass);
@@ -746,6 +799,10 @@ void WriteReadEntry::complete(const std::string &w_dataclass)
   identification = w_channelname + std::string(" type:") + w_dataclass +
                    std::string(" label:\"") + label + std::string("\" <-> ") +
                    r_channelname;
+
+  if (addtolabel.size()) {
+    label = label + std::string(":") + addtolabel;
+  }
 
   w_token.reset(new ChannelWriteToken(
     master->getId(), NameSet(w_channelname), w_dataclass, label,
@@ -755,20 +812,40 @@ void WriteReadEntry::complete(const std::string &w_dataclass)
   state = ValidatingTokens;
 }
 
+void WriteReadEntry::close(const char* reason, int status)
+{
+  if (connection) {
+    connection->send_close(status, reason);
+    connection.reset();
+  }
+  if (sconnection) {
+    sconnection->send_close(status, reason);
+    sconnection.reset();
+  }
+  w_token.reset();
+  r_token.reset();
+}
+
 bool WriteReadEntry::checkToken() { return state == Linked; }
 
 void WriteReadEntry::entryAdded(const ChannelEntryInfo &i)
 {
   DEB("WriteReadEntry::entryAdded " << i);
   if (state == ValidatingTokens && i.entry_label == label) {
+    if (r_token) {
+      /* DUECA websock.
+      
+         Attempt to connect a write-read entry to a second channel entry with the given 
+         label.
+        */
+      W_XTR("WriteReadEntry already connected on label " << label);
+    }
+    else {
     r_dataclass = i.data_class;
-    assert(!r_token);
     r_token.reset(new ChannelReadToken(
       master->getId(), NameSet(r_channelname), r_dataclass, i.entry_id,
       i.time_aspect, i.arity, Channel::ReadAllData, 0.0, &autostart_cb));
-    /* if (checkToken()) {
-      state = Linked;
-    } */
+    }
   }
 }
 

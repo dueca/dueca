@@ -64,7 +64,8 @@ DCOWriter::DCOWriter(const char* classname,
 DCOWriter::DCOWriter(ChannelWriteToken &token, const DataTimeSpec& ts) :
   CommObjectWriter(token.getDataClassName().c_str(), NULL),
   ts_write(ts),
-  token(token)
+  token(token),
+  a_ok(true)
 {
   obj = token.getAccess(DataClassRegistry::single().getMagic(entry));
 }
@@ -73,7 +74,8 @@ DCOWriter::DCOWriter(ChannelWriteToken &token,
                      TimeTickType ts) :
   CommObjectWriter(token.getDataClassName().c_str(), NULL),
   ts_write(ts, ts),
-  token(token)
+  token(token),
+  a_ok(true)
 {
   obj = token.getAccess(DataClassRegistry::single().getMagic(entry));
 }
