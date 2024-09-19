@@ -4,8 +4,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
   <project name="DuecaTestCommunication">
   <window>DUECA/DUSIME control panel</window><window>Are you serious?</window></project>
-  <repository>https://github.com/repagh/</repository>
-  <version>websocket</version>
+  <repository>https://github.com/dueca/</repository>
   <execute>
     <platform>solo</platform>
     <node>solo</node>

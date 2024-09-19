@@ -2,6 +2,15 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.1.1] - 2024-09-19
+
+- Add a convenience function to load a gtk3 combo box with values
+- Fixes to DCO path interpretation for home dco
+- Major work on the websocket server; offering a json and a msgpack
+  variant for that now, unified the set-up messages; the server alway
+  responds with communication set-up information now, and added a test
+  case for websocket communication.
+
 ## [4.1.0] - 2024-08-07
 
 - Change to the git/cmake build system and scripts. DCO file listings without
