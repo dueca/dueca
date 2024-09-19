@@ -98,10 +98,11 @@ const ParameterTable* @Module@::getMyParameterTable()
 
   // initialize the channel access tokens, check the documentation for the
   // various parameters. Some examples:
-  // r_mytoken(getId(), NameSet(getEntity(), MyData::classname, part),
-  //           MyData::classname, 0, Channel::Events, Channel::ReadAllData),
-  // w_mytoken(getId(), NameSet(getEntity(), MyData::classname, part),
-  //           MyData::classname, "label", Channel::Continuous),
+  // r_mytoken(getId(), NameSet(getEntity(), getclassname<MyData>(), part),
+  //           getclassname<MyData>(), 0, Channel::Events,
+  //           Channel::OneOrMoreEntries, Channel::ReadAllData),
+  // w_mytoken(getId(), NameSet(getEntity(), getclassname<MyData2>(), part),
+  //           getclassname<MyData2>(), "label", Channel::Continuous),
 
   // activity initialization
   // myclock(),

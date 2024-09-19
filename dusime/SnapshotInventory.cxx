@@ -286,7 +286,8 @@ void SnapshotInventory::setFiles(const std::string& bfile,
 
         // read the [[initial]] array in there, thanks to a constructor
         // for Snapshot from toml::value, this seems easy
-        for (const auto &ini: toml::find<toml::array>(iset.second, "initial")) {
+        auto iniarr = toml::find<toml::array>(iset.second, "initial");
+        for (const auto &ini: iniarr) {
           tmpsnap.first->second.snaps.emplace_back(ini);
         }
       }

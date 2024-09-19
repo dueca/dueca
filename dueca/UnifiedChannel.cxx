@@ -13,29 +13,31 @@
 
 #include "ChannelDef.hxx"
 #include "ChannelReadInfo.hxx"
+#include "GenericCallback.hxx"
 #include "TimeSpec.hxx"
 #include "UCClientHandle.hxx"
+#include "UCallbackOrActivity.hxx"
 #define UnifiedChannel_cxx
+#include "AmorphStore.hxx"
+#include "ChannelCountResult.hxx"
+#include "ChannelEndUpdate.hxx"
+#include "ChannelManager.hxx"
+#include "ChannelWatcher.hxx"
+#include "ChannelWriteInfo.hxx"
+#include "DataClassRegistry.hxx"
+#include "ObjectManager.hxx"
+#include "PackerManager.hxx"
+#include "UCEntryConfigurationChange.hxx"
+#include "UCEntryDataCache.hxx"
 #include "UnifiedChannel.hxx"
 #include "UnifiedChannelMaster.hxx"
-#include "AmorphStore.hxx"
-#include <limits.h>
-#include "ChannelEndUpdate.hxx"
-#include "ObjectManager.hxx"
-#include "ChannelManager.hxx"
-#include "PackerManager.hxx"
-#include "DataClassRegistry.hxx"
-#include "UCEntryDataCache.hxx"
-#include "ChannelWatcher.hxx"
-#include <Ticker.hxx>
-#include <algorithm>
-#include <exception>
-#include "ChannelWriteInfo.hxx"
 #include <InformationStash.hxx>
-#include "UCEntryConfigurationChange.hxx"
-#include "ChannelCountResult.hxx"
-#include <dueca/visibility.h>
+#include <Ticker.hxx>
 #include <WrapSendEvent.hxx>
+#include <algorithm>
+#include <dueca/visibility.h>
+#include <exception>
+#include <limits.h>
 
 #include <dueca-conf.h>
 #ifdef TEST_OPTIONS
@@ -50,12 +52,14 @@
 #define DEBPRINTLEVEL -1
 #include "debprint.h"
 
-class LNK_PUBLIC channelconfigexception: public std::exception
+class LNK_PUBLIC channelconfigexception : public std::exception
 {
 public:
-  const char* what() const throw() { return "error in token configuration parameters" ;}
+  const char *what() const throw()
+  {
+    return "error in token configuration parameters";
+  }
 };
-
 
 /* TODO:
 
@@ -67,7 +71,6 @@ public:
 
  */
 
-
 DUECA_NS_START
 
 /* Simple singleton with an InformationStash object. This initially stores
@@ -76,25 +79,17 @@ struct channelreadinfo
 {
   InformationStash<ChannelReadInfo> _stash;
 
-  channelreadinfo() :
-    _stash("ChannelReadInfo")
-  { }
+  channelreadinfo() : _stash("ChannelReadInfo") {}
 
-  static channelreadinfo& single()
+  static channelreadinfo &single()
   {
     static channelreadinfo *singleton = new channelreadinfo();
     return *singleton;
   }
 
-  static void initialize()
-  {
-    single()._stash.initialise(1);
-  }
+  static void initialize() { single()._stash.initialise(1); }
 
-  static InformationStash<ChannelReadInfo>& stash()
-  {
-    return single()._stash;
-  }
+  static InformationStash<ChannelReadInfo> &stash() { return single()._stash; }
 };
 
 /* Simple singleton with an InformationStash object. This initially
@@ -104,25 +99,17 @@ struct channelwriteinfo
 {
   InformationStash<ChannelWriteInfo> _stash;
 
-  channelwriteinfo() :
-    _stash("ChannelWriteInfo")
-  { }
+  channelwriteinfo() : _stash("ChannelWriteInfo") {}
 
-  static channelwriteinfo& single()
+  static channelwriteinfo &single()
   {
     static channelwriteinfo singleton;
     return singleton;
   }
 
-  static void initialize()
-  {
-    single()._stash.initialise(1);
-  }
+  static void initialize() { single()._stash.initialise(1); }
 
-  static InformationStash<ChannelWriteInfo>& stash()
-  {
-    return single()._stash;
-  }
+  static InformationStash<ChannelWriteInfo> &stash() { return single()._stash; }
 };
 
 void ChannelInfoStash_Initialisation()
@@ -131,37 +118,23 @@ void ChannelInfoStash_Initialisation()
   channelreadinfo::initialize();
 }
 
-
 UnifiedChannel::UnifiedChannel(const NameSet &name_set) :
   NamedChannel(name_set),
   // TriggerPuller(name_set.name),
-  transport_class(Channel::UndefinedTransport),
-  entries(),
-  reading_clients(),
-  creation_id(ObjectManager::single()->getLocation()+0x100),
-  newclient_id( ObjectManager::single()->getLocation()+0x100),
-  writing_clients(),
-  entrymap(),
-  entries_lock("UC entries", false),
+  transport_class(Channel::UndefinedTransport), entries(), reading_clients(),
+  creation_id(ObjectManager::single()->getLocation() + 0x100),
+  newclient_id(ObjectManager::single()->getLocation() + 0x100),
+  writing_clients(), entrymap(), entries_lock("UC entries", false),
   watchers_lock("ChannelWatchers", false),
   config_requests(8, "UnifiedChannel::config_requests"),
   config_changes(8, "UnifiedChannel::config_changes"),
-  data_control(8,  "UnifiedChannel::data_control"),
+  data_control(8, "UnifiedChannel::data_control"),
   check_valid1(3, "UnifiedChannel::check_valid1"),
-  check_valid2(3, "UnifiedChannel::check_valid2"),
-  refresh_transporters(0),
-  conf_entry(NULL),
-  conf_handle(NULL),
-  conf_counter(0),
-  checkup_delay(false),
-  channel_status(Created),
-  entry_config_changes(new EntryConfigurationChange()),
-  latest_entry_config_change(entry_config_changes),
-  config_version(0),
-  masterp(NULL),
-  service_id(0U),
-  transporters(),
-  master_id()
+  check_valid2(3, "UnifiedChannel::check_valid2"), refresh_transporters(0),
+  conf_entry(NULL), conf_handle(NULL), conf_counter(0), checkup_delay(false),
+  channel_status(Created), entry_config_changes(new EntryConfigurationChange()),
+  latest_entry_config_change(entry_config_changes), config_version(0),
+  masterp(NULL), service_id(0U), transporters(), master_id()
 {
   // this updates the NamedChannel parent (gives ID)
   // request the ID from the channel manager.
@@ -178,27 +151,26 @@ UnifiedChannel::UnifiedChannel(const NameSet &name_set) :
   DEB("constructor UnifiedChannel " << name_set);
 }
 
-
 UnifiedChannel::~UnifiedChannel()
 {
   // \todo actually destruct a lot
   DEB("destructor UnifiedChannel " << getId());
   delete masterp;
   TimedServicer::releaseService(service_id);
-  //delete srvc;
+  // delete srvc;
 }
 
-const void* UnifiedChannel::getReadAccess(UCClientHandlePtr handle,
+const void *UnifiedChannel::getReadAccess(UCClientHandlePtr handle,
                                           TimeTickType t_request,
-                                          GlobalId& origin,
-                                          DataTimeSpec& ts_actual)
+                                          GlobalId &origin,
+                                          DataTimeSpec &ts_actual)
 {
   // update the handle
   if (refreshClientHandle(handle)) {
-    //D_ CHN(getId() << " read access to " << handle->requested_entry <<
-    //      ' ' << t_request);
-    return handle->entry->entry->accessData(handle, t_request,
-                                            origin, ts_actual);
+    // D_ CHN(getId() << " read access to " << handle->requested_entry <<
+    //       ' ' << t_request);
+    return handle->entry->entry->accessData(handle, t_request, origin,
+                                            ts_actual);
   }
 
   return NULL;
@@ -228,19 +200,21 @@ void UnifiedChannel::linkReadClientToEntry(UCClientHandlePtr client,
 {
   // check that this is not already linked
   auto cl = client->class_lead;
-  while (cl && cl->entry != entry) { cl = cl->next; }
+  while (cl && cl->entry != entry) {
+    cl = cl->next;
+  }
   assert(cl == NULL);
 
   // the list of client to entry links is updated/extended
   // when sequential reading, this will also ensure that the currently oldest
   // datapoint is reserved for this client.
-  client->class_lead = new UCEntryClientLink
-    (entry, client->client_creation_id,
-     isSequentialRead(client->reading_mode, entry->isEventType()),
-     client->class_lead);
+  client->class_lead = new UCEntryClientLink(
+    entry, client->client_creation_id,
+    isSequentialRead(client->reading_mode, entry->isEventType()),
+    client->class_lead);
 
-  DEB(getNameSet() << " client " << client->token->getClientId() <<
-      " attach to entry #" << entry->getId());
+  DEB(getNameSet() << " client " << client->token->getClientId()
+                   << " attach to entry #" << entry->getId());
 
   if (!client->class_lead->isSequential()) {
 
@@ -259,15 +233,13 @@ void UnifiedChannel::linkReadClientToEntry(UCClientHandlePtr client,
   entry->reportClient(client->class_lead);
 
   // send information on this channel change
-  channelreadinfo::stash().stash
-    (new ChannelReadInfo(getId(), client->token->getClientId(),
-                           client->client_creation_id, entry->getId(),
-                           client->class_lead->isSequential(),
-                           client->requested_entry == entry_bylabel ?
-                           ChannelReadInfo::byLabel :
-                           (client->requested_entry == entry_any ?
-                            ChannelReadInfo::Multiple :
-                            ChannelReadInfo::byId)));
+  channelreadinfo::stash().stash(new ChannelReadInfo(
+    getId(), client->token->getClientId(), client->client_creation_id,
+    entry->getId(), client->class_lead->isSequential(),
+    client->requested_entry == entry_bylabel
+      ? ChannelReadInfo::byLabel
+      : (client->requested_entry == entry_any ? ChannelReadInfo::Multiple
+                                              : ChannelReadInfo::byId)));
 }
 
 // Helper function, performs linking a reading client to a given entry
@@ -279,14 +251,15 @@ bool UnifiedChannel::detachReadClientFromEntry(UCClientHandlePtr client,
   auto el = client->class_lead;
   UCEntryClientLinkPtr prev = NULL;
   while (el && el->entry != entry) {
-    prev = el; el = el->next;
+    prev = el;
+    el = el->next;
   }
 
   // is this a matching entry?
   if (el->entry == entry) {
 
-    DEB(getNameSet() << " client " << client->token->getClientId() <<
-      " detach from entry #" << entry->getId());
+    DEB(getNameSet() << " client " << client->token->getClientId()
+                     << " detach from entry #" << entry->getId());
 
     // was this concidentically the currently accessed entry?
     if (client->entry == el) {
@@ -299,10 +272,10 @@ bool UnifiedChannel::detachReadClientFromEntry(UCClientHandlePtr client,
 #if DEBPRINTLEVEL >= 0
       auto anew =
 #endif
-      el->read_index->releaseReadAccess();
-      DEB(getNameSet() << " entry " << entry->getId() <<
-          " client " << client->token->getClientId() <<
-          " release read access " << anew);
+        el->read_index->releaseReadAccess();
+      DEB(getNameSet() << " entry " << entry->getId() << " client "
+                       << client->token->getClientId()
+                       << " release read access " << anew);
     }
 
     // remove the link to this entry from the list
@@ -322,11 +295,9 @@ bool UnifiedChannel::detachReadClientFromEntry(UCClientHandlePtr client,
     entry->removeClient(el);
 
     // send information on this channel change
-    channelreadinfo::stash().stash
-      (new ChannelReadInfo(getId(), client->token->getClientId(),
-                           client->client_creation_id, entry->getId(),
-                           el->isSequential(),
-                           ChannelReadInfo::Detached));
+    channelreadinfo::stash().stash(new ChannelReadInfo(
+      getId(), client->token->getClientId(), client->client_creation_id,
+      entry->getId(), el->isSequential(), ChannelReadInfo::Detached));
 
     // delete the link
     delete el;
@@ -344,7 +315,7 @@ bool UnifiedChannel::refreshClientHandleInner(UCClientHandlePtr client)
   // quick exit for single-attach handles that still point to
   // a valid entry, and that entry does not change
   while (client->config_change != latest_entry_config_change &&
-         client->class_lead &&    // already points to entry
+         client->class_lead && // already points to entry
          client->requested_entry <= entry_bylabel &&
          client->config_change->entry != client->class_lead->entry) {
     client->config_change = client->config_change->markHandled();
@@ -363,15 +334,15 @@ bool UnifiedChannel::refreshClientHandleInner(UCClientHandlePtr client)
       if (DataClassRegistry::single().isCompatible(
             client->dataclassname, cc->entry->getDataClassName()) &&
 
-            // option one, single specific entry requested (label or id) and
-            // there was no connected/found entry yet
-            ((client->class_lead == NULL &&
-              (client->requested_entry == cc->entry->getId() ||
-               (client->requested_entry == entry_bylabel &&
-                client->entrylabel == cc->entry->getLabel()))) ||
+          // option one, single specific entry requested (label or id) and
+          // there was no connected/found entry yet
+          ((client->class_lead == NULL &&
+            (client->requested_entry == cc->entry->getId() ||
+             (client->requested_entry == entry_bylabel &&
+              client->entrylabel == cc->entry->getLabel()))) ||
 
-            // option two, any requested entry is acceptable
-            client->requested_entry == entry_any)) {
+           // option two, any requested entry is acceptable
+           client->requested_entry == entry_any)) {
 
 #if 0
         // this check was wrong. UCDataClassLink assembles for each dataclass
@@ -406,12 +377,12 @@ bool UnifiedChannel::refreshClientHandleInner(UCClientHandlePtr client)
     client->config_change = client->config_change->markHandled();
   }
 
-  if (changes) config_version++;
+  if (changes)
+    config_version++;
 
   // return true if an entry can currently be read
   return client->entry != NULL;
 }
-
 
 /* Design considerations.
 
@@ -475,11 +446,10 @@ unsigned int UnifiedChannel::getNumVisibleSets(UCClientHandlePtr client,
     refreshClientHandle(client);
 
     unsigned nvis = 0;
-    for (UCEntryClientLinkPtr current = client->class_lead;
-         current != NULL; current = current->next) {
+    for (UCEntryClientLinkPtr current = client->class_lead; current != NULL;
+         current = current->next) {
       if (current->sequential_read) {
-        nvis += current->entry->
-          getNumVisibleSets(ts, current->read_index);
+        nvis += current->entry->getNumVisibleSets(ts, current->read_index);
       }
       else {
         nvis += current->entry->getNumVisibleSets(ts);
@@ -493,8 +463,8 @@ unsigned int UnifiedChannel::getNumVisibleSets(UCClientHandlePtr client,
       return 0;
 
     if (client->entry->sequential_read) {
-      return client->entry->entry->
-        getNumVisibleSets(ts, client->entry->read_index);
+      return client->entry->entry->getNumVisibleSets(ts,
+                                                     client->entry->read_index);
     }
     else {
       return client->entry->entry->getNumVisibleSets(ts);
@@ -505,32 +475,32 @@ unsigned int UnifiedChannel::getNumVisibleSets(UCClientHandlePtr client,
 unsigned int UnifiedChannel::getNumVisibleSetsInEntry(UCClientHandlePtr client,
                                                       TimeTickType ts)
 {
-  if (!refreshClientHandle(client)) return 0U;
+  if (!refreshClientHandle(client))
+    return 0U;
 
   if (client->entry->sequential_read) {
-    return client->entry->entry->
-      getNumVisibleSets(ts, client->entry->read_index);
+    return client->entry->entry->getNumVisibleSets(ts,
+                                                   client->entry->read_index);
   }
   else {
     return client->entry->entry->getNumVisibleSets(ts);
   }
 }
 
-bool UnifiedChannel::haveVisibleSets(UCClientHandlePtr client,
-                                     TimeTickType ts)
+bool UnifiedChannel::haveVisibleSets(UCClientHandlePtr client, TimeTickType ts)
 {
   if (client->requested_entry == entry_any) {
     refreshClientHandle(client);
 
-    for (UCEntryClientLinkPtr current = client->class_lead;
-         current != NULL; current = current->next) {
+    for (UCEntryClientLinkPtr current = client->class_lead; current != NULL;
+         current = current->next) {
       if (current->sequential_read) {
-        if (current->entry->
-            haveVisibleSets(ts, current->read_index)) return true;
+        if (current->entry->haveVisibleSets(ts, current->read_index))
+          return true;
       }
       else {
-        if (current->entry->
-            haveVisibleSets(ts)) return true;
+        if (current->entry->haveVisibleSets(ts))
+          return true;
       }
     }
   }
@@ -540,8 +510,8 @@ bool UnifiedChannel::haveVisibleSets(UCClientHandlePtr client,
       return false;
 
     if (client->entry->sequential_read) {
-      return client->entry->entry->
-        haveVisibleSets(ts, client->entry->read_index);
+      return client->entry->entry->haveVisibleSets(ts,
+                                                   client->entry->read_index);
     }
     else {
       return client->entry->entry->haveVisibleSets(ts);
@@ -553,10 +523,10 @@ bool UnifiedChannel::haveVisibleSets(UCClientHandlePtr client,
 bool UnifiedChannel::haveVisibleSetsInEntry(UCClientHandlePtr client,
                                             TimeTickType ts)
 {
-  if (!refreshClientHandle(client)) return false;
+  if (!refreshClientHandle(client))
+    return false;
   if (client->entry->sequential_read) {
-    return client->entry->entry->
-      haveVisibleSets(ts, client->entry->read_index);
+    return client->entry->entry->haveVisibleSets(ts, client->entry->read_index);
   }
   else {
     return client->entry->entry->haveVisibleSets(ts);
@@ -570,13 +540,12 @@ void UnifiedChannel::selectFirstEntry(UCClientHandlePtr client)
   client->entry = client->class_lead;
 }
 
-
-void UnifiedChannel::cacheUnpack(entryid_type entry, AmorphReStore& source,
+void UnifiedChannel::cacheUnpack(entryid_type entry, AmorphReStore &source,
                                  size_t storelevel, size_t len)
 {
   // ensure the entrycache vector is properly filled and extended
   if (entrycache.size() <= entry) {
-    entrycache.resize(entry+1U, NULL);
+    entrycache.resize(entry + 1U, NULL);
   }
   if (entrycache[entry] == NULL) {
     entrycache[entry] = new UCEntryDataCache();
@@ -586,10 +555,10 @@ void UnifiedChannel::cacheUnpack(entryid_type entry, AmorphReStore& source,
   entrycache[entry]->append(new UCRawDataCache(source.data(), storelevel, len));
 
   // modify the store, so it looks like the data has been read
-  source.setIndex(storelevel+len);
+  source.setIndex(storelevel + len);
 }
 
-void UnifiedChannel::unPackData(AmorphReStore& source, int sender_id,
+void UnifiedChannel::unPackData(AmorphReStore &source, int sender_id,
                                 size_t len)
 {
   // figure out which is the message
@@ -610,35 +579,32 @@ void UnifiedChannel::unPackData(AmorphReStore& source, int sender_id,
     }
 
     // entry is there. Process
-    switch(msg.type) {
+    switch (msg.type) {
     case UChannelCommRequest::DiffData: {
 
-      //DEB(getNameSet() << " unpack diff data entry=" << entry);
+      // DEB(getNameSet() << " unpack diff data entry=" << entry);
 
       // normal data sending. Have to unpack.
       // ScopeLock e(entries_lock);
       if (!entries[entry]->unPackDataDiff(source)) {
         cacheUnpack(entry, source, storelevel, len);
       };
-    }
-      break;
+    } break;
 
     case UChannelCommRequest::FullData: {
 
-      //DEB(getNameSet() << " unpack full data entry=" << entry);
-      // request for a full data pack
-      // ScopeLock e(entries_lock);
+      // DEB(getNameSet() << " unpack full data entry=" << entry);
+      //  request for a full data pack
+      //  ScopeLock e(entries_lock);
       entries[entry]->unPackData(source);
-    }
-      break;
+    } break;
 
     case UChannelCommRequest::FullDataReq: {
       if (entries[entry]->isLocal()) {
         DEB(getNameSet() << "full data req entry " << entry);
         entries[entry]->nextSendFull();
       }
-    }
-      break;
+    } break;
 
     case UChannelCommRequest::TimeJump: {
       DEB(getNameSet() << " time jump entry=" << entry);
@@ -650,18 +616,15 @@ void UnifiedChannel::unPackData(AmorphReStore& source, int sender_id,
       UChannelCommRequest msg2(source);
       assert(msg2.type == UChannelCommRequest::FullData);
       entries[entry]->unPackData(source);
-    }
-      break;
+    } break;
 
     case UChannelCommRequest::RemoveSaveupCmd: {
       entries[msg.data0]->removeSaveUp();
-    }
-      break;
+    } break;
 
     default:
       assert(0);
     }
-
   }
   else if (msg.isForChannel()) {
 
@@ -670,7 +633,6 @@ void UnifiedChannel::unPackData(AmorphReStore& source, int sender_id,
     // function, which is also called directly by the master to effect
     // the changes local at the master's side
     updateConfiguration(msg);
-
   }
   else {
 
@@ -688,7 +650,7 @@ void UnifiedChannel::recycleConfigChanges()
 {
   while (entry_config_changes != latest_entry_config_change &&
          entry_config_changes->changetype !=
-         EntryConfigurationChange::DeletedEntry &&
+           EntryConfigurationChange::DeletedEntry &&
          entry_config_changes->tocheck == 0) {
     auto nxt = entry_config_changes->next;
     latest_entry_config_change->insert(entry_config_changes);
@@ -696,16 +658,15 @@ void UnifiedChannel::recycleConfigChanges()
   }
 }
 
-void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
+void UnifiedChannel::updateConfiguration(const UChannelCommRequest &msg)
 {
 
-  switch(msg.type) {
+  switch (msg.type) {
 
     // double, also in unPackData
   case UChannelCommRequest::RemoveSaveupCmd: {
     entries[msg.data0]->removeSaveUp();
-  }
-    break;
+  } break;
 
   case UChannelCommRequest::NewEntryConf:
 
@@ -714,7 +675,8 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
     // check we do not yet have the entry, a conf is also
     // generated when a new end joins, and existing
     // entries are signalled
-    if (msg.data0 < entries.size() && entries[msg.data0]) break;
+    if (msg.data0 < entries.size() && entries[msg.data0])
+      break;
 
     {
       // not known before
@@ -726,41 +688,40 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
         // working with the entries map
         ScopeLock lc(entries_lock);
 
-        if (entry >= entries.size()) entries.resize(entry+1U, NULL);
+        if (entry >= entries.size())
+          entries.resize(entry + 1U, NULL);
 
         if ((creation_id & 0xff) == unsigned(getId().getLocationId())) {
           // if the sending end -- and thus the request -- are located
           // here?
 
           writing_clients_type::iterator iclient = writing_clients.begin();
-          for (; ( iclient != writing_clients.end() ) &&
-                 ( (*iclient)->entry->getCreationId() != creation_id );
-               iclient++);
-          assert(iclient !=  writing_clients.end());
+          for (; (iclient != writing_clients.end()) &&
+                 ((*iclient)->entry->getCreationId() != creation_id);
+               iclient++)
+            ;
+          assert(iclient != writing_clients.end());
           entries[entry] = (*iclient)->entry;
 
-          DEB(getNameSet() << " new local entry " << entry <<
-              " creation id 0x" << hex << creation_id << dec);
+          DEB(getNameSet() << " new local entry " << entry << " creation id 0x"
+                           << hex << creation_id << dec);
 
           // @todo. This fails if the token is immediately deleted
           // afterwards; the token
-          channelwriteinfo::stash().stash
-            (new ChannelWriteInfo(getId(), (*iclient)->getWriterId(),
-                                  entry, (*iclient)->dataclassname,
-                                  entries[entry]->getLabel(),
-                                  entries[entry]->isEventType()));
+          channelwriteinfo::stash().stash(new ChannelWriteInfo(
+            getId(), (*iclient)->getWriterId(), entry,
+            (*iclient)->dataclassname, entries[entry]->getLabel(),
+            entries[entry]->isEventType()));
         }
         else {
 
-          DEB(getNameSet() << " new remote entry " << entry <<
-              " creation id 0x" << hex << creation_id << dec);
-          entries[entry] = new UChannelEntry
-            (this, creation_id, entry, msg.dataclassname,
-             (msg.extra & 0x01) == 0x01,
-             (msg.extra & 0x02) == 0x02,
-             ((msg.extra & 0x04) == 0x04) ? 1 : 0,
-             false,
-             msg.entrylabel, msg.origin);
+          DEB(getNameSet() << " new remote entry " << entry << " creation id 0x"
+                           << hex << creation_id << dec);
+          entries[entry] = new UChannelEntry(
+            this, creation_id, entry, msg.dataclassname,
+            (msg.extra & 0x01) == 0x01, (msg.extra & 0x02) == 0x02,
+            ((msg.extra & 0x04) == 0x04) ? 1 : 0, false, msg.entrylabel,
+            msg.origin);
         }
 
         // make the entry accessible, find the mapping in the entrymap
@@ -772,14 +733,16 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
         // recycle any processed changes
         recycleConfigChanges();
 
-        // make sure there is a sentinel object in the latest config change pointer
+        // make sure there is a sentinel object in the latest config change
+        // pointer
         if (latest_entry_config_change->next == NULL) {
           latest_entry_config_change->next = new EntryConfigurationChange();
         }
 
         // indicate the availability of the new entry
         latest_entry_config_change->setData(EntryConfigurationChange::NewEntry,
-          reading_clients.size(), entries[entry]);
+                                            reading_clients.size(),
+                                            entries[entry]);
 
         // force reading tokens to update on next occasion
         latest_entry_config_change = latest_entry_config_change->next;
@@ -793,9 +756,9 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
           dataclassmap_type::iterator ix = entrymap.find(clsname);
           if (ix == entrymap.end()) {
             DEB("for new entry, adding class map " << clsname);
-            ix = entrymap.insert
-              (entrymap.begin(),
-               dataclassmap_type::value_type(clsname, UCDataclassLink()));
+            ix = entrymap.insert(
+              entrymap.begin(),
+              dataclassmap_type::value_type(clsname, UCDataclassLink()));
           }
           else {
             DEB("adding entry, to existing class map " << clsname);
@@ -803,8 +766,8 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
 
           // add the pointer to this entry to the linked list of writers
           // for this data class
-          ix->second.entries = new UCEntryLink(entries[entry],
-                                               ix->second.entries);
+          ix->second.entries =
+            new UCEntryLink(entries[entry], ix->second.entries);
 
           // add the data class link to the entry, for quick access
           entries[entry]->addDataClass(&(ix->second));
@@ -818,18 +781,18 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
 
             // check for a match to this entry
             if (c->requested_entry == entry_any ||
-                 c->requested_entry == entry ||
-                 (c->requested_entry == entry_bylabel &&
-                  c->entrylabel == msg.entrylabel)) {
+                c->requested_entry == entry ||
+                (c->requested_entry == entry_bylabel &&
+                 c->entrylabel == msg.entrylabel)) {
 
               if (c->callback) {
                 // from the callback, these clients are not supposed to be
                 // active yet. Call the refresh, so any sequential reading
                 // uses all available data
                 refreshClientHandleInner(c);
-                DEB(getNameSet() << " entry #" << entry <<
-                    " initiates callback for client " <<
-                    c->token->getClientId());
+                DEB(getNameSet()
+                    << " entry #" << entry << " initiates callback for client "
+                    << c->token->getClientId());
                 // set up a queue with validity calls
                 AsyncQueueWriter<UCClientHandlePtr> w(check_valid2);
                 c->claim();
@@ -842,14 +805,15 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
               }
             }
             // update the data keeping span - done when linking to entry
-            //entries[entry]->setMinimumSpanAndDepth(c->requested_span,
+            // entries[entry]->setMinimumSpanAndDepth(c->requested_span,
             //                                       c->requested_depth);
             l = l->next;
           }
 
           // see if there is a parent class too, repeat the trick there
           clsname = DataClassRegistry::single().getParent(clsname);
-        } while (clsname.size());
+        }
+        while (clsname.size());
 
         DEB("Entry now valid");
 #if DEBPRINTLEVEL >= 0
@@ -867,15 +831,15 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
       while (check_valid2.notEmpty()) {
         AsyncQueueReader<UCClientHandlePtr> r(check_valid2);
         if (r.data()->release()) {
-          r.data()->callback->operator() (TimeSpec(0, 0));
-          r.data()->callback = NULL;
+          r.data()->callback(TimeSpec(0, 0));
+          // r.data()->callback = NULL;
         }
       }
 
       // process any cached data
       if (entrycache.size() > entry && entrycache[entry] != NULL) {
-        DEB(getNameSet() << " entry #" << entry <<
-            " from cache " << entrycache.size());
+        DEB(getNameSet() << " entry #" << entry << " from cache "
+                         << entrycache.size());
         while (entrycache[entry]->isNotEmpty()) {
           AmorphReStore tmpstore(entrycache[entry]->getStore());
           this->unPackData(tmpstore, 0, tmpstore.getSize());
@@ -927,7 +891,7 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
 
     // indicate the removal of the entry
     latest_entry_config_change->setData(EntryConfigurationChange::DeletedEntry,
-      reading_clients.size(), entry);
+                                        reading_clients.size(), entry);
 
     // force reading tokens to update on next occasion
     latest_entry_config_change = latest_entry_config_change->next;
@@ -944,9 +908,8 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
              entry->getWriterHandle());
       assert(to_erase != writing_clients.end());
 
-      channelwriteinfo::stash().stash
-        (new ChannelWriteInfo(getId(), GlobalId(),
-                              msg.data0, "", "", entry->isEventType()));
+      channelwriteinfo::stash().stash(new ChannelWriteInfo(
+        getId(), GlobalId(), msg.data0, "", "", entry->isEventType()));
       writing_clients.erase(to_erase);
     }
 
@@ -961,8 +924,7 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
         (*ii)->push(ChannelEntryInfo(entry, false));
       }
     }
-  }
-    break;
+  } break;
 
   case UChannelCommRequest::CleanEntryCmd: {
 
@@ -1008,28 +970,28 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest& msg)
     }
 
     // if the cleaning has already been done and reported, break
-    //if (msg.data0 >= entries.size() || !entries[msg.data0]) break;
+    // if (msg.data0 >= entries.size() || !entries[msg.data0]) break;
 
-    //if (entries[msg.data0]->cleanAllData()) {
-    //  AsyncQueueWriter<UChannelCommRequest> w(config_requests);
-    //  w.data().type = UChannelCommRequest::CleanEntryConf;
-    //  w.data().data0 = msg.data0;
-    //  w.data().data1 = msg.data1;
-    //  DEB(getNameSet() << " entry #" << msg.data0 <<
-    //      " confirming clean, round " << msg.data1);
-    //}
-    //else {
-    //  DEB(getNameSet() << " entry #" << msg.data0 << " not yet clean");
-    //}
-  }
-    break;
+    // if (entries[msg.data0]->cleanAllData()) {
+    //   AsyncQueueWriter<UChannelCommRequest> w(config_requests);
+    //   w.data().type = UChannelCommRequest::CleanEntryConf;
+    //   w.data().data0 = msg.data0;
+    //   w.data().data1 = msg.data1;
+    //   DEB(getNameSet() << " entry #" << msg.data0 <<
+    //       " confirming clean, round " << msg.data1);
+    // }
+    // else {
+    //   DEB(getNameSet() << " entry #" << msg.data0 << " not yet clean");
+    // }
+  } break;
 
   case UChannelCommRequest::DeleteEntryCmd:
 
     assert(msg.data0 < entries.size() && entries[msg.data0] != NULL);
     //  if (msg.data0 >= entries.size() || !entries[msg.data0]) break;
     DEB("cleanup of entry " << msg.data0);
-    delete entries[msg.data0]; entries[msg.data0] = NULL;
+    delete entries[msg.data0];
+    entries[msg.data0] = NULL;
     break;
 
   case UChannelCommRequest::NewEndWelcome:
@@ -1058,8 +1020,8 @@ void UnifiedChannel::installService()
 
   // create the updating service, this also doubles as a flag
   // for having a full entry id
-  service_id = TimedServicer::requestService([this]() { this->service(); } );
-  //srvc = new ServiceCallback<UnifiedChannel>(this);
+  service_id = TimedServicer::requestService([this]() { this->service(); });
+  // srvc = new ServiceCallback<UnifiedChannel>(this);
 
   // configure any *writing* entries now that we have an id
   for (writing_clients_type::iterator ii = writing_clients.begin();
@@ -1072,8 +1034,8 @@ void UnifiedChannel::installService()
   DEB(getNameSet() << " installed service callback id=" << getId());
 }
 
-void UnifiedChannel::adjustChannelEnd(const TimeSpec& ts,
-                                      const ChannelEndUpdate& u)
+void UnifiedChannel::adjustChannelEnd(const TimeSpec &ts,
+                                      const ChannelEndUpdate &u)
 {
   switch (u.update) {
 
@@ -1088,18 +1050,19 @@ void UnifiedChannel::adjustChannelEnd(const TimeSpec& ts,
       this->setId(u.end_id);
 
       // this special entry is for configuration communication
-      conf_entry = new UChannelEntry
-        (this, 0, entry_end, "UChannelCommRequest",
-         true, false, 1, true, "channel--admin", this->getId());
-      conf_handle = new UCWriterHandle
-        (NULL, conf_entry, "UChannelCommRequest", NULL);
+      conf_entry =
+        new UChannelEntry(this, 0, entry_end, "UChannelCommRequest", true,
+                          false, 1, true, "channel--admin", this->getId());
+      conf_handle =
+        new UCWriterHandle(NULL, conf_entry, "UChannelCommRequest",
+                           reinterpret_cast<GenericCallback *>(NULL));
       conf_entry->setConfValid();
 
       // report writing end if writer token present
       if (transport_class != Channel::UndefinedTransport) {
         DEB(getNameSet() << " reporting writer end " << transport_class);
-        ChannelManager::single()->reportWritingEnd
-          (this->getId(), this->getNameSet(), transport_class);
+        ChannelManager::single()->reportWritingEnd(
+          this->getId(), this->getNameSet(), transport_class);
       }
     }
     break;
@@ -1113,8 +1076,9 @@ void UnifiedChannel::adjustChannelEnd(const TimeSpec& ts,
 
       master_id = u.destination_id;
       transport_class = Channel::TransportClass(u.transportclass);
-      DEB(this->getNameSet() << " " << this->getId() << " master known, "
-          << master_id << " transportclass " << transport_class);
+      DEB(this->getNameSet()
+          << " " << this->getId() << " master known, " << master_id
+          << " transportclass " << transport_class);
 
       if (this->getId() == master_id) {
 
@@ -1131,8 +1095,8 @@ void UnifiedChannel::adjustChannelEnd(const TimeSpec& ts,
   case ChannelEndUpdate::ADD_DESTINATION:
     if (u.end_id == this->getId()) {
 
-      DEB(getNameSet() << " adding remote " << u.destination_id <<
-          " class " << transport_class);
+      DEB(getNameSet() << " adding remote " << u.destination_id << " class "
+                       << transport_class);
       addRemoteDestination(u.destination_id.getLocationId());
 
       // for non-master ends, start the service when the master has
@@ -1144,22 +1108,21 @@ void UnifiedChannel::adjustChannelEnd(const TimeSpec& ts,
   default:
 
     // no special action for other cases, use generic base class method
-    //GenericChannel::adjustChannelEnd(u);
+    // GenericChannel::adjustChannelEnd(u);
     break;
   }
-
 }
 
-void UnifiedChannel::addRemoteDestination(const LocationId& location_id)
+void UnifiedChannel::addRemoteDestination(const LocationId &location_id)
 {
   // TODO: clean up, modernize!!!!
-  DEB(getNameSet() << " adding remote dest " << unsigned(location_id) <<
-      " class " << transport_class);
+  DEB(getNameSet() << " adding remote dest " << unsigned(location_id)
+                   << " class " << transport_class);
 
   assert(transport_class != Channel::UndefinedTransport);
 
-  GenericPacker *t = PackerManager::findMatchingTransport
-    (location_id, transport_class);
+  GenericPacker *t =
+    PackerManager::findMatchingTransport(location_id, transport_class);
   // bool firsttransport = transporters.size() == 0;
   transporters_type::iterator t2 =
     find(transporters.begin(), transporters.end(), t);
@@ -1203,7 +1166,7 @@ void UnifiedChannel::serviceLocal1(const LocationId location_id,
   UChannelCommRequest msg;
   {
     AsyncQueueReader<UChannelCommRequest> r(config_requests);
-    assert (r.data().type == UChannelCommRequest::NewEntryReq);
+    assert(r.data().type == UChannelCommRequest::NewEntryReq);
     msg = r.data();
     msg.type = UChannelCommRequest::NewEntryConf;
     msg.data0 = location_id;
@@ -1247,10 +1210,9 @@ void UnifiedChannel::serviceLocal1(const LocationId location_id,
   for (LocationId lid = 0; lid < n_locations; lid++) {
     if (lid != location_id) {
       // configure a reading entry
-      UChannelCommRequest msg2
-        (UChannelCommRequest::NewEntryConf,
-         0x01 | (location_id == 0 ? 0x04 : 0x00), lid, lid,
-         getId(), msg.dataclassname, msg.entrylabel);
+      UChannelCommRequest msg2(UChannelCommRequest::NewEntryConf,
+                               0x01 | (location_id == 0 ? 0x04 : 0x00), lid,
+                               lid, getId(), msg.dataclassname, msg.entrylabel);
       assert(msg2.origin != GlobalId());
       updateConfiguration(msg2);
     }
@@ -1276,7 +1238,7 @@ void UnifiedChannel::serviceLocal2(const LocationId location_id,
   // only in node 0 there should be a single writing entry
   if (location_id == 0) {
     AsyncQueueReader<UChannelCommRequest> r(config_requests);
-    assert (r.data().type == UChannelCommRequest::NewEntryReq);
+    assert(r.data().type == UChannelCommRequest::NewEntryReq);
     UChannelCommRequest msg = r.data();
     msg.type = UChannelCommRequest::NewEntryConf;
     msg.data0 = location_id;
@@ -1284,9 +1246,8 @@ void UnifiedChannel::serviceLocal2(const LocationId location_id,
     updateConfiguration(msg);
   }
   else {
-    UChannelCommRequest msg
-      (UChannelCommRequest::NewEntryConf, 0x01 | 0x04,
-       0, 0, getId(), "ChannelEndUpdate", "");
+    UChannelCommRequest msg(UChannelCommRequest::NewEntryConf, 0x01 | 0x04, 0,
+                            0, getId(), "ChannelEndUpdate", "");
     assert(msg.origin != GlobalId());
     updateConfiguration(msg);
   }
@@ -1361,8 +1322,8 @@ void UnifiedChannel::service()
     if (r.data()->release()) {
       if (refreshClientHandle(r.data())) {
         if (r.data()->callback) {
-          r.data()->callback->operator() (TimeSpec(0,0));
-          r.data()->callback = NULL;
+          r.data()->callback(TimeSpec(0, 0));
+          // r.data()->callback = NULL;
         }
         else {
           DEB("No callback after all??");
@@ -1402,8 +1363,8 @@ void UnifiedChannel::service()
   }
 }
 
-void UnifiedChannel::thereIsNewTransportWork(UChannelEntry* entry,
-                                             const TimeTickType& ts,
+void UnifiedChannel::thereIsNewTransportWork(UChannelEntry *entry,
+                                             const TimeTickType &ts,
                                              unsigned tidx)
 {
   if (tidx == 0xffffffff) {
@@ -1418,7 +1379,7 @@ void UnifiedChannel::thereIsNewTransportWork(UChannelEntry* entry,
   }
 }
 
-void UnifiedChannel::codeHead(AmorphStore& s)
+void UnifiedChannel::codeHead(AmorphStore &s)
 {
   uint16_t w1;
 
@@ -1428,23 +1389,18 @@ void UnifiedChannel::codeHead(AmorphStore& s)
   ::packData(s, w1);
 }
 
-UCClientHandlePtr
-UnifiedChannel::addReadToken(ChannelReadToken* token,
-                             const std::string& dataclassname,
-                             const std::string& entrylabel,
-                             entryid_type attach_entry,
-                             Channel::EntryTimeAspect time_aspect,
-                             Channel::ReadingMode readmode,
-                             GenericCallback* valid,
-                             double requested_span,
-                             unsigned requested_depth)
+UCClientHandlePtr UnifiedChannel::addReadToken(
+  ChannelReadToken *token, const std::string &dataclassname,
+  const std::string &entrylabel, entryid_type attach_entry,
+  Channel::EntryTimeAspect time_aspect, Channel::ReadingMode readmode,
+  const UCallbackOrActivity &valid, double requested_span,
+  unsigned requested_depth)
 {
   // create a client handle, with common data
-  UCClientHandlePtr handle = new UCClientHandle
-    (token, dataclassname, entrylabel,
-     valid, attach_entry, readmode,
-     requested_span, requested_depth, newclient_id);
-  newclient_id += 0x100;        // TODO: make max nodes flexible
+  UCClientHandlePtr handle =
+    new UCClientHandle(token, dataclassname, entrylabel, valid, attach_entry,
+                       readmode, requested_span, requested_depth, newclient_id);
+  newclient_id += 0x100; // TODO: make max nodes flexible
   bool immediatevalid = false;
 
   {
@@ -1461,9 +1417,9 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
       // this type of data not known before, insert a new map object,
       // which links all clients (currently only the present one) with
       // all entries
-      ix = entrymap.insert
-        (entrymap.begin(),
-         dataclassmap_type::value_type(dataclassname, UCDataclassLink()));
+      ix = entrymap.insert(
+        entrymap.begin(),
+        dataclassmap_type::value_type(dataclassname, UCDataclassLink()));
 
       DEB(getNameSet() << " reading token, new dataclass " << dataclassname);
     }
@@ -1481,10 +1437,10 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
     while (l != NULL) {
       UChannelEntryPtr e = l->entry();
       bool entrymatch =
-        (attach_entry == entry_any) ||      // writing entry and any match
+        (attach_entry == entry_any) || // writing entry and any match
         (attach_entry == entry_bylabel &&
-         e->getLabel() == entrylabel) ||    // label match
-        (attach_entry == e->getId());       // id match
+         e->getLabel() == entrylabel) || // label match
+        (attach_entry == e->getId()); // id match
       immediatevalid = immediatevalid || entrymatch;
 
       if (entrymatch) {
@@ -1502,18 +1458,17 @@ UnifiedChannel::addReadToken(ChannelReadToken* token,
       l = l->next;
     }
     if (!linked) {
-      DEB(getNameSet() << " read token for " << token->getClientId() <<
-          " no entry at creation");
+      DEB(getNameSet() << " read token for " << token->getClientId()
+                       << " no entry at creation");
     }
 
     if (immediatevalid) {
-      refreshClientHandleInner(handle);  // do the refresh
+      refreshClientHandleInner(handle); // do the refresh
     }
 
     config_version++;
     // done with the lock
   }
-
 
   if (immediatevalid && handle->callback) {
     // schedule a check up for the validity callback
@@ -1549,8 +1504,8 @@ void UnifiedChannel::detachClientlinks(UCClientHandlePtr client)
   while (oe != NULL) {
     bool seq = oe->isSequential();
     if (seq && oe->read_index) {
-      DEB(getNameSet() << " client " << client->token->getClientId() <<
-          " detaching from entry #" << oe->entry->getId());
+      DEB(getNameSet() << " client " << client->token->getClientId()
+                       << " detaching from entry #" << oe->entry->getId());
       oe->read_index->releaseReadAccess();
     }
 
@@ -1564,10 +1519,9 @@ void UnifiedChannel::detachClientlinks(UCClientHandlePtr client)
     oe->entry->removeClient(oe);
 
     // report the change in channel configuration
-    channelreadinfo::stash().stash
-      (new ChannelReadInfo(getId(), client->token->getClientId(),
-                           client->client_creation_id, client->requested_entry,
-                           seq, ChannelReadInfo::Detached));
+    channelreadinfo::stash().stash(new ChannelReadInfo(
+      getId(), client->token->getClientId(), client->client_creation_id,
+      client->requested_entry, seq, ChannelReadInfo::Detached));
     DEB("Deleting oe " << oe << " n " << oe->next);
     UCEntryClientLinkPtr todel = oe;
     oe = oe->next;
@@ -1575,7 +1529,7 @@ void UnifiedChannel::detachClientlinks(UCClientHandlePtr client)
   }
 }
 
-void UnifiedChannel::removeReadToken(UCClientHandlePtr& client)
+void UnifiedChannel::removeReadToken(UCClientHandlePtr &client)
 {
   assert(client->accessed == NULL);
   ScopeLock lock(entries_lock);
@@ -1598,10 +1552,10 @@ void UnifiedChannel::removeReadToken(UCClientHandlePtr& client)
            number of datapoints in the channel. Consider flushing or reading,
            deleting the token or maybe you don't need it at all.
         */
-        W_CHN("Deleting read token for channel " << getNameSet() <<
-              ", entry " << cl->entry->entry_id <<
-              ", client " << client->getId() << ", read " << cl->read_index->seqId() <<
-	            ", still " << nunr << " unread");
+        W_CHN("Deleting read token for channel "
+              << getNameSet() << ", entry " << cl->entry->entry_id
+              << ", client " << client->getId() << ", read "
+              << cl->read_index->seqId() << ", still " << nunr << " unread");
       }
     }
     cl = cl->next;
@@ -1662,22 +1616,17 @@ void UnifiedChannel::newWriterConfigRequest(UChannelEntryPtr entry)
   w.data().extra =
     (entry->isEventType() ? 0x01 : 0) | // indicate whether event data or not
     (entry->isExclusive() ? 0x02 : 0) | // indicate exclusive access or not
-    (entry->isSaveUp()    ? 0x04 : 0);  // saveup strategy
+    (entry->isSaveUp() ? 0x04 : 0); // saveup strategy
   w.data().data0 = entry->getNReservations();
   w.data().data1 = entry->getCreationId();
   w.data().origin = entry->getOrigin();
 }
 
-UCWriterHandlePtr
-UnifiedChannel::addWriteToken(ChannelWriteToken* token,
-                              const std::string& dataclassname,
-                              bool eventtype,
-                              bool exclusive,
-                              unsigned nreservations,
-                              bool fullpackonly,
-                              Channel::TransportClass tclass,
-                              const std::string& entrylabel,
-                              GenericCallback* valid)
+UCWriterHandlePtr UnifiedChannel::addWriteToken(
+  ChannelWriteToken *token, const std::string &dataclassname, bool eventtype,
+  bool exclusive, unsigned nreservations, bool fullpackonly,
+  Channel::TransportClass tclass, const std::string &entrylabel,
+  const UCallbackOrActivity &valid)
 {
   ScopeLock l(entries_lock);
   if (tclass == Channel::UndefinedTransport) {
@@ -1692,8 +1641,8 @@ UnifiedChannel::addWriteToken(ChannelWriteToken* token,
     // if ID was issued but transport class still undefined, report
     // as writing end
     if (getId().validId()) {
-      ChannelManager::single()->reportWritingEnd
-        (this->getId(), this->getNameSet(), transport_class);
+      ChannelManager::single()->reportWritingEnd(
+        this->getId(), this->getNameSet(), transport_class);
     }
   }
   else if (transport_class != tclass) {
@@ -1705,22 +1654,21 @@ UnifiedChannel::addWriteToken(ChannelWriteToken* token,
   }
 
   // create a new entry, room for this token's data
-  UChannelEntryPtr entry = new UChannelEntry
-    (this, creation_id, entry_end, dataclassname,
-     eventtype, exclusive, nreservations, fullpackonly,
-     entrylabel, this->getId());
-  creation_id += 0x100;        // TODO: make max nodes flexible
+  UChannelEntryPtr entry = new UChannelEntry(
+    this, creation_id, entry_end, dataclassname, eventtype, exclusive,
+    nreservations, fullpackonly, entrylabel, this->getId());
+  creation_id += 0x100; // TODO: make max nodes flexible
 
   // create a new handle. The handle also declares itself to the entry
   // and it functions as the run data repository for the access token
-  UCWriterHandlePtr handle = new UCWriterHandle
-    (token, entry, dataclassname, valid);
+  UCWriterHandlePtr handle =
+    new UCWriterHandle(token, entry, dataclassname, valid);
 
   // push the entry into the list of entries here.
   writing_clients.push_back(handle);
-  DEB(getNameSet() << " writing_clients.push_back, size=" <<
-      writing_clients.size() << ' ' << hex << entry->getCreationId() << dec);
-
+  DEB(getNameSet() << " writing_clients.push_back, size="
+                   << writing_clients.size() << ' ' << hex
+                   << entry->getCreationId() << dec);
 
   // if the channel ID has been issued, the service is active, and the
   // configuration request can be run now. Otherwise this happens at
@@ -1733,7 +1681,7 @@ UnifiedChannel::addWriteToken(ChannelWriteToken* token,
   return handle;
 }
 
-void UnifiedChannel::removeWriteToken(UCWriterHandlePtr& client)
+void UnifiedChannel::removeWriteToken(UCWriterHandlePtr &client)
 {
   DEB("removing write token");
 #if DEBPRINTLEVEL >= 0
@@ -1742,7 +1690,7 @@ void UnifiedChannel::removeWriteToken(UCWriterHandlePtr& client)
 
   // reset the validity of the entry, no more data given by the
   // entry
-  client->callback = NULL;
+  client->callback.reset();
   {
     ScopeLock l(entries_lock);
     client->entry->resetValid();
@@ -1760,7 +1708,7 @@ void UnifiedChannel::removeWriteToken(UCWriterHandlePtr& client)
   client = NULL;
 }
 
-void UnifiedChannel::addWatcher(ChannelWatcher* w)
+void UnifiedChannel::addWatcher(ChannelWatcher *w)
 {
   ScopeLock lw(watchers_lock);
 
@@ -1778,7 +1726,7 @@ void UnifiedChannel::addWatcher(ChannelWatcher* w)
   }
 }
 
-void UnifiedChannel::removeWatcher(ChannelWatcher* w)
+void UnifiedChannel::removeWatcher(ChannelWatcher *w)
 {
   ScopeLock l(watchers_lock);
   watcher_list.remove(w);
@@ -1793,13 +1741,13 @@ void UnifiedChannel::sendCount(ChannelWriteToken *w_countres, uint32_t countid)
        refreshEntryConfigInner
   */
   ScopeLock l(entries_lock);
-  ChannelCountResult *countres = new
-    ChannelCountResult(getId(), countid, entries.size());
+  ChannelCountResult *countres =
+    new ChannelCountResult(getId(), countid, entries.size());
 
   unsigned nidx = 0;
   for (vectorMT<UChannelEntryPtr>::iterator ii = entries.begin();
        ii != entries.end(); ii++) {
-    if ( *ii != NULL) {
+    if (*ii != NULL) {
       (*ii)->getEntryCountResult(countres->entries[nidx]);
     }
     nidx++;
@@ -1807,9 +1755,9 @@ void UnifiedChannel::sendCount(ChannelWriteToken *w_countres, uint32_t countid)
   wrapSendEvent(*w_countres, countres, SimTime::now());
 }
 
-const void* UnifiedChannel::
-monitorLatestData(entryid_type entry, std::string& datatype,
-                  DataTimeSpec& ts_actual)
+const void *UnifiedChannel::monitorLatestData(entryid_type entry,
+                                              std::string &datatype,
+                                              DataTimeSpec &ts_actual)
 {
   return entries[entry]->monitorLatestData(datatype, ts_actual);
 }
@@ -1824,8 +1772,6 @@ DUECA_NS_END
 // added here, to remove conflicts with DEB definition
 #include <undebprint.h>
 #include <InformationStash.ixx>
-
-
 
 /* notes:
 

@@ -15,12 +15,11 @@
 
 #include <inttypes.h>
 #include <string>
+#include "UCallbackOrActivity.hxx"
 #include "dueca_ns.h"
 #include "TimeSpec.hxx"
 #include <cmath>
-#include "vectorMT.hxx"
 #include "ChannelDef.hxx"
-#include <exception>
 #include "DAtomics.hxx"
 #include "GlobalId.hxx"
 
@@ -141,7 +140,7 @@ struct UCClientHandle
 
   /** Pointer to a callback object, to provide a means for communicating
       validity of the entry */
-  GenericCallback* callback;
+  UCallbackOrActivity callback;
 
   /** Requested entry, traversing if entry_any, match entry label if
       entry_bylabel, and match entry handle otherwise. */
@@ -179,7 +178,7 @@ public:
   /** Constructor */
   UCClientHandle(ChannelReadToken* token, const std::string& dataclassname,
                  const std::string& entrylabel,
-                 GenericCallback* callback, entryid_type requested_entry,
+                 const UCallbackOrActivity& callback, entryid_type requested_entry,
                  Channel::ReadingMode readmode,
                  double requested_span, unsigned requested_depth,
                  unsigned creation_id);
@@ -242,7 +241,7 @@ struct UCWriterHandle
 
   /** Pointer to a callback object, to provide a means for communicating
       validity of the entry */
-  GenericCallback* callback;
+  UCallbackOrActivity callback;
 
   /** Constructor
 
@@ -252,7 +251,7 @@ struct UCWriterHandle
       @param valid   Callback function, called when entry becomes valid
    */
   UCWriterHandle(ChannelWriteToken* token, UChannelEntryPtr entry,
-                 const std::string& dataclassname, GenericCallback* valid);
+                 const std::string& dataclassname, const UCallbackOrActivity& valid);
 
   /** get the writer's id */
   inline const GlobalId& getWriterId() {return writer_id;}

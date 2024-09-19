@@ -12,10 +12,10 @@
         license         : EUPL-1.2
 */
 
+#include "GenericCallback.hxx"
 #define InformationStash_cxx
 #include "InformationStash.hxx"
 #include "NodeManager.hxx"
-#include "Callback.ixx"
 #include "TimedServicer.hxx"
 #include <dueca/ChannelWriteToken.hxx>
 #include <dueca/WrapSendEvent.hxx>
@@ -63,7 +63,7 @@ void InformationStash<T>::initialise(unsigned nreserved, bool install_service)
     w_info = new ChannelWriteToken
       (id->getId(), NameSet("dueca", name, ""), T::classname, "",
        Channel::Events, Channel::OneOrMoreEntries,
-       Channel::OnlyFullPacking, Channel::Bulk, NULL, nreserved);
+       Channel::OnlyFullPacking, Channel::Bulk, reinterpret_cast<GenericCallback*>(NULL), nreserved);
   }
 
   if (!service_id && install_service) {
@@ -89,7 +89,7 @@ void InformationStash<T>::initialise(InformationStash<U>* dependent,
     w_info = new ChannelWriteToken
       (id->getId(), NameSet("dueca", name, ""), T::classname, "",
        Channel::Events, Channel::OneOrMoreEntries,
-       Channel::OnlyFullPacking, Bulk, NULL, nreserved);
+       Channel::OnlyFullPacking, Bulk, reinterpret_cast<GenericCallback*>(NULL), nreserved);
   }
 
   if (!service_id && install_service) {

@@ -24,7 +24,7 @@
     <node>node1</node>
   </execute>
   <actions>
-    <check window="DUECA/DUSIME control panel" x="478" y="61" r="65" g="255" b="11" timeout="25.0"
+    <check window="DUECA/DUSIME control panel" x="478" y="63" r="65" g="255" b="11" timeout="25.0"
       wait="10.5" />
     <snap name="tmswsfour-01-started.png" />
     <click window="DUECA/DUSIME control panel" x="477" y="108" button="Button.left" pressed="true" />

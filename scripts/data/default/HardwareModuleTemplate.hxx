@@ -51,11 +51,10 @@ private: // snapshot data
   // declare, if you need, the room for placing snapshot data
 
 private: // channel access
-  // declare StreamChannelReadToken<Type>, StreamChannelWriteToken<Type>
-  // EventChannelReadToken<Type>, EventChannelWriteToken<Type>
-  // access tokens for all the channels you read and write
-  // example
-  // StreamChannelReadToken<MyData>  my_token;
+  // declare access tokens for all the channels you read and write
+  // examples:
+  // ChannelReadToken    r_mytoken;
+  // ChannelWriteToken   w_mytoken;
 
 private: // activity allocation
   /** Callback object for simulation calculation. */

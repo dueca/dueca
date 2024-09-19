@@ -108,11 +108,18 @@ const ParameterTable* @Module@::getMyParameterTable()
   dt(-1.0),
   i_S(NULL),
 
-  // initialize the data you need for the trim calculation
+  // initialize the data you need in your simulation or process
 
-  // initialize the channel access tokens
-  // example
-  // my_token(getId(), NameSet(getEntity(), MyData::classname, part)),
+  // initialize the channel access tokens, check the documentation for the
+  // various parameters. Some examples:
+  // r_mytoken(getId(), NameSet(getEntity(), getclassname<MyData>(), part),
+  //           getclassname<MyData>(), 0, Channel::Events),
+  // w_mytoken(getId(), NameSet(getEntity(), getclassname<MyData2>(), part),
+  //           getclassname<MyData2>(), "label", Channel::Continuous),
+
+  // create a clock, if you need time based triggering
+  // instead of triggering on the incoming channels
+  // myclock(),
 
   // activity initialization
   cb1(this, &_ThisModule_::doCalculation),

@@ -20,7 +20,6 @@
   <actions>
     <check window="DUECA/DUSIME control panel" x="479" y="65" r="65" g="255" b="11" timeout="10.0" wait="10.5"/>
     <snap name="simplesimulation-start.png"/>
-    <check window="DUECA/DUSIME control panel" x="467" y="-7" r="139" g="175" b="219" timeout="10.0" wait="0.5"/>
     <check window="DUECA/DUSIME control panel" x="479" y="111" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
     <click window="DUECA/DUSIME control panel" x="479" y="111" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="479" y="111" button="Button.left" pressed="false" wait="0.2"/>
@@ -56,7 +55,6 @@
     <check window="DUECA/DUSIME control panel" x="478" y="66" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
     <click window="DUECA/DUSIME control panel" x="478" y="66" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="478" y="66" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="470" y="-6" r="134" g="171" b="217" timeout="10.0" wait="0.5"/>
     <check window="DUECA/DUSIME control panel" x="478" y="62" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
     <click window="DUECA/DUSIME control panel" x="19" y="16" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="19" y="16" button="Button.left" pressed="false" wait="0.2"/>

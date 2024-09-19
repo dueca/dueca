@@ -33,7 +33,6 @@
 #include <iostream>
 #include "GlobalId.hxx"
 #include "Trigger.hxx"
-#include "dstypes.h"
 #include "PrioritySpec.hxx"
 #include "TimingCheck.hxx"
 #include "dueca_ns.h"

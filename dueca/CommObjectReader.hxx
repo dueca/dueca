@@ -56,12 +56,12 @@ public:
   /** Return an element accessor based on the element name
 
       @param ename     Name of the data member  */
-  ElementReader operator [] (const char* ename);
+  ElementReader operator [] (const char* ename) const;
 
   /** Return an element accessor based on index
 
       @param i         Index of the data member */
-  ElementReader operator [] (unsigned i);
+  ElementReader operator [] (unsigned i) const;
 
   /** Destructor */
   ~CommObjectReader();
@@ -140,14 +140,14 @@ public:
   ~DCOReader();
 
   /** Return the time specification of the data. */
-  inline const DataTimeSpec& timeSpec()
+  inline const DataTimeSpec& timeSpec() const
   {
     // access();
     return this->ts_data;
   }
 
   /** Return the origin/sender of the data */
-  inline const GlobalId& origin()
+  inline const GlobalId& origin() const
   {
     // access();
     return this->data_origin;

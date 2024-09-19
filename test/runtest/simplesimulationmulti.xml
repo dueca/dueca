@@ -107,18 +107,18 @@ xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/te
     <check window="DUECA/DUSIME control panel" x="474" y="109" r="104" g="104" b="104" timeout="10.0" wait="6.5"/>
     <click window="DUECA/DUSIME control panel" x="474" y="109" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="474" y="109" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="479" y="60" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="60" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="60" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="479" y="63" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="479" y="63" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="479" y="63" button="Button.left" pressed="false" wait="0.2"/>
     <check window="DUECA/DUSIME control panel" x="17" y="21" r="246" g="245" b="244" timeout="10.0" wait="8.5"/>
     <click window="DUECA/DUSIME control panel" x="17" y="21" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="17" y="21" button="Button.left" pressed="false" wait="0.2"/>
     <check window="DUECA/DUSIME control panel" x="62" y="64" r="53" g="132" b="228" timeout="10.0" wait="0.5"/>
     <click window="DUECA/DUSIME control panel" x="62" y="64" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="62" y="64" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="Are you serious?" x="49" y="62" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
-    <click window="Are you serious?" x="49" y="62" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="Are you serious?" x="49" y="62" button="Button.left" pressed="false" wait="0.0"/>
+    <check window="Are you serious?" x="49" y="66" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
+    <click window="Are you serious?" x="49" y="66" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="Are you serious?" x="49" y="66" button="Button.left" pressed="false" wait="0.0"/>
     <check timeout="0.0" wait="10.0"/>
     <snap name="simplesimulationmulti-99-closed.png"/>
   </actions>

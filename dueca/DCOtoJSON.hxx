@@ -16,6 +16,7 @@
 #define DCOtoJSON_hxx
 
 #include <dueca_ns.h>
+#include <rapidjson/ostreamwrapper.h>
 
 /// Define relaxed acceptance of NaN and Inf
 #define RAPIDJSON_WRITE_DEFAULT_FLAGS kWriteNanAndInfFlag
@@ -40,8 +41,21 @@ class CommObjectReader;
     @param writer   RapidJSON writer object
     @param reader   Channel access object.
  */
+void DCOtoJSONcompact(rapidjson::Writer<rapidjson::OStreamWrapper> &writer,
+                      const CommObjectReader& reader);
+
+/** Convert the data from a DCO object to a JSON stringbuffer
+
+    Compact variant, does not code DCO type information, so you need
+    to be sure of the DCO type to interpret this data. Also "extended"
+    JSON, codes NaN, Infinite and -Infinite. Used internally in DUECA,
+    careful about use with external clients.
+
+    @param writer   RapidJSON writer object
+    @param reader   Channel access object.
+ */
 void DCOtoJSONcompact(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                      CommObjectReader& reader);
+                      const CommObjectReader& reader);
 
 /** Convert the data from a DCO object to a JSON stringbuffer
 
@@ -68,7 +82,20 @@ void DCOtoJSONcompact(rapidjson::StringBuffer &doc,
     @param reader   Channel access object.
  */
 void DCOtoJSONstrict(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                     CommObjectReader& reader);
+                     const CommObjectReader& reader);
+
+/** Convert the data from a DCO object to a JSON stringbuffer
+
+    Compact variant, does not code DCO type information, so you need
+    to be sure of the DCO type to interpret this data. Stricter
+    version, +Infinity and -Infinity are converted to large floats,
+    NaN is converted to NULL.
+
+    @param writer   RapidJSON writer object
+    @param reader   Channel access object.
+ */
+void DCOtoJSONstrict(rapidjson::Writer<rapidjson::OStreamWrapper> &writer,
+                     const CommObjectReader& reader);
 
 /** Convert the data from a DCO object to a JSON stringbuffer
 

@@ -344,7 +344,7 @@ class Check:
             img.save(f'{scenario.name}-error{Check.errcnt:03d}-no-win-{self.window}.png'.replace('/', '_'))
         elif self.color is not None:
             draw = ImageDraw.Draw(img)
-            draw.rectangle(((x-3, y-3),(x, y)), outline=(0,0,0))
+            draw.rectangle(((x-3, y-3),(x, y)), outline=(255,0,0))
             img.save(f'{scenario.name}-error{Check.errcnt:03d}-no-col-{",".join(map(str, self.color))}-at{self.x},{self.y}.png')
             print(f"Failed to find color {self.color} at "
                   f"{self.x}, {self.y} after {cnt+1} checks, found {col}")
@@ -597,17 +597,12 @@ class DuecaRunner:
                     f'Failing dueca-gproject refresh for {self.project}:\n'
                     f'{c1.stderr}')
 
-            c1 = subprocess.run('cmake ..', cwd=f'{self.pdir}/build',
+            c1 = subprocess.run('dueca-gproject build', cwd=f'{self.pdir}',
                                 shell=True, stderr=subprocess.PIPE)
             if c1.returncode != 0:
                 raise RuntimeError(
-                    f'Failing cmake for {self.project}:\n{c1.stderr}')
+                    f'Failing build for {self.project}:\n{c1.stderr}')
 
-            c1 = subprocess.run('make', cwd=f'{self.pdir}/build', shell=True,
-                                stderr=subprocess.PIPE)
-            if c1.returncode != 0:
-                raise RuntimeError(
-                    f'Failing make for {self.project}:\n{c1.stderr}')
         else:
             print(f"Project dir {self.pdir} already present")
 

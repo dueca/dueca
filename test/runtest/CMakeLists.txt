@@ -26,6 +26,8 @@ execute_process(COMMAND ${Python_EXECUTABLE} -c "import PIL"
   RESULT_VARIABLE PYTHON_HAVE_PIL)
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import wmctrl"
   RESULT_VARIABLE PYTHON_HAVE_WMCTRL)
+execute_process(COMMAND ${Python_EXECUTABLE} -c "import msgpack"
+   RESULT_VARIABLE PYTHON_HAVE_MSGPACK)
 
 # pynput expects access to an X server
 configure_file(testpynput.in testpynput @ONLY)
@@ -64,6 +66,7 @@ set(CONTROLFILES
   simplesimulation         # SimpleSimulation, 1x, 2 nodes
   simplesimulationmulti    # SimpleSimulation, 3x, inter communications
   triggering               # DuecaTestCommunication, trigger variants
+  dtcwebsock               # DuecaTestCommunication, websocket test
 )
 
 # run these tests with enough python modules
@@ -130,6 +133,9 @@ else()
   endif()
   if (NOT PYTHON_HAVE_ATTRS EQUAL 0)
     message(WARNING "Cannot do runtests, need pip install attrs --user")
+  endif()
+  if (NOT PYTHON_HAVE_MSGPACK EQUAL 0)
+    message(WARNING "Cannot do runtests, need python3-msgpack installed")
   endif()
   if (XVFB MATCHES ".*-NOTFOUND")
     message(WARNING "Cannot do runtests, need xvfb-run/Xvfb installed")

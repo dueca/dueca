@@ -26,13 +26,13 @@ CommObjectReader::CommObjectReader(const char* classname, const void* obj) :
 
 }
 
-ElementReader CommObjectReader::operator [] (const char* ename)
+ElementReader CommObjectReader::operator [] (const char* ename) const
 {
   return DataClassRegistry::single().getMemberAccessor(entry, ename)
     ->getReader(obj);
 }
 
-ElementReader CommObjectReader::operator [] (unsigned i)
+ElementReader CommObjectReader::operator [] (unsigned i) const
 {
   return DataClassRegistry::single().getMemberAccessor(entry, i)
     ->getReader(obj);

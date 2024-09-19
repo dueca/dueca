@@ -19,7 +19,6 @@
 #endif
 
 #include <SharedPtrTemplates.hxx>
-#include <utility>
 #include <vector>
 #include <list>
 #include <sys/types.h>
@@ -33,7 +32,7 @@ using namespace std;
 // Forward declarations
 #include <dueca_ns.h>
 DUECA_NS_START
-
+class UCallbackOrActivity;
 class TriggerTarget;
 class TriggerPuller;
 class TargetAndPuller;
@@ -203,6 +202,7 @@ protected:
 private:
   friend class TriggerPuller;
   friend class TriggerAtom;
+  friend class UCallbackOrActivity;
 protected:
   /** Set of data needed for each object pulling this trigger. */
   struct PullerData
