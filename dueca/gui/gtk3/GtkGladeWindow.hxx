@@ -24,6 +24,7 @@
 #include "GtkCaller.hxx"
 #include "GladeException.hxx"
 #include <boost/any.hpp>
+#include <dueca/debug.h>
 
 // Forward declaration
 namespace Gtk {
@@ -498,6 +499,15 @@ public:
                      const char* format, const char* arrformat = NULL,
                      bool warn=false);
 
+  /** Initialize a text combobox with a given list or array of values.
+  
+      @param name      Name of the combo box.
+      @param values    Iterable (list, vector, etc.) of std::string 
+                       (or string-like) objects, these need a "c_str()" method.
+   */
+  template <typename T>
+  bool loadComboText(const char* name, const T& values);
+
 #if GTK_MAJOR_VERSION >= 2
   /** \brief Obtain gtk widget with name 'name' as a C++ object
     *
@@ -575,6 +585,41 @@ template<typename T>
 }
 #endif
 
+
+template <typename T>
+bool GtkGladeWindow::loadComboText(const char* name, const T& values)
+{
+  GObject *o = getObject(name);
+  if (o == NULL) {
+    W_XTR("GtkGladeWindow::loadComboText: Could not find gtk object with id \"" << name << "\"");
+    return false;
+  }
+  if (!GTK_IS_COMBO_BOX(o)) {
+    W_XTR("GtkGladeWindow::loadComboText: Cannot fill options, object not a ComboBox \""
+	    << name << '"');
+      return false;
+  }
+  GtkTreeModel* treemodel = gtk_combo_box_get_model(GTK_COMBO_BOX(o));
+  if (treemodel == NULL) {
+    treemodel = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
+    gtk_combo_box_set_model(GTK_COMBO_BOX(o), treemodel);
+  }
+  GtkListStore* store = GTK_LIST_STORE(treemodel);
+  if (store == NULL ) {
+    W_XTR("GtkGladeWindow::loadComboText: ComboBox object \"" << name
+	        << "\", store is not compatible");
+    return false;
+  }
+  gtk_list_store_clear(store);
+  GtkTreeIter it; gtk_tree_model_get_iter_first(treemodel, &it);
+  for (const auto &s: values) {
+    gtk_list_store_set(store, &it, 0, s.c_str(), -1);
+  }
+  return true;
+}
+
 DUECA_NS_END
+
+#include <dueca/undebug.h>
 
 #endif
