@@ -4,13 +4,14 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
   <project name="DuecaTestCommunication">
   <window>DUECA/DUSIME control panel</window><window>Are you serious?</window></project>
-  <repository>https://github.com/dueca/</repository>
+  <repository>https://github.com/repagh/</repository>
+  <version>websocket</version>
   <execute>
     <platform>solo</platform>
     <node>solo</node>
   </execute>
   <actions>
-    <check window="DUECA/DUSIME control panel" x="478" y="64" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="478" y="64" r="65" g="255" b="11" timeout="10.0" wait="1.5"/>
     <snap name="tmssolo-01-started.png"/>
     <check window="DUECA/DUSIME control panel" x="477" y="105" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
     <click window="DUECA/DUSIME control panel" x="477" y="105" button="Button.left" pressed="true" wait="0.2"/>
@@ -50,9 +51,9 @@ xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/te
     <check window="DUECA/DUSIME control panel" x="81" y="62" r="53" g="132" b="228" timeout="10.0" wait="0.5"/>
     <click window="DUECA/DUSIME control panel" x="81" y="62" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="81" y="62" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="Are you serious?" x="39" y="63" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
-    <click window="Are you serious?" x="39" y="63" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="Are you serious?" x="39" y="63" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="Are you serious?" x="39" y="65" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
+    <click window="Are you serious?" x="39" y="65" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="Are you serious?" x="39" y="65" button="Button.left" pressed="false" wait="0.2"/>
     <check timeout="0.0" wait="10.0"/>
     <snap name="tmssolo-99-closed.png"/>
   </actions>

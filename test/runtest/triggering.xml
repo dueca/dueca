@@ -29,11 +29,11 @@
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="477" y="154" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="143" y="107" r="0" g="0" b="0" timeout="10.0"
+    <check window="DUECA/DUSIME control panel" x="143" y="109" r="0" g="0" b="0" timeout="10.0"
       wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="143" y="107" button="Button.left" pressed="true"
+    <click window="DUECA/DUSIME control panel" x="143" y="109" button="Button.left" pressed="true"
       wait="0.2" />
-    <click window="DUECA/DUSIME control panel" x="143" y="107" button="Button.left" pressed="false"
+    <click window="DUECA/DUSIME control panel" x="143" y="109" button="Button.left" pressed="false"
       wait="0.2" />
     <check wait="0.2" />
     <snap name="triggering-run.png" />
@@ -65,8 +65,8 @@
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="75" y="69" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="Are you serious?" x="37" y="65" r="248" g="248" b="247" timeout="10.0" wait="0.5" />
-    <click window="Are you serious?" x="37" y="65" button="Button.left" pressed="true" wait="0.2" />
-    <click window="Are you serious?" x="37" y="65" button="Button.left" pressed="false" wait="0.2" />
+    <check window="Are you serious?" x="37" y="67" r="248" g="248" b="247" timeout="10.0" wait="0.5" />
+    <click window="Are you serious?" x="37" y="67" button="Button.left" pressed="true" wait="0.2" />
+    <click window="Are you serious?" x="37" y="67" button="Button.left" pressed="false" wait="0.2" />
   </actions>
 </scenario>

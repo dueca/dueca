@@ -261,13 +261,17 @@ WebSocketsServerBase::~WebSocketsServerBase()
   for (auto &c: writers) { c.second->close("service ending"); }
   for (auto &c: writersreaders) { c.second->close("service ending"); }
 
+  // a few extra calls
+  unsigned cleanups = 10;
+
   // run the asyncio service to close off connections
-  while (runcontext->poll()) {
+  while (runcontext->poll() || cleanups--) {
 #ifdef BOOST1_65
     runcontext->reset();
 #else
     runcontext->restart();
 #endif
+    usleep(1000);
   }
 }
 
