@@ -369,6 +369,8 @@ if (NOT msgpack_FOUND)
   find_package(msgpack-cxx REQUIRED)
 endif()
 
+message(STATUS "msgpack ${MSGPACK_VERSION}")
+
 # gl and glui family
 set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL)

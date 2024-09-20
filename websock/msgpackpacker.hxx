@@ -32,6 +32,13 @@
 #include <msgpack.hpp>
 #include <msgpack/v3/object_fwd_decl.hpp>
 
+// need a version >= 3 for the websock-msgpack code
+#if MSGPACK_VERSION_MAJOR >= 3
+#define DUECA_WEBSOCK_WITH_MSGPACK
+#endif
+
+#ifdef DUECA_WEBSOCK_WITH_MSGPACK
+
 DUECA_NS_START;
 WEBSOCK_NS_START;
 
@@ -424,7 +431,9 @@ struct msgpackpacker
 {
   msgpack::packer<std::ostream> writer;
 
-  msgpackpacker(std::ostream &buffer) : writer(buffer) {}
+  msgpackpacker(std::ostream &buffer) :
+    writer(buffer)
+  {}
 
   inline void StartObject(size_t n) { writer.pack_map(n); }
 
@@ -487,7 +496,8 @@ struct msgpackunpacker
   /** Map with immediate objects */
   mainmap_t doc;
 
-  msgpackunpacker(const std::string &s) : doc()
+  msgpackunpacker(const std::string &s) :
+    doc()
   {
     oh = msgpack::unpack(s.c_str(), s.size());
     obj = oh.get();
@@ -541,5 +551,6 @@ struct msgpackunpacker
 
 WEBSOCK_NS_END;
 DUECA_NS_END;
+#endif
 
 #include <dueca/undebug.h>

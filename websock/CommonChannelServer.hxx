@@ -104,15 +104,13 @@ struct ConnectionList
 
   /** Send some string or data to specified connection */
   template <typename C>
-  void sendOne(const std::string &data, const char *desc,
-               const C &c);
+  void sendOne(const std::string &data, const char *desc, const C &c);
 
   /** Close the connections */
-  void close(const char* reason, int status=1000);
+  void close(const char *reason, int status = 1000);
 
   /** Constructor */
-  ConnectionList(const std::string &ident,
-                 const WebSocketsServerBase *master);
+  ConnectionList(const std::string &ident, const WebSocketsServerBase *master);
 
   /** Destructor */
   ~ConnectionList();
@@ -162,7 +160,7 @@ struct SingleEntryRead : public ConnectionList
   ~SingleEntryRead();
 
   /** Close connection */
-  void close(const char* reason, int status=1000);
+  void close(const char *reason, int status = 1000);
 
   /** Check the token valid */
   bool checkToken();
@@ -252,7 +250,7 @@ struct SingleEntryFollow : public ConnectionList
   void disconnect();
 
   /** Close the connection */
-  void close(const char* reason, int status=1000);
+  void close(const char *reason, int status = 1000);
 
 private:
   /** Callback invoked when the token is valid. */
@@ -376,8 +374,7 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   sconnection_t sconnection;
 
   /** Set the connection link */
-  template <typename C>
-  void setConnection(C& connection);
+  template <typename C> void setConnection(C &connection);
 
   /** global id */
   const GlobalId &getId();
@@ -434,7 +431,7 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
   template <typename Encoder> void writeFromCoded(const Encoder &coded);
 
   /** Close the connection */
-  void close(const char* reason, int status=1000);
+  void close(const char *reason, int status = 1000);
 
 private:
   /** Callback valid token */
@@ -466,7 +463,7 @@ struct PresetWriteEntry : public WriteEntry
   void *disConnect();
 
   /** Close the connection */
-  void close(const char* reason, int status=1000);
+  void close(const char *reason, int status = 1000);
 
   /** Complete
 
@@ -654,10 +651,10 @@ struct WriteReadEntry :
 
       @param datatype     Type of data for the write channel.
   */
-  void complete(const std::string &datatype, const std::string& addtolabel);
+  void complete(const std::string &datatype, const std::string &addtolabel);
 
   /** Close the connection */
-  void close(const char* reason, int status=1000);
+  void close(const char *reason, int status = 1000);
 
   /** Check whether communication is possible. Both read and write tokens
       need to be valid.
