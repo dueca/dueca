@@ -545,11 +545,13 @@ if (SCRIPT_PYTHON)
   else()
     find_library(BPLIB
 
-      NAMES boost_python312 boost_python311 boost_python310
-      boost_python39 boost_python38 boost_python37 boost_python-py311
-      boost_python-py310 boost_python-py39 boost_python-py38
-      boost_python-py37 boost_python-py36 boost_python3
-      boost_python-py3 boost_python27 boost_python2 boost_python)
+      NAMES
+      boost_python312 boost_python311 boost_python310
+      boost_python39 boost_python38 boost_python37
+      boost_python-py312 boost_python-py311  boost_python-py310
+      boost_python-py39 boost_python-py38  boost_python-py37 boost_python-py36
+      boost_python3  boost_python-py3
+      boost_python27 boost_python2 boost_python)
 
     if (BPLIB STREQUAL "BPLIB-NOTFOUND")
       message(FATAL_ERROR "Cannot find a boost-python library")

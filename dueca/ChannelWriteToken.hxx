@@ -15,11 +15,13 @@
 #ifndef ChannelWriteToken_hxx
 #define ChannelWriteToken_hxx
 
-#include <dueca_ns.h>
-#include <GenericToken.hxx>
+#include "UCallbackOrActivity.hxx"
 #include <ChannelEntryInfo.hxx>
-#include <DCOMetaFunctor.hxx>
 #include <DCOFunctor.hxx>
+#include <DCOMetaFunctor.hxx>
+#include <GenericToken.hxx>
+#include <cstddef>
+#include <dueca_ns.h>
 
 DUECA_NS_START;
 
@@ -30,10 +32,10 @@ struct DataTimeSpec;
 class UChannelEntry;
 class UchannelEntryData;
 class ChannelWriteToken;
-void _wrapSendEvent(ChannelWriteToken &t, const void* edata,
-                    const DataTimeSpec& tic);
+void _wrapSendEvent(ChannelWriteToken &t, const void *edata,
+                    const DataTimeSpec &tic);
 struct UCWriterHandle;
-typedef UCWriterHandle* UCWriterHandlePtr;
+typedef UCWriterHandle *UCWriterHandlePtr;
 
 /** Access token for writing an entry in a UnifiedChannel.
 
@@ -76,13 +78,12 @@ typedef UCWriterHandle* UCWriterHandlePtr;
     object to traverse the data. Note that reading/writing of a
     channel in that manner incurs significant overhead.
 */
-class ChannelWriteToken: public GenericToken
+class ChannelWriteToken : public GenericToken
 {
   /** pointer to the client handle */
   UCWriterHandlePtr handle;
 
 public:
-
   /** Constructor, creates a token to write data in the channel, and
       if needed it creates the associated channel end.
       @param owner         Identification of the owner.
@@ -111,69 +112,24 @@ public:
       @param tclass        Transportation priority for the channel. Must match
                            the priority specified by other write tokens.
       @param when_valid    Optional callback, to be invoked when the token
-                           becomes valid.
+                           becomes valid. You can use a GenericCallback pointer
+                           here, or an AcitivityCallback pointer.
       @param nreservations Please do not attempt to use this; no
                            support for user code!
                            A specific counter for channels used in start-up
                            code for DUECA that need to guarantee transmission
                            of all inital data to a known number of clients.
   */
-  ChannelWriteToken(const GlobalId& owner,
-                    const NameSet& channelname,
-                    const std::string& dataclassname,
-                    const std::string& entrylabel = std::string(),
-                    Channel::EntryTimeAspect time_aspect = Channel::Continuous,
-                    Channel::EntryArity arity = Channel::OnlyOneEntry,
-                    Channel::PackingMode packmode = Channel::OnlyFullPacking,
-                    Channel::TransportClass tclass = Channel::Regular,
-                    GenericCallback *when_valid = NULL,
-                    unsigned nreservations = 0);
-
-  /** Constructor, creates a token to write data in the channel, and
-      if needed it creates the associated channel end.
-      @param owner         Identification of the owner.
-      @param channelname   Name of the channel end, for the connecting
-                           publish-subscribe mechanism.
-      @param dataclassname Name of the data type to be written. This must
-                           match an existing DUECA %Channel Object (DCO) type.
-      @param entrylabel    Fixed identifying label to be given to this entry.
-      @param time_aspect   The data in the entry may represent a continuous
-                           time approximation (EntryTimeAspect::Continuous,
-                           "stream") data, which has a contiguous time
-                           span associated with it, or it
-                           may represent individual data items
-                           (EntryTimeAspect::Events, "event"),
-                           which are marked with a time point.
-      @param arity         If OnlyOneEntry, the channel is limited to one
-                           entry only. If another entry is already present,
-                           the token will not become valid. If
-                           OneOrMoreEntries, multiple entries may be written
-                           to the channel.
-      @param packmode      Indicate whether differential packing should be
-                           used or the default full packing is
-                           used. Differential packing packs only the
-                           difference with respect to the previous
-                           data point.
-      @param tclass        Transportation priority for the channel. Must match
-                           the priority specified by other write tokens.
-      @param when_valid    Optional callback activity, to be triggered when the token
-                           becomes valid.
-      @param nreservations Please do not attempt to use this; no
-                           support for user code!
-                           A specific counter for channels used in start-up
-                           code for DUECA that need to guarantee transmission
-                           of all inital data to a known number of clients.
-  */
-  ChannelWriteToken(const GlobalId& owner,
-                    const NameSet& channelname,
-                    const std::string& dataclassname,
-                    const std::string& entrylabel,
-                    Channel::EntryTimeAspect time_aspect,
-                    Channel::EntryArity arity,
-                    Channel::PackingMode packmode,
-                    Channel::TransportClass tclass,
-                    Activity *when_valid,
-                    unsigned nreservations = 0);
+  ChannelWriteToken(
+    const GlobalId &owner, const NameSet &channelname,
+    const std::string &dataclassname,
+    const std::string &entrylabel = std::string(),
+    Channel::EntryTimeAspect time_aspect = Channel::Continuous,
+    Channel::EntryArity arity = Channel::OnlyOneEntry,
+    Channel::PackingMode packmode = Channel::OnlyFullPacking,
+    Channel::TransportClass tclass = Channel::Regular,
+    const UCallbackOrActivity &when_valid = UCallbackOrActivity(),
+    unsigned nreservations = 0);
 
   /** Destructor */
   ~ChannelWriteToken();
@@ -183,8 +139,7 @@ public:
       @param ts     Time for which to write
       @throw AmorphReStoreEmpty if not enough data in s
   */
-  void decodeAndWriteData(AmorphReStore& s,
-                          const DataTimeSpec& ts);
+  void decodeAndWriteData(AmorphReStore &s, const DataTimeSpec &ts);
 
   /** Check the validity of the token */
   bool isValid();
@@ -206,15 +161,15 @@ public:
                    to the channel, false if the operation failed (e.g., due to
                    lack of data).
   */
-  bool applyFunctor(DCOFunctor* fnct, const DataTimeSpec& time);
+  bool applyFunctor(DCOFunctor *fnct, const DataTimeSpec &time);
 
   /** Simply re-write the current (or default) data for a new time
 
       @param time  Time for re-writing */
-  void reWrite(const DataTimeSpec& time);
+  void reWrite(const DataTimeSpec &time);
 
   /** Return the data class */
-  const std::string& getDataClassName() const;
+  const std::string &getDataClassName() const;
 
 protected:
   friend class DataWriterBase;
@@ -226,8 +181,8 @@ protected:
                          done by the channel
       @param tic         Time for the event
   */
-  friend void _wrapSendEvent(ChannelWriteToken &t, const void* edata,
-                             const DataTimeSpec& tic);
+  friend void _wrapSendEvent(ChannelWriteToken &t, const void *edata,
+                             const DataTimeSpec &tic);
 
   /** Return a void pointer to a new data location
 
@@ -238,7 +193,7 @@ protected:
       @throws            InvalidChannelAccessReturn, if the magic is
                          not correct or the token is not valid.
   */
-  void* getAccess(uint32_t magic);
+  void *getAccess(uint32_t magic);
 
   /** Check whether magic is good, and token is valid
 
@@ -255,24 +210,23 @@ protected:
                          range (end > start) for continuous data, and
                          a time point (end == start) for event data.
   */
-  void releaseAccess(const void* data_ptr, const DataTimeSpec& ts);
+  void releaseAccess(const void *data_ptr, const DataTimeSpec &ts);
 
   /** Discard the read access, abandoning an attempted write
       @param data_ptr    Must match previously obtained pointer, data
                          access is returned.
   */
-  void discardAccess(const void* data_ptr);
+  void discardAccess(const void *data_ptr);
 
 private:
-
   /** Check whether this token sends event data */
   bool isEventType() const;
 
   /** Prevent copying */
-  ChannelWriteToken(const ChannelWriteToken& );
+  ChannelWriteToken(const ChannelWriteToken &);
 
   /** Prevent assignment */
-  ChannelWriteToken& operator= (const ChannelWriteToken&);
+  ChannelWriteToken &operator=(const ChannelWriteToken &);
 };
 
 DUECA_NS_END;

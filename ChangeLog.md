@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   variant for that now, unified the set-up messages; the server alway
   responds with communication set-up information now, and added a test
   case for websocket communication.
+- Related to the previous, offer an option for a token validity
+  callback to be immediate or prio 0, as previously (GenericCallback)
+  or defined as a separate activity with control over the priority
+  (ActivityCallback).
 
 ## [4.1.0] - 2024-08-07
 
