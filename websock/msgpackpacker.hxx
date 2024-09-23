@@ -24,20 +24,21 @@
 #include <dueca/smartstring.hxx>
 #include <dueca_ns.h>
 #include <map>
-#include <msgpack/v3/null_visitor_decl.hpp>
 #include <stdexcept>
 #define MSGPACK_USE_BOOST
 #include <DCOTypeIndex.hxx>
 #include <dueca/debug.h>
 #include <msgpack.hpp>
-#include <msgpack/v3/object_fwd_decl.hpp>
 
-// need a version >= 3 for the websock-msgpack code
 #if MSGPACK_VERSION_MAJOR >= 3
 #define DUECA_WEBSOCK_WITH_MSGPACK
 #endif
 
 #ifdef DUECA_WEBSOCK_WITH_MSGPACK
+#include <msgpack/v3/null_visitor_decl.hpp>
+#include <msgpack/v3/object_fwd_decl.hpp>
+
+// need a version >= 3 for the websock-msgpack code
 
 DUECA_NS_START;
 WEBSOCK_NS_START;
