@@ -12,6 +12,8 @@
 
 #include "msgpackpacker.hxx"
 
+#ifdef DUECA_WEBSOCK_WITH_MSGPACK
+
 #include <dueca/debug.h>
 // need a version >= 3 for the websock-msgpack code
 
@@ -424,3 +426,5 @@ void decode_dco(const mainmap_t &obj, CommObjectWriter &dco)
 
 WEBSOCK_NS_END;
 DUECA_NS_END;
+
+#endif
