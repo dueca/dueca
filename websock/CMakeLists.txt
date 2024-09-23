@@ -66,7 +66,9 @@ set(SOURCES
 
   CommonChannelServer.cxx WebSocketsServer.hxx
   CommonChannelServer.hxx WebSocketsServer.cxx
-  ConfigStorage.cxx ConfigStorage.hxx)
+  ConfigStorage.cxx ConfigStorage.hxx
+  msgpackpacker.cxx msgpackpacker.hxx
+  jsonpacker.hxx)
 
 set(INCDIRS ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}/dueca ${CMAKE_SOURCE_DIR}/dueca
