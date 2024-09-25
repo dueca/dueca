@@ -273,8 +273,8 @@ public: // coding function
 /** Webserver providing access to DUECA channels.
 
     There are two possible variants for this server, "web-sockets-server", which
-    communicates with JSON-coded messages, and "web-sockets-server-msgpack", which
-    uses msgpack (binary) messages for communication.
+    communicates with JSON-coded messages, and "web-sockets-server-msgpack",
+   which uses msgpack (binary) messages for communication.
 
     This server can define a number of URL's:
 
@@ -286,15 +286,16 @@ public: // coding function
 
     <td> After opening the configuration URL, the client receives a message with
     all possible configured URL's, in the sections "current", "read",
-    "info", "write" and "write-and-read". 
-    
-    - current. These endpoints respond to a message from the client and then 
-      produce a reply with data. Information in the information section includes:
+    "info", "write" and "write-and-read".
+
+    - current. These endpoints respond to a message from the client and then
+      produce a reply with data. Information in the information section
+   includes:
       * endpoint
       * dataclass
       * information on the dataclass members
       * entry id (numeric)
-    
+
     - read. These endpoints will produce messages at the rate of channel
       writing, or "throttled", when a time specification is given. Inforation in
       the information section includes:
@@ -308,7 +309,7 @@ public: // coding function
       * endpoint
 
     - write. These endpoints provide information on entries that can be
-      written to. Information consists of 
+      written to. Information consists of
       * endpoint
       * dataclass
       * type info
@@ -319,10 +320,10 @@ public: // coding function
     - write-and-read. These endpoints can be used to establish a two-directional
       communication on two pre-defined channels. Information consists of
       * endpoint
-      The first message upon opening needs to define the dataclass and label. 
+      The first message upon opening needs to define the dataclass and label.
       Once bi-directional communication is established, a message is sent with
       information on both the write direction and read direction.
-    
+
     - granule. This is the last element in the struct, it defines the value in
       seconds of a single integer time increment.
 
@@ -375,7 +376,7 @@ public: // coding function
     member 'ctiming' equal to true, the json client provides the
     timing. If this object has a member 'event' equal to false, a
     stream channel is created; in that case ctiming must be true. If
-    the datatype has not been configured beforehand, this needs to 
+    the datatype has not been configured beforehand, this needs to
     be supplied in the first message.
 
     Optionally a /write/name entry can have been created as preset. In

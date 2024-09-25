@@ -43,7 +43,6 @@
 DUECA_NS_START;
 WEBSOCK_NS_START;
 
-
 // Parameters to be inserted
 const ParameterTable *WebSocketsServerBase::getMyParameterTable()
 {
@@ -221,13 +220,29 @@ WebSocketsServerBase::WebSocketsServerBase(Entity *e, const char *part,
 
   // initialize the data you need in your simulation or process
   marker(marker),
-  server(), sserver(), http_server(), https_server(), server_crt(),
-  server_key(), runcontext(new boost::asio::io_context), port(8001),
-  http_port(8000), document_root(), aggressive_reconnect(false),
-  immediate_start(false), auto_started(false),
-  thelock("JSON ws(s) server", false), read_prio(ps), time_spec(0, 0),
-  extended(false), readsingles(), autosingles(), singlereadsmapped(),
-  followers(), monitors(), myclock(),
+  server(),
+  sserver(),
+  http_server(),
+  https_server(),
+  server_crt(),
+  server_key(),
+  runcontext(new boost::asio::io_context),
+  port(8001),
+  http_port(8000),
+  document_root(),
+  aggressive_reconnect(false),
+  immediate_start(false),
+  auto_started(false),
+  thelock("JSON ws(s) server", false),
+  read_prio(ps),
+  time_spec(0, 0),
+  extended(false),
+  readsingles(),
+  autosingles(),
+  singlereadsmapped(),
+  followers(),
+  monitors(),
+  myclock(),
   cb1(this, &WebSocketsServerBase::doTransfer),
   do_transfer(getId(), "run websocket IO", &cb1, ps)
 {
@@ -253,13 +268,27 @@ WebSocketsServerBase::~WebSocketsServerBase()
   }
 
   // close all connections
-  for (auto &c: readsingles) { c.second->close("service ending"); }
-  for (auto &c: autosingles) { c.second->close("service ending"); }
-  for (auto &c: followers) { c.second->close("service ending"); }
-  for (auto &c: autofollowers) { c.second->close("service ending"); }
-  for (auto &c: monitors) { c.second->close("service ending"); }
-  for (auto &c: writers) { c.second->close("service ending"); }
-  for (auto &c: writersreaders) { c.second->close("service ending"); }
+  for (auto &c : readsingles) {
+    c.second->close("service ending");
+  }
+  for (auto &c : autosingles) {
+    c.second->close("service ending");
+  }
+  for (auto &c : followers) {
+    c.second->close("service ending");
+  }
+  for (auto &c : autofollowers) {
+    c.second->close("service ending");
+  }
+  for (auto &c : monitors) {
+    c.second->close("service ending");
+  }
+  for (auto &c : writers) {
+    c.second->close("service ending");
+  }
+  for (auto &c : writersreaders) {
+    c.second->close("service ending");
+  }
 
   // a few extra calls
   unsigned cleanups = 10;
@@ -406,8 +435,8 @@ bool WebSocketsServerBase::setFollowData(const std::vector<std::string> &def)
 
   try {
     followread_t::mapped_type nentry(
-      new followread_t::mapped_type::element_type(
-        def[1], def[2], entryid, this, read_prio, time_spec));
+      new followread_t::mapped_type::element_type(def[1], def[2], entryid, this,
+                                                  read_prio, time_spec));
     followers[key] = nentry;
   }
   catch (const std::exception &e) {
@@ -508,7 +537,8 @@ bool WebSocketsServerBase::setWriterSetup(const std::vector<std::string> &def)
   return true;
 }
 
-bool WebSocketsServerBase::setPresetWriterSetup(const std::vector<std::string> &def)
+bool WebSocketsServerBase::setPresetWriterSetup(
+  const std::vector<std::string> &def)
 {
   // check size of input arguments
   if (def.size() < 4 || def[0].size() == 0 || def[1].size() == 0 ||
@@ -569,8 +599,9 @@ bool WebSocketsServerBase::setPresetWriterSetup(const std::vector<std::string> &
   }
 
   try {
-    boost::intrusive_ptr<PresetWriteEntry> nentry(new PresetWriteEntry(
-      def[1], def[2], def[3], this, this->read_prio, ctiming, stream, bulk, diffpack));
+    boost::intrusive_ptr<PresetWriteEntry> nentry(
+      new PresetWriteEntry(def[1], def[2], def[3], this, this->read_prio,
+                           ctiming, stream, bulk, diffpack));
     presetwriters[def[0]] = nentry;
   }
   catch (const std::exception &e) {
@@ -585,7 +616,8 @@ bool WebSocketsServerBase::setPresetWriterSetup(const std::vector<std::string> &
   return true;
 }
 
-bool WebSocketsServerBase::setWriteReadSetup(const std::vector<std::string> &def)
+bool WebSocketsServerBase::setWriteReadSetup(
+  const std::vector<std::string> &def)
 {
   if (def.size() < 3 || !def[0].size() || !def[1].size() || !def[2].size()) {
     /* DUECA websockets.
@@ -680,7 +712,7 @@ bool WebSocketsServerBase::isPrepared()
   bool res = true;
 
   // check the fixed configured entries
-  for (auto &rs: readsingles) {
+  for (auto &rs : readsingles) {
     res = res && rs.second->checkToken();
   }
 
@@ -688,7 +720,7 @@ bool WebSocketsServerBase::isPrepared()
     res = res && fl.second->checkToken();
   }
 
-  for (auto &pw: presetwriters) {
+  for (auto &pw : presetwriters) {
     res = res && pw.second->checkToken();
   }
 
@@ -759,25 +791,26 @@ void WebSocketsServerBase::doTransfer(const TimeSpec &ts)
 #endif
 }
 
-
 WEBSOCK_NS_END;
 DUECA_NS_END;
 #include <dueca/undebug.h>
 #include <undebprint.h>
 
-#include "msgpackpacker.hxx"
-#include "jsonpacker.hxx"
 #include "WebSocketsServer.ixx"
+#include "jsonpacker.hxx"
+#include "msgpackpacker.hxx"
 
 DUECA_NS_START;
 WEBSOCK_NS_START;
 template <>
 const char *const WebSocketsServer<jsonpacker, jsonunpacker>::classname =
   "web-sockets-server";
+template class WebSocketsServer<jsonpacker, jsonunpacker>;
+#ifdef DUECA_WEBSOCK_WITH_MSGPACK
 template <>
 const char *const WebSocketsServer<msgpackpacker, msgpackunpacker>::classname =
   "web-sockets-server-msgpack";
-template class WebSocketsServer<msgpackpacker,msgpackunpacker>;
-template class WebSocketsServer<jsonpacker, jsonunpacker>;
+template class WebSocketsServer<msgpackpacker, msgpackunpacker>;
+#endif
 WEBSOCK_NS_END;
 DUECA_NS_END;

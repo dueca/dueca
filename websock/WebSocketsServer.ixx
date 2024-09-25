@@ -302,8 +302,8 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
 
        Information on the closing of the connection of a client with
        the configuration URL. */
-    I_XTR("Closing configuration endpoint "
-          << " code: " << status << " reason: \"" << reason << '"');
+    I_XTR("Closing configuration endpoint " << " code: " << status
+                                            << " reason: \"" << reason << '"');
   };
 
   // access channel data on request; each message (no data needed)
@@ -374,7 +374,8 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
                         const SimpleWeb::error_code &ec) {
       /* DUECA websockets.
 
-Unexpected error in the "current" URL connection. */
+       Unexpected error in the "current" URL connection.
+    */
     W_XTR("Error in connection " << connection.get() << ". "
                                  << "Error: " << ec
                                  << ", error message: " << ec.message());
@@ -444,9 +445,8 @@ Unexpected error in the "current" URL connection. */
       if (mon != this->monitors.end()) {
         std::string datatype = mon->second->findEntry(entry);
         if (datatype.size()) {
-          std::shared_ptr<SingleEntryRead> newcur(
-            new SingleEntryRead(mon->second->channelname, datatype, entry, this,
-                                this->read_prio));
+          std::shared_ptr<SingleEntryRead> newcur(new SingleEntryRead(
+            mon->second->channelname, datatype, entry, this, this->read_prio));
 
             // insert the entry, and find it again
           this->autosingles[key] = newcur;
@@ -684,7 +684,8 @@ Unexpected error in the "current" URL connection. */
     if (ww != this->writers.end()) {
       /* DUECA websockets.
 
-         Entry is not free. */
+         For a writing url, only one writer can be present. The configured
+         writing entry is already in use. */
       W_XTR("There is already a writer on " << connection->path_match[0]
                                             << ", closing.");
       const std::string reason("Server logic error");
@@ -756,12 +757,12 @@ Unexpected error in the "current" URL connection. */
 
     // create an empty write-entry
     this->writers[reinterpret_cast<void *>(connection.get())] =
-      boost::intrusive_ptr<WriteEntry>(
-        new WriteEntry(ee->second->channelname, ee->second->dataclass,
-                       this, this->read_prio));
+      boost::intrusive_ptr<WriteEntry>(new WriteEntry(
+        ee->second->channelname, ee->second->dataclass, this, this->read_prio));
 
     // set the connection for sending initial config
-    this->writers[reinterpret_cast<void *>(connection.get())]->setConnection(connection);
+    this->writers[reinterpret_cast<void *>(connection.get())]->setConnection(
+      connection);
   };
 
   writer.on_message = [this](shared_ptr<typename S::Connection> connection,
@@ -868,6 +869,11 @@ Unexpected error in the "current" URL connection. */
 
     // just accept the connection.
     std::string key = connection->path_match[1];
+    /* DUECA websockets.
+
+       Information on opening a write and read connection at the given
+       endpoint.
+    */
     I_XTR("Opened /write-and-read/" << key);
 
     // this must be defined
@@ -943,6 +949,11 @@ Unexpected error in the "current" URL connection. */
             throw connectionparseerror();
           std::string label;
           dec.findMember("label", label);
+          /* DUECA websockets.
+
+             Information on the requested writing data type specified by the
+             client on this write-and-read endpoint.
+          */
           I_XTR("/write-and-read/" << connection->path_match[1]
                                    << " client type " << dataclass);
           ww->second->complete(dataclass, label);

@@ -15,12 +15,14 @@
 #ifndef ChannelReadToken_hxx
 #define ChannelReadToken_hxx
 
+#include "UCallbackOrActivity.hxx"
 #include <ChannelDef.hxx>
 #include <ChannelEntryInfo.hxx>
 #include <Exception.hxx>
 #include <GenericToken.hxx>
 #include <GlobalId.hxx>
 #include <NameSet.hxx>
+#include <cstddef>
 #include <dueca/visibility.h>
 #include <dueca_ns.h>
 #include <string>
@@ -207,6 +209,7 @@ class ChannelReadToken : public GenericToken
 public:
   /** Constructor, creates a token and if needed creates the
       associated channel end. First variant, with entry handle as selection.
+
       @param owner          Identification of the owner
       @param channelname    Name of the channel end
       @param dataclassname  Name of the data type to be read
@@ -242,57 +245,14 @@ public:
                             becomes valid.
   */
 
-  ChannelReadToken(const GlobalId &owner, const NameSet &channelname,
-                   const std::string &dataclassname,
-                   entryid_type entryhandle = 0,
-                   Channel::EntryTimeAspect time_aspect = Channel::Continuous,
-                   Channel::EntryArity arity = Channel::OnlyOneEntry,
-                   Channel::ReadingMode rmode = Channel::AdaptEventStream,
-                   double requested_span = 0.2,
-                   GenericCallback *when_valid = NULL);
-
-  /** Constructor, creates a token and if needed creates the
-      associated channel end. First variant, with entry handle as selection.
-      @param owner          Identification of the owner
-      @param channelname    Name of the channel end
-      @param dataclassname  Name of the data type to be read
-      @param entryhandle    Selecting handle for the entry. If equal to
-                            `entry_any`, the token will be
-                            connected to all
-                            entries of the specified data class, otherwise
-                            a specific entry will be selected. Entryhandle 0
-                            (default) is the first entry.
-      @param time_aspect    The data in the entry may represent a continuous
-                            time approximation ("stream") data, which has a
-                            contiguous time span associated with it, or it
-                            may represent individual data items ("event"),
-                            which are marked with a time point. This must
-                            match the mode in which this entry was written,
-                            or specify Channel::AnyTimeAspect to not
-                            be selective.
-      @param arity          Indicate the desired number of entries you want to
-                            access with this token, multiple or just one. If
-                            you indicate Channel::ZeroOrMoreEntries,
-                            the token will become valid also if there are
-                            no entries written in the channel.
-      @param rmode          Reading mode, when Channel::JumpToMatchTime,
-                            the reading may skip older data in the
-                            channel, when Channel::ReadAllData, the
-                            data is read sequentially, no data is
-                            skipped. Using Channel::AdaptEventStream
-                            uses JumpToMatchTime for stream, and
-                            ReadAllData for event channels.
-      @param requested_span How long should data be kept available, in seconds.
-                            Relevant only for Channel::JumpToMatchTime.
-      @param when_valid     Optional callback, to invoked when the token
-                            becomes valid.
-  */
-
-  ChannelReadToken(const GlobalId &owner, const NameSet &channelname,
-                   const std::string &dataclassname, entryid_type entryhandle,
-                   Channel::EntryTimeAspect time_aspect,
-                   Channel::EntryArity EntryArity, Channel::ReadingMode rmode,
-                   double requested_span, Activity *when_valid);
+  ChannelReadToken(
+    const GlobalId &owner, const NameSet &channelname,
+    const std::string &dataclassname, entryid_type entryhandle = 0,
+    Channel::EntryTimeAspect time_aspect = Channel::Continuous,
+    Channel::EntryArity arity = Channel::OnlyOneEntry,
+    Channel::ReadingMode rmode = Channel::AdaptEventStream,
+    double requested_span = 0.2,
+    const UCallbackOrActivity &when_valid = UCallbackOrActivity());
 
   /** ChannelReadToken constructor, deprecated version.
       @deprecated           Use a version without Channel::TransportClass,
@@ -380,64 +340,14 @@ public:
       @param when_valid     Optional callback, to invoked when the token
                             becomes valid.
   */
-  ChannelReadToken(const GlobalId &owner, const NameSet &channelname,
-                   const std::string &dataclassname,
-                   const std::string &entrylabel,
-                   Channel::EntryTimeAspect time_aspect = Channel::Continuous,
-                   Channel::EntryArity arity = Channel::OnlyOneEntry,
-                   Channel::ReadingMode rmode = Channel::AdaptEventStream,
-                   double requested_span = 0.2,
-                   GenericCallback *when_valid = NULL);
-
-  /** Constructor, creates a token and if needed creates the
-      associated channel end. Second variant, with entry label as selection.
-      Note that duplicate entry names are possible, and this token will
-      only select the first one matching the label.
-
-      @param owner          Identification of the owner
-      @param channelname    Name of the channel end
-      @param dataclassname  Name of the data type to be read
-      @param entrylabel     Fixed identifying label to be given to this entry.
-                            If arity==Channel::OnlyOneEntry, the token will be
-                            attached to the first entry which matches this
-                            label. If no such entry is present, the token will
-                            not become valid.
-      @param time_aspect    The data in the entry may represent a continuous
-                            time approximation ("stream") data, which has a
-                            contiguous time span associated with it, or it
-                            may represent individual data items ("event"),
-                            which are marked with a time point. This must
-                            match the mode in which this entry was written,
-                            or specify Channel::AnyTimeAspect to not be
-                            selective.
-      @param arity          If Channel::OnlyOneEntry, the token is attached
-                            to one entry only. The entry's label must match the
-                            entrylabel name. When this has been selected,
-                            the token can be used as a trigger.
-      @param rmode          Reading mode, when Channel::JumpToMatchTime, the
-                            reading may skip older data in the channel, when
-                            Channel::ReadAllData, the data is read
-                            sequentially, no data is skipped. Note that
-                            Channel::ReadAllData also involves an obligation
-                            to actually read (or flush) all the data, to
-                            prevent excessive memory use. Using
-                            Channel::AdaptEventStream
-                            uses JumpToMatchTime for stream, and
-                            ReadAllData for event channels.
-      @param requested_span How long should data be kept available, in seconds.
-                            The actual availability is determined by the
-                            longest span requested.
-      @param when_valid     Optional callback, to invoked when the token
-                            becomes valid.
-  */
-  ChannelReadToken(const GlobalId &owner, const NameSet &channelname,
-                   const std::string &dataclassname,
-                   const std::string &entrylabel,
-                   Channel::EntryTimeAspect time_aspect,
-                   Channel::EntryArity arity,
-                   Channel::ReadingMode rmode,
-                   double requested_span,
-                   Activity *when_valid);
+  ChannelReadToken(
+    const GlobalId &owner, const NameSet &channelname,
+    const std::string &dataclassname, const std::string &entrylabel,
+    Channel::EntryTimeAspect time_aspect = Channel::Continuous,
+    Channel::EntryArity arity = Channel::OnlyOneEntry,
+    Channel::ReadingMode rmode = Channel::AdaptEventStream,
+    double requested_span = 0.2,
+    const UCallbackOrActivity &when_valid = UCallbackOrActivity());
 
   /** ChannelReadToken constructor, deprecated version.
       @deprecated Use a version without Channel::TransportClass,
@@ -491,7 +401,8 @@ public:
                    const std::string &dataclassname, entryid_type entryhandle,
                    Channel::EntryTimeAspect time_aspect,
                    Channel::EntryArity arity, Channel::ReadingMode rmode,
-                   GenericCallback *when_valid, unsigned requested_depth);
+                   const UCallbackOrActivity &when_valid,
+                   unsigned requested_depth);
 
   /** Check the validity of the token
       @returns     true if the token is valid to be used. */
@@ -582,19 +493,19 @@ public:
   unsigned int getNumVisibleSets(const TimeTickType ts = MAX_TIMETICK) const;
 
     /** Returns the number of data points older than the given,
-  for any of the entries read by this token.
+for any of the entries read by this token.
 
-  The returned number of sets may be imprecise, i.e. sets may have
-  been added while reading or between calls.
+The returned number of sets may be imprecise, i.e. sets may have
+been added while reading or between calls.
 
-  If you created the read access with the Channel::JumpToMatchTime
-  (either directly, or indirectly because you specified
-  Channel::Continuous and Channel::AdaptEventStream), the returned
-  number of sets may also reduce, because older data automatically
-  gets cleaned. In that case, use a try/catch block when reading.
+If you created the read access with the Channel::JumpToMatchTime
+(either directly, or indirectly because you specified
+Channel::Continuous and Channel::AdaptEventStream), the returned
+number of sets may also reduce, because older data automatically
+gets cleaned. In that case, use a try/catch block when reading.
 
-  \param ts     Latest time to look for.
-  \returns      Number of data points
+\param ts     Latest time to look for.
+\returns      Number of data points
 */
   inline unsigned int getNumVisibleSets(const DataTimeSpec ts) const
   {
@@ -615,19 +526,19 @@ public:
   getNumVisibleSetsInEntry(const TimeTickType ts = MAX_TIMETICK) const;
 
     /** Returns the number of data points older than the given,
-  for any of the entries read by this token.
+for any of the entries read by this token.
 
-  The returned number of sets may be imprecise, i.e. sets may have
-  been added while reading or between calls.
+The returned number of sets may be imprecise, i.e. sets may have
+been added while reading or between calls.
 
-  If you created the read access with the Channel::JumpToMatchTime
-  (either directly, or indirectly because you specified
-  Channel::Continuous and Channel::AdaptEventStream), the returned
-  number of sets may also reduce, because older data automatically
-  gets cleaned. In that case, use a try/catch block when reading.
+If you created the read access with the Channel::JumpToMatchTime
+(either directly, or indirectly because you specified
+Channel::Continuous and Channel::AdaptEventStream), the returned
+number of sets may also reduce, because older data automatically
+gets cleaned. In that case, use a try/catch block when reading.
 
-  \param ts     Latest time to look for.
-  \returns      Number of data points
+\param ts     Latest time to look for.
+\returns      Number of data points
 */
   inline unsigned int getNumVisibleSetsInEntry(const DataTimeSpec ts) const
   {
@@ -730,7 +641,7 @@ public:
   /** Different type of access result. */
   enum AccessResult {
     NoData,     /**< cannot find data for requested access (sequential
-             exhausted). */
+     exhausted). */
     TimeSkip,   /**< stream data, and there is a gap in the time. */
     DataSuccess /**< packed as requested */
   };

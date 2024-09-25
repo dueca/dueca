@@ -11,6 +11,9 @@
         license         : EUPL-1.2
 */
 
+#include "GenericCallback.hxx"
+#include "UCallbackOrActivity.hxx"
+#include <cstddef>
 #define ChannelWriteToken_cxx
 #include "ChannelWriteToken.hxx"
 #include <ChannelManager.hxx>
@@ -23,6 +26,7 @@
 
 DUECA_NS_START;
 
+
 ChannelWriteToken::ChannelWriteToken(const GlobalId& owner,
                                      const NameSet& channelname,
                                      const std::string& dataclassname,
@@ -31,7 +35,7 @@ ChannelWriteToken::ChannelWriteToken(const GlobalId& owner,
                                      Channel::EntryArity arity,
                                      Channel::PackingMode packmode,
                                      TransportClass tclass,
-                                     GenericCallback *when_valid,
+                                     const UCallbackOrActivity& when_valid,
                                      unsigned nreservations) :
   GenericToken(owner, channelname, dataclassname),
   handle(NULL)
@@ -51,37 +55,6 @@ ChannelWriteToken::ChannelWriteToken(const GlobalId& owner,
                                   tclass,
                                   entrylabel, when_valid);
 }
-
-ChannelWriteToken::ChannelWriteToken(const GlobalId& owner,
-                                     const NameSet& channelname,
-                                     const std::string& dataclassname,
-                                     const std::string& entrylabel,
-                                     Channel::EntryTimeAspect time_aspect,
-                                     Channel::EntryArity arity,
-                                     Channel::PackingMode packmode,
-                                     TransportClass tclass,
-                                     Activity *when_valid,
-                                     unsigned nreservations) :
-  GenericToken(owner, channelname, dataclassname),
-  handle(NULL)
-{
-  channel = ChannelManager::single()->findOrCreateChannel(this->getName());
-
-  /* DUECA channels
-
-     Informational message on the issuing of a new write token.
-   */
-  I_CHN("write token for " << owner << " on " << channelname);
-  handle = channel->addWriteToken(this, dataclassname,
-                                  isTimeAspectEvent(time_aspect),
-                                  isSingleEntryOption(arity),
-                                  nreservations,
-                                  isFullPacking(packmode),
-                                  tclass,
-                                  entrylabel, when_valid);
-}
-
-
 
 ChannelWriteToken::~ChannelWriteToken()
 {

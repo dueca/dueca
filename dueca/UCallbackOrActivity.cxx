@@ -20,17 +20,31 @@
 DUECA_NS_START;
 
 UCallbackOrActivity::UCallbackOrActivity(Activity *act) :
-  TriggerPuller("channel validity"), act(act), cb(NULL)
+  TriggerPuller("channel validity"),
+  act(act),
+  cb(NULL)
 {
   //
 }
 
 UCallbackOrActivity::UCallbackOrActivity(GenericCallback *cb) :
-  act(NULL), cb(cb)
+  act(NULL),
+  cb(cb)
+{}
+
+UCallbackOrActivity::UCallbackOrActivity(std::nullptr_t ncb) :
+  act(NULL),
+  cb(NULL)
+{}
+
+UCallbackOrActivity::UCallbackOrActivity() :
+  act(NULL),
+  cb(NULL)
 {}
 
 UCallbackOrActivity::UCallbackOrActivity(const UCallbackOrActivity &o) :
-  act(o.act), cb(o.cb)
+  act(o.act),
+  cb(o.cb)
 {}
 
 UCallbackOrActivity::~UCallbackOrActivity()
