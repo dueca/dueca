@@ -290,42 +290,49 @@ public: // coding function
 
     - current. These endpoints respond to a message from the client and then
       produce a reply with data. Information in the information section
-   includes:
-      * endpoint
-      * dataclass
-      * information on the dataclass members
-      * entry id (numeric)
+      includes:
+      - endpoint name
+      - dataclass of the DCO object
+      - type information of the DCO object
+      - entry id (numeric)
 
     - read. These endpoints will produce messages at the rate of channel
-      writing, or "throttled", when a time specification is given. Inforation in
-      the information section includes:
-      * endpoint
-      * dataclass
-      * type info
-      * numeric entry id
+      writing, or "throttled", when a time specification is given at configuration 
+      of the endpoint. Information in the information section includes:
 
-    - info. These endpoints provide information on the entries in a specific
-      channel. Inforation only consists of
-      * endpoint
+      - endpoint name
+      - dataclass
+      - type information of the DCO object
+      - numeric entry id
+
+    - info. These endpoints provide information on all the entries in a specific
+      channel, and an info endpoint will update when entries are created or deleted.
+      Information only consists of:
+
+      - endpoint name
 
     - write. These endpoints provide information on entries that can be
-      written to. Information consists of
-      * endpoint
-      * dataclass
-      * type info
+      written to. Information consists of:
+
+      - endpoint
+      - dataclass
+      - type info
+
       The latter two are only given if dataclass had been pre-configured. If
       not given, the dataclass needs to be specified in the first message from
       a client.
 
     - write-and-read. These endpoints can be used to establish a two-directional
       communication on two pre-defined channels. Information consists of
-      * endpoint
+
+      - endpoint
+
       The first message upon opening needs to define the dataclass and label.
       Once bi-directional communication is established, a message is sent with
       information on both the write direction and read direction.
 
-    - granule. This is the last element in the struct, it defines the value in
-      seconds of a single integer time increment.
+    - granule. This defines the (floating point) value in seconds of a single 
+      integer time increment.
 
     </td>
     </tr>
@@ -335,13 +342,13 @@ public: // coding function
 
     <td> From a channel labeled "name", reads the current/latest data
     from the entry given. To get fresh data, write an empty message on the
-    socket (will be discarded). Returns a object with a member
+    socket (will be discarded). Returns an object with a member
     "tick", indicating the time tick and single set of data defined in
     a member "data". If omitted from the URL, the entry id is assumed
     to be 0. The entry may have been explicitly configured from the
     start script, and thus its information was provided in the
     /configuration URL, or it was added by a channelwatcher, and information
-    was provided in an /info/... url (see later).
+    was provided in an /info/... url (see later). 
     </td>
     </tr>
 
@@ -350,7 +357,7 @@ public: // coding function
     <td> From a channel labeled "name", and given entry, open a
     following read token. Receives all data as it comes in. Data push
     is provided by the DUECA side. For each new set of data, this
-    returns a JSON array with objects containing time tick and set of
+    returns an array with objects containing time tick and set of
     data defined. The read entries were either specifically
     configured (from /configuration), or they are available from
     information obtained through an info URL.
@@ -361,7 +368,7 @@ public: // coding function
 
     Initiate information gathering for a specific channel. The watching
     capability (and thereby the url) must have been configured
-    beforehand. For each entry in the channel, this returns a JSON
+    beforehand. For each entry in the channel, this returns an
     object with the following elements; 'dataclass', for the class of
     object, 'entry', giving the entry number, 'typeinfo', with an
     array of type information (see below). </td>
@@ -373,7 +380,7 @@ public: // coding function
     <td> Open a write entry for a channel. The data type may be specified
     in the start script of the module. The first message must be a
     json object with the member 'label'. Optionally, if this has a
-    member 'ctiming' equal to true, the json client provides the
+    member 'ctiming' equal to true, the JSON or msgpack client provides the
     timing. If this object has a member 'event' equal to false, a
     stream channel is created; in that case ctiming must be true. If
     the datatype has not been configured beforehand, this needs to
