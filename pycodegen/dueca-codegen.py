@@ -1823,7 +1823,7 @@ class Member:
                     nt.complete()
                 print("Converting an old c-style fixed-length array "
                       "to use %(nclass)s\n"
-                      "Please convert the dco file declaring an IterableType"
+                      "Please convert the dco; define a new Type with fixvector"
                       % locals())
                 # add the type to the new DCO class types
                 if master.types.get(klass, None) is None:
@@ -1843,7 +1843,7 @@ class Member:
                     nt.complete()
                 print("Converting an old c-style variable-length array "
                       "to use %(nclass)s\n"
-              "Please convert the dco file declaring an IterableVarSizeType"
+              "Please convert the dco; define a new Type with varvector"
                       % locals())
                 # add the type to the new DCO class types
                 if master.types.get(klass, None) is None:
