@@ -176,7 +176,7 @@ gint ChannelOverviewGtk3::sort_on_name(GtkTreeModel *model,
   g_free(name1); g_free(name2);
   return ret;
 }
-  
+
 bool ChannelOverviewGtk3::complete()
 {
   static GladeCallbackTable cb_table[] = {
@@ -247,7 +247,7 @@ bool ChannelOverviewGtk3::complete()
      G_TYPE_BOOLEAN   //18   view open
      );
 
-  
+
   GtkTreeSortable *sortable = GTK_TREE_SORTABLE(store);
   gtk_tree_sortable_set_sort_func(sortable, S_channelnum,
 				  sort_on_number, 0, NULL);
@@ -255,7 +255,7 @@ bool ChannelOverviewGtk3::complete()
 				  sort_on_name, 0, NULL);
   gtk_tree_sortable_set_sort_column_id(sortable, S_channelnum,
 				       GTK_SORT_ASCENDING);
-  
+
   gtk_tree_view_set_model(GTK_TREE_VIEW(channeltree),
                           GTK_TREE_MODEL(store));
 
@@ -430,7 +430,7 @@ void ChannelOverviewGtk3::reflectChanges(unsigned ichan)
     gboolean not_at_end = TRUE;
 
     gtk_tree_model_get(GTK_TREE_MODEL(store), &itchan, 0, &chan_in_tree, -1);
-    while (ichan > chan_in_tree && not_at_end == TRUE) {
+    while (ichan != chan_in_tree && not_at_end == TRUE) {
       position++;
       not_at_end = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &itchan);
       if (not_at_end) {
@@ -476,7 +476,7 @@ void ChannelOverviewGtk3::reflectChanges(unsigned ichan, unsigned ientry)
   gboolean not_at_end = TRUE;
   guint chan_in_tree;
   gtk_tree_model_get(GTK_TREE_MODEL(store), &itchan, 0, &chan_in_tree, -1);
-  while (ichan > chan_in_tree && not_at_end == TRUE) {
+  while (ichan != chan_in_tree && not_at_end == TRUE) {
     not_at_end = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &itchan);
     if (not_at_end) {
       gtk_tree_model_get
@@ -495,7 +495,7 @@ void ChannelOverviewGtk3::reflectChanges(unsigned ichan, unsigned ientry)
     gboolean not_at_end = TRUE;
     gtk_tree_model_get
       (GTK_TREE_MODEL(store), &itentry, 2, &entry_in_tree, -1);
-    while (ientry > entry_in_tree && not_at_end == TRUE) {
+    while (ientry != entry_in_tree && not_at_end == TRUE) {
       position++;
       not_at_end = gtk_tree_model_iter_next
         (GTK_TREE_MODEL(store), &itentry);
@@ -566,7 +566,7 @@ void ChannelOverviewGtk3::reflectChanges(unsigned ichan, unsigned ientry,
   gboolean not_at_end = TRUE;
   guint chan_in_tree;
   gtk_tree_model_get(GTK_TREE_MODEL(store), &itchan, 0, &chan_in_tree, -1);
-  while (ichan > chan_in_tree && not_at_end == TRUE) {
+  while (ichan != chan_in_tree && not_at_end == TRUE) {
     not_at_end = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &itchan);
     if (not_at_end) {
       gtk_tree_model_get
@@ -585,7 +585,7 @@ void ChannelOverviewGtk3::reflectChanges(unsigned ichan, unsigned ientry,
   guint entry_in_tree;
   gtk_tree_model_get
     (GTK_TREE_MODEL(store), &itentry, 2, &entry_in_tree, -1);
-  while (ientry > entry_in_tree && not_at_end == TRUE) {
+  while (ientry != entry_in_tree && not_at_end == TRUE) {
     not_at_end = gtk_tree_model_iter_next
       (GTK_TREE_MODEL(store), &itentry);
     if (not_at_end) {
@@ -604,7 +604,7 @@ void ChannelOverviewGtk3::reflectChanges(unsigned ichan, unsigned ientry,
     gboolean not_at_end = TRUE;
     gtk_tree_model_get
       (GTK_TREE_MODEL(store), &itreader, 12, &reader_in_tree, -1);
-    while (ireader > reader_in_tree && not_at_end == TRUE) {
+    while (ireader != reader_in_tree && not_at_end == TRUE) {
       position++;
       not_at_end = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &itreader);
       if (not_at_end) {
@@ -841,7 +841,7 @@ void ChannelOverviewGtk3::closeMonitor(unsigned ichan, unsigned ientry)
   // check that the channel number is in the tree, get iterator
   guint chan_in_tree;
   gtk_tree_model_get(GTK_TREE_MODEL(store), &itchan, 0, &chan_in_tree, -1);
-  while (ichan > chan_in_tree && not_at_end == TRUE) {
+  while (ichan != chan_in_tree && not_at_end == TRUE) {
     not_at_end = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &itchan);
     if (not_at_end) {
       gtk_tree_model_get
@@ -860,7 +860,7 @@ void ChannelOverviewGtk3::closeMonitor(unsigned ichan, unsigned ientry)
   guint entry_in_tree;
   gtk_tree_model_get
     (GTK_TREE_MODEL(store), &itentry, 2, &entry_in_tree, -1);
-  while (ientry > entry_in_tree && not_at_end == TRUE) {
+  while (ientry != entry_in_tree && not_at_end == TRUE) {
     not_at_end = gtk_tree_model_iter_next
       (GTK_TREE_MODEL(store), &itentry);
     if (not_at_end) {
