@@ -11,7 +11,8 @@
         license         : EUPL-1.2
 */
 
-#pragma once
+#ifndef msgpack_unstream_iter_hxx
+#define msgpack_unstream_iter_hxx
 
 #include <dueca_ns.h>
 #include <msgpack.hpp>
@@ -23,8 +24,8 @@
 #include <exception>
 #include <boost/endian/conversion.hpp>
 
-#define DEBPRINTLEVEL 1
-#include <debprint.h>
+//#define DEBPRINTLEVEL 1
+//#include <debprint.h>
 
 
 #define MSGPACK_ADD_ENUM_UNSTREAM( A ) \
@@ -669,7 +670,7 @@ void msg_unpack(S& i0, const S& iend, std::map<K,T> & i);
 // helper, unpacking id from map
 template<typename S>
 inline void unpack_member_id_inmap(S& i0, const S& iend, const char* mid)
-{ 
+{
   for (size_t ii = unstream<S>::unpack_strsize(i0, iend); ii--; ) { ++i0; }
 }
 
@@ -696,4 +697,85 @@ MSGPACKUS_NS_END;
   MSGPACK_UNPACK_MEMBERID(i0, iend, #A); \
   msg_unpack(i0, iend, A )
 
-#include <undebprint.h>
+//#include <undebprint.h>
+
+#endif
+
+#if defined(fixvector_hxx) && !defined(msgpack_unstream_iter_fixvector)
+#define msgpack_unstream_iter_fixvector
+MSGPACKUS_NS_START;
+template <typename S, size_t N, typename T>
+void msg_unpack(S &i0, const S &iend, dueca::fixvector<N, T> &i)
+{
+  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
+  i.resize(len);
+  for (size_t ii = 0; ii < len; ii++) {
+    msg_unpack(i0, iend, i[ii]);
+  }
+}
+MSGPACKUS_NS_END;
+#endif
+
+#if defined(fixvector_withdefault_hxx) && !defined(msgpack_unstream_iter_fixvector_withdefault)
+#define msgpack_unstream_iter_fixvector_withdefault
+MSGPACKUS_NS_START;
+
+template <typename S, size_t N, typename T, int DEFLT, unsigned BASE>
+void msg_unpack(S &i0, const S &iend,
+                       dueca::fixvector_withdefault<N, T, DEFLT, BASE> &i)
+{
+  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
+  i.resize(len);
+  for (size_t ii = 0; ii < len; ii++) {
+    msg_unpack(i0, iend, i[ii]);
+  }
+}
+
+MSGPACKUS_NS_END;
+#endif
+
+#if defined(varvector_hxx) && !defined(msgpack_unstream_iter_varvector)
+#define msgpack_unstream_iter_varvector
+
+MSGPACKUS_NS_START;
+template <typename S, typename T>
+void msg_unpack(S& i0, const S& iend, dueca::varvector<T> & i)
+{
+  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
+  i.resize(len);
+  for (unsigned ii = 0; ii < len; ii++)
+    msg_unpack(i0, iend, i[ii]);
+}
+MSGPACKUS_NS_END;
+#endif
+
+#if defined(limvector_hxx) && !defined(msgpack_unstream_iter_limvector)
+#define msgpack_unstream_iter_limvector
+
+MSGPACKUS_NS_START;
+template <typename S, size_t N, typename T>
+void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i)
+{
+  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
+  i.resize(len);
+  for (unsigned ii = 0; ii < len; ii++)
+    msg_unpack(i0, iend, i[ii]);
+}
+MSGPACKUS_NS_END;
+#endif
+
+#if defined(Dstring_hxx) && !defined(msgpack_unstream_iter_Dstring)
+#define msgpack_unstream_iter_Dstring
+MSGPACKUS_NS_START;
+template <typename S, unsigned mxsize>
+void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& s)
+{
+  uint32_t len = unstream<S>::unpack_strsize(i0, iend);
+  s.resize(len);
+  for (size_t ii = 0; ii < len; ii++) {
+    check_iterator_notend(i0, iend);
+    s.data()[ii] = *i0++;
+  }
+}
+MSGPACKUS_NS_END;
+#endif
