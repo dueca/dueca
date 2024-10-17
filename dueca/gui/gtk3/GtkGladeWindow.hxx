@@ -327,7 +327,7 @@ public:
       widget. Connects callbacks given in the table, and optionally
       connects callback signals to symbols found in the application's
       symbol table.
-      
+
       @param file        Name of the glade interface file
       @param mainwidget  Top-level widget (normally a window) in that
                          file that will be opened.
@@ -500,9 +500,9 @@ public:
                      bool warn=false);
 
   /** Initialize a text combobox with a given list or array of values.
-  
+
       @param name      Name of the combo box.
-      @param values    Iterable (list, vector, etc.) of std::string 
+      @param values    Iterable (list, vector, etc.) of std::string
                        (or string-like) objects, these need a "c_str()" method.
    */
   template <typename T>
@@ -613,6 +613,7 @@ bool GtkGladeWindow::loadComboText(const char* name, const T& values)
   gtk_list_store_clear(store);
   GtkTreeIter it; gtk_tree_model_get_iter_first(treemodel, &it);
   for (const auto &s: values) {
+    gtk_list_store_append(store, &it);
     gtk_list_store_set(store, &it, 0, s.c_str(), -1);
   }
   return true;
