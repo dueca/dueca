@@ -517,14 +517,16 @@ bool GtkGladeWindow::__getValue<std::string>(const char* wname,
       gtk_tree_model_get(treemodel, &it, 0, &val, -1);
       b = std::string(val);
     }
-    else if (warn) {
-      /* DUECA graphics.
+    else {
+      if (warn) {
+	/* DUECA graphics.
 
-	 Attempting to get an active entry from a combo box, but none
-	 is active. Maybe pre-select an entry.
-      */
-      W_XTR("GtkGladeWindow::getValue, no active entry in combobox \"" <<
-	    wname << '"');
+	   Attempting to get an active entry from a combo box, but none
+	   is active. Maybe pre-select an entry.
+	*/
+	W_XTR("GtkGladeWindow::getValue, no active entry in combobox \"" <<
+	      wname << '"');
+      }
       return false;
     }
     return true;
