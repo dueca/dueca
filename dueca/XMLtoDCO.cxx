@@ -20,18 +20,18 @@
 #include <dueca/Dstring.hxx>
 #include <dueca/LogString.hxx>
 #include "smartstring.hxx"
+#include <algorithm>
+#include <cctype>
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 
 DUECA_NS_START;
 
-struct xmldecodeexception: public std::exception
-{
-  const char* reason;
-  xmldecodeexception(const char* re) : reason(re) {}
-  const char* what() const noexcept { return reason; }
-};
+xmldecodeexception::xmldecodeexception(const char* re) : reason(re) {}
+const char* xmldecodeexception::what() const noexcept { return reason; }
+
+
 
 template<class T>
 void readAny(const pugi::xml_node &doc, boost::any& val);
@@ -137,11 +137,20 @@ template<>
 void readAny<bool>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting bool from " << doc.child_value());
-  val = boost::lexical_cast<bool>(doc.child_value());
+  try {
+    val = boost::lexical_cast<bool>(doc.child_value());
+  }
+  catch (const boost::bad_lexical_cast&) {
+    auto tmp = boost::lexical_cast<std::string>(doc.child_value());
+    tmp.erase(std::remove(tmp.begin(), tmp.end(), ' '), tmp.end());
+    std::transform(tmp.begin(), tmp.end(), tmp.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+    val = tmp == std::string("true");
+  }
 }
 
 static void convertValue(pugi::xml_node& doc, boost::any& val,
-                      typeindex_t tix)
+                         typeindex_t tix)
 {
   typedef std::function<void(const pugi::xml_node&,boost::any&)> avfunction;
   typedef std::map<typeindex_t,avfunction>
