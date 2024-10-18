@@ -619,13 +619,14 @@ unsigned GtkGladeWindow::setValues(CommObjectReader& dco,
           if (_setValue(gtkid, dco.getMemberName(ii), b, warn)) { nset++; }
         }
       }
-      else {
+      else if (warn) {
         /* DUECA graphics.
 
            You have an array member in the DCO object you try to
            connect to a gtk window, but have not supplied an array
            format string.
         */
+
         W_XTR("GtkGladeWindow::setValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
