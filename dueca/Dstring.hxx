@@ -216,7 +216,6 @@ istream& operator >> (istream& is,
                       DUECA_NS ::Dstring<mxsize>& o);
 PRINT_NS_END
 
-#include "msgpack-unstream-iter.hxx"
 MSGPACKUS_NS_START;
 
 /** Unpack a DUECA dstring from a msgpack visitor
@@ -226,13 +225,5 @@ MSGPACKUS_NS_START;
     @param s      Resulting string
 */
 template <typename S, unsigned mxsize>
-inline void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& s)
-{
-  uint32_t len = unstream<S>::unpack_strsize(i0, iend);
-  s.resize(len);
-  for (size_t ii = 0; ii < len; ii++) {
-    check_iterator_notend(i0, iend);
-    s.data()[ii] = *i0++;
-  }
-}
+inline void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& s);
 MSGPACKUS_NS_END;

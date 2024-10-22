@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.1.2] - 2024-10-13
+
+- Fix msgpack inclusion in dco-generated files
+  modified msgpack-unstream-iter.?xx
+- Correct gtk3 channel overview to handle changed order after sorting
+- Documentation fixes websock server
+
 ## [4.1.1] - 2024-09-19
 
 - Add a convenience function to load a gtk3 combo box with values

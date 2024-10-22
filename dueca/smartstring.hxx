@@ -147,7 +147,7 @@ public:
 
       @tparam DCO   Dueca Communication Object, or comparable
       @param obj    DCO object
-      @throws       dueca::xmldecodeexception for type or dataclass mis-matches
+      @throws       smartdecodeerror for type or dataclass mis-matches
    */
   template<class DCO>
   void decodexml(DCO& obj) const
@@ -155,7 +155,12 @@ public:
     CommObjectWriter cow(getclassname<DCO>(), &obj);
     pugi::xml_document doc;
     doc.load_string(this->c_str());
-    XMLtoDCO(doc.child("object"), cow);
+    try {
+      XMLtoDCO(doc.child("object"), cow);
+    }
+    catch (const dueca::xmldecodeexception&) {
+      throw  smartdecodeerror("Cannot parse XML document");
+    }
   }
 
   /** Encode the given DCO object as XML in this string
@@ -177,6 +182,7 @@ public:
 
       @tparam DCO   Dueca Communication Object, or comparable
       @param obj    DCO object
+      @throws smartdecodeerror When JSON cannot be parsed
    */
   template<class DCO>
   void decodejson(DCO& obj) const

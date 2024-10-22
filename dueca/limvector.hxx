@@ -268,11 +268,5 @@ DUECA_NS_END;
 #include "msgpack-unstream-iter.hxx"
 MSGPACKUS_NS_START;
 template <typename S, size_t N, typename T>
-inline void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i)
-{
-  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  i.resize(len);
-  for (unsigned ii = 0; ii < len; ii++)
-    msg_unpack(i0, iend, i[ii]);
-}
+void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i);
 MSGPACKUS_NS_END;

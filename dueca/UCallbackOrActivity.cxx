@@ -50,7 +50,7 @@ UCallbackOrActivity::UCallbackOrActivity(const UCallbackOrActivity &o) :
 UCallbackOrActivity::~UCallbackOrActivity()
 {
   if (cb || act) {
-    DEB("Callback or activity not called");
+    DEB("Callback or activity never called");
   }
 }
 

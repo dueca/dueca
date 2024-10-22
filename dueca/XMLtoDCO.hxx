@@ -26,7 +26,12 @@ DUECA_NS_START;
 
 /** Exception type thrown when XML data cannot be fitted in a given
     DCO object. */
-struct xmlcodeexception;
+struct xmldecodeexception: public std::exception
+{
+  const char* reason;
+  xmldecodeexception(const char* re);
+  const char* what() const noexcept;
+};
 
 class CommObjectWriter;
 

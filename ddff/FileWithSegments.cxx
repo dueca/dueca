@@ -124,7 +124,12 @@ bool FileWithSegments::openFile(const std::string& filename,
     // copy the base file, with possibly replay traces, then open for appending
     boost::filesystem::copy_file
       (filebasis, filename,
-       boost::filesystem::copy_option::overwrite_if_exists);
+#if BOOST_VERSION > 107200
+       boost::filesystem::copy_options::overwrite_existing
+#else
+       boost::filesystem::copy_option::overwrite_if_exists
+#endif
+       );
 
     // this opens the file and inventory
     FileWithInventory::open(filename, Mode::Append, blocksize);

@@ -7,6 +7,7 @@
                           callback (mgr 0) and activities in channel
                           validation.
         changes         : 240910 first version
+        api             : DUECA_API
         language        : C++
         copyright       : (c) 2024 Rene van Paassen
 */
@@ -24,16 +25,26 @@ class Activity;
 class GenericCallback;
 class TimeSpec;
 
-/** Small helper class, accepts either a callback or activity, and will do
-    only one call or activation.
+/** Small helper class to provide flexibility in the creation of 
+    ReadAccessToken and WriteAccessToken, accepts either a callback 
+    or activity, and will do only one call or activation.
 
-    This is used to signal read or write channel access token validity.
+    This class features constructors that enable implicit conversion from
+    a GenericCallback pointer (GenericCallback*) or from an Activity/
+    ActivityCallback pointer, when creating a ReadAccessToken or a
+    WriteAccessToken. You can thus use a pointer to either of these objects,
+    instead of a UCallbackOrActivity in your constructor call.
 
-    Using a GenericCallback* there, gives an immediate callback on validity
-    in the current thread, or a later callback with priority 0.
+    When the token becomes valid, the callback or activity is called.
 
-    By using an "Activity", you can control the priority where the callback
-    will be done.
+    When using a GenericCallback*, the callback is immediate in some cases
+    when the token is implicitly vallid. If the callback comes later, it
+    will be handled by the administration thread ActivityManager (priority 0).
+
+    When using an Activity, you must supply the priority where the callback
+    will be done. By taking the same priority as the process that uses the
+    token to write or read the data, you can avoid threading problems. 
+    Validity is in this case always signalled later, as a separate activity.
   */
 class UCallbackOrActivity : private TriggerPuller
 {
@@ -44,25 +55,27 @@ class UCallbackOrActivity : private TriggerPuller
   GenericCallback *cb;
 
 public:
-  /** Constructor with callback */
+  /** Constructor from an Activity pointer. Note that the pointer must
+      remain valid for the lifetime of the token where this is used. */
   UCallbackOrActivity(Activity *act);
 
-  /** Constructor activity */
+  /** Constructor from a GenericCallback pointer. Note that the pointer must
+      remain valid for the lifetime of the token where this is used. */
   UCallbackOrActivity(GenericCallback *cb);
 
-  /** Constructor from a null pointer */
+  /** Constructor from a null pointer. Will not perform a callback. */
   UCallbackOrActivity(std::nullptr_t ncb);
 
-  /** Empty */
+  /** Empty constructor. Will also not perform a callback. */
   UCallbackOrActivity();
 
   /** Copy constructor */
   UCallbackOrActivity(const UCallbackOrActivity &o);
 
-  /** Run the thing - once only */
+  /** Run the thing - is effective once only */
   void operator()(const TimeSpec &ts);
 
-  /** Reset-null */
+  /** Reset to null */
   void reset()
   {
     act = NULL;
@@ -72,7 +85,7 @@ public:
   /** Destructor */
   ~UCallbackOrActivity();
 
-  /** Boolean value */
+  /** Test whether any callback can be run. */
   inline operator bool() const { return act != NULL || cb != NULL; }
 };
 

@@ -20,18 +20,18 @@
 #include <dueca/Dstring.hxx>
 #include <dueca/LogString.hxx>
 #include "smartstring.hxx"
+#include <algorithm>
+#include <cctype>
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 
 DUECA_NS_START;
 
-struct xmldecodeexception: public std::exception
-{
-  const char* reason;
-  xmldecodeexception(const char* re) : reason(re) {}
-  const char* what() const noexcept { return reason; }
-};
+xmldecodeexception::xmldecodeexception(const char* re) : reason(re) {}
+const char* xmldecodeexception::what() const noexcept { return reason; }
+
+
 
 template<class T>
 void readAny(const pugi::xml_node &doc, boost::any& val);
@@ -40,108 +40,129 @@ template<unsigned mxsize>
 void readAnyDstring(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting dstring from " << doc.child_value());
-  val = Dstring<mxsize>(doc.child_value());
+  val = Dstring<mxsize>(doc.text().as_string());
 }
 
 template<>
 void readAny<char>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting char from " << doc.child_value());
-  val = char(doc.child_value()[0]);
+  val = char(doc.text().as_string()[0]);
 }
 
 template<>
 void readAny<uint8_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting uint8 from " << doc.child_value());
-  val = boost::lexical_cast<uint8_t>(doc.child_value());
+  //val = boost::lexical_cast<uint8_t>(doc.child_value());
+  val = uint8_t(doc.text().as_uint());
 }
 
 template<>
 void readAny<uint16_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting uint16 from " << doc.child_value());
-  val = boost::lexical_cast<uint16_t>(doc.child_value());
+  // val = boost::lexical_cast<uint16_t>(doc.child_value());
+  val = uint16_t(doc.text().as_uint());
 }
 
 template<>
 void readAny<uint32_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting uint32 from " << doc.child_value());
-  val = boost::lexical_cast<uint32_t>(doc.child_value());
+  // val = boost::lexical_cast<uint32_t>(doc.child_value());
+  val = doc.text().as_uint();
 }
 
 template<>
 void readAny<uint64_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting uint64 from " << doc.child_value());
-  val = boost::lexical_cast<uint64_t>(doc.child_value());
+  // val = boost::lexical_cast<uint64_t>(doc.child_value());
+  val = doc.text().as_ullong();
 }
 template<>
 void readAny<int8_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting int8 from " << doc.child_value());
-  val = boost::lexical_cast<int8_t>(doc.child_value());
+  // val = boost::lexical_cast<int8_t>(doc.child_value());
+  val = int8_t(doc.text().as_int());
 }
 
 template<>
 void readAny<int16_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting int16 from " << doc.child_value());
-  val = boost::lexical_cast<int16_t>(doc.child_value());
+  // val = boost::lexical_cast<int16_t>(doc.child_value());
+  val = int16_t(doc.text().as_int());
 }
 
 template<>
 void readAny<int32_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting int32 from " << doc.child_value());
-  val = boost::lexical_cast<int32_t>(doc.child_value());
+  // val = boost::lexical_cast<int32_t>(doc.child_value());
+  val = doc.text().as_int();
 }
 
 template<>
 void readAny<int64_t>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting int64 from " << doc.child_value());
-  val = boost::lexical_cast<int64_t>(doc.child_value());
+  // val = boost::lexical_cast<int64_t>(doc.child_value());
+  val = doc.text().as_llong();
 }
 
 template<>
 void readAny<float>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting float from " << doc.child_value());
-  val = boost::lexical_cast<float>(doc.child_value());
+  //val = boost::lexical_cast<float>(doc.child_value());
+  val = doc.text().as_float();
 }
 
 template<>
 void readAny<double>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting double from " << doc.child_value());
-  val = boost::lexical_cast<double>(doc.child_value());
+  //val = boost::lexical_cast<double>(doc.child_value());
+  val = doc.text().as_double();
 }
 
 template<>
 void readAny<std::string>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting string from " << doc.child_value());
-  val = std::string(doc.child_value());
+  val = std::string(doc.text().as_string());
 }
 
 template<>
 void readAny<smartstring>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting string from " << doc.child_value());
-  val = smartstring(doc.child_value());
+  val = smartstring(doc.text().as_string());
 }
 
 template<>
 void readAny<bool>(const pugi::xml_node &doc, boost::any& val)
 {
   DEB("Getting bool from " << doc.child_value());
-  val = boost::lexical_cast<bool>(doc.child_value());
+  val = doc.text().as_bool();
+  /*
+  try {
+    val = boost::lexical_cast<bool>(doc.child_value());
+  }
+  catch (const boost::bad_lexical_cast&) {
+    auto tmp = boost::lexical_cast<std::string>(doc.child_value());
+    tmp.erase(std::remove(tmp.begin(), tmp.end(), ' '), tmp.end());
+    std::transform(tmp.begin(), tmp.end(), tmp.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+    val = tmp == std::string("true");
+    }*/
 }
 
 static void convertValue(pugi::xml_node& doc, boost::any& val,
-                      typeindex_t tix)
+                         typeindex_t tix)
 {
   typedef std::function<void(const pugi::xml_node&,boost::any&)> avfunction;
   typedef std::map<typeindex_t,avfunction>

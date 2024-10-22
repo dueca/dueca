@@ -166,13 +166,6 @@ MSGPACKUS_NS_START;
 /** unstream/unpack a fixvector_default */
 template <typename S, size_t N, typename T, int DEFLT, unsigned BASE>
 inline void msg_unpack(S &i0, const S &iend,
-                       dueca::fixvector_withdefault<N, T, DEFLT, BASE> &i)
-{
-  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  i.resize(len);
-  for (size_t ii = 0; ii < len; ii++) {
-    msg_unpack(i0, iend, i[ii]);
-  }
-}
+                       dueca::fixvector_withdefault<N, T, DEFLT, BASE> &i);
 
 MSGPACKUS_NS_END;
