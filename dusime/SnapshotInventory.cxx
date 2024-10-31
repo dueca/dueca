@@ -168,7 +168,7 @@ void SnapshotInventory::receiveSnapshot(const TimeSpec& ts)
           current_snapset = snapmap.emplace
             (findUniqueName(),
              std::chrono::system_clock::now()).first;
-          toml::value newset
+          toml::table newset
             { { "datetime", toml::local_datetime(current_snapset->second.time)},
               { "initial", toml::array() } };
           if (!tomlsnp.contains("initial_set")) {
@@ -269,7 +269,7 @@ void SnapshotInventory::setFiles(const std::string& bfile,
 
   if (bfile.size()) {
     try {
-      tomlsnp = toml::parse<toml::preserve_comments>(bfile);
+      tomlsnp = toml::parse(bfile);
 
       // check that the entity is correct
       if (entity != toml::find<std::string>(tomlsnp, "entity")) {
@@ -303,7 +303,7 @@ void SnapshotInventory::setFiles(const std::string& bfile,
     }
   }
   else {
-    tomlsnp = toml::value({ { "entity", entity} });
+    tomlsnp = toml::table({ { "entity", entity} });
   }
 
   // set the new state; unset

@@ -546,8 +546,9 @@ if (SCRIPT_PYTHON)
     find_library(BPLIB
 
       NAMES
-      boost_python312 boost_python311 boost_python310
+      boost_python313 boost_python312 boost_python311 boost_python310
       boost_python39 boost_python38 boost_python37
+      boost_python-py313
       boost_python-py312 boost_python-py311  boost_python-py310
       boost_python-py39 boost_python-py38  boost_python-py37 boost_python-py36
       boost_python3  boost_python-py3

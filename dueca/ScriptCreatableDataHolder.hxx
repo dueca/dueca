@@ -41,19 +41,19 @@ USING_DUECA_NS;
     creation script, and all member variables are accessable and
     settable, with lines like:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.scheme}
+    \code{.scheme}
     (define obj (make-my-dco-object
-      'set-my-member-variable &lt;some-value&gt;
+      'set-my-member-variable <some-value>;
     )
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    \endcode
 
     In python this looks a little different,
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.python}
+    \code{.python}
     object = dueca.MyDCOObject().param(
-        my_member_variable = &lt;some value&gt;
+        my_member_variable = <some value>;
     )
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    \endcode
 
     To "accept" one of these variables in your module, you can add a
     function to the parametertable which accepts a ScriptCreatable
@@ -63,17 +63,17 @@ USING_DUECA_NS;
 
     In your table:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.c++}
+    \code{.cpp}
       { "my-object",
         new MemberCall<_ThisModule_,ScriptCreatable>
           (&_ThisModule_::acceptMyObject),
         "Pass a DCO object created in the script" },
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    \endcode
 
     Then the code to accept the object (declare a matching function
     in your class):
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.c++}
+    \code{.cpp}
     MyModule::acceptMyObject(const ScriptCreatable& objbase)
     {
       ScriptCreatableDataHolder<MyObject> *obj =
@@ -88,7 +88,7 @@ USING_DUECA_NS;
       }
       return true;
     }
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    \endcode
  */
 template<class T>
 class ScriptCreatableDataHolder: public ScriptCreatable
