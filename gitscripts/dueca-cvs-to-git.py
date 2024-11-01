@@ -16,6 +16,17 @@ import shutil
 import argparse
 
 try:
+    # try the rich formatter with pip install rich-argparse
+    from rich_argparse import RichHelpFormatter
+    formatter=RichHelpFormatter
+    from rich.markdown import Markdown
+except:
+    def Markdown(desc, *args, **kwargs):
+        return desc
+    from argparse import HelpFormatter
+    formatter = HelpFormatter
+
+try:
     from duecautils.modules import Modules
     from duecautils.machinemapping import NodeMachineMapping
     from duecautils import verboseprint
@@ -65,7 +76,7 @@ def findPatchFiles(project):
     global patchdir
     if os.path.isfile(f'{patchdir}/{project}.total.patch'):
         return [ f'{project}.total.patch' ]
-    checkprj = re.compile(f'^{project}\\.([0-9]+)\\.patch')
+    checkprj = re.compile(fr'^{project}\.([0-9]+)\.patch')
     patches = [ p for p in os.listdir(patchdir)
         if checkprj.fullmatch(p) ]
     patches.sort()
@@ -73,7 +84,7 @@ def findPatchFiles(project):
 
 def findFreePatchFile(project):
     patches = findPatchFiles(project)
-    checkprj = re.compile(f'^{project}\\.([0-9]+)\\.patch')
+    checkprj = re.compile(fr'^{project}\.([0-9]+)\.patch')
     num = 0
     if patches:
         match = checkprj.fullmatch(patches[-1])
@@ -88,10 +99,10 @@ def parseGui(cnffile):
 
     if cnffile.endswith('.py'):
         gui_check = re.compile(
-            '''graphic_interface[\t ]*=[\t ]*["'](.+)["'']''')
+            r'''graphic_interface[\t ]*=[\t ]*["'](.+)["'']''')
     else:
         gui_check = re.compile(
-            '\\(define[ \t]+graphic-interface[ \t]+"(.+)"[ \t]*\)')
+            r'\(define[ \t]+graphic-interface[ \t]+"(.+)"[ \t]*\)')
 
     with open(cnffile, 'r') as f:
         for l in f:
@@ -158,9 +169,7 @@ def constructUrl(prj):
     return f'file://{rundir}/repo/{prj}.git'
 
 parser = argparse.ArgumentParser(
-        description=
-            """
-Convert dueca projects from CVS to git
+        description=Markdown("""# Convert dueca projects from CVS to git.
 
 Reads out a cvs-based project, creates a temporary git repository for it,
 and transfers the project to a git+cmake structure.
@@ -171,39 +180,37 @@ the git repository in /tmp/convert/repo
 
 Useful environment variables:
 
-    DAPPS_CVSROOT :         Location of the CVS projects
-    DUECA_CVSTOGITPATCHES : Place to keep patch results while working on
-                            conversion projects; patches describe cvs to
-                            git conversion steps
-    DAPPS_GITROOT :         Base folder/path for git repositories; any
-                            repository matching this base will be converted
-                            to a relative url.
-    DAPPS_CONVERTBASE :     If supplied, folder for conversion work.
+| Variable  | Value |
+|-----------|-------|
+| DAPPS_CVSROOT      | Location of the CVS projects |
+| DUECA_CVSTOGITPATCHES | Place to keep patch results |
+| DAPPS_GITROOT         | Base folder/path for git repositories |                      
+| DAPPS_CONVERTBASE     | Optional folder for conversion work |
 
 Typical working mode:
 
-    - choose a folder for conversion, e.g., /tmp/convert
-    - set DAPPS_GITROOT to file:///tmp/convert/repo/
-    - set DUECA_CVSTOGITPATCHES to the place where you keep the patches
-    - set DAPPS_CVSROOT to the CVS repository location
-    - if continuing with an existing project, source the setenv file
-      at the base of the conversion folder to set these parameters.
-    - start converting "base" projects, ones that do not depend on other
-      projects' dco files.
-    - try compiling, editing, adjusting the projects, using dueca-gproject
-    - when happy with the state of a project, from within the project folders
-      run dueca-cvs-to-git --savediff, to save a diff step to the patches
-      folders, or dueca-cvs-to-git --save-gitdiff, to save the total step
-      from cvs conversion to final edited version.
-    - when happy with the conversion of all projects, copy the git versions
-      to permanent repositories and never look back:
-      * git remote add origin2 <url to the new place>
-      * git push origin2 master
+- choose a folder for conversion, e.g., /tmp/convert
+- set DAPPS_GITROOT to file:///tmp/convert/repo/
+- set DUECA_CVSTOGITPATCHES to the place where you keep the patches
+- set DAPPS_CVSROOT to the CVS repository location
+- if continuing with an existing project, source the setenv file
+    at the base of the conversion folder to set these parameters.
+- start converting "base" projects, ones that do not depend on other
+    projects' dco files.
+- try compiling, editing, adjusting the projects, using dueca-gproject
+- when happy with the state of a project, from within the project folders
+    run dueca-cvs-to-git --savediff, to save a diff step to the patches
+    folders, or dueca-cvs-to-git --save-gitdiff, to save the total step
+    from cvs conversion to final edited version.
+- when happy with the conversion of all projects, copy the git versions
+    to permanent repositories and never look back:
+    * git remote add origin2 <url to the new place>
+    * git push origin2 master
 
 The patch folder can keep temporary results; when converting a project from
 cvs, the patches there are used to update the converted project. The "total"
-patch is preferred, otherwise the partial patches will be used.
-            """)
+patch is preferred, otherwise the partial patches will be used.""", ), 
+            formatter_class=formatter)
 parser.add_argument(
     '--verbose', action='store_true',
     help="Verbose run with information output")
@@ -376,11 +383,11 @@ for project in projects:
         'python') or 'scheme'
     if scriptlang == 'scheme':
         gui_check = re.compile(
-            '\\(define[ \t]+graphic-interface[ \t]+"(.+)"[ \t]*\)')
+            r'\(define[ \t]+graphic-interface[ \t]+"(.+)"[ \t]*\)')
         cnffile = 'dueca.cnf'
     else:
         gui_check = re.compile(
-            '''graphic_interface[\t ]*=[\t ]*["'](.+)["'']''')
+            r'''graphic_interface[\t ]*=[\t ]*["'](.+)["'']''')
 
         cnffile = 'dueca_cnf.py'
 
