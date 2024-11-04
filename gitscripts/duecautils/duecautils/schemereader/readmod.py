@@ -166,10 +166,13 @@ class PrioritySpec:
     def __init__(self, level, pool, *a):
         try:
             vals = dict(priority=0, order=0)
-            if isinstance(a[0], str) and isinstance(a[1], str):
+            try:
+            # if isinstance(a[0], str) and isinstance(a[1], str):
                 vals['priority'] = int(a[0])
                 vals['order'] = int(a[1])
-            else:
+
+            except:
+            #else:
                 idx = 0
                 while idx < len(a)-1:
                     if not isinstance(a[idx], ALiteral):
@@ -187,10 +190,12 @@ class TimeSpec:
     def __init__(self, level, pool, *a):
         try:
             vals = {'validity-start': 0, 'period': 100}
-            if isinstance(a[0], str) and isinstance(a[1], str):
+            #if isinstance(a[0], str) and isinstance(a[1], str):
+            try:
                 vals['validity-start'] = int(a[0])
                 vals['period'] = int(a[1])
-            else:
+            #else:
+            except:
                 idx = 0
                 while idx < len(a)-1:
                     if not isinstance(a[idx], ALiteral):
@@ -267,6 +272,9 @@ class FontManager:
 
 class Creatable:
     def __init__(self, name, level, pool, *args):
+        # correct the name
+        if '-' in name:
+            name = ''.join(map(str.capitalize, name.split('-')))
         self.lines = [
             f'dueca.{name}().param(' ]
         self.lines.append(' '*(level+8) + convertLiteralList(level+8, pool, args))
@@ -277,22 +285,39 @@ class Creatable:
 class Apply:
     def __init__(self, level, pool, cmd, append):
         global _ename
-        assert cmd.name == 'make-module'
-        assert isinstance(append, Expression)
-        assert append.arguments[0].name == 'append'
-        name = append.arguments[1].arguments[1]
-        part = append.arguments[1].arguments[2]
-        prio = append.arguments[1].arguments[3]
-        append.arguments[1].arguments.pop(3)
-        append.arguments[1].arguments.pop(2)
-        append.arguments[1].arguments.pop(1)
-        self.lines = [' '*level + f'mods_{_ename}.append(\n' + ' '*level +
-            f'    dueca.Module("{name.name}", "{str(part)}", {str(convert(level, pool, prio))}).param(' ]
-        sub = []
-        for a in append.arguments[1:]:
-            sub.append(' '*(level+8) + '*' + str(convert(level+8, pool, a)))
-        self.lines.append(',\n'.join(sub))
-        self.lines.append(' '*(level+8) + '))')
+        # assert cmd.name == 'make-module'
+        if cmd.name == 'make-module':
+
+            assert isinstance(append, Expression)
+            assert append.arguments[0].name == 'append'
+            name = append.arguments[1].arguments[1]
+            part = append.arguments[1].arguments[2]
+            prio = append.arguments[1].arguments[3]
+            append.arguments[1].arguments.pop(3)
+            append.arguments[1].arguments.pop(2)
+            append.arguments[1].arguments.pop(1)
+            self.lines = [' '*level + f'mods_{_ename}.append(\n' + ' '*level +
+                f'    dueca.Module("{name.name}", "{str(part)}", {str(convert(level, pool, prio))}).param(' ]
+            sub = []
+            for a in append.arguments[1:]:
+                sub.append(' '*(level+8) + '*' + str(convert(level+8, pool, a)))
+            self.lines.append(',\n'.join(sub))
+            self.lines.append(' '*(level+8) + '))')
+
+        else:
+            print('Unsure about conversion of "apply" expression', cmd.name)
+            cmdname = ''.join(map(str.capitalize, cmd.name.split('-')[1:]))
+
+            self.lines = [' '* level + f'dueca.{cmdname}().param(' ]
+            sub = []
+            if isinstance(append, Expression):
+                for a in append.arguments[1:]:
+                    sub.append(' '*(level+8) + '*' + str(convert(level+8, pool, a)))
+            elif isinstance(append, Identifier):
+                sub.append(' '*(level+8) + '*' + str(convert(level+8, pool, append)))
+            self.lines.append(',\n'.join(sub))
+            self.lines.append(' '*(level+8) + ')')
+            
     def __str__(self):
         return '\n'.join(self.lines)
 
@@ -388,6 +413,8 @@ if __name__ == '__main__':
     tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/SRS/srsecs/dueca.mod',)
     tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/run-data/andy_motion_filt.cnf',)
     tryme = ('cssoft/cv/new/SenecaAutomationTraining/SenecaAutomationTraining/run/solo/solo/dueca.mod',)
+    tryme = ('cssoft/convert/new/MotionSenseOptimalAccelerations/MotionSenseOptimalAccelerations/run/solo/solo/dueca.mod',)
+    tryme = ('cssoft/convert/new/MotionSenseBoris/MotionSenseBoris/run/solo/solo/dueca.mod',)
     for l in tryme:
         with open(f"{os.environ['HOME']}/{l}", 'r') as f:
             res = contents.parseFile(f)
