@@ -665,7 +665,7 @@ class NewModule(OnExistingProject):
             # add to the module configuration
             g = GitHandler()
             m.addModule(self.project, ns.name, None,
-                        g.getUrl(), pseudo=ns.pseudo, inactive=ns.inactive)
+                        None, pseudo=ns.pseudo, inactive=ns.inactive)
 
             # add the files to git
             g.addFolder(ns.name)
