@@ -63,13 +63,18 @@ class FindPattern(PolicyCondition):
         None.
 
         """
-        self.fileglob, self.pattern = str(fileglob), str(pattern)
+        self.fileglob = str(fileglob)
+        try:
+            self.pattern = re.compile(str(pattern))
+        except ValueError:
+            self.pattern = pattern.val
+
         self.resultvar = str(resultvar)
         try:
             self.limit = int(str(limit))
         except ValueError:
             raise ValueError(
-                f"{self.__class__.__name__}, cannont interpret 'limit' "
+                f"{self.__class__.__name__}, cannot interpret 'limit' "
                 f" from '{limit}'")
 
     def holds(self, p_path, **kwargs):
@@ -77,13 +82,13 @@ class FindPattern(PolicyCondition):
         # run and test
         result = []
         newvars = defaultdict(_empty_list)
-
-        testp = re.compile(self.pattern)
+        
+        # testp = re.compile(self.pattern)
         matching = glob.glob(self.fileglob, recursive=False)
 
         dprint(f"Testing {matching}")
         for fn in matching:
-            res = MatchReferenceFile(MatchFunctionPattern(testp), fn, self.limit)
+            res = MatchReferenceFile(MatchFunctionPattern(self.pattern), fn, self.limit)
             if res.value:
                 result.append(res)
 

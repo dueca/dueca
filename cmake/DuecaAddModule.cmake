@@ -175,10 +175,14 @@ function(DUECA_ADD_MODULE)
         # add the dependency on the module, so code is generated in the right order
         add_dependencies(${MODULETARGET} "${PRJ}_${MDL}")
 
+	# get the public include directories of this target
+	# get_target_property(TGT_INCLUDES ${PRJ}_${MDL} INCLUDE_DIRECTORIES)
+	
         # extend the include path to the source and generated source of this module
         list(APPEND OTHERMODULE_INCLUDES
           "${CMAKE_SOURCE_DIR}/../${PRJ}/${MDL}"
-          "${CMAKE_BINARY_DIR}/${PRJ}/${MDL}")
+          "${CMAKE_BINARY_DIR}/${PRJ}/${MDL}"
+	)
 
       else()
         message(STATUS "${MODULENAME} depends on source only ${M}")
@@ -196,8 +200,8 @@ function(DUECA_ADD_MODULE)
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${PROJECT_INCLUDE_DIRS}
-    ${ADDMODULE_INCLUDEDIRS_PUBLIC}
     ${OTHERMODULE_INCLUDES}
+    INTERFACE ${ADDMODULE_INCLUDEDIRS_PUBLIC}
     PRIVATE ${ADDMODULE_INCLUDEDIRS}
     )
 
