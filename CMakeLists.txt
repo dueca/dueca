@@ -7,17 +7,8 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-if (POLICY CMP0075)
-  message(STATUS "New policy CMP0075")
-  cmake_policy(SET CMP0075 NEW)
-endif()
-
-# CXX and C
-enable_language(C)
-enable_language(CXX)
-
-# gnu install dirs
-include(GNUInstallDirs)
+cmake_policy(SET CMP0075 NEW)
+cmake_policy(SET CMP0167 NEW)
 
 # version information, please update accordingly
 set(VERMAJOR 4)
@@ -32,6 +23,13 @@ set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 string(REGEX REPLACE "^.* ([0-9]+)$" "\\1"
   VERSION_YEAR "${VERSION_DATE}")
 project(dueca VERSION "${VERMAJOR}.${VERMINOR}.${REVISION}")
+
+# CXX and C
+enable_language(C)
+enable_language(CXX)
+
+# gnu install dirs
+include(GNUInstallDirs)
 
 # include custom find code
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
