@@ -11,7 +11,7 @@
 
 (Type uint16_t "#include <inttypes.h>
 #include <dueca/SimTime.hxx>")
-(IterableType fixvector<10,uint16_t> "#include <dueca/fixvector.hxx>")
+(Type fixvector<10,uint16_t> "#include <dueca/fixvector.hxx>")
 
 ;; Network capacity use information.
 ;;

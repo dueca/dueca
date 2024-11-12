@@ -7,7 +7,7 @@
 
 (Type PupilRemoteGaze "#include \"PupilRemoteGaze.hxx\"")
 
-(IterableType bincoordinates
+(Type bincoordinates
       "// gaze normals and eye center coordinates
 #include <map>
 #include <dueca/stringoptions.h>

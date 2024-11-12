@@ -9,7 +9,7 @@
 (Type float)
 
 ;; 3-element vector
-(IterableType dueca::fixvector<3,float>
+(Type dueca::fixvector<3,float>
 	      "#include <dueca/fixvector.hxx>")
 
 ;; 2D model ellipse data for PupilRemote

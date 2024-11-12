@@ -41,11 +41,11 @@
 (Type dueca::Channel::EntryArity)
 (Type dueca::Channel::PackingMode)
 (Type dueca::Channel::TransportClass)
-(IterableType classlist_t
+(Type classlist_t
 "#include <list>
 #include <stringoptions.h>
 typedef std::list<vstring> classlist_t;")
-(IterableType magiclist_t
+(Type magiclist_t
 "#include <list>
 #include <inttypes.h>
 typedef std::list<uint32_t> magiclist_t;")

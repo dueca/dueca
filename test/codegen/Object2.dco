@@ -1,5 +1,5 @@
 (Type double)
-(IterableType fixvector<4,double> "#include <fixvector.hxx>")
+(Type fixvector<4,double> "#include <fixvector.hxx>")
 
 (Stream Object2
   (Option msgpack)

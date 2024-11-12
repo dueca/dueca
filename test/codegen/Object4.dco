@@ -1,5 +1,5 @@
 (Type double)
-(IterableType std::list<double> "#include <list>")
+(Type std::list<double> "#include <list>")
 
 (Stream Object4
   (Option msgpack)

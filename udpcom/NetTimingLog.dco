@@ -13,7 +13,7 @@
 #include <dueca/SimTime.hxx>")
 (Type uint32_t "#include <inttypes.h>")
 (Type float)
-(IterableType fixvector<20,uint16_t> "#include <fixvector.hxx>")
+(Type fixvector<20,uint16_t> "#include <fixvector.hxx>")
 
 ;; Timing information on network use
 ;;

@@ -36,7 +36,8 @@ ChannelReadToken::ChannelReadToken(
   GenericToken(owner, channelname, dataclassname),
 
   handle(NULL),
-  arity(arity)
+  arity(arity),
+  time_aspect(time_aspect)
 {
   // finds or creates the channel. Id request comes later in constructor
   channel = ChannelManager::single()->findOrCreateChannel(this->getName());
@@ -45,7 +46,7 @@ ChannelReadToken::ChannelReadToken(
   handle =
     channel->addReadToken(this, dataclassname, entrylabel,
                           isSingleEntryOption(arity) ? 0xfffe : 0xffff,
-                          time_aspect, rmode, when_valid, requested_span);
+                          rmode, when_valid, requested_span);
 }
 
 ChannelReadToken::ChannelReadToken(
@@ -56,11 +57,12 @@ ChannelReadToken::ChannelReadToken(
   const UCallbackOrActivity &when_valid) :
   GenericToken(owner, channelname, dataclassname),
   handle(NULL),
-  arity(arity)
+  arity(arity),
+  time_aspect(time_aspect)
 {
   channel = ChannelManager::single()->findOrCreateChannel(this->getName());
   handle =
-    channel->addReadToken(this, dataclassname, "", attach_entry, time_aspect,
+    channel->addReadToken(this, dataclassname, "", attach_entry, 
                           rmode, when_valid, requested_span);
 }
 
@@ -74,7 +76,8 @@ ChannelReadToken::ChannelReadToken(
   GenericToken(owner, channelname, dataclassname),
 
   handle(NULL),
-  arity(arity)
+  arity(arity),
+  time_aspect(time_aspect)
 {
   // finds or creates the channel. Id request comes later in constructor
   channel = ChannelManager::single()->findOrCreateChannel(this->getName());
@@ -83,7 +86,7 @@ ChannelReadToken::ChannelReadToken(
   handle =
     channel->addReadToken(this, dataclassname, entrylabel,
                           isSingleEntryOption(arity) ? 0xfffe : 0xffff,
-                          time_aspect, rmode, when_valid, requested_span);
+                          rmode, when_valid, requested_span);
 }
 
 // deprecated variant
@@ -95,11 +98,12 @@ ChannelReadToken::ChannelReadToken(
   Channel::TransportClass tclass, GenericCallback *when_valid) :
   GenericToken(owner, channelname, dataclassname),
   handle(NULL),
-  arity(arity)
+  arity(arity),
+  time_aspect(time_aspect)
 {
   channel = ChannelManager::single()->findOrCreateChannel(this->getName());
   handle =
-    channel->addReadToken(this, dataclassname, "", attach_entry, time_aspect,
+    channel->addReadToken(this, dataclassname, "", attach_entry,
                           rmode, when_valid, requested_span);
 }
 
@@ -111,11 +115,12 @@ ChannelReadToken::ChannelReadToken(
   unsigned requested_depth) :
   GenericToken(owner, channelname, dataclassname),
   handle(NULL),
-  arity(arity)
+  arity(arity),
+  time_aspect(time_aspect)
 {
   channel = ChannelManager::single()->findOrCreateChannel(this->getName());
   handle =
-    channel->addReadToken(this, dataclassname, "", attach_entry, time_aspect,
+    channel->addReadToken(this, dataclassname, "", attach_entry, 
                           rmode, when_valid, 0.0, requested_depth);
 }
 

@@ -10,7 +10,7 @@
 
 (Type entryid_type "#include <ChannelDef.hxx>")
 
-(IterableType count_list
+(Type count_list
 "#include <TokenCountResult.hxx>
 #include <varvector.hxx>
 typedef dueca::varvector<dueca::TokenCountResult> count_list;")

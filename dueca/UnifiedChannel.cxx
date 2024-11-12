@@ -79,7 +79,9 @@ struct channelreadinfo
 {
   InformationStash<ChannelReadInfo> _stash;
 
-  channelreadinfo() : _stash("ChannelReadInfo") {}
+  channelreadinfo() :
+    _stash("ChannelReadInfo")
+  {}
 
   static channelreadinfo &single()
   {
@@ -99,7 +101,9 @@ struct channelwriteinfo
 {
   InformationStash<ChannelWriteInfo> _stash;
 
-  channelwriteinfo() : _stash("ChannelWriteInfo") {}
+  channelwriteinfo() :
+    _stash("ChannelWriteInfo")
+  {}
 
   static channelwriteinfo &single()
   {
@@ -121,20 +125,33 @@ void ChannelInfoStash_Initialisation()
 UnifiedChannel::UnifiedChannel(const NameSet &name_set) :
   NamedChannel(name_set),
   // TriggerPuller(name_set.name),
-  transport_class(Channel::UndefinedTransport), entries(), reading_clients(),
+  transport_class(Channel::UndefinedTransport),
+  entries(),
+  reading_clients(),
   creation_id(ObjectManager::single()->getLocation() + 0x100),
   newclient_id(ObjectManager::single()->getLocation() + 0x100),
-  writing_clients(), entrymap(), entries_lock("UC entries", false),
+  writing_clients(),
+  entrymap(),
+  entries_lock("UC entries", false),
   watchers_lock("ChannelWatchers", false),
   config_requests(8, "UnifiedChannel::config_requests"),
   config_changes(8, "UnifiedChannel::config_changes"),
   data_control(8, "UnifiedChannel::data_control"),
   check_valid1(3, "UnifiedChannel::check_valid1"),
-  check_valid2(3, "UnifiedChannel::check_valid2"), refresh_transporters(0),
-  conf_entry(NULL), conf_handle(NULL), conf_counter(0), checkup_delay(false),
-  channel_status(Created), entry_config_changes(new EntryConfigurationChange()),
-  latest_entry_config_change(entry_config_changes), config_version(0),
-  masterp(NULL), service_id(0U), transporters(), master_id()
+  check_valid2(3, "UnifiedChannel::check_valid2"),
+  refresh_transporters(0),
+  conf_entry(NULL),
+  conf_handle(NULL),
+  conf_counter(0),
+  checkup_delay(false),
+  channel_status(Created),
+  entry_config_changes(new EntryConfigurationChange()),
+  latest_entry_config_change(entry_config_changes),
+  config_version(0),
+  masterp(NULL),
+  service_id(0U),
+  transporters(),
+  master_id()
 {
   // this updates the NamedChannel parent (gives ID)
   // request the ID from the channel manager.
@@ -344,28 +361,34 @@ bool UnifiedChannel::refreshClientHandleInner(UCClientHandlePtr client)
            // option two, any requested entry is acceptable
            client->requested_entry == entry_any)) {
 
-#if 0
-        // this check was wrong. UCDataClassLink assembles for each dataclass
-        // what writing entries there are (dc->entry) and what clients read
-        // that dataclass (dc->clients)
+        // check introduced later (2024-11), warn if non-compatible time aspect
+        if (areClientAndEntryTimingCompatible(client->token->getTimeAspect(),
+                                              cc->entry->isEventType())) {
+          // connect this
+          linkReadClientToEntry(client, cc->entry);
 
-        // check this client is not yet in the data web
-        UCClientHandleLinkPtr cl = NULL;
-        for (const auto &dc: cc->entry->dataclasslink) {
-          cl = dc->clients;
-          while (cl && cl->_entry != client) { cl = cl->next; }
-          if (cl && cl->_entry == client) break;
+          // remember
+          changes = true;
         }
-        if (cl != NULL)
-#endif
-        // connect this
-        linkReadClientToEntry(client, cc->entry);
+        else {
+          /* DUECA channel.
 
-        // remember
-        changes = true;
+             For your read access token you specified event or stream, but the
+             matching channel entry has a different time aspect data
+             (stream/event) instead. This used to be connected, however, from
+             DUECA 4.1.3 this entry will be ignored.
+           */
+          W_CHN("Channel" << getNameSet() << " entry " << cc->entry->getId()
+                          << " has "
+                          << (cc->entry->isEventType() ? "event" : "stream")
+                          << " data, token for " << client->token->getClientId()
+                          << " wants "
+                          << (client->token->getTimeAspect() == Channel::Events
+                                ? "event"
+                                : "stream"));
+        }
       }
     }
-
     else if (client->class_lead != NULL &&
              cc->changetype == EntryConfigurationChange::DeletedEntry) {
 
@@ -1392,9 +1415,8 @@ void UnifiedChannel::codeHead(AmorphStore &s)
 UCClientHandlePtr UnifiedChannel::addReadToken(
   ChannelReadToken *token, const std::string &dataclassname,
   const std::string &entrylabel, entryid_type attach_entry,
-  Channel::EntryTimeAspect time_aspect, Channel::ReadingMode readmode,
-  const UCallbackOrActivity &valid, double requested_span,
-  unsigned requested_depth)
+  Channel::ReadingMode readmode, const UCallbackOrActivity &valid,
+  double requested_span, unsigned requested_depth)
 {
   // create a client handle, with common data
   UCClientHandlePtr handle =

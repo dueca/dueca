@@ -11,7 +11,7 @@
 ;; Creation id is unsigned 32 bit int
 (Type uint32_t "#include <inttypes.h>")
 
-(IterableType entries_list
+(Type entries_list
 "#include <EntryCountResult.hxx>
 #include <varvector.hxx>
 typedef dueca::varvector<dueca::EntryCountResult> entries_list;")

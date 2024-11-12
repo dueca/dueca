@@ -1,7 +1,7 @@
 (Type double)
 (ArraySize VECSIZEE "#include \"vecsizee.hxx\"")
 (Enum TestEnum uint16_t one two three four five)
-(IterableType fixvector<VECSIZEE,double>
+(Type fixvector<VECSIZEE,double>
 "#include \"vecsizee.hxx\"
 #include <fixvector.hxx>")
 

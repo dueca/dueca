@@ -206,6 +206,9 @@ class ChannelReadToken : public GenericToken
   /** How many entries does this token want to deal with? */
   Channel::EntryArity arity;
 
+  /** Is there a restriction on the timing type of the data? */
+  Channel::EntryTimeAspect time_aspect;
+
 public:
   /** Constructor, creates a token and if needed creates the
       associated channel end. First variant, with entry handle as selection.
@@ -421,6 +424,9 @@ public:
                    ChannelDef::ReadAllData or ChannelDef::ReadReservation. */
   bool isSequential() const;
 
+  /** Time aspect of read data */
+  inline Channel::EntryTimeAspect getTimeAspect() const { return time_aspect; }
+
   /** Return the span of the oldest data in the current entry.
       Note that you cannot count on this if reading mode is JumpToMatchTime,
       since the channel may be cleaned in the meantime.
@@ -492,29 +498,28 @@ public:
   */
   unsigned int getNumVisibleSets(const TimeTickType ts = MAX_TIMETICK) const;
 
-    /** Returns the number of data points older than the given,
-for any of the entries read by this token.
+  /** Returns the number of data points older than the given,
+      for any of the entries read by this token.
 
-The returned number of sets may be imprecise, i.e. sets may have
-been added while reading or between calls.
+      The returned number of sets may be imprecise, i.e. sets may have
+      been added while reading or between calls.
 
-If you created the read access with the Channel::JumpToMatchTime
-(either directly, or indirectly because you specified
-Channel::Continuous and Channel::AdaptEventStream), the returned
-number of sets may also reduce, because older data automatically
-gets cleaned. In that case, use a try/catch block when reading.
+      If you created the read access with the Channel::JumpToMatchTime
+      (either directly, or indirectly because you specified
+      Channel::Continuous and Channel::AdaptEventStream), the returned
+      number of sets may also reduce, because older data automatically
+      gets cleaned. In that case, use a try/catch block when reading.
 
-\param ts     Latest time to look for.
-\returns      Number of data points
-*/
+      \param ts     Latest time to look for.
+      \returns      Number of data points
+  */
   inline unsigned int getNumVisibleSets(const DataTimeSpec ts) const
   {
     return getNumVisibleSets(ts.getValidityStart());
   }
 
   /** Returns the number of data points older than the given
-      time. Note that this number may differ per entry, and thus
-      change after a call to getNextEntry().
+      time for the currently selected entry read by this token.
 
       The returned number of sets may be imprecise, i.e. sets may be
       may be added while reading or between calls.
@@ -522,24 +527,25 @@ gets cleaned. In that case, use a try/catch block when reading.
       \param ts     Latest time to look for
       \returns Number of data points
   */
+
   unsigned int
   getNumVisibleSetsInEntry(const TimeTickType ts = MAX_TIMETICK) const;
 
-    /** Returns the number of data points older than the given,
-for any of the entries read by this token.
+  /** Returns the number of data points older than the given time,
+      for the currently selected entry read by this token.
 
-The returned number of sets may be imprecise, i.e. sets may have
-been added while reading or between calls.
+      The returned number of sets may be imprecise, i.e. sets may have
+      been added while reading or between calls.
 
-If you created the read access with the Channel::JumpToMatchTime
-(either directly, or indirectly because you specified
-Channel::Continuous and Channel::AdaptEventStream), the returned
-number of sets may also reduce, because older data automatically
-gets cleaned. In that case, use a try/catch block when reading.
+      If you created the read access with the Channel::JumpToMatchTime
+      (either directly, or indirectly because you specified
+      Channel::Continuous and Channel::AdaptEventStream), the returned
+      number of sets may also reduce, because older data automatically
+      gets cleaned. In that case, use a try/catch block when reading.
 
-\param ts     Latest time to look for.
-\returns      Number of data points
-*/
+      \param ts     Latest time to look for.
+      \returns      Number of data points
+   */
   inline unsigned int getNumVisibleSetsInEntry(const DataTimeSpec ts) const
   {
     return getNumVisibleSetsInEntry(ts.getValidityStart());
@@ -588,7 +594,8 @@ gets cleaned. In that case, use a try/catch block when reading.
 
       This works well with sequential reading. It might still result in
       a NoDataAvailable exception if you try non-sequential read after
-      testing this.
+      testing this, or you try to read for a specific time that has no
+      data present. 
 
       This is more efficient than getNumVisibleSetsInEntry.
 
@@ -641,7 +648,7 @@ gets cleaned. In that case, use a try/catch block when reading.
   /** Different type of access result. */
   enum AccessResult {
     NoData,     /**< cannot find data for requested access (sequential
-     exhausted). */
+exhausted). */
     TimeSkip,   /**< stream data, and there is a gap in the time. */
     DataSuccess /**< packed as requested */
   };

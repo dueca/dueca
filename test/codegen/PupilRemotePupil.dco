@@ -15,7 +15,7 @@
 (Type string8 "#include <dueca/stringoptions.h>")
 
 ;; vector for 2d data
-(IterableType dueca::fixvector<2,float>
+(Type dueca::fixvector<2,float>
               "#include <dueca/fixvector.hxx>")
 
 ;; basic type, for the eye id

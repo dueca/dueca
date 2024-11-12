@@ -7,15 +7,15 @@
 
 (Type double)
 (Type string16 "#include <dueca/stringoptions.h>")
-(IterableType vector6double 
+(Type vector6double 
 	      "
 #include <dueca/fixvector_withdefault.hxx>
 typedef dueca::fixvector_withdefault<6,double,-1> vector6double;")
-(IterableType vector3double 
+(Type vector3double 
 	      "
 #include <dueca/fixvector_withdefault.hxx>
 typedef dueca::fixvector_withdefault<3,double,-1> vector3double;")
-(IterableType matrix44double
+(Type matrix44double
               "
 #include <dueca/fixvector_withdefault.hxx>
 #include <dueca/fixvector.hxx>

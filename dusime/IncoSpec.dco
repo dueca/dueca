@@ -9,7 +9,7 @@
         license         : EUPL-1.2")
 
 (Type NameSet "#include <NameSet.hxx>")
-(IterableType std::vector<IncoVariable>
+(Type std::vector<IncoVariable>
 "#include <vector>
 #include \"IncoVariable.hxx\"")
 

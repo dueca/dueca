@@ -1,5 +1,5 @@
 (Type double )
-(IterableType std::vector<double> "#include <vector>")
+(Type std::vector<double> "#include <vector>")
 
 (Stream Object8
   (Option ScriptCreatable)
