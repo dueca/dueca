@@ -13,7 +13,7 @@ cmake_policy(SET CMP0167 NEW)
 # version information, please update accordingly
 set(VERMAJOR 4)
 set(VERMINOR 1)
-set(REVISION 2)
+set(REVISION 3)
 set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
 set(VERSION_DATE "13 Oct 2024")
