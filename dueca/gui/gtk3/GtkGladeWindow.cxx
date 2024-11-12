@@ -614,7 +614,7 @@ unsigned GtkGladeWindow::setValues(CommObjectReader& dco,
       if (arrformat != NULL) {
         auto ereader = dco[ii]; unsigned idx = 0;
         while (!ereader.isEnd()) {
-          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii), idx);
+          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii), idx++);
           boost::any b; ereader.read(b);
           if (_setValue(gtkid, dco.getMemberName(ii), b, warn)) { nset++; }
         }

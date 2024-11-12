@@ -175,14 +175,17 @@ function(DUECA_ADD_MODULE)
         # add the dependency on the module, so code is generated in the right order
         add_dependencies(${MODULETARGET} "${PRJ}_${MDL}")
 
-	# get the public include directories of this target
-	# get_target_property(TGT_INCLUDES ${PRJ}_${MDL} INCLUDE_DIRECTORIES)
+	      # get the public include directories of this target
+        # TARGET may not be there yet????
+	      #get_target_property(OTHER_INCLUDES ${PRJ}_${MDL} INTERFACE_INCLUDE_DIRECTORIES)
 	
         # extend the include path to the source and generated source of this module
         list(APPEND OTHERMODULE_INCLUDES
           "${CMAKE_SOURCE_DIR}/../${PRJ}/${MDL}"
           "${CMAKE_BINARY_DIR}/${PRJ}/${MDL}"
-	)
+        #  "${OTHER_INCLUDES}"
+	      )
+
 
       else()
         message(STATUS "${MODULENAME} depends on source only ${M}")
@@ -196,13 +199,15 @@ function(DUECA_ADD_MODULE)
   endforeach()
 
   # message(STATUS "ADDMODULE_INCLUDEDIRS ${ADDMODULE_INCLUDEDIRS}")
-  target_include_directories(${MODULETARGET} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
+  target_include_directories(${MODULETARGET}
+    PRIVATE
+    ${ADDMODULE_INCLUDEDIRS}
     ${PROJECT_INCLUDE_DIRS}
     ${OTHERMODULE_INCLUDES}
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${ADDMODULE_INCLUDEDIRS_PUBLIC}
-    PRIVATE ${ADDMODULE_INCLUDEDIRS}
     )
 
   # all module targets in parent scope
