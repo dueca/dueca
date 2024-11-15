@@ -208,7 +208,7 @@ class ConditionAnd(ComplexCondition):
 
         for c in self.subconditions:
             res, mot, _nv = c.holds(**kwargs, **newvars)
-            _res = _res and anyTrue(res)
+            _res = _res and bool(res)
 
             newvars.update(_nv)
             motivation.extend(mot)
