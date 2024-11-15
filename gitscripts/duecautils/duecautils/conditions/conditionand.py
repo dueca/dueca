@@ -9,7 +9,7 @@ Created on Tue Aug 10 15:47:33 2021
 from .policycondition import ComplexCondition, PolicyCondition
 from ..xmlutil import XML_interpret_bool
 from ..verboseprint import dprint
-from ..matchreference import MatchReference
+from ..matchreference import MatchReference, anyTrue
 import itertools
 import copy
 from collections import defaultdict
@@ -187,16 +187,16 @@ class ConditionAnd(ComplexCondition):
 
         """
         _match = str(_match)
-        self.matchelts = list(map(str.strip, _match.split(',')))
+        self.matchelts = (_match and list(map(str.strip, _match.split(',')))) or []
         self.resultelts = {}
         if 'resultvar' in kwargs:
             self.resultvar = str(kwargs['resultvar'])
         else:
             self.resultvar = None
         for key, val in kwargs.items():
-            if key.startswith('result-'):
+            if key.startswith('result_'):
                 dprint(f"result element {key}, value {val}")
-                self.resultelts[key[len('result-'):]] = str(val).strip()
+                self.resultelts[key[len('result_'):]] = str(val).strip()
         self.trim = XML_interpret_bool(str(kwargs.get('trim', 'false')))
         super(ConditionAnd, self).__init__(**kwargs)
 
@@ -208,7 +208,7 @@ class ConditionAnd(ComplexCondition):
 
         for c in self.subconditions:
             res, mot, _nv = c.holds(**kwargs, **newvars)
-            _res = _res and bool(res)
+            _res = _res and anyTrue(res)
 
             newvars.update(_nv)
             motivation.extend(mot)
