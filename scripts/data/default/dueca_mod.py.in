@@ -1,5 +1,5 @@
 ## -*-python-*-
-## dueca.cnf: created with DUECA version @dueca-version@
+## dueca_mod.py: created with DUECA version @dueca-version@
 ## Created on: @date@
 
 ## this is an example dueca_mod.py file, for you to start out with and adapt
@@ -36,7 +36,7 @@ sim_priority = dueca.PrioritySpec(2, 0)
 # priority of the stick. Higher than prio of communication
 # stick_priority = dueca.PrioritySpec(4, 0)
 
-# timing set-up
+## timing set-up
 
 # simulation process, this is normally 100, giving 100 Hz timing
 sim_timing = dueca.TimeSpec(0, 100)
@@ -92,13 +92,16 @@ if this_node_id == ecs_node:
     DUECA_entity = dueca.Entity("dueca", DUECA_mods)
 
 ## ---------------------------------------------------------------------
-# modules for your project (example)
+# modules for your project
 mymods = []
 
-## [modules] modules to be created in each node
+## [modules] modules to be created in node 0 ("ecs")
 if this_node_id == ecs_node:
 
+    # placeholder when no modules are defined, remove if desired
     pass
+
+    # Uncomment and adapt to include your modules for the "ecs" node
     #mymods.append(dueca.Module(
     #    "some-module-i-created", "", sim_priority).param(
     #        set_timing = sim_timing,
@@ -132,10 +135,13 @@ if this_node_id == ecs_node:
     #                            "MyData", "/data/mydata"))))
     #     )
 
-# etc, each node can have modules in its mymods list
-
     # add a filer in this node for replay support
     # filer = dueca.ReplayFiler(entity_name)
+
+# [modules] fill mymods for any other nodes
+# if this_node_id == some_other_node:
+#    mymods.append(dueca.Module(
+# etc.
 
 # then combine in an entity
 if mymods:
