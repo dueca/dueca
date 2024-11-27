@@ -23,5 +23,3 @@
 ;;       ;; optional member description
 ;;       <member> [ = <num> (optional) ])              -> enum types
 ;; (EnumClass +same as above )                         -> class enum types
-;; (IterableType <typename> "include/c++ commands")    -> iterable
-;; (IterableVarSizeType <typename> "include ..")       -> it, variable size

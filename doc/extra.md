@@ -1,6 +1,4 @@
-/**
-
-\page extra Additional utilities
+#  Additional utilities {#extra}
 
 As simulations are developed with DUECA and DUSIME, additional
 tools for simulations will be developed, and once these tools are made
@@ -10,7 +8,7 @@ they can be seen as separate from the communication and activation
 tools offered by DUECA. This documentation section is a sort of
 gathering of such tools.
 
-\section extra_opengl Facilitiating OpenGL drawing
+##  Facilitiating OpenGL drawing {#extra_opengl}
 
 To facilitate OpenGL drawing, a class dueca::DuecaGLWindow has been
 developed. The common use for modules that want to have GL output, for
@@ -29,13 +27,13 @@ GlutSweeper. This is a dueca module that takes care of glut
 initialisation, and ensures that an update is called after you
 requested a redraw for your window(s).
 
-\section extra_random Random number generator
+##  Random number generator {#extra_random}
 
 The function dueca::randNormal() provides a random generator for
 random numbers with a normal (Gaussian) distribution and a standard
 deviation of 1.
 
-\section extra_gtk Gtk+ experiment windows.
+##  Gtk+ experiment windows. {#extra_gtk}
 
 The class dueca::GtkGladeWindow can create an experiment window
 directly from a file created with glade, a GUI creation tool. By using
@@ -43,13 +41,13 @@ a table with callback functions, of type dueca::GladeCallbackTable,
 you can easily connect the actions from the widgets to a C++ class
 handling the interface.
 
-\section extra_interpolation Interpolation facilities.
+##  Interpolation facilities {#extra_interpolation}
 
 Linear table interpolation for tables up to four dimensions is
 available from the dueca::Interpolator1, dueca::Interpolator2,
 dueca::Interpolator3 and dueca::Interpolator4 classes.
 
-\section extra_rigidbody Rigid body motions.
+##  Rigid body motions {#extra_rigidbody}
 
 A RigidBody class provides the basis for implementing the dynamics of
 a single rigid body. One can make a derived class, in which the forces
@@ -59,60 +57,56 @@ routines dueca::integrate_euler() or dueca::integrate_rungekutta() ,
 the combination may be integrated numerically. These integration
 function templates can also be used separately.
 
-\section extra_linearsystem Linear system simulation.
+##  Linear system simulation {#extra_linearsystem}
 
 dueca::LinearSystem is a class for calculating linear system
 responses. It accepts the linear system as a continuous-time transfer
 function or state-space system. The variant dueca::LimitedLinearSystem
 implements a linear system with limiter.
 
-\section extra_io Hardware input and output.
+##  Hardware input and output {#extra_io}
 
 For converting and calibrating signals that go to and from hardware
 (AD and DA converters, and the like), and possibly for other things as
 well, a set of classes has been defined:
-<ul>
 
-<li> dueca::SingletonPointer, can be used to ensure only one instance of a
-hardware controlling class is created.
+- dueca::SingletonPointer, can be used to ensure only one instance of a
+  hardware controlling class is created.
 
-<li> dueca::OutputCalibrator, for calculating integer output signals from a
-floating point value put in.
+- dueca::OutputCalibrator, for calculating integer output signals from a
+  floating point value put in.
 
-<li> dueca::InputCalibrator, for doing the reverse.
+- dueca::InputCalibrator, for doing the reverse.
 
-<li> dueca::Polynomial and dueca::PolynomialN, for implementing a
-calibration polynomial.
+- dueca::Polynomial and dueca::PolynomialN, for implementing a
+  calibration polynomial.
 
-<li> dueca::Steps and dueca::StepsN, for implementing a stepping
-output, e.g. for reading flap selections in complete increments.
+- dueca::Steps and dueca::StepsN, for implementing a stepping
+  output, e.g. for reading flap selections in complete increments.
 
-<li> dueca::Circular and dueca::CircularWithPoly, for implementing a
-conversion for circular (e.g. synchro) values.
+- dueca::Circular and dueca::CircularWithPoly, for implementing a
+  conversion for circular (e.g. synchro) values.
 
-<li> dueca::Inverse, for implementing an inverting (division) conversion, e.g. from interval time to rate.
+- dueca::Inverse, for implementing an inverting (division) conversion, e.g. from interval time to rate.
 
-<li> dueca::InputRatioCalibrator, for calculating an value as a ratio with, e.g., a reference voltage.
+- dueca::InputRatioCalibrator, for calculating an value as a ratio with, e.g., a reference voltage.
 
-</ul>
-
-@section extra_findfiles Finding files
+##  Finding files {#extra_findfiles}
 
 The class dueca::FindFiles creates a vector of file names matching a glob patter.
 
-@section extra_uniquefile Creating a new unique file
+##  Creating a new unique file {#extra_uniquefile}
 
 The class dueca::UniqueFile creates a numbered, unique file name based on a
 specified format string.
 
-@section extra_factory Conglomerate/distributed factory
+##  Conglomerate/distributed factory {#extra_factory}
 
 The templated class dueca::ConglomerateFactory implements an extensible
 factory pattern. This is used in for example the WorldView project to create
 families of graphical objects.
 
-@section extra_axis Axis transformations
+##  Axis transformations {#extra_axis}
 
 The file AxisTransforms.hxx contains objects for common axis transformations.
 
-*/

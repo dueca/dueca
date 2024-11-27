@@ -9,18 +9,18 @@
 (Type double)
 (Type std::string "#include <string>")
 (Type string16 "#include <dueca/stringoptions.h>")
-(IterableType std::list<PupilRemotePupil>
+(Type std::list<PupilRemotePupil>
               "// pupil datum list
 #include \"PupilRemotePupil.hxx\"
 #include <list>")
-(IterableType bincoordinates
+(Type bincoordinates
       "// gaze normals and eye center coordinates
 #include <map>
 #include <dueca/fixvector.hxx>
 typedef std::map<std::string,dueca::fixvector<3,float> > bincoordinates;")
-(IterableType dueca::fixvector<3,float>
-              "#include <dueca/fixvector.hxx>")
-(IterableType dueca::fixvector<2,float>
+(Type dueca::fixvector<3,float>
+             "#include <dueca/fixvector.hxx>")
+(Type dueca::fixvector<2,float>
               "#include <dueca/fixvector.hxx>")
 (Type int32_t)
 

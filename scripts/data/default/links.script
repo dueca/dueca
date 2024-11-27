@@ -20,6 +20,21 @@ else
    ln -sf ../../../dueca_run.x .
 fi
 
+# run script, if desired
+RUNSCRIPT=0
+# files you want kept with the run results, e.g. logs
+MOVEFILES=""
+# files you want copies with the run results, e.g. config file
+COPYFILES="dueca_mod.py"
+if [ \! -x runscript -a ${RUNSCRIPT} = "1" ]; then
+    cat >runscript <<EOF
+#!/usr/bin/bash
+dueca-archivelogfiles "$MOVEFILES" "$COPYFILES"
+./dueca_run.x
+EOF
+    chmod +x runscript
+fi
+
 # active only on node 0, when a start file is found, link the start
 # file to a start script folder (default ${HOME}/scripts)
 dueca-startlink --scriptdir=${HOME}/scripts

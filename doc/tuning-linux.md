@@ -504,6 +504,8 @@ And in xorg, in the InputDevice, add:
 This description on sound tuning is not yet complete. Here, we assume an
 Ubuntu 20.04 or 22.04 workstation. Sound is controlled over pulseaudio.
 
+Add the simulation user to the groups `audio` and `pulse-access`.
+
 To detect which hardware devices are seen by the operating system, check
 first with the ALSA facility aplay:
 
@@ -533,9 +535,14 @@ journalctl log, and there is no bluetooth device to configure, run:
 
     sudo apt-get remove --auto-remove pulseaudio-module-bluetooth
 
+### The following may not be needed
+
+First try to auto-start the pulseaudio daemon for the user. It will start 
+automatically once you try to access the audio (pactl). Have all lines in 
+`/etc/pulse/client.conf` commented out.
 
 Since the dueca process is run over an ssh login -- unless you are
-running node 0 on the desktop you are starting from -- it is better to
+running node 0 on the desktop you are starting from -- it may also be needed to
 run the pulseaudio as a system service, use
 [this configuration]
 (https://github.com/shivasiddharth/PulseAudio-System-Wide)
@@ -556,12 +563,12 @@ Reboot if needed, verify that there is only one pulseaudio daemon running;
 
 Further instructions (setting group membership!) [here](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/)
 
-Add the simulation user to the groups `audio` and `pulse-access`.
-
 Selecting specific cards, if needed, at
 https://unix.stackexchange.com/questions/473846/how-does-pulseaudio-determine-which-alsa-devices-to-make-available-or-not
 
 This requires a reboot before it works.
+
+As a note to future tweakers, audio services are moving to `pipewire`.
 
 ## Bluetooth devices
 

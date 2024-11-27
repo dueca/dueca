@@ -1,6 +1,6 @@
 (Type double)
 (ArraySize VECSIZE "#include \"vecsize.hxx\"")
-(IterableType fixvector<VECSIZE,double>
+(Type fixvector<VECSIZE,double>
 "#include \"vecsize.hxx\"
 #include <fixvector.hxx>")
 

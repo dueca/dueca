@@ -65,7 +65,7 @@ class ActionInsertText(PolicyAction):
     def enact(self, p_path, **kwargs):
 
         todo = [ td for td in kwargs[str(self.matchvar)] if td.value ]
-        doubleFile(kwargs[str(self.matchvar)], self.matchvar)
+        doubleFile(todo, self.matchvar)
         res = []
         files = []
         text = self.text

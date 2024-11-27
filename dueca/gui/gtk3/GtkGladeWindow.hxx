@@ -591,10 +591,20 @@ bool GtkGladeWindow::loadComboText(const char* name, const T& values)
 {
   GObject *o = getObject(name);
   if (o == NULL) {
+    /* DUECA graphics.
+
+       You are trying to load options into a GTK widget, but the
+       widget cannot be found. Check the widget name and ui file.
+     */
     W_XTR("GtkGladeWindow::loadComboText: Could not find gtk object with id \"" << name << "\"");
     return false;
   }
   if (!GTK_IS_COMBO_BOX(o)) {
+    /* DUECA graphics.
+
+       Cannot load text options into the given widget, it is not a
+       combo box.
+    */
     W_XTR("GtkGladeWindow::loadComboText: Cannot fill options, object not a ComboBox \""
 	    << name << '"');
       return false;
@@ -606,6 +616,10 @@ bool GtkGladeWindow::loadComboText(const char* name, const T& values)
   }
   GtkListStore* store = GTK_LIST_STORE(treemodel);
   if (store == NULL ) {
+    /* DUECA graphics.
+
+       Supply a compatible store in the UI.
+     */
     W_XTR("GtkGladeWindow::loadComboText: ComboBox object \"" << name
 	        << "\", store is not compatible");
     return false;

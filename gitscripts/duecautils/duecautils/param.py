@@ -20,7 +20,7 @@ class Param:
             self.name = 'anon'
             return
 
-        self.name = par.get('name')
+        self.name = par.get('name').replace('-', '_')
         _regex = par.get('regex', False)
         self.format = par.get('format', False)
         pstrip = par.get('strip', (_regex and 'both') or default_strip)

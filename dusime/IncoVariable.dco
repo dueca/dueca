@@ -12,7 +12,7 @@
 (Type string32 "#include <stringoptions.h>")
 (Type double)
 (Enum IncoVarType uint8_t "#include \"IncoVarType.hxx\"")
-(IterableType std::map<IncoMode,IncoRole>
+(Type std::map<IncoMode,IncoRole>
 "#include <map>
 #include \"IncoMode.hxx\"
 #include \"IncoRole.hxx\"

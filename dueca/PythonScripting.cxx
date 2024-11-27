@@ -18,7 +18,6 @@
 #include <dueca/debug.h>
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
-#include <algorithm>
 #include <fstream>
 #include <dueca-conf.h>
 #include <boost/python/module.hpp>
@@ -49,7 +48,13 @@ BOOST_PYTHON_MODULE(dueca)
 
   DEB("Python initialized=" << Py_IsInitialized());
 #ifdef DEBDEF
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 13
+  PyObject *sysmod = PyImport_ImportModule("sys");
+  PyObject *fullpath = PyObject_GetAttrString(sysmod, "executable");
+  std::cout << "program name " << PyUnicode_AsUTF8String(fullpath) << std::endl;
+#else
   std::wcout << L"program name " << Py_GetProgramFullPath() << std::endl;
+#endif
 #endif
   //  bpy::object inheritance_exception =
   //  bpy::import("exceptions").attr("RunTimeError");
@@ -102,7 +107,7 @@ BOOST_PYTHON_MODULE(dueca)
 
 #if PY_MAJOR_VERSION >= 3
 // according to docs, in static storage
-static wchar_t programname[256] = { 0 };
+// static wchar_t programname[256] = { 0 };
 #else
 #warning "Python 2 is obsolete!"
 #endif
@@ -164,10 +169,10 @@ void PythonScripting::initiate()
     }
 
     // start python interpreter
-#if PY_MAJOR_VERSION >= 3
-    swprintf(programname, 255, L"%hs", *p_argv[0]);
-    Py_SetProgramName(programname);
-#else
+#if PY_MAJOR_VERSION >= 3 && (PY_MINOR_VERSION < 11)
+    wchar_t *program = Py_DecodeLocale(*p_argv[0], NULL);
+    Py_SetProgramName(program);
+#elif PY_MAJOR_VERSION < 3
     Py_SetProgramName(*p_argv[0]);
 #endif
 
@@ -176,11 +181,22 @@ void PythonScripting::initiate()
     PyConfig_InitPythonConfig(&config);
     config.isolated = 1;
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    wchar_t *program = Py_DecodeLocale(*p_argv[0], NULL);
+    stat = PyConfig_SetString(&config, &config.program_name, program);
+    if (PyStatus_Exception(stat)) {
+      /* DUECA scripting.
+
+	       Error status returned from the Python init call.
+      */
+      E_CNF("Cannot properly set program name " << stat.err_msg);
+    }
+#endif
     stat = Py_InitializeFromConfig(&config);
     if (PyStatus_IsError(stat)) {
       /* DUECA scripting.
 
-	 Error status returned from the Python init call.
+	       Error status returned from the Python init call.
       */
       E_CNF("Error status from python init " << stat.err_msg);
     }

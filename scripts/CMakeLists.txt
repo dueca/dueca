@@ -6,7 +6,7 @@ set(PYSCRIPTS new-module dueca-filtmods dueca-listdco
 
 set(BINSCRIPTS clean-dueca-rundir makemycvsdir moveandnumber
 rrunduecaXxf rrundueca rrunduecaX rrunduecaXmwm
-rrunduecaXfvwm dueca-copy-project)
+rrunduecaXfvwm dueca-copy-project dueca-archivelogfiles)
 
 set(PYAUX CVS.py daux.py modules.py commobjects.py)
 

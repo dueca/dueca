@@ -149,6 +149,14 @@ inline bool isSequentialRead(const Channel::ReadingMode& m,
 { if (m == Channel::AdaptEventStream) return eventtype;
   return m == Channel::ReadAllData || m == Channel::ReadReservation; }
 
+/** Determine if client reading mode is compatible with the entry nature */
+inline bool areClientAndEntryTimingCompatible(const Channel::EntryTimeAspect& m,
+                                              bool entryisevent)
+{
+  return (m == Channel::AnyTimeAspect) ||
+    (m == Channel::Events && entryisevent) ||
+    (m == Channel::Continuous && !entryisevent);
+}
 /** Convenience function, returns true if the arity option is valid
     for read tokens. */
 inline bool isValidReadTokenOption(const Channel::EntryArity& a)

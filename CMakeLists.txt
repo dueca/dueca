@@ -7,10 +7,23 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-if (POLICY CMP0075)
-  message(STATUS "New policy CMP0075")
-  cmake_policy(SET CMP0075 NEW)
-endif()
+cmake_policy(SET CMP0057 NEW)
+cmake_policy(SET CMP0075 NEW)
+cmake_policy(SET CMP0167 NEW)
+
+# version information, please update accordingly
+set(VERMAJOR 4)
+set(VERMINOR 1)
+set(REVISION 3)
+set(GENCODEGEN 111)
+set(SOVERSION "${VERMAJOR}.${VERMINOR}")
+set(VERSION_DATE "13 Nov 2024")
+string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
+set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
+
+string(REGEX REPLACE "^.* ([0-9]+)$" "\\1"
+  VERSION_YEAR "${VERSION_DATE}")
+project(dueca VERSION "${VERMAJOR}.${VERMINOR}.${REVISION}")
 
 # CXX and C
 enable_language(C)
@@ -18,20 +31,6 @@ enable_language(CXX)
 
 # gnu install dirs
 include(GNUInstallDirs)
-
-# version information, please update accordingly
-set(VERMAJOR 4)
-set(VERMINOR 1)
-set(REVISION 2)
-set(GENCODEGEN 111)
-set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "13 Oct 2024")
-string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
-set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
-
-string(REGEX REPLACE "^.* ([0-9]+)$" "\\1"
-  VERSION_YEAR "${VERSION_DATE}")
-project(dueca VERSION "${VERMAJOR}.${VERMINOR}.${REVISION}")
 
 # include custom find code
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -546,8 +545,9 @@ if (SCRIPT_PYTHON)
     find_library(BPLIB
 
       NAMES
-      boost_python312 boost_python311 boost_python310
+      boost_python313 boost_python312 boost_python311 boost_python310
       boost_python39 boost_python38 boost_python37
+      boost_python-py313
       boost_python-py312 boost_python-py311  boost_python-py310
       boost_python-py39 boost_python-py38  boost_python-py37 boost_python-py36
       boost_python3  boost_python-py3

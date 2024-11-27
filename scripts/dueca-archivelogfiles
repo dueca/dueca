@@ -1,0 +1,97 @@
+#!/usr/bin/bash
+
+# Possible logfiles, in their order of creation
+LOGFILES="
+normal.log
+error.log
+dueca.objects
+dueca.channels
+dueca.activitylog
+dueca.activities
+dueca.channelreadinfo
+dueca.channelwriteinfo
+dueca.timinglog
+dueca.messagelog
+dueca.netload
+dueca.nettiming
+"
+
+EXTRAMOVE=${1}
+EXTRACOPY=${2}
+
+usage() {
+    echo "$0"
+    echo "Looks for dueca log files, and saves these under their creation"
+    echo "date and time in the folder runlogs"
+}
+
+# create folder runlogs if it does not yet exist
+test -d runlogs || mkdir runlogs
+
+# don't know CTIME yes
+CTIME=
+CSECONDS=
+
+# run through all files, first one will determine creation time
+for F in $LOGFILES; do
+
+    # files may not always be there
+    if [ -f $F ]; then
+
+        # get creation time in seconds
+        BIRTH=$(stat -c "%W" ${F})
+        if [ $BIRTH = "0" ]; then
+            BIRTH=$(stat -c "%X")
+            echo "Warning, could not determine creation time of $F"
+        fi
+
+        # if the first, assume this for the DUECA run time
+        if [ -z "$CSECONDS" ]; then
+            CSECONDS=$BIRTH
+
+            # get creation time as string
+            CTIME=$(stat -c "%w" ${F})
+            if [ "$CTIME" = "-" ]; then
+                CTIME=$(stat -c "%x" ${F})
+            fi
+
+            # trim
+            CTIME=$(echo ${CTIME} | cut --delimiter="." -f 1 | tr " " "_")
+ 
+            # folder for the results
+            mkdir runlogs/${CTIME}
+        fi
+
+
+        # anything created within a minute is assumed to be for the same run
+        if [ ${BIRTH} -le $((CSECONDS + 60)) -a $((BIRTH + 60)) -gt ${CSECONDS} ]; then
+            mv $F runlogs/${CTIME}
+        else
+            echo "File $F seems to be from a different time than ${CTIME}"
+        fi
+    
+    fi
+
+done
+
+# exit if no log files
+if [ -n "$CTIME" ]; then
+    echo "Moving/copying previous run files to runlogs/$CTIME"
+else
+    echo "No log files found"
+    exit 0
+fi
+
+# extra matching files are all moved, may include globs?
+for F in ${EXTRAMOVE}; do
+    if compgen -G "$F" >/dev/null; then
+        mv $F runlogs/${CTIME}
+    fi
+done
+
+# other files are copied may include globs?
+for F in ${EXTRACOPY}; do
+    if compgen -G "$F" >/dev/null; then
+        cp $F runlogs/${CTIME}
+    fi
+done

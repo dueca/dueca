@@ -147,8 +147,8 @@ class ConditionOr(ComplexCondition):
         self.matchelts = list(map(str.strip, _match.split(',')))
         self.resultelts = {}
         for key, arg in kwargs.items():
-            if key.startswith('result-'):
-                self.resultelts[key[len('result-'):]] = arg.value().strip()
+            if key.startswith('result_'):
+                self.resultelts[key[len('result_'):]] = arg.value().strip()
         if 'resultvar' in kwargs:
             self.resultvar = str(kwargs['resultvar'])
         else:

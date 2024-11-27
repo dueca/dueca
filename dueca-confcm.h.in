@@ -164,7 +164,7 @@
 #cmakedefine HAVE_SELECT
 
 /* Define to 1 if you have the <setjmp.h> header file. */
-#cmakedefine HAVE_SETJMP_H
+// #cmakedefine HAVE_SETJMP_H
 
 /* Define to 1 if you have the `setuid' function. */
 #cmakedefine HAVE_SETUID
@@ -173,7 +173,7 @@
 #cmakedefine HAVE_SIGNAL_H
 
 /* Define to 1 if you have the `socket' function. */
-#cmakedefine HAVE_SOCKET
+// #cmakedefine HAVE_SOCKET
 
 /* Define if you have and want to use the sstream library */
 #cmakedefine HAVE_SSTREAM

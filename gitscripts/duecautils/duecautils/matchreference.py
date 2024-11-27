@@ -173,7 +173,7 @@ def trimList(l: list):
 def anyTrue(l: list):
     res = False
     for e in l:
-        res = res or l.value
+        res = res or e.value
     return res
 
 def doubleFile(l: list, varname):

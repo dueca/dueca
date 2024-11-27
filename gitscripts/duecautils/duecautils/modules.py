@@ -117,6 +117,9 @@ class RootMap(dict):
         self.prjname = url.split('/')[-1][:-4]
         self.projecturl = url
 
+    def setProjectName(self, name: str):
+        self.prjname = name
+
     def urlToAbsolute(self, url):
         """
         Convert a shorthand url to longhand form.
@@ -204,7 +207,11 @@ class ProjectRepo(git.Repo):
             cls.instance.projectdir = pdir
             cls.instance.project = pname
             cls.instance.repo = git.Repo.init(pdir)
-            RootMap().addProjectRemote(cls.instance.repo.remotes.origin.url)
+            try:
+                RootMap().addProjectRemote(cls.instance.repo.remotes.origin.url)
+            except AttributeError:
+                # probably no origin/remote
+                RootMap().setProjectName(pname)
 
         return cls.instance
 
@@ -368,7 +375,11 @@ class Project:
             self.name = None
 
             if self.xmlnode.get("main", False):
-                self.url = RootMap().projecturl
+                try:
+                    self.url = RootMap().projecturl
+                except AttributeError:
+                    self.name = RootMap().prjname
+                    self.url = ''
 
             for elt in self.xmlnode:
 
@@ -390,7 +401,7 @@ class Project:
 
             if self.url is None:
                 raise ValueError("Need <url> tag in <project>")
-            else:
+            elif getattr(self, 'name', None) is None:
                 self.name = projectSplit(self.url)[1]
 
         except Exception as e:

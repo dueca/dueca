@@ -490,7 +490,6 @@ public:
                                  const std::string& dataclassname,
                                  const std::string& entrylabel,
                                  entryid_type attach_entry,
-                                 Channel::EntryTimeAspect time_aspect,
                                  Channel::ReadingMode readmode,
                                  const UCallbackOrActivity& valid,
                                  double requested_span,

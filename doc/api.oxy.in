@@ -13,8 +13,8 @@ INPUT = mainpage-api.md \
         @CMAKE_CURRENT_SOURCE_DIR@/configuration.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/simulink.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/matlabcoder.doc \
-        @CMAKE_CURRENT_SOURCE_DIR@/codegenerator.doc \
-        @CMAKE_CURRENT_SOURCE_DIR@/extra.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/codegenerator.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/extra.md \
         @CMAKE_CURRENT_SOURCE_DIR@/primarycontrols.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/faq.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/configuration-ref.doc \

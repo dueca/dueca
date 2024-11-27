@@ -24,16 +24,16 @@ dueca.netload
 dueca.nettiming
 "
 
-for f in $LOGFILES; do
-    moveandnumber $f
-done
+dueca-archivelogfiles
 
-# remove junk that might be in the way
+# remove junk that might still be in the way
 rm -f dueca.scratch $LOGFILES
 
 # start up clean, no window manager
 if test -z "$2"; then
-    if [ -x ../../../build/dueca_run.x ]; then
+    if [ -x ./dueca_run.x ]; then
+        DUECA_EXECUTABLE=./dueca_run.x
+    elif [ -x ../../../build/dueca_run.x ]; then
         DUECA_EXECUTABLE=../../../build/dueca_run.x
     elif [ -x ../../../dueca_run.x ]; then
         DUECA_EXECUTABLE=../../../dueca_run.x

@@ -10,6 +10,7 @@
         copyright       : (c) 2022 René van Paassen
         license         : EUPL-1.2
 */
+
 };
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -153,9 +154,9 @@ Snapshot::Snapshot(const toml::value& coded)
 
 toml::value Snapshot::tomlCode(const std::string& fname) const
 {
-  toml::value result {
+  toml::table result {
       {"coding", getString(coding)},
-      {"origin", originator.name} };
+      {"origin", std::string(originator.name)} };
 
   assert (coding < BinaryFile || fname.size() > 0);
 
