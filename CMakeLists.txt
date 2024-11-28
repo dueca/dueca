@@ -7,9 +7,15 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-cmake_policy(SET CMP0057 NEW)
-cmake_policy(SET CMP0075 NEW)
-cmake_policy(SET CMP0167 NEW)
+# set preferred policies
+foreach(P CMP0057 CMP0075 CMP0167)
+  if (POLICY ${P})
+    message(STATUS "Selecting NEW for policy ${P}")
+    cmake_policy(SET ${P} NEW)
+  else()
+    message(STATUS "Policy ${P} not known in this CMake")
+  endif()
+endforeach()
 
 # version information, please update accordingly
 set(VERMAJOR 4)
