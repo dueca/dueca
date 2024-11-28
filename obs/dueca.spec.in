@@ -498,6 +498,7 @@ getent group rtdueca || groupadd rtdueca
 # run scripts
 %{_bindir}/moveandnumber
 %{_bindir}/clean-dueca-rundir
+%{_bindir}/dueca-archivelogfiles
 %{_bindir}/rrundueca
 %{_bindir}/rrunduecaX
 %{_bindir}/rrunduecaXmwm
