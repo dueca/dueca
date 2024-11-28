@@ -44,7 +44,6 @@ BuildRequires: lsb-release
 BuildRequires: msgpack-devel
 BuildRequires: python3-pip
 BuildRequires: python3-jinja2
-BuildRequires: python3-build
 
 %if 0%{?is_opensuse} && 0%{?sle_version} >= 150500
 BuildRequires: guile-devel
