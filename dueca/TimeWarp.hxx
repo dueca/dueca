@@ -30,8 +30,9 @@ DUECA_NS_START
 
     \code
     // make a 'permanent' time warp (element of your class, or with
-    // 'new'
-    TimeWarp* tw = new TimeWarp(Ticker::single(), 20);
+    // 'new', assuming that `span` defines the time span (integer ticks)
+    // of your model updates:
+    TimeWarp* tw = new TimeWarp(Ticker::single(), span);
     my_activity.setTrigger(*tw);
     \endcode
 
@@ -44,22 +45,75 @@ DUECA_NS_START
     (logical) future, the channel will not yet be filled with data
     from the time span you are referring to, and if you warp too much
     into the past, a stream channel may have run out of data.
+
+    Another use-case is in breaking a logical loop. Suppose you create
+    a controller (autopilot) for your aircraft model. The controller
+    uses the data from the input channel, let's call it `ac://u`, and
+    the data from the output channel for the aircraft, `ac://y`. You
+    need to combine the input at time `t`, with the output from one time
+    step back, at `t - span`. Create a TimeWarp for the output channel:
+
+    @code
+    TimeWarp* tw = new TimeWarp(r_ac_y, span);
+    my_activity.setTrigger(*tw && r_ac_u);
+    @endcode
+
+    Whenever the output channel is written for a time `t`, it will now
+    trigger your autopilot for a time `t + span`. As soon as the control
+    input for that time is also available, your autopilot will be
+    triggered.
+
+    Now there is a snag with this set-up. When the model is started at
+    a time `t0`, there will be no output data from the aircraft model
+    for time `(t0 - span, t0)`, which would be used by your timewarp
+    to trigger the autopilot for `(t0, t0 + span)`. You can fix this by
+    adding a manual TriggerPuller and running that one for
+    `(t0, t0 + span)`. The manual puller is 'or-ed' with the timewarp.
+
+    @code
+    InitPuller* ipull = new ManualTriggerPuller("start-up puller");
+    TimeWarp* tw = new TimeWarp(r_ac_y, span);
+    my_activity.setTrigger((*tw || *ipull) && r_ac_u);
+    @endcode
+
+    When you start your module's activities, provide the activation for
+    the first round. Note also that you won't find data in the `r_ac_y`
+    channel for that time, so make sure you catch the exception that
+    results, and perform appropriately.
+
+    @code
+    MyModule::startModule(const TimeSpec &time)
+    {
+      do_calc.switchOn(time);
+      ipull->pull(DataTimeSpec(time.getValidityStart(),
+                  time.getValidityStart() + span));
+    }
+    @endcode
+
+    Another option would be to modify your aircraft simulation code, and
+    provide (dummy) data on the output channel for the span just
+    before the start time. It might be more efficient, but it also
+    requires a code modification in a module that is not related to the
+    autopilot module.
+
+    Note that in the examples given above, the TimeWarp and
+    ManualTriggerPuller were created with `new`. You can of course also
+    create these as members of your module class.
 */
 
-
-class TimeWarp:  public TargetAndPuller
+class TimeWarp : public TargetAndPuller
 {
 private:
   /** Offset in time. */
   int warp_time;
 
   /** Copying is not permitted. */
-  TimeWarp(const TimeWarp&);
+  TimeWarp(const TimeWarp &);
 
   /** Trigger the warp. It in turn triggers its target, with a warped time
       \param t   Triggering time
       \param idx Index of the puller. */
-  void trigger(const DataTimeSpec& t, unsigned idx) override;
+  void trigger(const DataTimeSpec &t, unsigned idx) override;
 
 public:
   /** Constructor.
@@ -70,17 +124,17 @@ public:
                     "logically" later, negative means it becomes
                     locigally earlier.
   */
-  TimeWarp(TriggerPuller& base, int warp = 0);
+  TimeWarp(TriggerPuller &base, int warp = 0);
 
   /** Destructor. */
   virtual ~TimeWarp();
 
   /** Change the warp time. */
-  inline void warpTime(int w2) {warp_time = w2;}
+  inline void warpTime(int w2) { warp_time = w2; }
 
   /** Targets are usually "living" objects. To find them, use
       getName() */
-  virtual const std::string& getTargetName() const override;
+  virtual const std::string &getTargetName() const override;
 
 private:
   /** adjust the name */

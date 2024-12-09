@@ -85,6 +85,7 @@ set(DUECASOURCES
   EasyId.cxx EasyId.hxx InformationStash.cxx
   UCEntryConfigurationChange.hxx UCEntryConfigurationChange.cxx
   UCallbackOrActivity.hxx UCallbackOrActivity.cxx
+  ManualTriggerPuller.hxx ManualTriggerPuller.cxx
   )
 
 
@@ -171,6 +172,7 @@ set(INSTALLHEADERS
   msgpack-unstream-iter.hxx msgpack-unstream-iter.ixx
   ListElementAllocator.hxx DCOtypeJSON.hxx undebug.h
   AssociateObject.hxx EasyId.hxx dcoprint.hxx fix_optional.hxx
+  ManualTriggerPuller.hxx
 )
 # fix_optional.hxx
 
