@@ -1,16 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0"/>
-  <object class="GtkListStore" id="activitylist">
-    <columns>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-    </columns>
-  </object>
+  <requires lib="gtk" version="4.0" />
   <object class="GtkAdjustment" id="adjustment_recordspan">
     <property name="lower">0.01</property>
     <property name="upper">2</property>
@@ -29,23 +19,30 @@
     <property name="upper">0.20</property>
     <property name="step-increment">0.001</property>
     <property name="page-increment">0.01</property>
+    <property name="page-size">0.1</property>
   </object>
   <object class="GtkWindow" id="activity_view">
     <property name="title" translatable="1">Activity View</property>
     <property name="child">
       <object class="GtkBox" id="box1">
+        <style>
+          <class name="toolbar"/>
+        </style>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox" id="toolbar2">
-            <property name="valign">center</property>
-            <property name="css-classes">toolbar</property>
-            <property name="can-focus">0</property>
+          <object class="GtkGrid">
+          <property name="row-spacing">0</property>
             <child>
               <object class="GtkButton" id="close">
                 <property name="can-focus">0</property>
                 <property name="label" translatable="1">close</property>
                 <property name="use-underline">1</property>
                 <property name="icon-name">window-close</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="row-span">2</property>
+                </layout>
               </object>
             </child>
             <child>
@@ -54,104 +51,90 @@
                 <property name="label" translatable="1">update</property>
                 <property name="use-underline">1</property>
                 <property name="icon-name">view-refresh</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                  <property name="row-span">2</property>
+                </layout>
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="toolitem4">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <child>
-                  <object class="GtkGrid">
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="halign">end</property>
-                        <property name="margin-end">1</property>
-                        <property name="label" translatable="1">record span</property>
-                        <property name="justify">right</property>
-                        <layout>
-                          <property name="column">0</property>
-                          <property name="row">0</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="halign">end</property>
-                        <property name="margin-end">1</property>
-                        <property name="label" translatable="1">view span</property>
-                        <property name="justify">right</property>
-                        <layout>
-                          <property name="column">0</property>
-                          <property name="row">1</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkScale" id="recordspan">
-                        <property name="draw-value">1</property>
-                        <property name="name">recordspan</property>
-                        <property name="width-request">150</property>
-                        <property name="focusable">1</property>
-                        <property name="adjustment">adjustment_recordspan</property>
-                        <property name="round-digits">2</property>
-                        <property name="digits">2</property>
-                        <property name="value-pos">left</property>
-                        <layout>
-                          <property name="column">1</property>
-                          <property name="row">0</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkScale" id="viewspan">
-                        <property name="draw-value">1</property>
-                        <property name="name">viewspan</property>
-                        <property name="width-request">150</property>
-                        <property name="focusable">1</property>
-                        <property name="adjustment">adjustment_viewspan</property>
-                        <property name="round-digits">2</property>
-                        <property name="digits">2</property>
-                        <property name="value-pos">left</property>
-                        <layout>
-                          <property name="column">1</property>
-                          <property name="row">1</property>
-                        </layout>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-		<style>
-		  <class name="toolbar"/>
-		</style>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="margin-end">1</property>
+                <property name="label" translatable="1">record span</property>
+                <property name="justify">right</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">0</property>
+                </layout>
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="toolitem6">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <child>
-                  <object class="GtkBox" id="box4">
-                    <property name="orientation">vertical</property>
-                    <child>
-                      <object class="GtkLabel" id="label5">
-                        <property name="valign">center</property>
-                        <property name="label" translatable="1">start tick</property>
-                        <property name="justify">center</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkEntry" id="starttick">
-                        <property name="valign">center</property>
-                        <property name="focusable">1</property>
-                        <property name="editable">0</property>
-                        <property name="invisible-char">•</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-		<style>
-		  <class name="toolbar"/>
-		</style>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="margin-end">1</property>
+                <property name="label" translatable="1">view span</property>
+                <property name="justify">right</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScale" id="recordspan">
+                <property name="draw-value">1</property>
+                <property name="name">recordspan</property>
+                <property name="width-request">150</property>
+                <property name="focusable">1</property>
+                <property name="adjustment">adjustment_recordspan</property>
+                <property name="round-digits">2</property>
+                <property name="digits">2</property>
+                <property name="value-pos">left</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScale" id="viewspan">
+                <property name="draw-value">1</property>
+                <property name="name">viewspan</property>
+                <property name="width-request">150</property>
+                <property name="focusable">1</property>
+                <property name="adjustment">adjustment_viewspan</property>
+                <property name="round-digits">2</property>
+                <property name="digits">2</property>
+                <property name="value-pos">left</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label5">
+                <property name="valign">center</property>
+                <property name="label" translatable="1">start tick</property>
+                <property name="justify">center</property>
+                <layout>
+                  <property name="column">4</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="starttick">
+                <property name="valign">center</property>
+                <property name="focusable">1</property>
+                <property name="editable">0</property>
+                <property name="invisible-char">•</property>
+                <layout>
+                  <property name="column">4</property>
+                  <property name="row">1</property>
+                </layout>
               </object>
             </child>
           </object>
@@ -179,7 +162,7 @@
                           <object class="GtkBox" id="linebox">
                             <property name="orientation">vertical</property>
                             <child>
-                              <placeholder/>
+                              <placeholder />
                             </child>
                           </object>
                         </property>
@@ -195,91 +178,61 @@
               </object>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindow4">
-                <property name="focusable">1</property>
-                <property name="min-content-width">150</property>
-                <property name="min-content-height">100</property>
-                <property name="child">
-                  <object class="GtkTreeView" id="activitylist_view">
-                    <property name="focusable">1</property>
-                    <property name="vexpand">1</property>
-                    <property name="model">activitylist</property>
-                    <property name="headers-clickable">0</property>
-                    <property name="search-column">0</property>
-                    <property name="show-expanders">0</property>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection">
-                        <property name="mode">none</property>
-                      </object>
-                    </child>
+              <object class="GtkScrolledWindow">
+                <property name="propagate-natural-width">True</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkColumnView" id="activitylist_view">
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                      <object class="GtkColumnViewColumn" id="activity_tick">
                         <property name="title" translatable="1">tick</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext1"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
+                        <property name="factory">
+                          <object class="GtkSignalListItemFactory" id="fact_tick" />
+                        </property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                      <object class="GtkColumnViewColumn" id="activity_offset">
                         <property name="title" translatable="1">offset [ms]</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext2"/>
-                          <attributes>
-                            <attribute name="text">1</attribute>
-                          </attributes>
-                        </child>
+                        <property name="factory">
+                          <object class="GtkSignalListItemFactory" id="fact_offset" />
+                        </property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                      <object class="GtkColumnViewColumn" id="activity_timestamp">
                         <property name="title" translatable="1">timestamp</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext3"/>
-                          <attributes>
-                            <attribute name="text">2</attribute>
-                          </attributes>
-                        </child>
+                        <property name="factory">
+                          <object class="GtkSignalListItemFactory" id="fact_timestamp" />
+                        </property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn4">
+                      <object class="GtkColumnViewColumn" id="activity_dt">
                         <property name="title" translatable="1">dt [ms]</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext4"/>
-                          <attributes>
-                            <attribute name="text">3</attribute>
-                          </attributes>
-                        </child>
+                        <property name="factory">
+                          <object class="GtkSignalListItemFactory" id="fact_dt" />
+                        </property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn5">
+                      <object class="GtkColumnViewColumn" id="activity_module">
                         <property name="title" translatable="1">module</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext5"/>
-                          <attributes>
-                            <attribute name="text">4</attribute>
-                          </attributes>
-                        </child>
+                        <property name="factory">
+                          <object class="GtkSignalListItemFactory" id="fact_module" />
+                        </property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn6">
+                      <object class="GtkColumnViewColumn" id="activity_name">
                         <property name="title" translatable="1">activity</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext6"/>
-                          <attributes>
-                            <attribute name="text">5</attribute>
-                          </attributes>
-                        </child>
+                        <property name="factory">
+                          <object class="GtkSignalListItemFactory" id="fact_name" />
+                        </property>
                       </object>
                     </child>
                   </object>
-                </property>
+                </child>
               </object>
             </child>
           </object>

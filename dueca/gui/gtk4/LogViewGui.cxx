@@ -11,7 +11,9 @@
         license         : EUPL-1.2
 */
 
-
+#include "LogMessage.hxx"
+#include "gtk/gtk.h"
+#include <sstream>
 #define LogViewGui_cxx
 #include "LogViewGui.hxx"
 #include "LogView.hxx"
@@ -20,48 +22,97 @@
 #include <dueca-conf.h>
 #include <ActivityDescriptions.hxx>
 #include "GtkDuecaView.hxx"
-
+#include <boost/format.hpp>
 #include <debug.h>
 
 DUECA_NS_START
 
+// type for logging
+struct _DLogEntry
+{
+  GObject parent;
+  LogMessage msg;
+};
 
+G_DECLARE_FINAL_TYPE(DLogEntry, d_log_entry, D, LOG_ENTRY, GObject);
+G_DEFINE_TYPE(DLogEntry, d_log_entry, G_TYPE_OBJECT);
+
+static void d_log_entry_class_init(DLogEntryClass *klass) {}
+static void d_log_entry_init(DLogEntry *self) {}
+
+static DLogEntry *d_log_entry_new(const LogMessage &m)
+{
+  auto res = D_LOG_ENTRY(g_object_new(d_log_entry_get_type(), NULL));
+  // logmessage is a fixed-size type, assignment to uninitialized mem is possible.
+  res->msg = m;
+  return res;
+}
+
+// type for loglevel control
+struct _DLogLevel
+{
+  GObject parent;
+  LogCategory cat;
+  std::vector<unsigned> level;
+};
+
+G_DECLARE_FINAL_TYPE(DLogLevel, d_log_level, D, LOG_LEVEL, GObject);
+G_DEFINE_TYPE(DLogLevel, d_log_level, G_TYPE_OBJECT);
+
+static void d_log_level_class_init(DLogLevelClass *klass) {}
+static void d_log_level_init(DLogLevel *self) {}
+
+static DLogLevel *d_log_level_new(const LogCategory &m, unsigned nnodes)
+{
+  auto res = D_LOG_LEVEL(g_object_new(d_log_level_get_type(), NULL));
+  res->cat = m;
+  new(&res->level) std::vector<unsigned>();
+  res->level.resize(nnodes);
+  for (auto n = nnodes; n--;)
+    res->level[n] = 2;
+  return res;
+}
+
+/* toolkit dependent set of info */
 struct LogViewGui::GuiInfo
 {
   /** Glade file interface definition. */
-  std::string       gladefile;
+  std::string gladefile;
 
   /** Object that reads the glade file, and builds up the window. */
-  GtkGladeWindow  gwindow;
+  GtkGladeWindow gwindow;
 
   /** Table with log results. */
-  GtkWidget* table;
+  GtkWidget *table;
 
   /** List store for log results table */
-  GtkListStore* table_store;
+  GListStore *table_store;
 
   /** The item we add to the menu of DUECA's main window. */
-  GtkWidget* menuitem;
+  GAction *menuaction;
 
   /** Table with log level controls. */
-  GtkWidget* controltable;
+  GtkWidget *controltable;
 
   /** List store for log level table */
-  GtkListStore* controltable_store;
+  GListStore *controltable_store;
+
+  /** Option strings */
+  GtkStringList *levels;
 
   /** Constructor */
-  GuiInfo(const vstring& gladefile) :
+  GuiInfo(const vstring &gladefile) :
     gladefile(gladefile),
     table(NULL),
     table_store(NULL),
-    menuitem(NULL),
+    menuaction(NULL),
     controltable(NULL),
     controltable_store(NULL)
-  { }
+  {}
 };
 
-LogViewGui::LogViewGui(LogView* master, unsigned int nodes) :
-  gui(*(new GuiInfo(DuecaPath::prepend("logview.glade3")))),
+LogViewGui::LogViewGui(LogView *master, unsigned int nodes) :
+  gui(*(new GuiInfo(DuecaPath::prepend("logview-gtk4.ui")))),
   master(master),
   nodes(nodes),
   maxrows(100),
@@ -76,22 +127,55 @@ LogViewGui::~LogViewGui()
 }
 
 static GladeCallbackTable cb_links[] = {
-  { "close", "clicked", gtk_callback(&LogViewGui::closeView)},
-  { "pause", "clicked", gtk_callback(&LogViewGui::pauseLogging)},
-  { "play",  "clicked", gtk_callback(&LogViewGui::playLogging)},
-  { "log_view", "delete_event", gtk_callback(&LogViewGui::deleteView)},
+  { "close", "clicked", gtk_callback(&LogViewGui::closeView) },
+  { "pause", "clicked", gtk_callback(&LogViewGui::pauseLogging) },
+  { "play", "clicked", gtk_callback(&LogViewGui::playLogging) },
+  { "log_view", "close-request", gtk_callback(&LogViewGui::deleteView) },
+
+  // log table setup bindings
+  { "log_time_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_num_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_class_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_line_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_node_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_actlevel_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_id_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_activity_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "log_message_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+
+  // level table setup bindings
+  { "ctr_memo_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+  { "ctr_explain_fact", "setup", gtk_callback(&LogViewGui::cbSetupLabel) },
+
+  // log table bind bindings
+  { "log_time_fact", "bind", gtk_callback(&LogViewGui::cbBindLogTime) },
+  { "log_num_fact", "bind", gtk_callback(&LogViewGui::cbBindLogNumber) },
+  { "log_class_fact", "bind", gtk_callback(&LogViewGui::cbBindLogClass) },
+  { "log_line_fact", "bind", gtk_callback(&LogViewGui::cbBindLogLineFile) },
+  { "log_node_fact", "bind", gtk_callback(&LogViewGui::cbBindLogNode) },
+  { "log_actlevel_fact", "bind",
+    gtk_callback(&LogViewGui::cbBindLogActivityLevel) },
+  { "log_id_fact", "bind", gtk_callback(&LogViewGui::cbBindLogModuleId) },
+  { "log_activity_fact", "bind",
+    gtk_callback(&LogViewGui::cbBindLogActivityName) },
+  { "log_message_fact", "bind", gtk_callback(&LogViewGui::cbBindLogMessage) },
+
+  // level table bind bindings
+  { "ctr_memo_fact", "bind", gtk_callback(&LogViewGui::cbBindCatMEMO) },
+  { "ctr_explain_fact", "bind", gtk_callback(&LogViewGui::cbBindCatExplain) },
+
   { NULL, NULL, NULL }
 };
 
 void LogViewGui::closeView(GtkButton *button, gpointer user_data)
 {
-  g_signal_emit_by_name(G_OBJECT(gui.menuitem), "activate", NULL);
+  GtkDuecaView::toggleView(gui.menuaction);
 }
 
-gboolean LogViewGui::deleteView(GtkWidget *window, GdkEvent *event,
+gboolean LogViewGui::deleteView(GtkWidget *window, 
                                 gpointer user_data)
 {
-  g_signal_emit_by_name(G_OBJECT(gui.menuitem), "activate", NULL);
+  g_signal_emit_by_name(G_OBJECT(gui.menuaction), "activate", NULL);
 
   // with this, the click is handled. By preventing further handlers,
   // the window is not destroyed.
@@ -108,20 +192,15 @@ void LogViewGui::playLogging(GtkButton *button, gpointer user_data)
   master->pause(false);
 }
 
-// a hand-used table
-static GladeCallbackTable cb_renderer[] = {
-  { NULL, "signal::edited", gtk_callback(&LogViewGui::editedLevel) }
-};
-
 bool LogViewGui::open(unsigned int nrows)
 {
   // maximum number of rows
   maxrows = nrows;
 
   // use the glade file to create the window
-  bool res = gui.gwindow.readGladeFile
-    (gui.gladefile.c_str(), "log_view",
-     reinterpret_cast<gpointer>(this), cb_links);
+  bool res =
+    gui.gwindow.readGladeFile(gui.gladefile.c_str(), "log_view",
+                              reinterpret_cast<gpointer>(this), cb_links);
 
   if (!res) {
     /* DUECA UI.
@@ -135,189 +214,229 @@ bool LogViewGui::open(unsigned int nrows)
 
   // get the appropriate widgets
   gui.table = gui.gwindow["logtable"];
-  gui.table_store = gtk_list_store_new
-    (9,
-     G_TYPE_STRING,   // time
-     G_TYPE_INT,      // repeat
-     G_TYPE_STRING,   // message category
-     G_TYPE_STRING,   // file + line
-     G_TYPE_INT,      // node
-     G_TYPE_INT,      // manager (-1 for none)
-     G_TYPE_STRING,   // object id
-     G_TYPE_STRING,   // activity
-     G_TYPE_STRING);  // message
-
-  // data on columns, renderers, etcetera
-  struct ColData {
-    int width;
-    const char* name;
-  };
-  ColData coldata[] = {
-    {  30, "time" },
-    {  15, "#" },
-    {  20, "class" },
-    { 120, "file/line" },
-    {  10, "N" },
-    {  10, "A" },
-    {  30, "id" },
-    {  60, "activity" },
-    { 200, "message" },
-    {   0, NULL } };
-  ColData *cdp = coldata;
-
-  // define column names and renderer
-  int icol = 0;
-  GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
-  for (; cdp->name != NULL; cdp++) {
-    GtkTreeViewColumn *col = gtk_tree_view_column_new();
-    gtk_tree_view_column_set_title(col, cdp->name);
-    gtk_tree_view_append_column(GTK_TREE_VIEW(gui.table), col);
-    gtk_tree_view_column_set_min_width(col, cdp->width);
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
-    gtk_tree_view_column_add_attribute(col, renderer, "text", icol++);
-  }
-
-  // supply model to the view
-  gtk_tree_view_set_model(GTK_TREE_VIEW(gui.table),
-                          GTK_TREE_MODEL(gui.table_store));
+  gui.table_store = g_list_store_new(d_log_entry_get_type());
+  auto selection = gtk_single_selection_new(G_LIST_MODEL(gui.table_store));
+  gtk_column_view_set_model(GTK_COLUMN_VIEW(gui.table),
+                            GTK_SELECTION_MODEL(selection));
 
   gui.controltable = gui.gwindow["controltable"];
-  GType types[nodes+3];
-  for (int ii = nodes+3; ii--; ) types[ii] = G_TYPE_STRING;
-  types[0] = G_TYPE_POINTER;
-  gui.controltable_store = gtk_list_store_newv(nodes+3, types);
+  gui.controltable_store = g_list_store_new(d_log_level_get_type());
+  auto sel2 = gtk_single_selection_new(G_LIST_MODEL(gui.controltable_store));
+  gtk_column_view_set_model(GTK_COLUMN_VIEW(gui.controltable),
+                            GTK_SELECTION_MODEL(sel2));
 
-  // column 1 with category mnemonic
-  {
-    GtkTreeViewColumn *col = gtk_tree_view_column_new_with_attributes
-      ("MEMO", renderer, "text" , 1, NULL);
-    gtk_tree_view_column_set_min_width(col, 40);
-    gtk_tree_view_append_column(GTK_TREE_VIEW(gui.controltable), col);
+  // add a list for the options
+  const char *list[] = { "debug", "info", "warn", "error", NULL };
+  gui.levels = gtk_string_list_new(list);
+
+  // add a column with factory for each of the nodes
+  auto cbsetup = gtk_callback(&LogViewGui::cbSetupDropboxLevel);
+  auto cbbind = gtk_callback(&LogViewGui::cbBindCatLevel);
+
+  // run over the nodes
+  for (auto node = 0L; node < nodes; node++) {
+
+    // factory
+    auto fact = gtk_signal_list_item_factory_new();
+    auto cbs = gtk_caller_new(*cbsetup, this, gpointer(node));
+    g_signal_connect(fact, "setup", cbs->callback(), cbs);
+    auto cbb = gtk_caller_new(*cbbind, this, gpointer(node));
+    g_signal_connect(fact, "bind", cbb->callback(), cbb);
+
+    // column
+    auto column = gtk_column_view_column_new(
+      boost::str(boost::format("node %d") % node).c_str(), fact);
+    gtk_column_view_append_column(GTK_COLUMN_VIEW(gui.controltable), column);
+
+    // release
+    //g_object_unref(fact);
+    //g_object_unref(column);
   }
-
-  // column 2 with log class
-  {
-    GtkTreeViewColumn *col = gtk_tree_view_column_new_with_attributes
-      ("Class", renderer, "text" , 2, NULL);
-    gtk_tree_view_column_set_min_width(col, 40);
-    gtk_tree_view_append_column(GTK_TREE_VIEW(gui.controltable), col);
-  }
-
-  // since gtk 2.6 there is a special combobox renderer
-  GtkListStore* level = gtk_list_store_new(1, G_TYPE_STRING);
-  const char* list[] =
-    {"debug", "info", "warn", "error", NULL};
-  for (const char** l = list; *l != NULL; l++) {
-    GtkTreeIter iter; gtk_list_store_append(level, &iter);
-    gtk_list_store_set(level, &iter, 0, *l, -1);
-  }
-
-  // column 3 and further with node controls
-  // this is not available in all gtk 2 versions
-#ifdef GTK_TYPE_CELL_RENDERER_COMBO
-  for (unsigned int ii = 0; ii < nodes; ii++) {
-    char buf[8]; snprintf(buf, sizeof(buf), "node %2d", ii);
-    GtkCellRenderer *comborenderer = gtk_cell_renderer_combo_new();
-    g_object_set(G_OBJECT(comborenderer),
-                 "model", level,
-                 "text-column", 0,
-                 "editable", TRUE,
-                 "has-entry", FALSE, NULL);
-    GtkTreeViewColumn *col = gtk_tree_view_column_new_with_attributes
-      (buf, comborenderer, "text", ii+3, NULL);
-    gtk_tree_view_column_set_min_width(col, 40);
-    gtk_tree_view_append_column(GTK_TREE_VIEW(gui.controltable), col);
-    GtkCaller* caller = cb_renderer->func->clone(this);
-    caller->setGPointer(reinterpret_cast<gpointer>(ii));
-    g_object_connect(G_OBJECT(comborenderer), cb_renderer->signal,
-                     caller->callback(), caller, NULL);
-  }
-#else
-#warning "GtkCellRendererCombo not defined, interface incomplete"
-#endif
-
-  // supply model to the view
-  gtk_tree_view_set_model(GTK_TREE_VIEW(gui.controltable),
-                          GTK_TREE_MODEL(gui.controltable_store));
+  delete cbbind;
+  delete cbsetup;
 
   // request the DuecaView object to make an entry for my window,
   // opening it on activation
-  gui.menuitem = GTK_WIDGET
-    (GtkDuecaView::single()->requestViewEntry
-     ("Error Log View", GTK_WIDGET(gui.gwindow["log_view"])));
+  gui.menuaction= GtkDuecaView::single()->requestViewEntry("errorlog",
+    "Error Log View", GTK_WIDGET(gui.gwindow["log_view"]));
 
   return true;
 }
 
-void LogViewGui::appendItem(const LogMessage& msg)
+void LogViewGui::appendItem(const LogMessage &msg)
 {
-  // first re-format some stuff to strings
-  ostringstream time, category, logpoint, objectid, activity;
+  auto item = d_log_entry_new(msg);
+  g_list_store_append(gui.table_store, item);
+  g_object_unref(item);
+}
 
-  msg.time.show(time);     // time
-  union { uint32_t i; char name[5]; } catconv; catconv.name[4] = '\000';
-  const LogPoint &point = LogPoints::single().getPoint
-    (msg.logpoint, msg.context.parts.node);
+void LogViewGui::appendLogCategory(const LogCategory &cat)
+{
+  auto item = d_log_level_new(cat, nodes);
+  g_list_store_append(gui.controltable_store, item);
+  // g_object_unref(item);
+}
+
+void LogViewGui::cbSetupLabel(GtkSignalListItemFactory *fact,
+                              GtkListItem *object, gpointer user_data)
+{
+  auto label = gtk_label_new("");
+  gtk_list_item_set_child(object, label);
+  // g_object_unref(label);
+}
+
+static void LogViewGui_changeLevel(GtkDropDown *self, GParamSpecUInt *pspec,
+                                   gpointer user_data)
+{
+  auto sel = gtk_drop_down_get_selected(self);
+  auto *lvlrow = D_LOG_LEVEL(g_object_get_data(G_OBJECT(self), "d_row"));
+  auto node = reinterpret_cast<unsigned long>(
+    g_object_get_data(G_OBJECT(self), "d_node"));
+  lvlrow->level[node] = sel;
+  if (lvlrow)
+  {
+    reinterpret_cast<LogView*>(user_data)->setLevel(lvlrow->cat, node, sel);
+  }
+}
+
+void LogViewGui::cbSetupDropboxLevel(GtkSignalListItemFactory *fact,
+                                     GtkListItem *object, gpointer user_data)
+{
+  // create the dropdown
+  auto dd = gtk_drop_down_new(G_LIST_MODEL(gui.levels), NULL);
+  // user_data contains the node number, remember in the dropdown
+  g_object_set_data(G_OBJECT(dd), "d_node", user_data);
+  // connect callback, user data here give a pointer to this object
+  g_signal_connect(dd, "notify::selected", G_CALLBACK(LogViewGui_changeLevel),
+                   this->master);
+  gtk_list_item_set_child(object, dd);
+  // g_object_unref(dd);
+}
+
+  /** bind  log time */
+void LogViewGui::cbBindLogTime(GtkSignalListItemFactory *fact,
+                               GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  gtk_widget_set_halign(GTK_WIDGET(label), GTK_ALIGN_END);
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  std::stringstream time;
+  entry->msg.time.showtime(time);
+  gtk_label_set_text(label, time.str().c_str());
+}
+
+void LogViewGui::cbBindLogNumber(GtkSignalListItemFactory *fact,
+                                 GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  gtk_label_set_text(
+    label, boost::str(boost::format("%5d") % entry->msg.count).c_str());
+}
+
+void LogViewGui::cbBindLogClass(GtkSignalListItemFactory *fact,
+                                GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  auto point = LogPoints::single().getPoint(entry->msg.logpoint,
+                                            entry->msg.context.parts.node);
+  union {
+    uint32_t i;
+    char name[5];
+  } catconv;
+  catconv.name[4] = '\000';
   catconv.i = point.category;
-  category << point.level << catconv.name;
-  logpoint << point.fname << ":" <<  point.line;
-  objectid << ActivityDescriptions::single()[msg.context].owner;
-
-  // Access the next row
-  GtkTreeIter iter;
-  gtk_list_store_append(gui.table_store, &iter);
-
-  // push in the data
-  gtk_list_store_set(gui.table_store, &iter,
-                     0, time.str().c_str(), 1, msg.count,
-                     2, category.str().c_str(), 3, logpoint.str().c_str(),
-                     4, msg.context.parts.node, 5, msg.context.parts.manager,
-                     6, objectid.str().c_str(),
-                     7, ActivityDescriptions::single()[msg.context].name.c_str(),
-                     8, msg.message.c_str(), -1);
-
-  // limit maximum number of rows.
-  if (maxrows && ++nrows > maxrows) {
-    gtk_tree_model_get_iter_first(GTK_TREE_MODEL(gui.table_store), &iter);
-    gtk_list_store_remove(gui.table_store, &iter);
-    nrows--;
-  }
+  gtk_label_set_text(label, catconv.name);
 }
 
-
-void LogViewGui::appendLogCategory(const LogCategory& cat)
+void LogViewGui::cbBindLogLineFile(GtkSignalListItemFactory *fact,
+                                   GtkListItem *item, gpointer user_data)
 {
-  GtkTreeIter iter;
-  gtk_list_store_append(gui.controltable_store, &iter);
-  gtk_list_store_set(gui.controltable_store, &iter,
-                     0, &cat, 1, cat.getName(),
-                     2, cat.getExplain().c_str(), -1);
-#ifdef GTK_TYPE_CELL_RENDERER_COMBO
-  for (unsigned ii = 3; ii < nodes+3; ii++) {
-    gtk_list_store_set(gui.controltable_store, &iter,
-                       ii, "warn", -1);
-  }
-#endif
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  gtk_widget_set_halign(GTK_WIDGET(label), GTK_ALIGN_START);
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  auto point = LogPoints::single().getPoint(entry->msg.logpoint,
+                                            entry->msg.context.parts.node);
+  std::ostringstream logpoint;
+  logpoint << point.fname << ":" << point.line;
+  gtk_label_set_text(label, logpoint.str().c_str());
 }
 
-void LogViewGui::editedLevel(GtkCellRendererText* renderer,
-                             gchar* pathstring,
-                             gchar *new_text, gpointer user_data)
+void LogViewGui::cbBindLogNode(GtkSignalListItemFactory *fact,
+                               GtkListItem *item, gpointer user_data)
 {
-  GtkTreeIter iter;
-  union { gpointer data; long column; } conv; conv.data = user_data;
-  gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(gui.controltable_store),
-                                      &iter, pathstring);
-  gtk_list_store_set(gui.controltable_store, &iter, conv.column + 3,
-                     new_text, -1);
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  gtk_label_set_text(
+    label, boost::str(boost::format("%2d") % int(entry->msg.context.parts.node))
+             .c_str());
+}
 
-  // obtain corresponding category
-  LogCategory *cat;
-  gtk_tree_model_get(GTK_TREE_MODEL(gui.controltable_store),
-                     &iter, 0, &cat, -1);
+void LogViewGui::cbBindLogActivityLevel(GtkSignalListItemFactory *fact,
+                                        GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  gtk_label_set_text(label, boost::str(boost::format("%2d") %
+                                       int(entry->msg.context.parts.manager))
+                              .c_str());
+}
 
-  // allow changes to be realised.
-  master->setLevel(cat, conv.column, new_text);
+void LogViewGui::cbBindLogModuleId(GtkSignalListItemFactory *fact,
+                                   GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  stringstream objectid;
+  objectid << ActivityDescriptions::single()[entry->msg.context].owner;
+  gtk_label_set_text(label, objectid.str().c_str());
+}
+
+void LogViewGui::cbBindLogActivityName(GtkSignalListItemFactory *fact,
+                                       GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  gtk_widget_set_halign(GTK_WIDGET(label), GTK_ALIGN_START);
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  gtk_label_set_text(
+    label, ActivityDescriptions::single()[entry->msg.context].name.c_str());
+}
+
+void LogViewGui::cbBindLogMessage(GtkSignalListItemFactory *fact,
+                                  GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  gtk_widget_set_halign(GTK_WIDGET(label), GTK_ALIGN_START);
+  auto entry = D_LOG_ENTRY(gtk_list_item_get_item(item));
+  gtk_label_set_text(label, entry->msg.message.c_str());
+}
+
+void LogViewGui::cbBindCatMEMO(GtkSignalListItemFactory *fact,
+                               GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto cat = D_LOG_LEVEL(gtk_list_item_get_item(item));
+  gtk_label_set_text(label, cat->cat.getName());
+}
+
+void LogViewGui::cbBindCatExplain(GtkSignalListItemFactory *fact,
+                                  GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto cat = D_LOG_LEVEL(gtk_list_item_get_item(item));
+  gtk_label_set_text(label, cat->cat.getExplain().c_str());
+}
+
+void LogViewGui::cbBindCatLevel(GtkSignalListItemFactory *fact,
+                                GtkListItem *item, gpointer user_data)
+{
+  auto drop = GTK_DROP_DOWN(gtk_list_item_get_child(item));
+  auto cat = D_LOG_LEVEL(gtk_list_item_get_item(item));
+  auto node = reinterpret_cast<unsigned long>(
+    g_object_get_data(G_OBJECT(fact), "d_node"));
+  g_object_set_data(G_OBJECT(drop), "d_row", cat);
+  gtk_drop_down_set_selected(drop, cat->level[node]);
 }
 
 DUECA_NS_END

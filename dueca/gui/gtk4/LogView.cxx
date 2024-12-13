@@ -15,7 +15,6 @@
         license         : EUPL-1.2
 */
 
-
 #define LogView_cxx
 // include the definition of the module class
 #include "LogView.hxx"
@@ -35,10 +34,10 @@ using namespace std;
 DUECA_NS_START
 
 // class/module name
-const char* const LogView::classname = "log-view";
+const char *const LogView::classname = "log-view";
 
 // Parameters to be inserted
-const ParameterTable* LogView::getParameterTable()
+const ParameterTable *LogView::getParameterTable()
 {
   static const ParameterTable parameter_table[] = {
 
@@ -53,19 +52,18 @@ const ParameterTable* LogView::getParameterTable()
     /* The table is closed off with NULL pointers for the variable
        name and MemberCall/VarProbe object. The description is used to
        give an overall description of the module. */
-    { "numlines", new VarProbe<LogView,int>(&LogView::n_lines),
+    { "numlines", new VarProbe<LogView, int>(&LogView::n_lines),
       "Number of lines in log window" },
     { NULL, NULL,
       "Assemble log reports from all dueca nodes and present these in a\n"
-      "window generated with the current gui"}
+      "window generated with the current gui" }
   };
 
   return parameter_table;
 }
 
 // constructor
-LogView::LogView(Entity* e, const char* part, const
-                   PrioritySpec& ps) :
+LogView::LogView(Entity *e, const char *part, const PrioritySpec &ps) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
      part arguments.
@@ -88,22 +86,14 @@ LogView::LogView(Entity* e, const char* part, const
   // access tokens
   token_valid(this, &LogView::tokenValid),
   token_action(true),
-  /*
-  r_message(getId(), NameSet("dueca", "LogMessage", ""),
-            ChannelDistribution::JOIN_MASTER, Bulk, &token_valid),
-  r_message2(getId(), NameSet("dueca", "LogMessage", ""),
-             ChannelDistribution::NO_OPINION, Bulk, &token_valid),
-  w_level(getId(), NameSet("dueca", "LogLevelCommand", ""),
-          ChannelDistribution::SOLO_SEND, Regular, &token_valid),
-  */
   r_message(getId(), NameSet("dueca", LogMessage::classname, ""),
-            LogMessage::classname, entry_any,
-            Channel::Events, Channel::OneOrMoreEntries,
-            Channel::ReadReservation, 0.0, &token_valid),
+            LogMessage::classname, entry_any, Channel::Events,
+            Channel::OneOrMoreEntries, Channel::ReadReservation, 0.0,
+            &token_valid),
   r_message2(getId(), NameSet("dueca", LogMessage::classname, ""),
-             LogMessage::classname, entry_any,
-             Channel::Events, Channel::OneOrMoreEntries,
-             Channel::ReadReservation, 0.0, &token_valid),
+             LogMessage::classname, entry_any, Channel::Events,
+             Channel::OneOrMoreEntries, Channel::ReadReservation, 0.0,
+             &token_valid),
   w_level(getId(), NameSet("dueca", LogLevelCommand::classname, ""),
           LogLevelCommand::classname, "", Channel::Events,
           Channel::OnlyOneEntry, Channel::OnlyFullPacking, Channel::Regular,
@@ -121,7 +111,7 @@ LogView::LogView(Entity* e, const char* part, const
   }
 }
 
-void LogView::tokenValid(const TimeSpec& ts)
+void LogView::tokenValid(const TimeSpec &ts)
 {
   if (token_action && r_message.isValid() && r_message2.isValid() &&
       w_level.isValid()) {
@@ -162,10 +152,7 @@ bool LogView::complete()
 }
 
 // destructor
-LogView::~LogView()
-{
-  message_log.close();
-}
+LogView::~LogView() { message_log.close(); }
 
 // tell DUECA you are prepared
 bool LogView::isPrepared()
@@ -194,17 +181,17 @@ void LogView::stopModule(const TimeSpec &time)
 // this routine contains the main simulation process of your module. You
 // should read the input channels here, and calculate and write the
 // appropriate output
-void LogView::doCalculation(const TimeSpec& ts)
+void LogView::doCalculation(const TimeSpec &ts)
 {
   if (!is_paused) {
 
     // read and insert messages
     while (r_message.getNumVisibleSets()) {
       try {
-        DataReader<LogMessage,VirtualJoin> r(r_message);
+        DataReader<LogMessage, VirtualJoin> r(r_message);
         gui.appendItem(r.data());
       }
-      catch (exception& e) {
+      catch (exception &e) {
         cerr << "Error in logging view " << e.what() << std::endl;
       }
     }
@@ -214,26 +201,26 @@ void LogView::doCalculation(const TimeSpec& ts)
     // limit the list of waiting messages.
     while (r_message.getNumVisibleSets() > max_stacked) {
       try {
-        DataReader<LogMessage,VirtualJoin> r(r_message);
+        DataReader<LogMessage, VirtualJoin> r(r_message);
       }
-      catch (exception& e) {
+      catch (exception &e) {
         cerr << "Error in logging view " << e.what() << std::endl;
       }
     }
   }
 }
 
-void LogView::doPrint(const TimeSpec& ts)
+void LogView::doPrint(const TimeSpec &ts)
 {
   try {
     while (r_message2.getNumVisibleSets()) {
-      DataReader<LogMessage,VirtualJoin> r(r_message2);
+      DataReader<LogMessage, VirtualJoin> r(r_message2);
       if (message_log.good()) {
         r.data().printNice(message_log);
       }
     }
   }
-  catch (exception& e) {
+  catch (exception &e) {
     cerr << "Error in logging view " << e.what() << std::endl;
   }
 }
@@ -250,26 +237,18 @@ void LogView::pause(bool do_pause)
   doCalculation(TimeSpec::end_of_time);
 }
 
-
-void LogView::setLevel(const LogCategory* cat, int node,
-                       const char* level_as_text)
+void LogView::setLevel(const LogCategory &cat, int node, unsigned l)
 {
-  // interpret the level
-  LogLevel l(level_as_text);
-
-  if (l.t == LogLevel::Invalid) {
-    cerr << "Cannot interpret log level " << level_as_text << endl;
-    return;
-  }
-
-  try {
-    DataWriter<LogLevelCommand> c(w_level, SimTime::getTimeTick());
-    c.data().node = node;
-    c.data().level = l;
-    c.data().category = *cat;
-  }
-  catch (const exception& e) {
-    cerr << "Cannot send level command " << e.what() << endl;
+  if (w_level.isValid()) {
+    try {
+      DataWriter<LogLevelCommand> c(w_level, SimTime::getTimeTick());
+      c.data().node = node;
+      c.data().level = LogLevel::Type(l);
+      c.data().category = cat;
+    }
+    catch (const exception &e) {
+      cerr << "Cannot send level command " << e.what() << endl;
+    }
   }
 }
 

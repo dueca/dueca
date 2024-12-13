@@ -19,8 +19,8 @@
 #include "Module.hxx"
 #include "SimulationState.hxx"
 #include "SimTime.hxx"
-#include "EntityCommand.hxx"
-#include "EntityConfirm.hxx"
+#include <EntityCommand.hxx>
+#include <EntityConfirm.hxx>
 #include <dueca/ChannelReadToken.hxx>
 #include <dueca/ChannelWriteToken.hxx>
 #include "Callback.hxx"

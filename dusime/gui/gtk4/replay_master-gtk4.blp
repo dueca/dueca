@@ -1,0 +1,243 @@
+using Gtk 4.0;
+
+Window replay_select_view {
+  Box {
+    orientation: vertical;
+
+    Box {
+      css-classes: [
+        "toolbar"
+      ];
+
+      can-focus: false;
+
+      Button replay_close {
+        can-focus: false;
+        tooltip-text: _("Close the replay control window");
+        label: _("close");
+        use-underline: true;
+        icon-name: "window-close";
+      }
+
+      Separator {
+        orientation: vertical;
+        can-focus: false;
+      }
+
+      Separator {
+        orientation: vertical;
+        can-focus: false;
+      }
+
+      Label replay_countdown {
+        label: _("0:00:00");
+      }
+    }
+
+    Notebook {
+      Box {
+        orientation: vertical;
+
+        Box {
+          orientation: horizontal;
+
+          css-classes: [
+            "toolbar"
+          ];
+
+          Button replay_sendinitial {
+            tooltip-text: "Send the selected initial position";
+            sensitive: false;
+            icon-name: "go-up";
+          }
+
+          Button replay_sendrecording {
+            icon-name: "go-next";
+            sensitive: false;
+            tooltip-text: "Send the selected recording for replay";
+          }
+
+          Separator {
+            orientation: vertical;
+          }
+
+          DropDown replay_todoafter {
+            model: StringList {
+              strings: [
+                "Hold after Replay",
+                "Advance after Replay"
+              ];
+            };
+          }
+        }
+
+        Grid {
+          Label {
+            label: "Initial:";
+
+            layout {
+              column: "0";
+              row: "0";
+            }
+          }
+
+          Label {
+            label: "Replay:";
+
+            layout {
+              column: "0";
+              row: "1";
+            }
+          }
+
+          Entry replay_inco_selected {
+            hexpand: true;
+            editable: false;
+
+            layout {
+              column: "1";
+              row: "0";
+            }
+          }
+
+          Entry replay_recording_selected {
+            hexpand: true;
+            editable: false;
+
+            layout {
+              column: "1";
+              row: "1";
+            }
+          }
+
+          Label replay_rec_status {
+            label: "--";
+            width-chars: 12;
+
+            layout {
+              column: "2";
+              row: "0";
+            }
+          }
+
+          Label replay_inco_status {
+            label: "--";
+            width-chars: 12;
+
+            layout {
+              column: "2";
+              row: "1";
+            }
+          }
+        }
+
+        ScrolledWindow {
+          propagate-natural-width: true;
+          vexpand: true;
+
+          ColumnView replay_recording_overview {
+            show-column-separators: true;
+            show-row-separators: false;
+
+            ColumnViewColumn {
+              title: "name";
+              expand: true;
+
+              factory: SignalListItemFactory replay_name_fact {};
+            }
+
+            ColumnViewColumn {
+              title: "date";
+              expand: true;
+
+              factory: SignalListItemFactory replay_date_fact {};
+            }
+
+            ColumnViewColumn {
+              title: "duration";
+
+              factory: SignalListItemFactory replay_duration_fact {};
+            }
+
+            ColumnViewColumn {
+              title: "initial state";
+              expand: true;
+
+              factory: SignalListItemFactory replay_initial_fact {};
+            }
+          }
+        }
+      }
+
+      [tab]
+      Label {
+        label: _("Replay");
+      }
+
+      Grid {
+        row-homogeneous: true;
+        column-homogeneous: true;
+
+        Label {
+          label: "Initial state:";
+
+          layout {
+            row: "0";
+            column: "0";
+          }
+        }
+
+        Label {
+          label: "Recording name:";
+
+          layout {
+            row: "1";
+            column: "0";
+          }
+        }
+
+        Button record_prepare {
+          label: "Prepare Record";
+          sensitive: false;
+
+          layout {
+            row: "2";
+            column: "0";
+          }
+        }
+
+        Label record_inco_status {
+          label: "--";
+
+          layout {
+            row: "0";
+            column: "1";
+          }
+        }
+
+        Entry record_name {
+          sensitive: false;
+
+          layout {
+            row: "1";
+            column: "1";
+          }
+        }
+
+        Label record_status {
+          label: "not prepared";
+
+          layout {
+            row: "2";
+            column: "1";
+          }
+        }
+      }
+
+      [tab]
+      Label {
+        label: _("Record");
+      }
+    }
+  }
+}

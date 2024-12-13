@@ -13,19 +13,19 @@
 ;; Report on synchronization of DUECA processes
 (Event SyncReport
        ;; current difference between master and node logical clock
-       (int32_t difference)
+       (int32_t difference (Default 0))
        ;; number of times the scheduler woke too early
-       (int32_t        no_early)
+       (int32_t        no_early (Default 0))
        ;; number of times the scheduler woke too late
-       (int32_t        no_late)
+       (int32_t        no_late (Default 0))
        ;; number of times a wait had to be cancelled, since the loop was
        ;; too late
-       (int32_t        no_cancelled_waits)
+       (int32_t        no_cancelled_waits (Default 0))
        ;; number of time a double wait was needed to sync with the master
-       (int32_t        no_double_waits)
+       (int32_t        no_double_waits (Default 0))
        ;; earliest waking of scheduler relative to ideal wake time
-       (int32_t earliest_wrt_ideal)
+       (int32_t earliest_wrt_ideal (Default 0))
        ;; latest waking of scheduler relative to ideal wake time
-       (int32_t latest_wrt_ideal)
+       (int32_t latest_wrt_ideal (Default 0))
        ;; average waking of scheduler relative to ideal wake time
-       (int32_t average_step_size))
+       (int32_t average_step_size (Default 1)))

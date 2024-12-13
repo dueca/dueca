@@ -1,408 +1,240 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="3.2"/>
-  <object class="GtkListStore" id="synctable_store">
-    <columns>
-      <!-- column-name node -->
-      <column type="gint"/>
-      <!-- column-name difference -->
-      <column type="gint"/>
-      <!-- column-name num_early -->
-      <column type="guint"/>
-      <!-- column-name num_late -->
-      <column type="guint"/>
-      <!-- column-name num_double -->
-      <column type="gint"/>
-      <!-- column-name num_nowait -->
-      <column type="guint"/>
-      <!-- column-name latest -->
-      <column type="gint"/>
-      <!-- column-name earliest -->
-      <column type="gint"/>
-      <!-- column-name stepsize -->
-      <column type="gint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="table_store">
-    <columns>
-      <!-- column-name activity -->
-      <column type="gchararray"/>
-      <!-- column-name log -->
-      <column type="gint"/>
-      <!-- column-name min -->
-      <column type="gint"/>
-      <!-- column-name avg -->
-      <column type="gint"/>
-      <!-- column-name max -->
-      <column type="gint"/>
-      <!-- column-name min1 -->
-      <column type="gint"/>
-      <!-- column-name avg1 -->
-      <column type="gint"/>
-      <!-- column-name max1 -->
-      <column type="gint"/>
-      <!-- column-name #warning -->
-      <column type="guint"/>
-      <!-- column-name #critical -->
-      <column type="guint"/>
-      <!-- column-name #user -->
-      <column type="guint"/>
-    </columns>
-  </object>
+  <requires lib="gtk" version="4.10" />
   <object class="GtkWindow" id="timingview_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Timing Summary</property>
     <child>
-      <object class="GtkBox" id="box1">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
+      <object class="GtkBox">
         <property name="orientation">vertical</property>
+
         <child>
-          <object class="GtkToolbar" id="toolbar2">
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <style>
+              <class name="toolbar" />
+            </style>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="toolbar_style">both</property>
             <child>
-              <object class="GtkToolButton" id="timingview_clear">
+              <object class="GtkButton" id="timingview_clear">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">clear all</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_timingview_clear_clicked" swapped="no"/>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="update_sync">
+              <object class="GtkButton" id="update_sync">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">update sync</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_update_sync_clicked" swapped="no"/>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="clear_sync">
+              <object class="GtkButton" id="clear_sync">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">clear sync</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_update_sync_clicked" swapped="no"/>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
             </child>
             <child>
-              <object class="GtkSeparatorToolItem" id="separatortoolitem1">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">False</property>
-              </packing>
+              <object class="GtkSeparator" />
             </child>
             <child>
-              <object class="GtkToolButton" id="timingview_close">
+              <object class="GtkButton" id="timingview_close">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">close</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_timingview_close_clicked" after="yes" swapped="no"/>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
             </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">0</property>
-          </packing>
         </child>
         <child>
           <object class="GtkScrolledWindow" id="timing_scrolledwindow">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="vscrollbar_policy">never</property>
+            <property name="propagate-natural-width">True</property>
             <child>
-              <object class="GtkTreeView" id="synctable">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
+              <object class="GtkColumnView" id="synctable">
                 <property name="tooltip_text" translatable="yes">This window shows the timing information for the nodes in this DUECA system.</property>
-                <property name="model">synctable_store</property>
-                <property name="search_column">0</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="treeview-selection1">
-                    <property name="mode">none</property>
-                  </object>
-                </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn12">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">node</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext12"/>
-                      <attributes>
-                        <attribute name="text">0</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_node_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn13">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">diff</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext13"/>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_diff_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn14">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">#early</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext20"/>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_early_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn15">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">#late</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext19"/>
-                      <attributes>
-                        <attribute name="text">3</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_late_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn16">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">#dble</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext18"/>
-                      <attributes>
-                        <attribute name="text">4</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_double_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn17">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">#nowt</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext17"/>
-                      <attributes>
-                        <attribute name="text">5</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_nowait_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn18">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">latest</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext16"/>
-                      <attributes>
-                        <attribute name="text">6</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_latest_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn19">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">earliest</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext15"/>
-                      <attributes>
-                        <attribute name="text">7</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_earliest_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn20">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">stepsz</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext14"/>
-                      <attributes>
-                        <attribute name="text">8</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="timing_stepsz_fact" />
+                    </property>
                   </object>
                 </child>
               </object>
             </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
         </child>
         <child>
           <object class="GtkScrolledWindow" id="scrolledwindow4">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
+            <property name="propagate-natural-width">True</property>
+            <property name="vexpand">true</property>
             <child>
-              <object class="GtkTreeView" id="timingtable">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="tooltip_text" translatable="yes">This window shows log results from all activities that are instrumented\nresults are shown as logs come in</property>
-                <property name="model">table_store</property>
-                <property name="headers_clickable">False</property>
-                <property name="search_column">0</property>
-                <property name="show_expanders">False</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="treeview-selection"/>
-                </child>
+              <object class="GtkColumnView" id="timingtable">
+                <property name="tooltip_text" translatable="yes">This window shows log results from all activities that are instrumented
+results are shown as logs come in</property>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">activity</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext1"/>
-                      <attributes>
-                        <attribute name="text">0</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_activity_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">log time</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_logtime_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">min start</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext3"/>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_minstart_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn4">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">avg start</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext4"/>
-                      <attributes>
-                        <attribute name="text">3</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_avgstart_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn5">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">max start</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext5"/>
-                      <attributes>
-                        <attribute name="text">4</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_maxstart_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn6">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">min cmpl</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext6"/>
-                      <attributes>
-                        <attribute name="text">5</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_mincmpl_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn7">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">avg cmpl</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext7"/>
-                      <attributes>
-                        <attribute name="text">6</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_avgcmpl_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn8">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">max cmpl</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext8"/>
-                      <attributes>
-                        <attribute name="text">7</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_maxcmpl_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn9">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">#warn</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext9"/>
-                      <attributes>
-                        <attribute name="text">8</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_nwarn_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn10">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">#crit</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext10"/>
-                      <attributes>
-                        <attribute name="text">9</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_ncrit_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn" id="treeviewcolumn11">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="yes">#user</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext11"/>
-                      <attributes>
-                        <attribute name="text">10</attribute>
-                      </attributes>
-                    </child>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="summary_nuser_fact" />
+                    </property>
                   </object>
                 </child>
               </object>
             </child>
           </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
         </child>
       </object>
     </child>

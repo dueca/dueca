@@ -3,14 +3,14 @@ exec_prefix=@exec_prefix@
 includedir=@includedir@
 dueca_includedir=@dueca_includedir@
 libdir=@libdir@
-initfunc=-Wl,@ldundef@InitDusimeGtk3
+initfunc=-Wl,@ldundef@InitDusimeGtk4
 version=@VERSION@
 staticsuffix=
 
-Name: dueca-dusime-gtk3@scriptsuffix@
+Name: dueca-dusime-gtk4@scriptsuffix@
 Description: Real-time distributed control or simulation environment
 Version: ${version}
-Libs: -L${libdir} ${initfunc} -ldueca-dusime-gtk3@scriptsuffix@
+Libs: -L${libdir} ${initfunc} -ldueca-dusime-gtk4@scriptsuffix@
 Cflags:
-Requires: dueca-dusime-gtk3 = ${version}
+Requires: dueca-dusime-gtk4 = ${version}
 

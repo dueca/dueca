@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------   */
-/*      item            : ReplayMasterGtk3.cxx
+/*      item            : ReplayMasterGtk4.cxx
         made by         : Rene' van Paassen
         date            : 220418
         category        : body file
@@ -11,8 +11,10 @@
         license         : EUPL-1.2
 */
 
-#define ReplayMasterGtk3_cxx
-#include "ReplayMasterGtk3.hxx"
+#include "gtk/gtk.h"
+#include "gtk/gtkdropdown.h"
+#define ReplayMasterGtk4_cxx
+#include "ReplayMasterGtk4.hxx"
 
 // include the debug writing header, by default, write warning and
 // error messages
@@ -22,6 +24,7 @@
 #include <debprint.h>
 #include <dueca/DuecaPath.hxx>
 #include "GtkDuecaView.hxx"
+#include <boost/format.hpp>
 #define DO_INSTANTIATE
 #define NO_TYPE_CREATION
 #include <dueca/dueca.h>
@@ -30,27 +33,30 @@
 DUECA_NS_START
 
 // class/module name
-const char* const ReplayMasterGtk3::classname = "replay-master";
+const char *const ReplayMasterGtk4::classname = "replay-master";
 
 // Parameters to be inserted
-const ParameterTable* ReplayMasterGtk3::getParameterTable()
+const ParameterTable *ReplayMasterGtk4::getParameterTable()
 {
   static const ParameterTable parameter_table[] = {
 
-    { "glade-file",
-      new VarProbe<_ThisModule_,std::string>
-      (&_ThisModule_::gladefile),
+    { "gui-file",
+      new VarProbe<_ThisModule_, std::string>(&_ThisModule_::gladefile),
       "Interface description (glade, gtkbuilder) for the channel view window" },
 
+    { "position-size",
+      new MemberCall<_ThisModule_, std::vector<int>>(
+        &_ThisModule_::setPositionAndSize),
+      "Specify the position, and optionally also the size of the interface\n"
+      "window." },
+
     { "reference-files",
-      new VarProbe<_ThisModule_,std::string>
-        (&_ThisModule_::reference_file),
+      new VarProbe<_ThisModule_, std::string>(&_ThisModule_::reference_file),
       "Files with existing initial states (snapshots), one in each node. Will\n"
       "be read and used to populate the initial set" },
 
     { "store-files",
-      new VarProbe<_ThisModule_,std::string>
-        (&_ThisModule_::store_file),
+      new VarProbe<_ThisModule_, std::string>(&_ThisModule_::store_file),
       "When additional snapshots are taken in this simulation, these will\n"
       "be written in these files, one per node, together with the existing\n"
       "initial state sets. Uses a template, check boost time_facet for format\n"
@@ -66,18 +72,17 @@ const ParameterTable* ReplayMasterGtk3::getParameterTable()
   return parameter_table;
 }
 
-ReplayMasterGtk3::ReplayMasterGtk3(Entity* e, const char* part, const
-                                   PrioritySpec& ps) :
+ReplayMasterGtk4::ReplayMasterGtk4(Entity *e, const char *part,
+                                   const PrioritySpec &ps) :
   Module(e, classname, part),
 
   // initialize the data you need in your simulation or process
   inco_inventory(SnapshotInventory::findSnapshotInventory(getPart())),
   replays(ReplayMaster::findReplayMaster(getPart())),
-  gladefile(DuecaPath::prepend("replay_master_gtk3.ui")),
+  gladefile(DuecaPath::prepend("replay_master-gtk4.ui")),
   window(),
   replay_store(NULL),
-  replay_set_iter(),
-  menuitem(NULL),
+  menuaction(NULL),
   reference_file(""),
   store_file("recordings-%Y%m%d_%H%M%S.ddff"),
   files_initialized(false)
@@ -85,46 +90,43 @@ ReplayMasterGtk3::ReplayMasterGtk3(Entity* e, const char* part, const
   //
 }
 
-ReplayMasterGtk3::~ReplayMasterGtk3()
-{
-
-}
+ReplayMasterGtk4::~ReplayMasterGtk4() {}
 
 // organize some structure for initializing the tree
 namespace {
 
-  // attributes, name, and attachment to column in the model
-  struct attributedata {
-    const char* name;
-    const gint column;
-  };
+std::string formatTime(const boost::posix_time::ptime &now,
+                       const std::string &lft)
+{
+  using namespace boost::posix_time;
+  std::locale loc(std::cout.getloc(), new time_facet(lft.c_str()));
+  std::basic_stringstream<char> wss;
+  wss.imbue(loc);
+  wss << now;
+  return wss.str();
+}
+}; // namespace
 
-
-  // column data. Columns are created in glade, this attaches the proper
-  // renderer, indicate if expanded, and gives attributes
-  struct columndata {
-    // cell renderer
-    GtkCellRenderer *renderer;
-    // expand/extra space
-    gboolean expand;
-    // list of attributes, max 3 + sentinel
-    const attributedata attribs[4];
-  };
-
-  std::string formatTime(const boost::posix_time::ptime& now,
-                         const std::string& lft)
-  {
-    using namespace boost::posix_time;
-    std::locale loc(std::cout.getloc(),
-                    new time_facet(lft.c_str()));
-    std::basic_stringstream<char> wss;
-    wss.imbue(loc);
-    wss << now;
-    return wss.str();
-  }
+struct _DReplayRun
+{
+  GObject parent;
+  ReplayMaster::ReplayInfo rr;
 };
 
-bool ReplayMasterGtk3::complete()
+G_DECLARE_FINAL_TYPE(DReplayRun, d_replay_run, D, REPLAY_RUN, GObject);
+G_DEFINE_TYPE(DReplayRun, d_replay_run, G_TYPE_OBJECT);
+
+static void d_replay_run_class_init(DReplayRunClass *klass) {}
+static void d_replay_run_init(DReplayRun *self) {}
+
+static DReplayRun *d_replay_run_new(const ReplayMaster::ReplayInfo &rr)
+{
+  auto res = D_REPLAY_RUN(g_object_new(d_replay_run_get_type(), NULL));
+  res->rr = rr;
+  return res;
+}
+
+bool ReplayMasterGtk4::complete()
 {
   // the "part" indicate for which entity the replay is controlled
   if (getPart().size() == 0) {
@@ -137,159 +139,141 @@ bool ReplayMasterGtk3::complete()
 
   // install a callback to update the state of the interface, depending on
   // initial condition changes
-  inco_inventory->informOnNewMode
-    ([this](SnapshotInventory::IncoInventoryMode mode, const std::string& name)
-    {
-      DEB("New inco mode " << mode << " inconame " << name);
-      switch(mode) {
-      case SnapshotInventory::IncoLoaded:
+  inco_inventory->informOnNewMode([this](
+                                    SnapshotInventory::IncoInventoryMode mode,
+                                    const std::string &name) {
+    DEB("New inco mode " << mode << " inconame " << name);
+    switch (mode) {
+    case SnapshotInventory::IncoLoaded:
 
-        // if the inco name matches the one for the currently selected replay
-        // enable the replay control
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["replay_sendrecording"]),
-           (this->replays->initialStateMatches()) ? TRUE: FALSE);
+      // if the inco name matches the one for the currently selected replay
+      // enable the replay control
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["replay_sendrecording"]),
+                               (this->replays->initialStateMatches()) ? TRUE
+                                                                      : FALSE);
 
-        // if the name matches the currently selected replay record,
-        // note that its inco is loaded
-        if (this->replays->initialStateMatches()) {
-          DEB("Loaded inco name matches");
-          gtk_label_set_text
-            (GTK_LABEL(this->window["replay_inco_status"]), "loaded");
-        }
-
-        // anyhow, set the name of the recorded inco on the record tab
-        gtk_label_set_text
-          (GTK_LABEL(this->window["record_inco_status"]), name.c_str());
-
-        // and enable entering a recording name
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["record_name"]), TRUE);
-        break;
-
-      case SnapshotInventory::IncoRecorded:
-
-        // this can not be sent
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["replay_sendrecording"]), FALSE);
-
-        // set the name of the recorded inco
-        gtk_label_set_text
-          (GTK_LABEL(this->window["record_inco_status"]), name.c_str());
-
-        // enable entering a recording name
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["record_name"]), TRUE);
-        break;
-
-      default: // (UnSet, StartFiles)
-
-        // replay tab
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["replay_sendrecording"]), FALSE);
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["replay_sendinitial"]), FALSE);
-
-        // record tab
-        gtk_label_set_text
-          (GTK_LABEL(this->window["record_inco_status"]), "--");
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["record_name"]), FALSE);
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["record_prepare"]), FALSE);
-        gtk_label_set_text
-          (GTK_LABEL(this->window["record_status"]), "not prepared");
+      // if the name matches the currently selected replay record,
+      // note that its inco is loaded
+      if (this->replays->initialStateMatches()) {
+        DEB("Loaded inco name matches");
+        gtk_label_set_text(GTK_LABEL(this->window["replay_inco_status"]),
+                           "loaded");
       }
-    });
+
+      // anyhow, set the name of the recorded inco on the record tab
+      gtk_label_set_text(GTK_LABEL(this->window["record_inco_status"]),
+                         name.c_str());
+
+      // and enable entering a recording name
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["record_name"]), TRUE);
+      break;
+
+    case SnapshotInventory::IncoRecorded:
+
+      // this can not be sent
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["replay_sendrecording"]),
+                               FALSE);
+
+      // set the name of the recorded inco
+      gtk_label_set_text(GTK_LABEL(this->window["record_inco_status"]),
+                         name.c_str());
+
+      // enable entering a recording name
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["record_name"]), TRUE);
+      break;
+
+    default: // (UnSet, StartFiles)
+
+      // replay tab
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["replay_sendrecording"]),
+                               FALSE);
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["replay_sendinitial"]),
+                               FALSE);
+
+      // record tab
+      gtk_label_set_text(GTK_LABEL(this->window["record_inco_status"]), "--");
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["record_name"]), FALSE);
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["record_prepare"]),
+                               FALSE);
+      gtk_label_set_text(GTK_LABEL(this->window["record_status"]),
+                         "not prepared");
+    }
+  });
 
   // install a callback to update the state of the interface
-  replays->informOnNewMode
-    ([this](ReplayMaster::ReplayMasterMode mode) {
-      DEB("New replay mode " << mode);
-      switch(mode) {
-      case ReplayMaster::Idle:
-        gtk_label_set_text(GTK_LABEL(this->window["replay_rec_status"]), "--");
+  replays->informOnNewMode([this](ReplayMaster::ReplayMasterMode mode) {
+    DEB("New replay mode " << mode);
+    switch (mode) {
+    case ReplayMaster::Idle:
+      gtk_label_set_text(GTK_LABEL(this->window["replay_rec_status"]), "--");
 
-        // sending a new recording only after re-loading the matching initial
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["replay_sendrecording"]), FALSE);
+      // sending a new recording only after re-loading the matching initial
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["replay_sendrecording"]),
+                               FALSE);
 
-        // entering a new recording name is only possible after inco known
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["record_name"]), FALSE);
-        break;
+      // entering a new recording name is only possible after inco known
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["record_name"]), FALSE);
+      break;
 
-      case ReplayMaster::RecordingPrepared:
-        gtk_label_set_text(GTK_LABEL(this->window["record_status"]), "prepared");
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(window["record_prepare"]), FALSE);
-        break;
+    case ReplayMaster::RecordingPrepared:
+      gtk_label_set_text(GTK_LABEL(this->window["record_status"]), "prepared");
+      gtk_widget_set_sensitive(GTK_WIDGET(window["record_prepare"]), FALSE);
+      break;
 
-      case ReplayMaster::ReplayPrepared:
-        gtk_label_set_text(GTK_LABEL(window["replay_rec_status"]), "prepared");
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(window["replay_sendinitial"]), FALSE);
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(window["replay_sendrecording"]), FALSE);
-        break;
+    case ReplayMaster::ReplayPrepared:
+      gtk_label_set_text(GTK_LABEL(window["replay_rec_status"]), "prepared");
+      gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendinitial"]), FALSE);
+      gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendrecording"]),
+                               FALSE);
+      break;
 
-      case ReplayMaster::ReplayingThenHold:
-      case ReplayMaster::ReplayingThenAdvance:
-        // replay buttons should still be insensitive
-        gtk_label_set_text(GTK_LABEL(window["replay_rec_status"]), "replaying");
+    case ReplayMaster::ReplayingThenHold:
+    case ReplayMaster::ReplayingThenAdvance:
+      // replay buttons should still be insensitive
+      gtk_label_set_text(GTK_LABEL(window["replay_rec_status"]), "replaying");
 
-        break;
+      break;
 
-      case ReplayMaster::Recording:
+    case ReplayMaster::Recording:
 
-        // status recording
-        gtk_label_set_text(GTK_LABEL(window["record_status"]), "recording");
+      // status recording
+      gtk_label_set_text(GTK_LABEL(window["record_status"]), "recording");
 
-        // inco is now broken, do not change record name, cannot prepare
-        gtk_label_set_text
-          (GTK_LABEL(this->window["record_inco_status"]), "--");
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(this->window["record_name"]), FALSE);
+      // inco is now broken, do not change record name, cannot prepare
+      gtk_label_set_text(GTK_LABEL(this->window["record_inco_status"]), "--");
+      gtk_widget_set_sensitive(GTK_WIDGET(this->window["record_name"]), FALSE);
 
-        // no break; intentional fall-through!
+      // no break; intentional fall-through!
 
-      case ReplayMaster::UnSet:
-        gtk_label_set_text(GTK_LABEL(window["replay_rec_status"]), "--");
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(window["replay_sendinitial"]), FALSE);
-        gtk_widget_set_sensitive
-          (GTK_WIDGET(window["replay_sendrecording"]), FALSE);
-        break;
+    case ReplayMaster::UnSet:
+      gtk_label_set_text(GTK_LABEL(window["replay_rec_status"]), "--");
+      gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendinitial"]), FALSE);
+      gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendrecording"]),
+                               FALSE);
+      break;
 
-      default:
-        break;
-      };
-    });
+    default:
+      break;
+    };
+  });
   static GladeCallbackTable cb_table[] = {
-    { "replay_close", "clicked",
-      gtk_callback(&_ThisModule_::cbClose) },
+    { "replay_close", "clicked", gtk_callback(&_ThisModule_::cbClose) },
     { "replay_sendinitial", "clicked",
       gtk_callback(&_ThisModule_::cbSendInitial) },
     { "replay_sendrecording", "clicked",
       gtk_callback(&_ThisModule_::cbSendReplay) },
-    { "replay_holdafter", "toggled",
-      gtk_callback(&_ThisModule_::cbSelectHoldAfter) },
-    { "replay_advanceafter", "toggled",
-      gtk_callback(&_ThisModule_::cbSelectAdvanceAfter) },
-    { "replay_recording_selection", "changed",
-      gtk_callback(&_ThisModule_::cbSelectReplay) },
-    { "record_name", "changed",
-      gtk_callback(&_ThisModule_::cbRecordName) },
+    { "replay_todoafter", "notify::selected",
+      gtk_callback(&_ThisModule_::cbSelectTodoAfter) },
+    { "record_name", "changed", gtk_callback(&_ThisModule_::cbRecordName) },
     { "record_prepare", "clicked",
       gtk_callback(&_ThisModule_::cbRecordPrepare) },
-    { "replay_select_view", "delete_event",
+    { "replay_select_view", "close-request",
       gtk_callback(&_ThisModule_::cbDelete) },
     { NULL }
   };
 
-  bool res = window.readGladeFile
-    (gladefile.c_str(), "replay_select_view",
-     reinterpret_cast<gpointer>(this), cb_table);
+  bool res = window.readGladeFile(gladefile.c_str(), "replay_select_view",
+                                  reinterpret_cast<gpointer>(this), cb_table);
   if (!res) {
     /* DUSIME replay&initial
 
@@ -306,79 +290,55 @@ bool ReplayMasterGtk3::complete()
 
        The advance mode cannot be controlled programmatically. Look in
        the options for your DUSIME module to enable this. */
-    W_MOD("Replay cannot continue with advance, disabling");
-    gtk_widget_set_sensitive(GTK_WIDGET(window["replay_advanceafter"]), FALSE);
+    W_MOD("ReplayMaster cannot set DUSIME to advance, disabling option to "
+          "continue.");
+    auto model = GTK_STRING_LIST(
+      gtk_drop_down_get_model(GTK_DROP_DOWN(window["replay_todoafter"])));
+    gtk_string_list_remove(model, 1);
   }
 
-  GtkTreeView *replaytree = GTK_TREE_VIEW(window["replay_recording_overview"]);
-  replay_store = GTK_LIST_STORE(gtk_tree_view_get_model(replaytree));
+  // set up the model behind the column view
+  GtkColumnView *replaytree =
+    GTK_COLUMN_VIEW(window["replay_recording_overview"]);
+  replay_store = g_list_store_new(d_replay_run_get_type());
+  auto selection = gtk_single_selection_new(G_LIST_MODEL(replay_store));
+  auto cb = gtk_callback(&_ThisModule_::cbSelectReplay, this);
+  g_signal_connect(selection, "selection-changed", cb->callback(), cb);
+  gtk_column_view_set_model(replaytree, GTK_SELECTION_MODEL(selection));
 
-  static GtkCellRenderer *txtrenderer = gtk_cell_renderer_text_new();
-
-  // name, title, renderer, sort, expand
-  // (attribute, column) x n
-  static columndata cdata_rec[] = {
-    { txtrenderer, FALSE,
-      { { "text", S_rec_name}, { NULL, 0 } } },
-    { txtrenderer, FALSE,
-      { { "text", S_rec_date }, { NULL, 0 } } },
-    { txtrenderer, FALSE,
-      { { "text", S_rec_span }, { NULL, 0 } } },
-    { txtrenderer, TRUE,
-      { { "text", S_rec_inco_name }, { NULL, 0 } } },
-    { NULL, FALSE, { { NULL, 0} } }
+  // callback that adds new replays
+  auto fcn = [this](const ReplayMaster::ReplayInfo &rep) {
+    auto item = d_replay_run_new(rep);
+    g_list_store_append(this->replay_store, item);
   };
 
-  // this sets the renderer(s) on the columns
-  int icol = 0;
-  for (const struct columndata* cd = cdata_rec; cd->renderer != NULL; cd++) {
-    GtkTreeViewColumn *col = gtk_tree_view_get_column(replaytree, icol++);
-    gtk_tree_view_column_pack_start(col, cd->renderer, cd->expand);
-    for (const struct attributedata* at = cd->attribs; at->name != NULL; at++) {
-      gtk_tree_view_column_add_attribute
-        (col, cd->renderer, at->name, at->column);
-    }
-  }
-
-  auto fcn = [this](const ReplayMaster::ReplayInfo& rep) {
-    gtk_list_store_append
-      (this->replay_store, &(this->replay_set_iter));
-    gtk_list_store_set
-      (replay_store, &(this->replay_set_iter),
-       S_rec_id, rep.cycle,
-       S_rec_name, rep.label.c_str(),
-       S_rec_date, rep.getTimeLocal().c_str(),
-       S_rec_span, rep.getSpanInSeconds(),
-       S_rec_inco_name, rep.inco_name.c_str(),
-       -1);
-  };
+  // install callback for initial and incremental
   replays->runRecords(fcn);
   replays->informOnNewRecord(fcn);
 
   // set a title
-  gtk_window_set_title
-    (GTK_WINDOW(window["replay_select_view"]),
-     (std::string("Record&Replay control - ") + getPart()).c_str());
+  gtk_window_set_title(
+    GTK_WINDOW(window["replay_select_view"]),
+    (std::string("Record&Replay control - ") + getPart()).c_str());
 
   // insert in DUECA's menu
-  menuitem = GTK_WIDGET(GtkDuecaView::single()->requestViewEntry
-                        ((std::string("Replay Control - ") + getPart()).c_str(),
-                         window.getObject("replay_select_view")));
-
-
+  menuaction = GtkDuecaView::single()->requestViewEntry(
+    (std::string("replay_") + getPart()).c_str(),
+    (std::string("Replay Control - ") + getPart()).c_str(),
+    window.getObject("replay_select_view"));
 
   return res;
 }
 
-bool ReplayMasterGtk3::isPrepared()
+bool ReplayMasterGtk4::isPrepared()
 {
   bool res = true;
   CHECK_CONDITION(replays->channelsValid());
   CHECK_CONDITION(inco_inventory->channelsValid());
 
   if (res && !files_initialized) {
-    std::string file_marked = formatTime
-      (boost::posix_time::second_clock::universal_time(), store_file);
+    std::string file_marked =
+      formatTime(boost::posix_time::second_clock::universal_time(), store_file);
     replays->initWork(reference_file, file_marked);
 
     /* DUSIME replay&initial
@@ -392,133 +352,170 @@ bool ReplayMasterGtk3::isPrepared()
   return res;
 }
 
-void ReplayMasterGtk3::startModule(const TimeSpec& ts)
+void ReplayMasterGtk4::startModule(const TimeSpec &ts)
 {
   //
 }
 
-void ReplayMasterGtk3::stopModule(const TimeSpec& ts)
+void ReplayMasterGtk4::stopModule(const TimeSpec &ts)
 {
   //
 }
 
-void ReplayMasterGtk3::cbClose(GtkButton* button, gpointer gp)
+void ReplayMasterGtk4::cbClose(GtkButton *button, gpointer gp)
 {
-  g_signal_emit_by_name(G_OBJECT(menuitem), "activate", NULL);
+  // g_signal_emit_by_name(G_OBJECT(menuaction), "activate", NULL);
+  GtkDuecaView::toggleView(menuaction);
 }
 
-void ReplayMasterGtk3::cbSendReplay(GtkButton* btn, gpointer gp)
+void ReplayMasterGtk4::cbSendReplay(GtkButton *btn, gpointer gp)
 {
   // the button is only active when the correct inco has been sent,
   // and a replay selected
   replays->sendSelected();
 }
 
-void ReplayMasterGtk3::cbSelectHoldAfter(GtkWidget* widget, gpointer gp)
+void ReplayMasterGtk4::cbSelectTodoAfter(GObject *widget, GParamSpec *pspec,
+                                         gpointer gp)
 {
-  if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget))) {
-    replays->setAdvanceAfterReplay(false);
-  }
+  auto sel = gtk_drop_down_get_selected(GTK_DROP_DOWN(widget));
+  replays->setAdvanceAfterReplay(bool(sel));
 }
 
-void ReplayMasterGtk3::cbSelectAdvanceAfter(GtkWidget* widget, gpointer gp)
+void ReplayMasterGtk4::cbSelectReplay(GtkSelectionModel *sel, guint position,
+                                      guint nsel, gpointer gp)
 {
-  if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget))) {
-    replays->setAdvanceAfterReplay(true);
-  }
-}
-
-void ReplayMasterGtk3::cbSelectReplay(GtkTreeSelection *sel,
-                                      gpointer gp)
-{
-  GtkTreeIter  iter;
-  gint id_rec = -1;
-  gchararray rec_name = NULL;
-  gchararray inco_name = NULL;
-  GtkTreeModel *treemodel = GTK_TREE_MODEL(replay_store);
-
-  // get the currently selected
-  if (gtk_tree_selection_get_selected
-      (sel, &treemodel, &iter)) {
-    gtk_tree_model_get(treemodel, &iter, S_rec_id, &id_rec,
-                       S_rec_name, &rec_name,
-                       S_rec_inco_name, &inco_name, -1);
-  }
-
-  if (inco_name != NULL && inco_inventory->changeSelection(inco_name)) {
-    gtk_entry_set_text(GTK_ENTRY(window["replay_inco_selected"]), inco_name);
+  if (gtk_selection_model_is_selected(sel, position)) {
+    auto it =
+      D_REPLAY_RUN(g_list_model_get_item(G_LIST_MODEL(replay_store), position));
+    gtk_editable_set_text(GTK_EDITABLE(window["replay_inco_selected"]),
+                          it->rr.inco_name.c_str());
     gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendinitial"]), TRUE);
+
+    if (it->rr.label.size()) {
+      gtk_editable_set_text(GTK_EDITABLE(window["replay_recording_selected"]),
+                            it->rr.label.c_str());
+      gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendrecording"]),
+                               FALSE);
+    }
+    replays->changeSelection(it->rr.cycle);
+    DEB("cbSelectReplay, changing to replay "
+        << it->rr.cycle << "/" << it->rr.label << " inco " << it->rr.inco_name);
   }
   else {
-    gtk_entry_set_text(GTK_ENTRY(window["replay_inco_selected"]), "");
+    gtk_editable_set_text(GTK_EDITABLE(window["replay_inco_selected"]), "");
     gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendinitial"]), FALSE);
   }
-  DEB("cbSelectReplay, changing to replay " << id_rec << "/" << rec_name
-      << " inco " << inco_name);
-
-  if (rec_name != NULL) {
-    gtk_entry_set_text
-      (GTK_ENTRY(window["replay_recording_selected"]), rec_name);
-    gtk_widget_set_sensitive
-      (GTK_WIDGET(window["replay_sendrecording"]), FALSE);
-  }
-  replays->changeSelection(id_rec);
 }
 
-void ReplayMasterGtk3::cbSendInitial(GtkButton* button, gpointer gp)
+void ReplayMasterGtk4::cbSendInitial(GtkButton *button, gpointer gp)
 {
   // this button should only be sensitive when the correct inco
   // has been selected
   bool success = inco_inventory->sendSelected();
 
-  DEB("cbSendInitial, result=" << success << " sending " <<
-      inco_inventory->getSelected());
+  DEB("cbSendInitial, result=" << success << " sending "
+                               << inco_inventory->getSelected());
 
   // whatever, block further sending
-  gtk_widget_set_sensitive
-    (GTK_WIDGET(window["replay_sendinitial"]), FALSE);
+  gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendinitial"]), FALSE);
 
   if (success) {
     // can now send the recording
-    gtk_widget_set_sensitive
-      (GTK_WIDGET(window["replay_sendrecording"]), TRUE);
-    gtk_label_set_text
-      (GTK_LABEL(window["replay_inco_status"]), "loaded");
+    gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendrecording"]), TRUE);
+    gtk_label_set_text(GTK_LABEL(window["replay_inco_status"]), "loaded");
   }
   else {
-    gtk_label_set_text
-      (GTK_LABEL(window["replay_inco_status"]), "failed");
+    gtk_label_set_text(GTK_LABEL(window["replay_inco_status"]), "failed");
   }
 }
 
-gboolean ReplayMasterGtk3::
-cbDelete(GtkWidget *window, GdkEvent *event, gpointer user_data)
+gboolean ReplayMasterGtk4::cbDelete(GtkWidget *window, gpointer user_data)
 {
   // fixes the menu check, and closes the window
-  g_signal_emit_by_name(G_OBJECT(menuitem), "activate", NULL);
+  // g_signal_emit_by_name(G_OBJECT(menuaction), "activate", NULL);
+  GtkDuecaView::toggleView(menuaction);
 
   // indicate that the event is handled
   return TRUE;
 }
 
-void ReplayMasterGtk3::cbRecordPrepare(GtkButton* button, gpointer gp)
+void ReplayMasterGtk4::cbRecordPrepare(GtkButton *button, gpointer gp)
 {
-  std::string recording{gtk_entry_get_text(GTK_ENTRY(window["record_name"]))};
+  std::string recording{ gtk_editable_get_text(
+    GTK_EDITABLE(window["record_name"])) };
   DEB("cbRecordPrepare, with record name " << recording);
   replays->prepareRecording(recording);
-  gtk_widget_set_sensitive
-    (GTK_WIDGET(window["record_prepare"]), FALSE);
+  gtk_widget_set_sensitive(GTK_WIDGET(window["record_prepare"]), FALSE);
 }
 
-void ReplayMasterGtk3::cbRecordName(GtkWidget* text, gpointer gp)
+void ReplayMasterGtk4::cbRecordName(GtkWidget *text, gpointer gp)
 {
-  std::string newtext{gtk_entry_get_text(GTK_ENTRY(text))};
-  DEB("cbRecordName, name " << newtext << " existing? " <<
-      replays->haveReplaySet(newtext));
-  gtk_widget_set_sensitive
-    (GTK_WIDGET(window["record_prepare"]),
-     replays->haveReplaySet(newtext) ? FALSE : TRUE);
+  std::string newtext{ gtk_editable_get_text(GTK_EDITABLE(text)) };
+  DEB("cbRecordName, name " << newtext << " existing? "
+                            << replays->haveReplaySet(newtext));
+  gtk_widget_set_sensitive(GTK_WIDGET(window["record_prepare"]),
+                           replays->haveReplaySet(newtext) ? FALSE : TRUE);
 }
 
+void ReplayMasterGtk4::cbSetupLabel(GtkSignalListItemFactory *fact,
+                                    GtkListItem *object, gpointer user_data)
+{
+  auto label = gtk_label_new("");
+  gtk_list_item_set_child(object, label);
+  g_object_unref(label);
+}
+
+void ReplayMasterGtk4::cbBindReplayName(GtkSignalListItemFactory *fact,
+                                        GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
+  gtk_label_set_text(label, entry->rr.label.c_str());
+}
+
+void ReplayMasterGtk4::cbBindReplayDate(GtkSignalListItemFactory *fact,
+                                        GtkListItem *item, gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
+  gtk_label_set_text(label, entry->rr.getTimeLocal().c_str());
+}
+
+void ReplayMasterGtk4::cbBindReplayDuration(GtkSignalListItemFactory *fact,
+                                            GtkListItem *item,
+                                            gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
+  gtk_label_set_text(
+    label,
+    boost::str(boost::format("%4d s") % entry->rr.getSpanInSeconds()).c_str());
+}
+
+void ReplayMasterGtk4::cbBindReplayInitial(GtkSignalListItemFactory *fact,
+                                           GtkListItem *item,
+                                           gpointer user_data)
+{
+  auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
+  gtk_label_set_text(label, entry->rr.label.c_str());
+}
+
+bool ReplayMasterGtk4::setPositionAndSize(const std::vector<int> &p)
+{
+  if (p.size() == 2 || p.size() == 4) {
+    window.setWindow(p);
+  }
+  else {
+    /* DUECA UI.
+
+       Window setting needs 2 (for size) or 4 (also location)
+       arguments. */
+    E_CNF(getId() << '/' << classname << " need 2 or 4 arguments");
+    return false;
+  }
+  return true;
+}
 
 DUECA_NS_END;

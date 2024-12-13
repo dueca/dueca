@@ -67,6 +67,8 @@ Component selection options:
         --gtkmm2 / --gtkmm # include gtkmm-based interfaces and framework
         --gtk3             # include gtk3-based interfaces and framework
         --gtkmm3           # include gtkmm-based interfaces with gtk3
+        --gtk4             # include gtk4-based interfaces and framework
+        --gtkmm4           # include gtkmm-based interfaces with gtk4
         --glut             # include glut-based framework
         --glut-gui         # include glui-gui (glui) based framework
         --fltk             # include fltk-based framework
@@ -80,7 +82,7 @@ Component selection options:
 Note that you can only use ONE of the real-time workshop versions at a time.
 The rtw53 etc. options are obsolete, and may be removed in a next version
 
-Note that you can only use ONE of --gtk2 or --gtk3 at a time.
+Note that you can only use ONE of --gtk2 or --gtk3 or --gtk4 at a time.
 EOF
     exit $1
 }
@@ -286,6 +288,12 @@ case $OPTION in
                 --gtk3)
                     PKGS="$PKGS dueca-gtk3\${SCRIPTSUFFIX}"
                     ;;
+                --gtkmm4)
+                    PKGS="$PKGS dueca-gtkmm4"
+                    ;;
+                --gtk4)
+                    PKGS="$PKGS dueca-gtk4\${SCRIPTSUFFIX}"
+                    ;;
                 --glut)
                     PKGS="$PKGS dueca-glut\${SCRIPTSUFFIX}"
                     ;;
@@ -365,6 +373,9 @@ case $OPTION in
                     --gtk3)
                         PKGS="$PKGS dueca-dusime-gtk3\${SCRIPTSUFFIX}"
                         ;;
+                    --gtk4)
+                        PKGS="$PKGS dueca-dusime-gtk4\${SCRIPTSUFFIX}"
+                        ;;
                     esac
             done
         fi
@@ -393,6 +404,9 @@ case $OPTION in
                     --gtk3)
                         PKGS="$PKGS dueca-udp-gtk3\${SCRIPTSUFFIX}"
                         ;;
+                    --gtk4)
+                        PKGS="$PKGS dueca-udp-gtk4\${SCRIPTSUFFIX}"
+                        ;;
                     esac
             done
         fi
@@ -416,6 +430,10 @@ case $OPTION in
                         ;;
                     --gtk3)
                         PKGS="$PKGS dueca-extra-gtk3"
+                        EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                    --gtk4)
+                        PKGS="$PKGS dueca-extra-gtk4"
                         EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
                         ;;
                     --glut)

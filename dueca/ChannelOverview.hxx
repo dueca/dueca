@@ -35,7 +35,6 @@
 #include <dueca/ChannelCountRequest.hxx>
 #include <dueca/ChannelCountResult.hxx>
 #include <list>
-#include <set>
 #include <fstream>
 #include <memory>
 
@@ -174,6 +173,9 @@ public:
     /** Name of the channel, cached */
     std::string name;
 
+    /** Channel number */
+    unsigned chanid;
+
     /** Channel has an entry in zero */
     bool        accessfromzero;
 
@@ -204,19 +206,22 @@ public:
         /** sequence id */
         uchan_seq_id_t seq_id;
 
+        /** Constructor */
         ReadInfoSet(unsigned readerid, const ChannelReadInfo& rdata);
       };
 
       /** Organise with all client data */
       std::list<std::shared_ptr<ReadInfoSet> > rdata;
 
+      /** Constructor */
       EntryInfoSet(const ChannelWriteInfo& wdata);
     };
 
     /** List of entries */
     std::vector<std::shared_ptr<EntryInfoSet> > entries;
 
-    ChannelInfoSet(const std::string& name, bool accesszero);
+    /** Constructor */
+    ChannelInfoSet(const std::string& name, unsigned chanid, bool accesszero);
   };
 protected:
   /** wait period for checking counts */
@@ -334,6 +339,9 @@ public:
 
   /** Close the monitor */
   virtual void closeMonitor(unsigned channelno, unsigned entryno);
+
+  /** Get the channel name */
+  const std::string& getChannelName(unsigned channelno) const;
 
 protected:
   void setMonitor(unsigned channelno, unsigned entryno,

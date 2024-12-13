@@ -63,24 +63,19 @@ public:
 
 private:
   /** Pressed on replay button. */
-  gboolean cbReplay(GtkWidget *widget, GdkEventButton *event,
-                    gpointer user_data);
+  void cbReplay(GtkWidget *widget, gpointer user_data);
 
   /** Pressed on  button. */
-  gboolean cbCalibrate(GtkWidget *widget, GdkEventButton *event,
-                    gpointer user_data);
+  void cbCalibrate(GtkWidget *widget, gpointer user_data);
 
   /** Pressed on  button. */
-  gboolean cbInactive(GtkWidget *widget, GdkEventButton *event,
-                    gpointer user_data);
+  void cbInactive(GtkWidget *widget, gpointer user_data);
 
   /** Pressed on  button. */
-  gboolean cbHoldCurrent(GtkWidget *widget, GdkEventButton *event,
-                    gpointer user_data);
+  void cbHoldCurrent(GtkWidget *widget, gpointer user_data);
 
   /** Pressed on  button. */
-  gboolean cbAdvance(GtkWidget *widget, GdkEventButton *event,
-                    gpointer user_data);
+  void cbAdvance(GtkWidget *widget, gpointer user_data);
 
   /** Snapshot send. */
   void cbSnapShot(GtkButton* button, gpointer gp);

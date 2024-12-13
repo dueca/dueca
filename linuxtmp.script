@@ -23,7 +23,7 @@ cd $BUILDDIR
 rm -f CMakeCache.txt
 # rm -rf CMakeFiles
 
-# Ninja is faster, but makefiles are more modular
+# Ninja is faster
 BUILDER="-G Ninja"
 #BUILDER="-G 'Unix Makefiles'"
 

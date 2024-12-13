@@ -134,6 +134,7 @@ void TriggerPuller::addTarget(const boost::intrusive_ptr<TriggerTarget>& t,
     }
   }
 #endif
+  assert(t.get());
   targets.push_back(TargetData(t, id));
 }
 

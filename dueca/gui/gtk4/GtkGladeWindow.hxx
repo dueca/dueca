@@ -20,14 +20,15 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <iostream>
 #include "GtkCaller.hxx"
 #include "GladeException.hxx"
 #include <boost/any.hpp>
 
+#define NO_COMBOBOX
+
 // Forward declaration
 namespace Gtk {
-  class Widget;
+class Widget;
 }
 
 /** \file gtk4/GtkGladeWindow.hxx
@@ -41,78 +42,90 @@ class ElementWriter;
 class ElementReader;
 
 /** creation of a caller, 1 parameter and the gpointer parameter. */
-template<class T, typename RET, typename P1>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, gpointer) )
+template <class T, typename RET, typename P1>
+GtkCaller *gtk_callback(RET (T::*call)(P1, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp1<T,RET,P1>(call);
+  return new GtkCallerImp1<T, RET, P1>(call, obj);
 }
 
 /** creation of a caller, 2 parameters and the gpointer parameter. */
-template<class T, typename RET, typename P1, typename P2>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, P2, gpointer) )
+template <class T, typename RET, typename P1, typename P2>
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp2<T,RET,P1,P2>(call);
+  return new GtkCallerImp2<T, RET, P1, P2>(call, obj);
 }
 
 /** creation of a caller, 3 parameters and the gpointer parameter. */
-template<class T, typename RET, typename P1, typename P2, typename P3>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, P2, P3, gpointer) )
+template <class T, typename RET, typename P1, typename P2, typename P3>
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp3<T,RET,P1,P2,P3>(call);
+  return new GtkCallerImp3<T, RET, P1, P2, P3>(call, obj);
 }
 
 /** creation of a caller, 4 parameters and the gpointer parameter. */
-template<class T, typename RET, typename P1, typename P2, typename P3,
-         typename P4>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, P2, P3, P4, gpointer) )
+template <class T, typename RET, typename P1, typename P2, typename P3,
+          typename P4>
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp4<T,RET,P1,P2,P3,P4>(call);
+  return new GtkCallerImp4<T, RET, P1, P2, P3, P4>(call);
 }
 
 /** creation of a caller, 5 parameters and the gpointer parameter. */
-template<class T, typename RET, typename P1, typename P2, typename P3,
-         typename P4, typename P5>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, P2, P3, P4, P5, gpointer) )
+template <class T, typename RET, typename P1, typename P2, typename P3,
+          typename P4, typename P5>
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp5<T,RET,P1,P2,P3,P4,P5>(call);
+  return new GtkCallerImp5<T, RET, P1, P2, P3, P4, P5>(call, obj);
 }
 
 /** creation of a caller, 6 parameters and the gpointer parameter. */
-template<class T, typename RET, typename P1, typename P2, typename P3,
-         typename P4, typename P5, typename P6>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, P2, P3, P4, P5, P6, gpointer) )
+template <class T, typename RET, typename P1, typename P2, typename P3,
+          typename P4, typename P5, typename P6>
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp6<T,RET,P1,P2,P3,P4,P5,P6>(call);
+  return new GtkCallerImp6<T, RET, P1, P2, P3, P4, P5, P6>(call, obj);
 }
 
 /** creation of a caller, 7 parameters and the gpointer parameter. */
-template<class T, typename RET, typename P1, typename P2, typename P3,
-         typename P4, typename P5, typename P6, typename P7>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, P2, P3, P4, P5, P6, P7,
-                                          gpointer) )
+template <class T, typename RET, typename P1, typename P2, typename P3,
+          typename P4, typename P5, typename P6, typename P7>
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, P7, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp7<T,RET,P1,P2,P3,P4,P5,P6,P7>(call);
+  return new GtkCallerImp7<T, RET, P1, P2, P3, P4, P5, P6, P7>(call, obj);
 }
 
 /** creation of a caller, 8 parameters and the gpointer parameter. */
-template<class T, typename RET, typename P1, typename P2, typename P3,
-         typename P4, typename P5, typename P6, typename P7, typename P8>
-GtkCaller* gtk_callback( RET (T:: *call) (P1, P2, P3, P4, P5, P6, P7, P8,
-                                          gpointer) )
+template <class T, typename RET, typename P1, typename P2, typename P3,
+          typename P4, typename P5, typename P6, typename P7, typename P8>
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, P7, P8,
+                                       gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp8<T,RET,P1,P2,P3,P4,P5,P6,P7,P8>(call);
+  return new GtkCallerImp8<T, RET, P1, P2, P3, P4, P5, P6, P7, P8>(call, obj);
+}
+
+/** Implement a callback with a caller;
+
+    use caller->callback() to get a callback
+    function, and insert the caller pointer into user_data */
+inline GtkCaller *gtk_caller_new(const GtkCaller &caller, gpointer client,
+                                 gpointer user_data = NULL)
+{
+  auto cb = caller.clone(client);
+  cb->setGPointer(user_data);
+  return cb;
 }
 
 /** Structure that assembles a widget name, a callback function and
     the widget signal that should trigger the callback function. */
-struct GladeCallbackTable {
+struct GladeCallbackTable
+{
   /** Widget name for linking callback */
   const char *widget;
   /** GTK signal name. */
   const char *signal;
   /** Function receiving the callback. Create this one with a
       gtk_callback() function. */
-  GtkCaller* func;
+  GtkCaller *func;
   /** User data pointer. */
   gpointer user_data;
 };
@@ -191,20 +204,21 @@ struct GladeCallbackTable {
 
     If you now ensure that the widgets holding this data (for the
     float a TextEntry, an Adjustment, a SpinButton or a Range, for the
-    enum a ComboBox) are properly named, the GtkGladeWindow can:
+    enum a DropDown) are properly named, the GtkGladeWindow can:
 
-    - Set the options for the ComboBox based on the enum values
+    - Set the options for the DropDown based on the enum values
     - Set the data from the "a" and "command" members into the interface
     - Convert data from the interface to the "a" and "command" members.
 
     As an example, for a glade window with a SpinButton named
-    "mywidgets_a" and a ComboBox named "mywidgets_command", the
+    "mywidgets_a" and a DropDown named "mywidgets_command", the
     following code should work:
 
     @code{.cxx}
     // define a mapping between the enum values, and interface strings
     // note that whithout mappings (use NULL), the enum values are used
-    // directly in the interface
+    // directly in the interface. The mapping must remain valid, use a 
+    // "static" keyword for that.
 
     // each enum gets a mapping to label strings
     static const GtkGladeWindow::OptionMapping mapping_command[] = {
@@ -242,15 +256,14 @@ struct GladeCallbackTable {
 
     In your glade gui, ensure that:
 
-    - Each ComboBox that you want to use has a text entry
+    - Each DropDown that you want to use has a text entry
 
-    - Specify column 0 of the associated GtkListStore for the entry if
+    - Specify column 0 of the associated GListStore for the entry if
       you don't want a mapping (directly use the enum names), column
       1 if you do want a mapping.
 
-    - A ComboBox does not need a GtkListStore in the gui file; if none
-      is found, one will be automatically generated. If you do define
-      a GtkListStore in the ui file, give it two gchararray columns.
+    - A DropDown does not need a GListStore in the gui file; if none
+      is found, one will be automatically generated.
 
     - The widgets you want to connect to a DCO object need an ID that
       matches the DCO object member you want to link, e.g., ID
@@ -272,10 +285,10 @@ class GtkGladeWindow
   static bool initialised_gtkmm;
 
   /** The main window. */
-  GtkWidget* window;
+  GtkWidget *window;
 
   /** Builder */
-  GtkBuilder* builder;
+  GtkBuilder *builder;
 
   /** X coordinate of requested window position, -1 if default */
   int offset_x;
@@ -290,28 +303,28 @@ class GtkGladeWindow
   int size_y;
 
   /** A map of already initialized C++ widget objects, gtkmm interface */
-  std::map<std::string, Gtk::Widget*> widgets;
+  std::map<std::string, Gtk::Widget *> widgets;
 
   /** Helper, set a double value on a widget */
-  bool _setValue(const char* wname, double value, bool warn);
+  bool _setValue(const char *wname, double value, bool warn);
 
   /** Helper, set a string value on a widget */
-  bool _setValue(const char* wname, const char* value, bool warn);
+  bool _setValue(const char *wname, const char *value, bool warn);
 
   /** Helper, set a state on a widget */
-  bool _setValue(const char* wname, bool value, bool warn);
+  bool _setValue(const char *wname, bool value, bool warn);
 
   /** Helper, set any value on a widget */
-  bool _setValue(const char* wname, const char* mname,
-                 boost::any& b, bool warn);
+  bool _setValue(const char *wname, const char *mname, boost::any &b,
+                 bool warn);
 
   /** Helper, get a state from a widget */
-  template<class T>
-  bool __getValue(const char* wname, boost::any& alue, bool warn);
+  template <class T>
+  bool __getValue(const char *wname, boost::any &alue, bool warn);
 
   /** Helper, get any value from a widget */
-  bool _getValue(const char* wname, const char* mname, const char* klass,
-                 boost::any& b, bool warn);
+  bool _getValue(const char *wname, const char *mname, const char *klass,
+                 boost::any &b, bool warn);
 
 public:
   /** Constructor. */
@@ -326,7 +339,7 @@ public:
       widget. Connects callbacks given in the table, and optionally
       connects callback signals to symbols found in the application's
       symbol table.
-      
+
       @param file        Name of the glade interface file
       @param mainwidget  Top-level widget (normally a window) in that
                          file that will be opened.
@@ -337,17 +350,15 @@ public:
                          to the callback function.
       @param connect_signals Connect gobject callback signals. The user_data
                          argument to callback functions is obtained from
-			 the "client" argument.
+                         the "client" argument.
       @param warn        Warn when widgets in the callback table are not
                          found in the interface.
       @returns           true if all OK. */
-  bool readGladeFile(const char* file,
-                     const char* mainwidget,
+  bool readGladeFile(const char *file, const char *mainwidget,
                      gpointer client = NULL,
                      const GladeCallbackTable *table =
-                     reinterpret_cast<GladeCallbackTable*>(NULL),
-                     bool connect_signals = false,
-		     bool warn = true);
+                       reinterpret_cast<GladeCallbackTable *>(NULL),
+                     bool connect_signals = false, bool warn = true);
 
   /** Connect callbacks to widgets. You can repeatedly use this
       function, adding more callbacks to the widgets.
@@ -359,7 +370,7 @@ public:
       @param warn        Warn when widgets in the callback table are not
                          found in the interface. */
   void connectCallbacks(gpointer client, const GladeCallbackTable *table,
-			bool warn = true);
+                        bool warn = true);
 
   /** Connect callbacks to widgets. Callbacks will be added as last.
       You can repeatedly use this
@@ -372,15 +383,8 @@ public:
       @param warn        Warn when widgets in the callback table are not
                          found in the interface. */
   void connectCallbacksAfter(gpointer client, const GladeCallbackTable *table,
-			     bool warn = true);
+                             bool warn = true);
 
-#if 0
-  /** Connect GObject in-code callbacks, note that this is effective
-      only once, and called when connect_signals=true in the readGladeFile
-      function. */
-  void connectCallbackSymbols(gpointer user_data=NULL);
-#endif
-  
   /** Access the widgets in this interface.
 
       Most objects in the interface will be widgets; note that for
@@ -389,14 +393,14 @@ public:
       @param wname       Widget name.
       @returns           A widget object, NULL when the object is not found.
   */
-  GtkWidget* operator [] (const char* wname);
+  GtkWidget *operator[](const char *wname) const;
 
   /** Access anything in the interface file as objects
 
       @param name        Object name.
       @returns           A GObject pointer, NULL when the object is not found.
   */
-  GObject* getObject(const char* name);
+  GObject *getObject(const char *name) const;
 
   /** Open the window
 
@@ -404,7 +408,7 @@ public:
 
       @param widget  Optional, widget name to show other widget or window
   */
-  void show(const char* widget=NULL);
+  void show(const char *widget = NULL);
 
   /** Close the window.
 
@@ -413,20 +417,22 @@ public:
       @param widget  Optional, widget name to hide other widget or
                      window.
   */
-  void hide(const char* widget=NULL);
+  void hide(const char *widget = NULL);
 
   /** Struct for mapping enum name to representation string */
-  struct OptionMapping {
+  struct OptionMapping
+  {
     /** C++ name of an enumerated value */
-    const char* ename;
+    const char *ename;
     /** String by which this should be shown in the interface */
-    const char* representation;
+    const char *representation;
   };
 
   /** Struct for describing mappings */
-  struct OptionMappings {
+  struct OptionMappings
+  {
     /** C++ name of the dco member variable */
-    const char* dcomember;
+    const char *dcomember;
     /** Ponter to a NULL-value terminated list of mappings for the
         enumerated value to representation */
     const OptionMapping *mapping;
@@ -434,13 +440,12 @@ public:
 
 private:
   /** Helper for option insertion */
-  bool _fillOptions(const char* wname,
-                    ElementWriter& writer, ElementReader& reader,
-                    const OptionMapping* mapping, bool warn);
+  bool _fillOptions(const char *wname, ElementWriter &writer,
+                    ElementReader &reader, const OptionMapping *mapping,
+                    bool warn);
+
 public:
-
-
-  /** Use the enum items in a DCO object to fill combobox tree models
+  /** Use the enum items in a DCO object to fill DropDown tree models
       in the interface
 
       @param dcoclass  Object class
@@ -455,9 +460,9 @@ public:
       @param warn      If true, provide warnings when gui elements
                        cannot be found, or have the wrong type.
   */
-  bool fillOptions(const char* dcoclass,
-                   const char* format, const char* arrformat = NULL,
-                   const OptionMappings* mapping=NULL, bool warn=false);
+  bool fillOptions(const char *dcoclass, const char *format,
+                   const char *arrformat = NULL,
+                   const OptionMappings *mapping = NULL, bool warn = false);
 
   /** Use a DCO object to set the state of the interface.
 
@@ -476,9 +481,8 @@ public:
                        widget and datatype do not match.
       @returns         The number of successfully set values
    */
-  unsigned setValues(CommObjectReader& dco,
-                     const char* format, const char* arrformat = NULL,
-                     bool warn=false);
+  unsigned setValues(CommObjectReader &dco, const char *format,
+                     const char *arrformat = NULL, bool warn = false);
 
   /** Find the current state of the interface and push into a DCO object.
 
@@ -497,9 +501,17 @@ public:
                        widget and datatype do not match.
       @returns         The number of successfully read values
    */
-  unsigned getValues(CommObjectWriter& dco,
-                     const char* format, const char* arrformat = NULL,
-                     bool warn=false);
+  unsigned getValues(CommObjectWriter &dco, const char *format,
+                     const char *arrformat = NULL, bool warn = false);
+
+  /** Initialize a text dropdown with a given list or array of values.
+
+      @param name      Name of the dropdown box.
+      @param values    Iterable (list, vector, etc.) of std::string
+                       (or string-like) objects, these need a "c_str()" method.
+   */
+  template <typename T>
+  bool loadDropDownText(const char *name, const T &values);
 
   /** \brief Obtain gtk widget with name 'name' as a C++ object
     *
@@ -509,8 +521,7 @@ public:
         myGladeWindow.getWidget("myButton", b);
     * \endcode
     */
-  template<typename T>
-  T* getWidget(const std::string& name, T*& w);
+  template <typename T> T *getWidget(const std::string &name, T *&w);
 
   /** \brief Obtain gtk widget with name 'name' as a C++ object using
       a derived class
@@ -521,8 +532,7 @@ public:
       myGladeWindow.getWidgetDerived("myButton", b);
     * \endcode
     */
-  template<typename T>
-      T* getWidgetDerived(const std::string& name, T*& w);
+  template <typename T> T *getWidgetDerived(const std::string &name, T *&w);
 
   /** \brief Obtain gtk widget with name 'name' as a C++ object
     *
@@ -531,7 +541,7 @@ public:
       Gtk::Widget* b = myGladeWindow.getWidget("myButton");
     * \endcode
     */
-  Gtk::Widget* getWidget(const std::string& name);
+  Gtk::Widget *getWidget(const std::string &name);
 
   /// Init function for gtkmm
   void initGtkMM();
@@ -541,39 +551,97 @@ public:
                    x. p[1] offset y, if either < 0, position hints are
                    ignored. p[2] width, p[3] height, if either <= 0,
                    size hints are ignored. Vector must have 2 or 4 elements. */
-  inline void setWindow(const std::vector<int>& p)
-  { if (p.size() == 2 || p.size() == 4) {offset_x = p[0]; offset_y = p[1]; }
-    if (p.size() == 4) { size_x = p[2]; size_y = p[3]; }
+  inline void setWindow(const std::vector<int> &p)
+  {
+    if (p.size() == 2 || p.size() == 4) {
+      offset_x = p[0];
+      offset_y = p[1];
+    }
+    if (p.size() == 4) {
+      size_x = p[2];
+      size_y = p[3];
+    }
   }
 };
 
-template<typename T>
-  T* GtkGladeWindow::getWidget(const std::string& name, T*& w)
+template <typename T>
+T *GtkGladeWindow::getWidget(const std::string &name, T *&w)
 {
-  w = dynamic_cast<T*>(getWidget(name));
+  w = dynamic_cast<T *>(getWidget(name));
   return w;
 }
 
-template<typename T>
-  T* GtkGladeWindow::getWidgetDerived(const std::string& name, T*& w)
+template <typename T>
+T *GtkGladeWindow::getWidgetDerived(const std::string &name, T *&w)
 {
-  if (!initialised_gtkmm) initGtkMM();
+  if (!initialised_gtkmm)
+    initGtkMM();
 
-  std::map<std::string, Gtk::Widget*>::iterator it = widgets.find(name);
+  std::map<std::string, Gtk::Widget *>::iterator it = widgets.find(name);
   if (it != widgets.end()) {
-    return dynamic_cast<T*>(it->second);
-  } else {
-    if (GtkWidget* cw = GTK_WIDGET
-        (gtk_builder_get_object(builder, name.c_str()))) {
+    return dynamic_cast<T *>(it->second);
+  }
+  else {
+    if (GtkWidget *cw =
+          GTK_WIDGET(gtk_builder_get_object(builder, name.c_str()))) {
       w = new T(cw);
       widgets[name] = w;
       return w;
-    } else {
-      throw (GladeException("Widget \"" + name + "\" does not exist!"));
+    }
+    else {
+      throw(GladeException("Widget \"" + name + "\" does not exist!"));
     }
   }
 }
+DUECA_NS_END;
+
+#include <dueca/debug.h>
+
+DUECA_NS_START;
+
+template <typename T>
+bool GtkGladeWindow::loadDropDownText(const char *name, const T &values)
+{
+  GObject *o = getObject(name);
+  if (o == NULL) {
+    /* DUECA graphics.
+
+       You are trying to load options into a GTK widget, but the
+       widget cannot be found. Check the widget name and ui file.
+     */
+    W_XTR(
+      "GtkGladeWindow::loadDropDownText: Could not find gtk object with id \""
+      << name << "\"");
+    return false;
+  }
+
+  if (GTK_IS_DROP_DOWN(o)) {
+
+    // check whether a model or the right kind of model is set
+    auto model = G_LIST_STORE(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
+    if (!model) {
+      model = g_list_store_new(gtk_string_object_get_type());
+      gtk_drop_down_set_model(GTK_DROP_DOWN(o), G_LIST_MODEL(model));
+    }
+
+    // reader and writer are coupled, run through all options
+    for (const auto &s : values) {
+      g_list_store_append(model, gtk_string_object_new(s.c_str()));
+    }
+    return true;
+  }
+
+  /* DUECA graphics.
+
+     Cannot load text options into the given widget, it is not a
+     combo box or drop down
+  */
+  W_XTR("GtkGladeWindow::loadDropDownText: Cannot fill options, object not a "
+        "DropDown \""
+        << name << '"');
+  return false;
+}
 
 DUECA_NS_END
-
+#include <dueca/undebug.h>
 #endif

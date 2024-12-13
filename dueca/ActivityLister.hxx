@@ -89,7 +89,7 @@ struct ActivityStrings
 
 private:
   /** Assignment. */
-  ActivityStrings& operator = (const ActivityStrings& as);
+  //ActivityStrings& operator = (const ActivityStrings& as);
 };
 
 /** print a set of activity strings. */

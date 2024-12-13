@@ -11,7 +11,6 @@
         license         : EUPL-1.2
 */
 
-
 #define GtkTrimView_cxx
 
 #include <dueca-conf.h>
@@ -37,7 +36,7 @@
 
 DUECA_NS_START
 
-GtkTrimView* GtkTrimView::singleton = NULL;
+GtkTrimView *GtkTrimView::singleton = NULL;
 
 static vstring getMyString(double d)
 {
@@ -46,26 +45,24 @@ static vstring getMyString(double d)
   s << d << std::ends;
   return s.str();
 #else
-  char cbuf[32]; ostrstream s(cbuf, 32);
+  char cbuf[32];
+  ostrstream s(cbuf, 32);
   s << d << std::ends;
   return vstring(s.str());
 #endif
 }
 
 static GladeCallbackTable cb_links[] = {
-  { "trim_mode", "changed",  gtk_callback(&GtkTrimView::setMode) },
+  { "trim_mode", "changed", gtk_callback(&GtkTrimView::setMode) },
   { "trim_calculate", "clicked", gtk_callback(&GtkTrimView::calculate) },
   { "trim_cancel", "clicked", gtk_callback(&GtkTrimView::cancelCalculation) },
   { "trim_closewindow", "clicked", gtk_callback(&GtkTrimView::toggleWindow) },
   { "trim_tree", "tree_select_row", gtk_callback(&GtkTrimView::selectRow) },
   { "trim_tree", "tree_unselect_row", gtk_callback(&GtkTrimView::unSelectRow) },
-  { NULL, NULL, NULL, NULL},
+  { NULL, NULL, NULL, NULL },
 };
 
-bool GtkTrimView::isRootClass()
-{
-  return false;
-}
+bool GtkTrimView::isRootClass() { return false; }
 
 GtkTrimView::GtkTrimView() :
   trim_tree(NULL),
@@ -74,9 +71,8 @@ GtkTrimView::GtkTrimView() :
   entry_widget(NULL),
   window_open(false),
   calculation_active(false),
-  root(new Summary<TrimId, TrimLink, TrimView>
-       (&TrimId::create(vector<vstring>(), -1, -1),
-        new TrimLink(0.0, 0.0, 0.0))),
+  root(new Summary<TrimId, TrimLink, TrimView>(
+    &TrimId::create(vector<vstring>(), -1, -1), new TrimLink(0.0, 0.0, 0.0))),
   mode(FlightPath)
 {
   // check the presence of a DuecaView object, for getting initial
@@ -92,8 +88,8 @@ GtkTrimView::GtkTrimView() :
 
   // make the view, realize it so further work can be done
   window.readGladeFile(DuecaPath::prepend("trimcalc_window.glade3").c_str(),
-                       "trimcalc_window",
-                       reinterpret_cast<gpointer>(this), cb_links);
+                       "trimcalc_window", reinterpret_cast<gpointer>(this),
+                       cb_links);
   trim_view = GTK_WIDGET(window["trimcalc_window"]);
   gtk_widget_realize(trim_view);
 
@@ -120,9 +116,8 @@ GtkTrimView::GtkTrimView() :
 #endif
   // request the DuecaView object to make an entry for my window,
   // opening it on activation
-  menuitem = GTK_WIDGET
-    (GtkDuecaView::single()->requestViewEntry
-     ("Trim Window", GTK_WIDGET(trim_view)));
+  menuitem = GtkDuecaView::single()->requestViewEntry("trim", "Trim Window",
+                                                      GTK_WIDGET(trim_view));
 
   // some assertions about the stuff
   //  assert(GTK_CTREE(trim_tree) != NULL);
@@ -146,16 +141,18 @@ void GtkTrimView::toggleWindow(GtkButton *button, gpointer user_data)
 
 void GtkTrimView::setMode(GtkButton *button, gpointer user_data)
 {
+#if 0
   GtkWidget* active = gtk_menu_get_active(GTK_MENU(button));
   mode = TrimMode
     (reinterpret_cast<long>(g_object_get_data(G_OBJECT(active), "user_data")));
   // \todo update the view
+#endif
 }
 
 void GtkTrimView::calculate(GtkButton *button, gpointer user_data)
 {
   calculation_active = true;
-  for (vector<IncoCalculator*>::iterator ii = calculators.begin();
+  for (vector<IncoCalculator *>::iterator ii = calculators.begin();
        ii != calculators.end(); ii++) {
     (*ii)->initiate(mode);
   }
@@ -167,53 +164,54 @@ void GtkTrimView::cancelCalculation(GtkButton *button, gpointer user_data)
   // to complete
 }
 
-static
-void deep_refresh(GtkTreeStore* tree, GtkTreeIter* iter)
+static void deep_refresh(GtkTreeStore *tree, GtkTreeIter *iter)
 {
+#if 0
   GtkTreeIter child;
-  gboolean has_child = gtk_tree_model_iter_children
-    (GTK_TREE_MODEL(tree), &child, iter);
+  gboolean has_child =
+    gtk_tree_model_iter_children(GTK_TREE_MODEL(tree), &child, iter);
   while (has_child) {
     deep_refresh(tree, &child);
     has_child = gtk_tree_model_iter_next(GTK_TREE_MODEL(tree), &child);
   }
 
-  GValue gobj = {0 };
+  GValue gobj = { 0 };
   gtk_tree_model_get_value(GTK_TREE_MODEL(tree), iter, 4, &gobj);
 
   // data should point to the summary
-  Summary<TrimId,TrimLink,TrimView> *sum =
-    reinterpret_cast<Summary<TrimId,TrimLink,TrimView>*>
-    (g_value_peek_pointer(&gobj));
+  Summary<TrimId, TrimLink, TrimView> *sum =
+    reinterpret_cast<Summary<TrimId, TrimLink, TrimView> *>(
+      g_value_peek_pointer(&gobj));
 
   // first column contains the role of the variable, for this mode
-  gtk_tree_store_set
-    (tree, iter, 1,
-     sum->getLink().getRoleString(GtkTrimView::single().getMode()));
+  gtk_tree_store_set(
+    tree, iter, 1,
+    sum->getLink().getRoleString(GtkTrimView::single().getMode()));
 
   // second column contains the actual value
-  gtk_tree_store_set
-    (tree, iter, 2,
-     getMyString(sum->getLink().getIncoVariable().getValue()).c_str());
+  gtk_tree_store_set(
+    tree, iter, 2,
+    getMyString(sum->getLink().getIncoVariable().getValue()).c_str());
 
   // third column contains the user input. Depending on the mode, this
   // input may be given (for targets and constraints) or it may not
   // (for controls). Because the current gtkctree has no widgets, an
   // "external" widget is used to modify the single selectable
   // control. So this just gives feedback.
-  if (sum->getLink().getIncoVariable().
-      isUserControllable(GtkTrimView::single().getMode())) {
-    gtk_tree_store_set
-      (tree, iter, 3,
-       getMyString(sum->getLink().getIncoVariable().getTarget()).c_str());
+  if (sum->getLink().getIncoVariable().isUserControllable(
+        GtkTrimView::single().getMode())) {
+    gtk_tree_store_set(
+      tree, iter, 3,
+      getMyString(sum->getLink().getIncoVariable().getTarget()).c_str());
   }
   else {
     gtk_tree_store_set(tree, iter, 3, "");
- }
+  }
+#endif
 }
 #if 1
-void GtkTrimView::selectRow(GtkTreeView *ctree, GList *node,
-                            gint column, gpointer user_data)
+void GtkTrimView::selectRow(GtkTreeView *ctree, GList *node, gint column,
+                            gpointer user_data)
 {
 #if 0
   GtkTreeModel *model = gtk_tree_view_get_model(ctree);
@@ -291,9 +289,8 @@ void GtkTrimView::selectRow(GtkTreeView *ctree, GList *node,
 #endif
 }
 
-
-void GtkTrimView::unSelectRow(GtkTreeView *ctree, GList *node,
-                              gint column, gpointer user_data)
+void GtkTrimView::unSelectRow(GtkTreeView *ctree, GList *node, gint column,
+                              gpointer user_data)
 {
   // reads the data in the entry window and transfers it to the
   // ctree/trimid
@@ -326,49 +323,45 @@ void GtkTrimView::unSelectRow(GtkTreeView *ctree, GList *node,
 }
 #endif
 
-int GtkTrimView::addEntity(const std::string& ename,
-                        IncoCalculator *calculator)
+int GtkTrimView::addEntity(const std::string &ename, IncoCalculator *calculator)
 {
   vector<vstring> names;
   names.push_back(ename);
-  if (root->insertLinkAndStatus
-      (TrimId::create(names, calculators.size(), -1),
-       TrimLink(0.0, 0.0, 0.0))) {
+  if (root->insertLinkAndStatus(TrimId::create(names, calculators.size(), -1),
+                                TrimLink(0.0, 0.0, 0.0))) {
     calculators.push_back(calculator);
     return calculators.size() - 1;
   }
   return -1;
 }
 
-void GtkTrimView::removeEntity(const std::string& name)
+void GtkTrimView::removeEntity(const std::string &name)
 {
   /**
      \todo implement
   */
 }
 
-bool GtkTrimView::addVariable(const vector<vstring>& names,
-                              int cal, int tvar,
-                              const IncoVariableWork& ivar)
+bool GtkTrimView::addVariable(const vector<vstring> &names, int cal, int tvar,
+                              const IncoVariableWork &ivar)
 {
-  bool result = root->insertLinkAndStatus
-    (TrimId::create(names, cal, tvar),
-     TrimLink(ivar.getValue(), ivar.getMin(), ivar.getMax()));
+  bool result = root->insertLinkAndStatus(
+    TrimId::create(names, cal, tvar),
+    TrimLink(ivar.getValue(), ivar.getMin(), ivar.getMax()));
   return result;
 }
 
-IncoVariableWork& GtkTrimView::getIncoVariable(unsigned int calculator,
-                                        unsigned int variable)
+IncoVariableWork &GtkTrimView::getIncoVariable(unsigned int calculator,
+                                               unsigned int variable)
 {
-  assert (calculator < calculators.size());
+  assert(calculator < calculators.size());
   return calculators[calculator]->getIncoVariable(variable);
 }
 
 void GtkTrimView::refreshView()
 {
   GtkTreeIter iter;
-  gboolean f = gtk_tree_model_get_iter_first
-    (GTK_TREE_MODEL(trim_tree), &iter);
+  gboolean f = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(trim_tree), &iter);
   while (f) {
     deep_refresh(trim_tree, &iter);
     f = gtk_tree_model_iter_next(GTK_TREE_MODEL(trim_tree), &iter);
@@ -378,32 +371,31 @@ void GtkTrimView::refreshView()
   //                       update_all, 0);
 }
 
-void* GtkTrimView::insertEntityNode(const char* name, void* vparent,
-                                    int dueca_node, TrimLink* obj)
+void *GtkTrimView::insertEntityNode(const char *name, void *vparent,
+                                    int dueca_node, TrimLink *obj)
 {
   // GtkCTreeNode* parent = GTK_CTREE_NODE(vparent);
-  GtkTreeIter  iter, iparent;
+  GtkTreeIter iter, iparent;
 
   if (!vparent) {
     gtk_tree_store_append(GTK_TREE_STORE(trim_tree), &iter, NULL);
   }
   else {
-    GtkTreeRowReference *ref = reinterpret_cast<GtkTreeRowReference*>(vparent);
+    GtkTreeRowReference *ref = reinterpret_cast<GtkTreeRowReference *>(vparent);
     gtk_tree_model_get_iter(GTK_TREE_MODEL(trim_tree), &iparent,
                             gtk_tree_row_reference_get_path(ref));
     gtk_tree_store_append(trim_tree, &iter, &iparent);
   }
-  gtk_tree_store_set(trim_tree, &iter,
-                     0, name,       // node name
+  gtk_tree_store_set(trim_tree, &iter, 0, name,       // node name
                      1, "",         // module status
                      2, getMyString(obj->getValue()).c_str(),    // sim status
                      3, "", // dueca node no
                      4, obj,        // pointer to status object
                      -1);
 
-  return gtk_tree_row_reference_new
-    (GTK_TREE_MODEL(trim_tree),
-     gtk_tree_model_get_path(GTK_TREE_MODEL(trim_tree), &iter));
+  return gtk_tree_row_reference_new(
+    GTK_TREE_MODEL(trim_tree),
+    gtk_tree_model_get_path(GTK_TREE_MODEL(trim_tree), &iter));
 }
 
 DUECA_NS_END

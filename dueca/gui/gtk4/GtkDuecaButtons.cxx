@@ -12,85 +12,65 @@
 */
 
 
+#include "dueca_ns.h"
 #define GtkDuecaButtons_cxx
 #include "GtkDuecaButtons.hxx"
 
 #include <DuecaPath.hxx>
+#include <cassert>
+#include <debug.h>
 
+DUECA_NS_START;
 
-void gtk_dueca_button_set_image(GtkWidget* widget, gint imgno)
+static GdkPaintable *emergency_icons[2] = { NULL, NULL };
+static GdkPaintable *button_icons[5] = { NULL, NULL, NULL };
+
+inline GdkPaintable *loadTextureFromFile(const char *fname)
 {
-  g_return_if_fail(widget != NULL);
-  g_return_if_fail(GTK_IS_BOX(widget));
-  GtkWidget *child = gtk_widget_get_first_child(widget);
-  gint icount = 0;
-  while(child != NULL) {
-    gtk_widget_set_visible(child, imgno == icount ? TRUE : FALSE);
-    child = gtk_widget_get_next_sibling(child); icount++;
+  GError *error = NULL;
+  auto tex = gdk_texture_new_from_file(
+    g_file_new_for_path(DuecaPath::prepend(fname).c_str()), &error);
+  if (error) {
+    /* DUECA UI.
+
+       Cannot load icon texture. Check DUECA installation.
+    */
+    E_XTR("Could not load texture \"" << fname << "\": " << error->message);
+    g_error_free(error);
+    error = NULL;
+    return NULL;
   }
+  g_object_ref(G_OBJECT(tex));
+  return GDK_PAINTABLE(tex);
 }
 
-GtkWidget* NewGtkDuecaButton_pixmaps()
+void load_dueca_buttons()
 {
-  //GdkBitmap *mask = NULL;
-  //cairo_surface_t *pm;
-  GtkWidget *pixmap;
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  // load the emergency and button icons
+  if (!emergency_icons[0]) {
+    emergency_icons[0] = loadTextureFromFile("pixmaps/abort.xpm");
+    emergency_icons[1] = loadTextureFromFile("pixmaps/confirm-abort.xpm");
+    button_icons[0] = loadTextureFromFile("pixmaps/inactive.xpm");
+    button_icons[1] = loadTextureFromFile("pixmaps/inprogress.xpm");
+    button_icons[2] = loadTextureFromFile("pixmaps/active.xpm");
+    button_icons[3] = loadTextureFromFile("pixmaps/incomplete.xpm");
+    button_icons[4] = loadTextureFromFile("pixmaps/fell-back.xpm");
+  }
+};
 
-  // inactive pixmap
-  //pm = cairo_image_surface_create_from_xpm
-  //  (DUECA_NS ::DuecaPath::prepend("pixmaps/inactive.xpm").c_str());
-
-  pixmap = gtk_image_new_from_file
-    (DUECA_NS ::DuecaPath::prepend("pixmaps/inactive.xpm").c_str());
-  gtk_box_append(GTK_BOX(box), pixmap);
-  gtk_widget_show(pixmap);
-
-   // progress pixmap
-  pixmap = gtk_image_new_from_file
-    (DUECA_NS ::DuecaPath::prepend("pixmaps/inprogress.xpm").c_str());
-  gtk_box_append(GTK_BOX(box), pixmap);
-
-  // final pixmap
-  pixmap = gtk_image_new_from_file
-    (DUECA_NS ::DuecaPath::prepend("pixmaps/active.xpm").c_str());
-  gtk_box_append(GTK_BOX(box), pixmap);
-
-  // broken consistency pixmap
-  pixmap = gtk_image_new_from_file
-    (DUECA_NS ::DuecaPath::prepend("pixmaps/incomplete.xpm").c_str());
-  gtk_box_append(GTK_BOX(box), pixmap);
-
-  // fallback pixmap
-  pixmap = gtk_image_new_from_file
-    (DUECA_NS ::DuecaPath::prepend("pixmaps/fell-back.xpm").c_str());
-  gtk_box_append(GTK_BOX(box), pixmap);
-
-  // show the box
-  gtk_widget_show(box);
-
-  return box;
-}
-
-GtkWidget* NewGtkDuecaAbortButton_pixmaps()
+void gtk_dueca_button_load_image(GtkWidget *btn, unsigned imno)
 {
-  // make a container with the many faces of this button
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-
-  // Abort pixmap
-  GtkWidget *pixmap;
-
-  pixmap = gtk_image_new_from_file
-    (DUECA_NS ::DuecaPath::prepend("pixmaps/abort.xpm").c_str());
-  gtk_box_append(GTK_BOX(box), pixmap);
-  gtk_widget_show(pixmap);
-
-   // Abort confirmation
-  pixmap = gtk_image_new_from_file
-    (DUECA_NS ::DuecaPath::prepend("pixmaps/confirm-abort.xpm").c_str());
-  gtk_box_append(GTK_BOX(box), pixmap);
-  gtk_widget_show(GTK_WIDGET(box));
-
-  return GTK_WIDGET(box);
+  assert(imno < 5);
+  auto img = GTK_IMAGE(gtk_widget_get_first_child(btn));
+  gtk_image_set_from_paintable(img, button_icons[imno]);
 }
+
+void gtk_dueca_emergency_load_image(GtkWidget *btn, unsigned imno)
+{
+  assert(imno < 2);
+  auto img = GTK_IMAGE(gtk_widget_get_first_child(btn));
+  gtk_image_set_from_paintable(img, emergency_icons[imno]);
+}
+
+DUECA_NS_END;
 

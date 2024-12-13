@@ -25,8 +25,8 @@ struct ParameterTable;
 DUECA_NS_START
 
 /**  Implements the Gtk3 interface for TimingView
-*/
-class TimingViewGtk: public TimingView
+ */
+class TimingViewGtk : public TimingView
 {
   /// class that hides gui implementation
   class GuiInfo;
@@ -36,7 +36,7 @@ class TimingViewGtk: public TimingView
 
 public:
   /** Constructor, follows standard module construction form. */
-  TimingViewGtk(Entity* e, const char* part, const PrioritySpec& ps);
+  TimingViewGtk(Entity *e, const char *part, const PrioritySpec &ps);
 
   /** Destructor. */
   ~TimingViewGtk();
@@ -54,15 +54,98 @@ public:
   void requestSync(GtkButton *button, gpointer user_data);
 
   /** callback, close the view on deletion by window manager. */
-  gboolean deleteView(GtkWidget *window, GdkEvent *event, gpointer user_data);
+  gboolean deleteView(GtkWidget *window, gpointer user_data);
 
   /** Write a sync report to the interface */
-  void updateSync(int node, const SyncReport& report);
+  void updateSync(int node, const SyncReport &report);
 
   /** Write a timing report on the interface. */
-  void appendReport(const std::string& maker_and_act,
-                    const TimeTickType& tstart,
-                    const TimingResults& data);
+  void appendReport(const std::string &maker_and_act,
+                    const TimeTickType &tstart, const TimingResults &data);
+
+  /** set up a label item widget */
+  void cbSetupLabel(GtkSignalListItemFactory *fact, GtkListItem *object,
+                    gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingNode(GtkSignalListItemFactory *fact, GtkListItem *object,
+                        gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingDiff(GtkSignalListItemFactory *fact, GtkListItem *object,
+                        gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingNEarly(GtkSignalListItemFactory *fact, GtkListItem *object,
+                          gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingNLate(GtkSignalListItemFactory *fact, GtkListItem *object,
+                         gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingNDouble(GtkSignalListItemFactory *fact, GtkListItem *object,
+                           gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingNNoWait(GtkSignalListItemFactory *fact, GtkListItem *object,
+                           gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingLatest(GtkSignalListItemFactory *fact, GtkListItem *object,
+                          gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingEarliest(GtkSignalListItemFactory *fact, GtkListItem *object,
+                            gpointer user_data);
+
+  /** bind timing */
+  void cbBindTimingStepsz(GtkSignalListItemFactory *fact, GtkListItem *object,
+                          gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryActivity(GtkSignalListItemFactory *fact,
+                             GtkListItem *object, gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryLogtime(GtkSignalListItemFactory *fact, GtkListItem *object,
+                            gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryMinStart(GtkSignalListItemFactory *fact,
+                             GtkListItem *object, gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryAvgStart(GtkSignalListItemFactory *fact,
+                             GtkListItem *object, gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryMaxStart(GtkSignalListItemFactory *fact,
+                             GtkListItem *object, gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryMinComplete(GtkSignalListItemFactory *fact,
+                                GtkListItem *object, gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryAvgComplete(GtkSignalListItemFactory *fact,
+                                GtkListItem *object, gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryMaxComplete(GtkSignalListItemFactory *fact,
+                                GtkListItem *object, gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryNWarn(GtkSignalListItemFactory *fact, GtkListItem *object,
+                          gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryNCrit(GtkSignalListItemFactory *fact, GtkListItem *object,
+                          gpointer user_data);
+
+  /** bind summary */
+  void cbBindSummaryNUser(GtkSignalListItemFactory *fact, GtkListItem *object,
+                          gpointer user_data);
 };
 
 DUECA_NS_END

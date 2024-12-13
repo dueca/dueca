@@ -3,7 +3,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, Gio, GObject, Gdk  # noqa
 import cairo
 
-home = ''
+home = '../../'
 
 class Channel(GObject.GObject):
     def __init__(self, number: int, name: str, entries=None):
@@ -267,7 +267,7 @@ def on_activate(app):
         default_width=640,
     )
     sw = Gtk.ScrolledWindow()
-    list_view = Gtk.ColumnView()
+    column_view = Gtk.ColumnView()
 
     columns = []
     f = Gtk.SignalListItemFactory()
@@ -331,17 +331,18 @@ def on_activate(app):
     f.connect("bind", bind_view)
     columns.append(Gtk.ColumnViewColumn.new("view", f))
 
+    # programmatic add? 
     selection = Gtk.SingleSelection()
     store = Gio.ListStore.new(Channel)
-    column_view_sorter = list_view.get_sorter()
+    column_view_sorter = column_view.get_sorter()
     tree_list_row_sorter = Gtk.TreeListRowSorter.new(column_view_sorter)
     model = Gtk.TreeListModel.new(store, False, False, add_tree_node)
     sort_model = Gtk.SortListModel.new(model=model, sorter=tree_list_row_sorter)
     selection.set_model(sort_model)
-    list_view.set_model(selection)
+    column_view.set_model(selection)
 
     for c in columns:
-        list_view.append_column(c)
+        column_view.append_column(c)
 
     r1 = [Reader("id(0,23)", "eci://PHLAB", 4, 0, False),
           Reader("id(0,24)", "hdf5-logger://PHLAB", 2, 1, True)]
@@ -353,7 +354,7 @@ def on_activate(app):
     e1 = [Entry(0, "empty", "id(0,19)", "model-adapter://PHLAB", True, 20, r1),
           Entry(1, "em2", "id(0,29)", "model-adapter://PHLAB", True, 21, r1)]
     store.append(Channel(31, "ExptyChannel://PHLAB", e1))
-    sw.set_child(list_view)
+    sw.set_child(column_view)
     win.set_child(sw)
     win.present()
 

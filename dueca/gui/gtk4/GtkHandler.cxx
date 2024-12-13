@@ -51,9 +51,10 @@ DUECA_NS_START
 
 #define APPLICATION_ID "nl.tudelft.dueca.mainmenu"
 
+GtkApplication* GtkHandler::app = NULL;
+
 GtkHandler::GtkHandler(const std::string& name) :
-  GuiHandler(name),
-  app(NULL)
+  GuiHandler(name)
 {
   //
 }
@@ -114,7 +115,7 @@ void GtkHandler::init(bool xlib_lock)
   I_SYS("Initializing gtk4 application");
 
   // create an application
-  app = gtk_application_new(APPLICATION_ID, G_APPLICATION_FLAGS_NONE);
+  app = gtk_application_new(APPLICATION_ID, G_APPLICATION_NON_UNIQUE);
   g_signal_connect(app, "activate", G_CALLBACK(app_activate),
   		   reinterpret_cast<gpointer>(this));
   g_application_hold(G_APPLICATION(app));
@@ -128,7 +129,7 @@ void GtkHandler::passControl()
   /* DUECA graphics.
 
      Information on passing control to graphics code. */
-  I_SYS("Passing control to gtk 3.x");
+  I_SYS("Passing control to gtk 4.x");
 
   // set the idle callback
   g_idle_add(call_environment_loop, NULL);

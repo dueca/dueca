@@ -19,31 +19,25 @@
 
 DUECA_NS_START
 
-ChannelDataMonitor::ChannelDataMonitor(ChannelOverview  *master,
-                                       unsigned channelno,
-                                       unsigned entryno) :
+ChannelDataMonitor::ChannelDataMonitor(ChannelOverview *master,
+                                       unsigned channelno, unsigned entryno) :
   master(master),
   channelno(channelno),
   entryno(entryno)
-{
-
-}
-
+{}
 
 ChannelDataMonitor::~ChannelDataMonitor()
 {
   //
 }
 
-void ChannelDataMonitor::refreshData(const ChannelMonitorResult& rdata)
+void ChannelDataMonitor::refreshData(const ChannelMonitorResult &rdata)
 {
   DEB(rdata);
 }
-void ChannelDataMonitor::close()
-{ }
+void ChannelDataMonitor::close() {}
 
-void ChannelDataMonitor::open()
-{ }
+void ChannelDataMonitor::open() {}
 
-
+bool ChannelDataMonitor::isOpen() const { return false; }
 DUECA_NS_END

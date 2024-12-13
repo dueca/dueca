@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <object class="GtkAdjustment" id="adjustment1">
-    <property name="upper">100</property>
-    <property name="step-increment">1</property>
-    <property name="page-increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment2">
-    <property name="upper">100</property>
-    <property name="step-increment">1</property>
-    <property name="page-increment">10</property>
-  </object>
-  <object class="GtkListStore" id="liststore1"/>
   <object class="GtkWindow" id="channel_datamonitor">
     <property name="title" translatable="1">Channel Entry Data Monitor</property>
     <property name="child">
@@ -55,19 +44,28 @@
         </child>
         <child>
           <object class="GtkScrolledWindow" id="scrollwindow">
-            <property name="focusable">1</property>
-            <property name="hadjustment">adjustment1</property>
-            <property name="vadjustment">adjustment2</property>
             <property name="propagate-natural-width">1</property>
-            <property name="propagate-natural-height">1</property>
-            <property name="child">
+            <property name="vexpand">1</property>
+            <child>
               <object class="GtkColumnView" id="channel_data_view">
-                <property name="width-request">600</property>
-                <property name="height-request">300</property>
-                <property name="focusable">1</property>
-                <property name="model">liststore1</property>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">name</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_elemname"/>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">value</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_elemvalue"/>
+                    </property>
+                  </object>
+                </child>
               </object>
-            </property>
+            </child>
           </object>
         </child>
       </object>

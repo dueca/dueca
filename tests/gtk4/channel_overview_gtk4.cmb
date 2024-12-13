@@ -17,7 +17,8 @@
 	(1,10,"GtkBox",None,9,None,None,None,0,None,None),
 	(1,11,"GtkImage",None,10,None,None,None,0,None,None),
 	(1,12,"GtkLabel",None,10,None,None,None,1,None,None),
-	(1,13,"GtkScrolledWindow",None,2,None,None,None,1,None,None)
+	(1,13,"GtkScrolledWindow",None,2,None,None,None,1,None,None),
+	(1,14,"GtkScrolledWindow",None,13,None,None,None,0,None,None)
   </object>
   <object_property>
 	(1,2,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),

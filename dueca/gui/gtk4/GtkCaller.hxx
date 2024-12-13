@@ -44,13 +44,13 @@ public:
 
   /** Clone call, creates a copied caller that carries a reference to
       an object. */
-  virtual GtkCaller* clone(void* obj) = 0;
+  virtual GtkCaller* clone(void* obj) const = 0;
 
   /** Return a pointer to the GtkCallback function. */
   virtual GtkSignalFunc callback() = 0;
 
   /** Pass this pointer as user data to gtk signal */
-  virtual gpointer user_data() {return reinterpret_cast<gpointer>(this);}
+  virtual gpointer user_data() {return reinterpret_cast<const gpointer>(this);}
 
   /** Set the value of the gpointer member. */
   void setGPointer(gpointer g);
@@ -76,8 +76,8 @@ class GtkCallerImp1: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp1(RET (T:: *call) (P1, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp1(RET (T:: *call) (P1, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp1(T* obj, const GtkCallerImp1& o) : call(o.call), obj(obj) { }
@@ -87,11 +87,11 @@ public:
   call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp1(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */
-  RET operator () (P1 a)
+  RET operator () (P1 a) const
   { return (obj ->* call)(a, gp); }
 
   /** Return a pointer to the GtkCallback function. */
@@ -131,8 +131,8 @@ class GtkCallerImp2: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp2(RET (T:: *call) (P1, P2, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp2(RET (T:: *call) (P1, P2, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp2(T* obj, const GtkCallerImp2& o) : call(o.call), obj(obj) { }
@@ -142,7 +142,7 @@ public:
     call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp2(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */
@@ -186,8 +186,8 @@ class GtkCallerImp3: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp3(RET (T:: *call) (P1, P2, P3, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp3(RET (T:: *call) (P1, P2, P3, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp3(T* obj, const GtkCallerImp3& o) : call(o.call), obj(obj) { }
@@ -197,7 +197,7 @@ public:
     call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp3(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */
@@ -243,8 +243,8 @@ class GtkCallerImp4: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp4(RET (T:: *call) (P1, P2, P3, P4, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp4(RET (T:: *call) (P1, P2, P3, P4, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp4(T* obj, const GtkCallerImp4& o) : call(o.call), obj(obj) { }
@@ -254,7 +254,7 @@ public:
     call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp4(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */
@@ -302,8 +302,8 @@ class GtkCallerImp5: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp5(RET (T:: *call) (P1, P2, P3, P4, P5, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp5(RET (T:: *call) (P1, P2, P3, P4, P5, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp5(T* obj, const GtkCallerImp5& o) : call(o.call), obj(obj) { }
@@ -313,7 +313,7 @@ public:
     call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp5(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */
@@ -362,8 +362,8 @@ class GtkCallerImp6: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp6(RET (T:: *call) (P1, P2, P3, P4, P5, P6, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp6(RET (T:: *call) (P1, P2, P3, P4, P5, P6, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp6(T* obj, const GtkCallerImp6& o) : call(o.call), obj(obj) { }
@@ -373,7 +373,7 @@ public:
     call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp6(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */
@@ -423,8 +423,8 @@ class GtkCallerImp7: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp7(RET (T:: *call) (P1, P2, P3, P4, P5, P6, P7, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp7(RET (T:: *call) (P1, P2, P3, P4, P5, P6, P7, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp7(T* obj, const GtkCallerImp7& o) : call(o.call), obj(obj) { }
@@ -434,7 +434,7 @@ public:
     call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp7(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */
@@ -484,8 +484,8 @@ class GtkCallerImp8: public GtkCaller
 public:
   /** Constructor.
       \param  call pointer to the callback function. */
-  GtkCallerImp8(RET (T:: *call) (P1, P2, P3, P4, P5, P6, P7, P8, gpointer)) :
-    call(call), obj(reinterpret_cast<T*>(NULL)) { }
+  GtkCallerImp8(RET (T:: *call) (P1, P2, P3, P4, P5, P6, P7, P8, gpointer), gpointer obj=NULL) :
+    call(call), obj(reinterpret_cast<T*>(obj)) { }
 
   /** Implementing constructor. */
   GtkCallerImp8(T* obj, const GtkCallerImp8& o) : call(o.call), obj(obj) { }
@@ -495,7 +495,7 @@ public:
     call(call), obj(obj) { }
 
   /** Clone with object specialization. */
-  GtkCaller* clone(void* obj)
+  GtkCaller* clone(void* obj) const override
   { return new GtkCallerImp8(reinterpret_cast<T*>(obj), *this); }
 
   /** Execute call. */

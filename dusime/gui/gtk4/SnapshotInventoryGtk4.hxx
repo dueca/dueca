@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------   */
-/*      item            : SnapshotInventoryGtk3.hxx
+/*      item            : SnapshotInventoryGtk4.hxx
         made by         : repa
         from template   : DuecaModuleTemplate.hxx
         template made by: Rene van Paassen
@@ -14,13 +14,13 @@
         license         : EUPL-1.2
 */
 
-#ifndef SnapshotInventoryGtk3_hxx
-#define SnapshotInventoryGtk3_hxx
+#ifndef SnapshotInventoryGtk4_hxx
+#define SnapshotInventoryGtk4_hxx
 
 // include the dusime header
 #include <dueca.h>
 #include <dusime/SnapshotInventory.hxx>
-#include <dueca/gui/gtk3/GtkGladeWindow.hxx>
+#include <dueca/gui/gtk4/GtkGladeWindow.hxx>
 
 DUECA_NS_START;
 
@@ -33,69 +33,53 @@ DUECA_NS_START;
 
     \verbinclude initials-inventory.scm
  */
-class SnapshotInventoryGtk3: public Module
+class SnapshotInventoryGtk4 : public Module
 {
   /** self-define the module type, to ease writing the parameter table */
-  typedef SnapshotInventoryGtk3 _ThisModule_;
+  typedef SnapshotInventoryGtk4 _ThisModule_;
 
 private:
-
   /** Underlying inventory object */
-  SnapshotInventory::pointer         inventory;
+  SnapshotInventory::pointer inventory;
 
   /** glade file */
-  std::string                        gladefile;
+  std::string gladefile;
 
   /** gtk window */
-  GtkGladeWindow                     window;
+  GtkGladeWindow window;
 
   /** Gtk collection of the snapshot information. */
-  GtkTreeStore                      *snaps_store;
+  GListStore *snaps_store;
 
   /** Widget in the main DUECA menu */
-  GtkWidget                         *menuitem;
-
-  /** Current iterator for the snapshot set */
-  GtkTreeIter                        set_iterator;
-
-  /** Organisation of the snaphot information */
-  enum StoreFields {
-    S_name,
-    S_time,
-    S_origin,
-    S_coding,
-    S_example,
-    S_isset,
-    S_isinitial,
-    S_numcolumns
-  };
+  GAction *menuaction;
 
   /** File with existing initials */
-  std::string                        reference_file;
+  std::string reference_file;
 
   /** File for any new additions/extensions */
-  std::string                        store_file;
+  std::string store_file;
 
 public: // class name and trim/parameter tables
   /** Name of the module. */
-  static const char* const           classname;
+  static const char *const classname;
 
   /** Return the parameter table. */
-  static const ParameterTable*       getParameterTable();
+  static const ParameterTable *getParameterTable();
 
 public: // construction and further specification
-  /** Constructor. Is normally called from scheme/the creation script. 
+  /** Constructor. Is normally called from scheme/the creation script.
 
       The owning entity of an inventory will be "dueca", the part name
       indicates the managed entity of the inventory.
   */
-  SnapshotInventoryGtk3(Entity* e, const char* part, const PrioritySpec& ts);
+  SnapshotInventoryGtk4(Entity *e, const char *part, const PrioritySpec &ts);
 
   /** Continued construction. */
   bool complete();
 
   /** Destructor. */
-  ~SnapshotInventoryGtk3();
+  ~SnapshotInventoryGtk4();
 
 public: // member functions for cooperation with DUECA
   /** indicate that everything is ready. */
@@ -109,23 +93,54 @@ public: // member functions for cooperation with DUECA
 
 public: // the member functions that are called for activities
   /** the method that implements the main calculation. */
-  void doCalculation(const TimeSpec& ts);
+  void doCalculation(const TimeSpec &ts);
 
 private:
   /** Close the associated window */
-  void cbClose(GtkWidget* btn, gpointer gp);
+  void cbClose(GtkWidget *btn, gpointer gp);
 
   /** Set a name for an upcoming snapshot */
-  void cbSetName(GtkWidget* text, gpointer gp);
+  void cbSetName(GtkWidget *text, gpointer gp);
 
   /** Send a selected initial state */
-  void cbSendInitial(GtkWidget* btn, gpointer gp);
+  void cbSendInitial(GtkWidget *btn, gpointer gp);
 
   /** Select a different initial state */
-  void cbSelection(GtkTreeSelection *sel, gpointer gp);
+  void cbSelection(GtkSelectionModel *sel, guint position, guint n_items, gpointer gp);
 
   /** Closing via the window manager */
-  gboolean cbDelete(GtkWidget *window, GdkEvent *event, gpointer user_data);
+  gboolean cbDelete(GtkWidget *window, gpointer user_data);
+
+  /** Window position */
+  bool setPositionAndSize(const std::vector<int> &p);
+
+  /** set up label field */
+  void cbSetupLabel(GtkSignalListItemFactory *fact, GtkListItem *object,
+                    gpointer user_data);
+
+  /** set up expander field */
+  void cbSetupExpander(GtkSignalListItemFactory *fact, GtkListItem *object,
+                       gpointer user_data);
+
+  /** bind replay table field */
+  void cbBindName(GtkSignalListItemFactory *fact, GtkListItem *object,
+                  gpointer user_data);
+
+  /** bind replay table field */
+  void cbBindDateTime(GtkSignalListItemFactory *fact, GtkListItem *object,
+                      gpointer user_data);
+
+  /** bind replay table field */
+  void cbBindOrigin(GtkSignalListItemFactory *fact, GtkListItem *object,
+                    gpointer user_data);
+
+  /** bind replay table field */
+  void cbBindCoding(GtkSignalListItemFactory *fact, GtkListItem *object,
+                    gpointer user_data);
+
+  /** bind replay table field */
+  void cbBindSample(GtkSignalListItemFactory *fact, GtkListItem *object,
+                    gpointer user_data);
 };
 
 DUECA_NS_END;

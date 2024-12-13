@@ -23,9 +23,13 @@
 // include headers for functions/classes you need in the module
 #include <ChannelOverview.hxx>
 #include "GtkGladeWindow.hxx"
-
+#include "gtk/gtk.h"
 
 DUECA_NS_START
+
+// GObject derived struct to pass data between interface and application
+struct _DChannelInfo;
+struct ChannelOverviewGtk4Private;
 
 /** A view on the DUECA channels
 
@@ -34,84 +38,45 @@ DUECA_NS_START
 
     \verbinclude channel-view.scm
  */
-class ChannelOverviewGtk4:
-  public ChannelOverview
+class ChannelOverviewGtk4 : public ChannelOverview
 {
   /** self-define the module type, to ease writing the parameter table */
   typedef ChannelOverviewGtk4 _ThisModule_;
 
 private: // simulation data
+  //ChannelOverviewGtk4Private *self;
 
   /** glade file */
-  std::string           gladefile;
+  std::string gladefile;
 
   /** glade file for monitor windows */
-  std::string           monitor_gladefile;
+  std::string monitor_gladefile;
 
   /** gtk window */
-  GtkGladeWindow        window;
+  GtkGladeWindow window;
 
-  /** Tree store for the object with data and widgets */
-  GtkTreeStore          *store;
+  /** Widget for this module/window in the main menu */
+  GAction *menuaction;
 
-  /** Widget in the main menu */
-  GtkWidget             *menuitem;
+  /** Window widget */
+  GtkWidget *channel_window;
 
-  /** Enumeration values for the store */
-  enum StoreFields {
-    S_channelnum,
-    S_channelname,
-    S_entrynum,
-    S_entrylabel,
-    S_writerid,
-    S_writername,
-    S_ES,
-    S_dataclass,
-    S_writecount,
-    S_readerid,
-    S_readername,
-    S_readcount,
-    S_creationid,
-    S_ischanentry,
-    S_iswriteentry,
-    S_isreadentry,
-    S_selection,
-    S_sequential,
-    S_viewopen,
-    S_numcolumns
-  };
+  /** Tree widget */
+  GtkColumnView *channel_tree;
 
-  /** Name information window */
-  struct InfoWindow {
-    /** The window */
-    GtkWidget           *infowindow;
-    /** A label field */
-    GtkWidget           *label;
-    /** current text */
-    std::string         text;
-    /** Is visible */
-    bool                visible;
-    /** Create */
-    void init();
-    /** Update */
-    void update(const gchararray& txt, gint x, gint y);
-    /** Close again */
-    void hide();
-  };
-
-  /** Pop-up overview window, for tooltip-like information on data etc.*/
-  InfoWindow iwindow;
-
+  /** Store with the channel data */
+  GListStore *store;
+  
 public: // class name and trim/parameter tables
   /** Name of the module. */
-  static const char* const           classname;
+  static const char *const classname;
 
   /** Return the parameter table. */
-  static const ParameterTable*       getMyParameterTable();
+  static const ParameterTable *getMyParameterTable();
 
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
-  ChannelOverviewGtk4(Entity* e, const char* part, const PrioritySpec& ts);
+  ChannelOverviewGtk4(Entity *e, const char *part, const PrioritySpec &ts);
 
   /** Continued construction. This is called after all script
       parameters have been read and filled in, according to the
@@ -131,10 +96,10 @@ public: // construction and further specification
   // Delete if not needed!
 
   /** Specify a time specification for the simulation activity. */
-  bool setTimeSpec(const TimeSpec& ts);
+  bool setTimeSpec(const TimeSpec &ts);
 
   /** Request check on the timing. */
-  bool checkTiming(const vector<int>& i);
+  bool checkTiming(const vector<int> &i);
 
 protected:
   /** update view */
@@ -150,23 +115,78 @@ protected:
 
 private:
   /** close callback */
-  void cbClose(GtkButton* button, gpointer gp);
+  void cbClose(GtkButton *button, gpointer gp);
   /** refresh read/write count */
-  void cbRefreshCounts(GtkButton* button, gpointer gp);
+  void cbRefreshCounts(GtkButton *button, gpointer gp);
   /** window delete selected */
-  gboolean cbDelete(GtkWidget *window, GdkEvent *event, gpointer user_data);
-  /** hover in the tree area */
-  gboolean cbHover(GtkWidget *window, GdkMotionEvent *event,
-                   gpointer user_data);
-  /** leave the tree area */
-  gboolean cbLeave(GtkWidget *window, GdkEvent *event, gpointer user_data);
+  gboolean cbHide(GtkWidget *window, gpointer user_data);
+
+  /** setup for a label */
+  void cbSetupLabel(GtkSignalListItemFactory *fact, GtkListItem *item,
+                    gpointer user_data);
+
+  /** expander with label */
+  void cbSetupExpander(GtkSignalListItemFactory *fact, GtkListItem *item,
+                       gpointer user_data);
+
+  /** image */
+  void cbSetupImage(GtkSignalListItemFactory *fact, GtkListItem *item,
+                    gpointer user_data);
+
+  /** checkbox */
+  void cbSetupCheckbox(GtkSignalListItemFactory *fact, GtkListItem *item,
+                       gpointer user_data);
+
+  /** bind to a column */
+  void cbBindChannelNum(GtkSignalListItemFactory *fact, GtkListItem *item,
+                        gpointer user_data);
+
+  /** bind to a column */
+  void cbBindChannelName(GtkSignalListItemFactory *fact, GtkListItem *item,
+                         gpointer user_data);
+
+  /** bind to a column */
+  void cbBindEntryNum(GtkSignalListItemFactory *fact, GtkListItem *item,
+                      gpointer user_data);
+
+  /** bind to a column */
+  void cbBindWriterId(GtkSignalListItemFactory *fact, GtkListItem *item,
+                      gpointer user_data);
+
+  /** bind to a column */
+  void cbBindES(GtkSignalListItemFactory *fact, GtkListItem *item,
+                gpointer user_data);
+
+  /** bind to a column */
+  void cbBindNWrites(GtkSignalListItemFactory *fact, GtkListItem *item,
+                     gpointer user_data);
+
+  /** bind to a column */
+  void cbBindReaderId(GtkSignalListItemFactory *fact, GtkListItem *item,
+                      gpointer user_data);
+
+  /** bind to a column */
+  void cbBindNReads(GtkSignalListItemFactory *fact, GtkListItem *item,
+                    gpointer user_data);
+
+  /** bind to a column */
+  void cbBindSel(GtkSignalListItemFactory *fact, GtkListItem *item,
+                 gpointer user_data);
+
+  /** bind to a column */
+  void cbBindSeq(GtkSignalListItemFactory *fact, GtkListItem *item,
+                 gpointer user_data);
+
+  /** bind to a column */
+  void cbBindView(GtkSignalListItemFactory *fact, GtkListItem *item,
+                  gpointer user_data);
 
 public:
   /** Call from an opened monitor to close again */
   void closeMonitor(unsigned channelno, unsigned entryno);
 
-  /** Toggle callback */
-  void monitorToggle(GtkCellRendererToggle *cell, gchar *path_str);
+  /** Toggle callback, to open/close monitor */
+  void monitorToggle(GtkToggleButton *btn, _DChannelInfo *path_str);
 };
 
 DUECA_NS_END

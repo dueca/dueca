@@ -59,7 +59,7 @@ private: // simulation data
 
 private: // channel access
   /** Callback on token completion */
-  Callback<LogView>                        token_valid;
+  Callback<LogView>                    token_valid;
 
   /** Function on token completion. */
   void tokenValid(const TimeSpec& ts);
@@ -127,7 +127,7 @@ public: // the member functions that are called for activities
   void pause(bool do_pause);
 
   /** Set the logging level for a certain node and message category. */
-  void setLevel(const LogCategory* cat, int node, const char* level_as_text);
+  void setLevel(const LogCategory &cat, int node, unsigned level);
 };
 
 DUECA_NS_END

@@ -26,7 +26,7 @@ DUECA_NS_START
     Gtk interface library */
 class GtkHandler: public GuiHandler
 {
-  GtkApplication *app;
+  static GtkApplication *app;
 public:
   /** Constructor. */
   GtkHandler(const std::string& name);
@@ -43,6 +43,9 @@ public:
 
   /** Nicely step out of the main loop again. */
   void returnControl();
+
+  /** get the application */
+  inline static GtkApplication *application() { return app; }
 };
 
 DUECA_NS_END

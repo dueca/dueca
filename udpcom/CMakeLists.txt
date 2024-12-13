@@ -4,6 +4,7 @@
 #       date            : 1610xx
 #       category        : cmake definition
 #       copyright       : (c) 2017 TUDelft-AE-C&S
+#       copyright       : (c) 2022 Rene van Paassen
 
 include(CheckSymbolExists)
 find_package(DuecaAddLibrary)

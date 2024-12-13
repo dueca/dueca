@@ -4,4 +4,7 @@ endif()
 if(BUILD_GTK3)
   add_subdirectory(gtk3)
 endif()
+if(BUILD_GTK4)
+  add_subdirectory(gtk4)
+endif()
 

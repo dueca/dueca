@@ -51,7 +51,7 @@ class GtkTrimView: public TrimView
   GtkSpinButton* entry_widget;
 
   /** menu item in main view menu. */
-  GtkWidget* menuitem;
+  GAction* menuitem;
 
   /** Remember whether the window is open. */
   bool window_open;

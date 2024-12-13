@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 includedir=@includedir@
 dueca_includedir=@dueca_includedir@
 libdir=@libdir@
-initfunc=-Wl,@ldundef@InitGtk3
+initfunc=-Wl,@ldundef@InitGtk4
 version=@VERSION@
 staticsuffix=
 

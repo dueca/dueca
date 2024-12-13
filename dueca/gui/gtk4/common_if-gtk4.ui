@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0"/>
+  <requires lib="gtk" version="4.0" />
   <object class="GtkAboutDialog" id="about2">
     <property name="program-name">DUECA/DUSIME</property>
-    <property name="version">3.1.x</property>
+    <property name="version">4.1.4</property>
     <property name="copyright" translatable="1">Delft University of Technology</property>
-    <property name="comments" translatable="1">Real-Time distributed computation and simulation	</property>
+    <property name="comments" translatable="1">Real-Time distributed computation and simulation </property>
     <property name="website">https://dueca.tudelft.nl</property>
     <property name="website-label" translatable="1">https://dueca.tudelft.nl</property>
     <property name="license" translatable="1">EUGPL 1.1</property>
@@ -14,7 +14,7 @@
     <property name="license-type">custom</property>
     <child>
       <object class="GtkBox">
-        <property name="visible">0</property>
+        <property name="visible">1</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
@@ -24,18 +24,19 @@
                 <property name="label" translatable="1">Close</property>
                 <property name="focusable">1</property>
                 <property name="receives-default">1</property>
-		<property name="halign">GTK_ALIGN_FILL</property>
+                <property name="halign">GTK_ALIGN_FILL</property>
               </object>
             </child>
           </object>
         </child>
         <child>
-          <placeholder/>
+          <placeholder />
         </child>
       </object>
     </child>
   </object>
   <object class="GtkDialog" id="dont_change_a_running">
+    <property name="title">DUECA running, cannot change the simulation.</property>
     <property name="use-header-bar"> 0 </property>
     <child internal-child="content_area">
       <object class="GtkBox">
@@ -44,9 +45,10 @@
         <property name="spacing">2</property>
         <child>
           <object class="GtkLabel">
-            <property name="label" translatable="1">You cannot change the model while the simulation is running
+            <property name="label" translatable="1">You cannot change the model while the simulation
+              is running
 
-first stop the modules, then read additional configuration</property>
+              first stop the modules, then read additional configuration</property>
           </object>
         </child>
       </object>
@@ -66,16 +68,17 @@ first stop the modules, then read additional configuration</property>
     </child>
   </object>
   <object class="GtkDialog" id="dont_stop_warning">
+    <property name="title">DUECA running, please don't stop</property>
     <property name="use-header-bar"> 0 </property>
     <child internal-child="content_area">
       <object class="GtkBox">
-        <property name="visible">0</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <object class="GtkLabel">
-            <property name="label" translatable="1">As far as I can determine, this is a bad time to stop the system.
-please stop the modules, and then quit.</property>
+            <property name="label" translatable="1">As far as I can determine, this is a bad time to
+              stop the system.
+              please stop the modules, and then quit.</property>
           </object>
         </child>
       </object>
@@ -121,7 +124,7 @@ please stop the modules, and then quit.</property>
               <object class="GtkLabel" id="label11">
                 <property name="halign">center</property>
                 <property name="label" translatable="1">Do you really
-want to quit DUECA?</property>
+                  want to quit DUECA?</property>
                 <property name="justify">center</property>
               </object>
             </child>
@@ -149,7 +152,7 @@ want to quit DUECA?</property>
                 <property name="label" translatable="1">No, please continue</property>
                 <property name="focusable">1</property>
                 <property name="use-underline">1</property>
-                <signal name="clicked" handler="gtk_widget_hide" object="really_quit" swapped="yes"/>
+                <signal name="clicked" handler="gtk_widget_hide" object="really_quit" swapped="yes" />
               </object>
             </child>
           </object>
@@ -174,7 +177,7 @@ want to quit DUECA?</property>
                 <property name="label">gtk-cancel</property>
                 <property name="focusable">1</property>
                 <property name="receives-default">1</property>
-                <signal name="clicked" handler="gtk_widget_hide" object="select_md2" swapped="yes"/>
+                <signal name="clicked" handler="gtk_widget_hide" object="select_md2" swapped="yes" />
               </object>
             </child>
             <child>

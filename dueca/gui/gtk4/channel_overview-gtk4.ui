@@ -1,78 +1,164 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Partly created with Cambalache 0.94.0 -->
 <interface>
-  <requires lib="gtk" version="4.0"/>
-  <requires lib="gtk" version="4.0"/>
-  <object class="GtkAdjustment" id="horizontal">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="vertical">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkListStore" id="channel_store"/>
-  <object class="GtkTreeListModel" id="channel_model">
-    <property name="model">channel_store</property>
-  </object>
-  <object class="GtkSortListModel" id="channel_model_sorted">
-    <property name="model">channel_model</property>
-    <property name="sorter">channel_list_row_sorter</property>
-  </object>
-  <object class="GtkWindow" id="channel_use_view">
-    <property name="title" translatable="1">Channel Overview</property>
-    <property name="child">
+  <!-- interface-name channel_overview_gtk4.ui -->
+  <requires lib="gtk" version="4.10" />
+  <object class="GtkWindow" id="channel_view">
+    <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox" id="main_toolbar">
-            <style>
-              <class name="toolbar"/>
-            </style>
-            <property name="css-classes">toolbar</property>
+          <object class="GtkFlowBox">
             <child>
               <object class="GtkButton" id="close">
-                <property name="label" translatable="1">Close</property>
-                <property name="use_underline">1</property>
-                <property name="icon-name">window-close</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">window-close</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label">Close</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
               <object class="GtkButton" id="refresh_times">
-                <property name="label" translatable="1">Access #</property>
-                <property name="use_underline">1</property>
-                <property name="icon-name">view-refresh</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">media-playlist-repeat</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label">Access #</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
         </child>
         <child>
-          <object class="GtkScrolledWindow" id="scrollwindow">
-            <property name="vexpand">1</property>
-            <property name="focusable">1</property>
-            <property name="hadjustment">horizontal</property>
-            <property name="vadjustment">vertical</property>
-            <property name="propagate_natural_width">1</property>
-            <property name="propagate_natural_height">1</property>
-            <property name="child">
-              <object class="GtkColumnView" id="channel_overview">
-                <property name="width_request">600</property>
-                <property name="height_request">300</property>
-                <property name="focusable">1</property>
-                <property name="hadjustment">horizontal</property>
-                <property name="vadjustment">vertical</property>
-                <child internal-child="selection">
-                  <object class="GtkSingleSelection"/>
+          <object class="GtkScrolledWindow">
+            <property name="propagate-natural-width">True</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkColumnView" id="channel_col_view">
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">chan #</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_channelnum">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">chan name</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_channelname">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">entry #</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_entrynum">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">writer id</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_writerid">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">E/S</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_es">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="col_nwrites">
+                    <property name="title"># writes</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_nwrites">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">reader id</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_readerid">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="col_nreads">
+                    <property name="title"># reads</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_nreads">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">sel</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_sel">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">seq</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_seq">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">view</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_view">
+                      </object>
+                    </property>
+                  </object>
                 </child>
               </object>
-            </property>
+            </child>
           </object>
         </child>
       </object>
-    </property>
-    <child>
-      <placeholder/>
     </child>
   </object>
 </interface>

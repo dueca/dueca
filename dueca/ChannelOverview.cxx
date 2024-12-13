@@ -273,8 +273,10 @@ unsigned ChannelOverview::_processReadInfo(const ChannelReadInfo& data)
 }
 
 ChannelOverview::ChannelInfoSet::ChannelInfoSet(const std::string& name,
+                          unsigned chanid,
                                                 bool accesszero) :
   name(name),
+  chanid(chanid),
   accessfromzero(false)
 { }
 
@@ -313,6 +315,7 @@ void ChannelOverview::processWriteInfo(const TimeSpec& ts, ChannelReadToken*& r)
         infolist[chanid].reset
           (new ChannelInfoSet
            (ChannelManager::single()->getGlobalNameSet(chanid).name,
+            wi.data().channelid.getObjectId(),
             wi.data().channelid.getLocationId() == 0));
 
         // creates the channel with entries
@@ -643,6 +646,14 @@ void ChannelOverview::processMonitorData(const TimeSpec& ts)
 void ChannelOverview::closeMonitor(unsigned channelno, unsigned entryno)
 {
   DEB("should close " << channelno << " e:" << entryno);
+}
+
+const std::string& ChannelOverview::getChannelName(unsigned channelno) const
+{
+  static const std::string noname("noname");
+  if (channelno >= infolist.size() || !infolist[channelno])
+    return noname;
+  return infolist[channelno]->name;
 }
 
 // Make a TypeCreator object for this module, the TypeCreator

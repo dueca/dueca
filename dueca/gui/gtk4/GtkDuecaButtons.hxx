@@ -17,23 +17,28 @@
 #ifndef GtkDuecaButtons_hxx
 #define GtkDuecaButtons_hxx
 
-#include <dueca-conf.h>
 #include <dueca_ns.h>
-
-//#include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
-/** Change the background image of the GtkDuecaButton or GtkDuecaAbortButton.
-    \param widget  Pointer to the button widget.
-    \param imgno   Selected image. */
-extern "C" {
-  void gtk_dueca_button_set_image(GtkWidget* widget, gint imgno);
-}
+DUECA_NS_START;
 
-/** Load a set of widgets for the abort button. */
-GtkWidget* NewGtkDuecaAbortButton_pixmaps();
+/** Set a specific image on the given button 
 
-/** Load a set of widgets for the dueca buttons. */
-GtkWidget* NewGtkDuecaButton_pixmaps();
+    @param btn  Button widget
+    @param imno Chosen image, 0=normal, 1
+  */
+void gtk_dueca_button_load_image(GtkWidget *btn, unsigned imno);
+
+/** Set an image on the emergency button
+
+    @param btn  Button widget
+    @param imno Chosen image, 0=inactive, 1=in progress, 2=active, 
+                3=incomplete, 4=fell back
+  */
+void gtk_dueca_emergency_load_image(GtkWidget *btn, unsigned imno);
+
+void load_dueca_buttons();
+
+DUECA_NS_END;
 
 #endif

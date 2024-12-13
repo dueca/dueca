@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0"/>
-  <object class="GtkTreeStore" id="initials_store">
-    <columns>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gboolean"/>
-      <column type="gboolean"/>
-    </columns>
-  </object>
+  <requires lib="gtk" version="4.0" />
   <object class="GtkWindow" id="initials_view">
     <property name="child">
       <object class="GtkBox">
@@ -38,22 +27,18 @@
               <object class="GtkButton" id="initials_send">
                 <property name="sensitive">0</property>
                 <property name="can-focus">0</property>
-                <property name="tooltip-text" translatable="1">Send the currently selected initial state</property>
+                <property name="tooltip-text" translatable="1">Send the currently selected initial
+                  state</property>
                 <property name="label" translatable="1">send</property>
                 <property name="use-underline">1</property>
                 <property name="icon-name">go-up</property>
               </object>
             </child>
             <child>
-              <object class="GtkToolItem" id="initials_custom1">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="tooltip-text" translatable="1">Name of the last selected or sent initial state.</property>
-                <child>
-                  <object class="GtkLabel" id="initials_selected">
-                    <property name="label" translatable="1">&lt;&lt; none selected &gt;&gt;</property>
-                  </object>
-                </child>
+              <object class="GtkLabel" id="initials_selected">
+                <property name="tooltip-text" translatable="1">Name of the last selected or sent
+                  initial state.</property>
+                <property name="label" translatable="1">&lt;&lt; none selected &gt;&gt;</property>
               </object>
             </child>
             <child>
@@ -63,13 +48,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkToolItem" id="initials_custom2">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <child>
-                  <object class="GtkLabel" id="initials_status"/>
-                </child>
-              </object>
+              <object class="GtkLabel" id="initials_status" />
             </child>
           </object>
         </child>
@@ -77,56 +56,59 @@
           <object class="GtkEntry" id="initials_newentryname">
             <property name="focusable">1</property>
             <property name="text" translatable="1">anonymous</property>
-            <property name="primary-icon-tooltip-text" translatable="1">Name for the next new initial states (snapshot) captured.</property>
+            <property name="primary-icon-tooltip-text" translatable="1">Name for the next new
+              initial states (snapshot) captured.</property>
           </object>
         </child>
         <child>
           <object class="GtkScrolledWindow">
-            <property name="focusable">1</property>
-            <property name="vexpand">1</property>
-            <property name="shadow-type">in</property>
-            <property name="child">
-              <object class="GtkTreeView" id="initials_initiallist">
-                <property name="focusable">1</property>
+            <property name="propagate-natural-width">True</property>
+            <property name="vexpand">true</property>
+            <child>
+              <object class="GtkColumnView" id="initials_initiallist">
                 <property name="vscroll-policy">natural</property>
-                <property name="model">initials_store</property>
-                <property name="search-column">0</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="initials_listselection"/>
-                </child>
                 <child>
-                  <object class="GtkTreeViewColumn">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">name</property>
-                    <property name="clickable">1</property>
-                    <property name="sort-indicator">1</property>
-                    <property name="sort-column-id">0</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="initials_name_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">date/time</property>
-                    <property name="clickable">1</property>
-                    <property name="sort-indicator">1</property>
-                    <property name="sort-column-id">1</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="initials_datetime_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">origin</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="initials_origin_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">coding</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="initials_coding_fact" />
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkTreeViewColumn">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">sample</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="initials_sample_fact" />
+                    </property>
                   </object>
                 </child>
               </object>
-            </property>
+            </child>
           </object>
         </child>
       </object>

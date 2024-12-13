@@ -1,236 +1,175 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0"/>
-  <object class="GtkListStore" id="controltable_list">
-    <columns>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="logtable_list">
-    <columns>
-      <column type="gchararray"/>
-      <column type="guint"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gint"/>
-      <column type="gint"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkWindow" id="log_view">
-    <property name="title" translatable="1">DUECA Error Logs</property>
-    <property name="child">
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
+    <requires lib="gtk" version="4.0" />
+    <object class="GtkWindow" id="log_view">
+        <property name="title" translatable="1">DUECA Error Logs</property>
         <child>
-          <object class="GtkBox">
-            <property name="valign">center</property>
-            <property name="css-classes">toolbar</property>
-            <child>
-              <object class="GtkButton" id="close">
-                <property name="icon-name">window-close</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkToggleButton" id="pause">
-                <property name="icon-name">media-playback-pause</property>
-                <property name="active">1</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkToggleButton" id="play">
-                <property name="icon-name">media-playback-start</property>
-                <property name="group">pause</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkNotebook">
-            <property name="vexpand">1</property>
-            <property name="focusable">1</property>
-            <child>
-              <object class="GtkNotebookPage">
-                <property name="child">
-                  <object class="GtkScrolledWindow">
-                    <property name="focusable">1</property>
-                    <property name="hscrollbar-policy">always</property>
-                    <property name="vscrollbar-policy">always</property>
-                    <property name="has-frame">1</property>
-                    <property name="child">
-                      <object class="GtkTreeView" id="logtable">
+            <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                    <object class="GtkBox">
+                        <property name="orientation">horizontal</property>
+                        <property name="valign">center</property>
+                        <property name="css-classes">toolbar</property>
+                        <child>
+                            <object class="GtkButton" id="close">
+                                <property name="icon-name">window-close</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkToggleButton" id="pause">
+                                <property name="icon-name">media-playback-pause</property>
+                                <property name="active">1</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkToggleButton" id="play">
+                                <property name="icon-name">media-playback-start</property>
+                                <property name="group">pause</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkNotebook">
+                        <property name="vexpand">1</property>
                         <property name="focusable">1</property>
-                        <property name="model">logtable_list</property>
-                        <property name="enable-grid-lines">both</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="logtable-selection"/>
+                        <child>
+                            <object class="GtkScrolledWindow">
+                                <property name="propagate-natural-width">True</property>
+                                <property name="vexpand">True</property>
+                                <child>
+                                    <object class="GtkColumnView" id="logtable">
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">time</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_time_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">#</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_num_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">class</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_class_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">file/line</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_line_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">N</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_node_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">A</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_actlevel_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">id</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_id_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">activity</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_activity_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">message</property>
+                                                <property name="expand">1</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="log_message_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child type="tab">
+                            <object class="GtkLabel">
+                                <property name="label" translatable="1">Log messages</property>
+                            </object>
                         </child>
                         <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">time</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
+                            <object class="GtkScrolledWindow">
+                                <property name="focusable">1</property>
+                                <property name="hscrollbar-policy">always</property>
+                                <property name="vscrollbar-policy">always</property>
+                                <property name="has-frame">1</property>
+                                <property name="child">
+                                    <object class="GtkColumnView" id="controltable">
+                                        <property name="focusable">1</property>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">MEMO</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="ctr_memo_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="GtkColumnViewColumn">
+                                                <property name="title" translatable="1">Explanation</property>
+                                                <property name="factory">
+                                                    <object class="GtkSignalListItemFactory"
+                                                        id="ctr_explain_fact" />
+                                                </property>
+                                            </object>
+                                        </child>
+                                    </object>
+                                </property>
+                            </object>
                         </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">#</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
+                        <child type="tab">
+                            <object class="GtkLabel">
+                                <property name="label" translatable="1">Control</property>
+                            </object>
                         </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">class</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">2</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">file/line</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">3</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">N</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">4</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">A</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">5</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">id</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">6</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">activity</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">7</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">message</property>
-                            <property name="expand">1</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">8</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </property>
-                  </object>
-                </property>
-                <property name="tab">
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">Log messages</property>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkNotebookPage">
-                <property name="child">
-                  <object class="GtkScrolledWindow">
-                    <property name="focusable">1</property>
-                    <property name="hscrollbar-policy">always</property>
-                    <property name="vscrollbar-policy">always</property>
-                    <property name="has-frame">1</property>
-                    <property name="child">
-                      <object class="GtkTreeView" id="controltable">
-                        <property name="focusable">1</property>
-                        <property name="model">controltable_list</property>
-                        <property name="enable-search">0</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="controltable-selection"/>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">MEMO</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn">
-                            <property name="title" translatable="1">Class</property>
-                            <child>
-                              <object class="GtkCellRendererText"/>
-                              <attributes>
-                                <attribute name="text">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </property>
-                  </object>
-                </property>
-                <property name="tab">
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">Control</property>
-                  </object>
-                </property>
-              </object>
-            </child>
-          </object>
+                    </object>
+                </child>
+            </object>
         </child>
-      </object>
-    </property>
-  </object>
+    </object>
 </interface>
