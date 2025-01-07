@@ -552,7 +552,7 @@ struct match_readid
 };
 
 void ChannelOverviewGtk3::reflectChanges(unsigned ichan, unsigned ientry,
-                                         uint32_t ireader)
+                                         uint32_t ireader, unsigned creationid)
 {
   // was the entry already in the tree?
   GtkTreeIter itchan, itentry, itreader;

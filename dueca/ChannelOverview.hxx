@@ -210,11 +210,17 @@ public:
         ReadInfoSet(unsigned readerid, const ChannelReadInfo& rdata);
       };
 
+      /** List type */
+      typedef std::list<std::shared_ptr<ReadInfoSet>> readerlist_t;
+
       /** Organise with all client data */
-      std::list<std::shared_ptr<ReadInfoSet> > rdata;
+      readerlist_t rdata;
 
       /** Constructor */
       EntryInfoSet(const ChannelWriteInfo& wdata);
+
+      /** Get an iterator to a reader */
+      readerlist_t::const_iterator getReader(unsigned readerid) const;
     };
 
     /** List of entries */
@@ -316,7 +322,7 @@ protected:
   virtual void reflectChanges(unsigned channelid, unsigned entryid);
   /** update model */
   virtual void reflectChanges(unsigned channelid, unsigned entryid,
-                              uint32_t readerid);
+                              uint32_t readerid, unsigned creationid);
   /** update counts */
   virtual void reflectCounts();
 

@@ -31,70 +31,72 @@ DUECA_NS_START;
 
     Implementing most stl-like interfaces
 */
-template<size_t N, typename T>
-class limvector
+template <size_t N, typename T> class limvector
 {
   /// current size of the limited vector
   size_t n;
 
   /** pointer to the vector -- which is right below!! to make this
       compatible with hdf5 logging */
-  const T* _ptr;
+  const T *_ptr;
 
   /** Data space */
   T d[N];
+
 public:
-
   /** Type of the contained object */
-  typedef T                                    value_type;
+  typedef T value_type;
 
   /** Type of a pointer to the contained object */
-  typedef T*                                   pointer;
+  typedef T *pointer;
 
   /** Type of a reference to the contained object */
-  typedef T&                                   reference;
+  typedef T &reference;
 
   /** Type of a reference to the contained object */
-  typedef const T&                             const_reference;
+  typedef const T &const_reference;
 
   /** Type of a pointer to the contained object */
-  typedef const T*                             const_pointer;
+  typedef const T *const_pointer;
 
 #if defined(__GNUC__) && !defined(__clang__)
 
   /** Define the iterator type */
-  typedef __gnu_cxx::__normal_iterator<pointer,limvector>  iterator;
+  typedef __gnu_cxx::__normal_iterator<pointer, limvector> iterator;
 
   /** Define the const iterator type */
-  typedef __gnu_cxx::__normal_iterator<const_pointer,limvector>  const_iterator;
+  typedef __gnu_cxx::__normal_iterator<const_pointer, limvector> const_iterator;
 #else
 
   /** Define the iterator type */
-  typedef pointer                              iterator;
+  typedef pointer iterator;
 
   /** Define the const iterator type */
-  typedef const_pointer                        const_iterator;
+  typedef const_pointer const_iterator;
 #endif
 
   /** Define the reverse const iterator type */
-  typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
+  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
   /** Define the reverse iterator type */
-  typedef std::reverse_iterator<iterator>      reverse_iterator;
+  typedef std::reverse_iterator<iterator> reverse_iterator;
   /** Show random access is possible */
-  typedef std::random_access_iterator_tag      iterator_category;
+  typedef std::random_access_iterator_tag iterator_category;
   /** Size of the underlying thing */
-  typedef size_t                               size_type;
+  typedef size_t size_type;
   /** Pointer difference */
-  typedef std::ptrdiff_t                       difference_type;
+  typedef std::ptrdiff_t difference_type;
 
   /** constructor with default value for the data
       @param n      length of vector
       @param defval default fill value
   */
-  limvector(size_t n, const T& defval) :
+  limvector(size_t n, const T &defval) :
     n(std::min(n, N)),
     _ptr(this->d)
-  { for (int ii = n; ii--; ) this->d[ii] = defval; }
+  {
+    for (int ii = n; ii--;)
+      this->d[ii] = defval;
+  }
 
   /** constructor without default value for the data
       @param n     length of vector
@@ -102,34 +104,36 @@ public:
   limvector(size_t n = 0) :
     n(std::min(n, N)),
     _ptr(d)
-  { }
+  {}
 
   /** copy constructor */
-  limvector(const limvector<N,T>& other) :
+  limvector(const limvector<N, T> &other) :
     n(other.size()),
     _ptr(d)
-  { for (int ii = n; ii--; ) this->d[ii] = other.d[ii]; }
+  {
+    for (int ii = n; ii--;)
+      this->d[ii] = other.d[ii];
+  }
 
   /** construct from iterators */
-  template<class InputIt>
-  limvector(InputIt first, InputIt last)
-  { for (n = 0; n < N; n++) {
-      if (first == last) break;
+  template <class InputIt> limvector(InputIt first, InputIt last)
+  {
+    for (n = 0; n < N; n++) {
+      if (first == last)
+        break;
       this->d[n] = *first++;
     }
-    if (first != last) throw indexexception();
+    if (first != last)
+      throw indexexception();
   }
 
   /** destructor */
-  ~limvector()
-  { }
+  ~limvector() {}
 
   /** obtain a pointer directly to the data */
-  inline operator pointer(void)
-  { return d; }
+  inline operator pointer(void) { return d; }
   /** obtain a const pointer directly to the data */
-  inline operator const_pointer(void) const
-  { return d; }
+  inline operator const_pointer(void) const { return d; }
 
   /** more-or-less stl-compatible iterator */
   inline iterator begin() { return iterator(this->d); }
@@ -144,39 +148,43 @@ public:
   inline size_t size() const { return n; }
 
   /** assignment operator */
-  inline limvector<N,T>& operator = (const limvector<N,T>& other)
+  inline limvector<N, T> &operator=(const limvector<N, T> &other)
   {
-    if (this == &other) return *this;
+    if (this == &other)
+      return *this;
     this->n = other.size();
-    for (int ii = this->n; ii--; ) this->d[ii] = other.d[ii];
+    for (int ii = this->n; ii--;)
+      this->d[ii] = other.d[ii];
     return *this;
   }
 
   /** assignment operator, to value type */
-  inline limvector<N,T>& operator = (const T& val)
+  inline limvector<N, T> &operator=(const T &val)
   {
-    for (int ii = N; ii--; ) this->d[ii] = val;
+    for (int ii = N; ii--;)
+      this->d[ii] = val;
     return *this;
   }
 
   /** equality test */
-  inline bool operator == (const limvector<N,T>& other) const
+  inline bool operator==(const limvector<N, T> &other) const
   {
-    if (this->n != other.size()) return false;
-    for (int ii = n; ii--; )
-      if (this->d[ii] != other.d[ii]) return false;
+    if (this->n != other.size())
+      return false;
+    for (int ii = n; ii--;)
+      if (this->d[ii] != other.d[ii])
+        return false;
     return true;
   }
 
   /** inequality test */
-  inline bool operator != (const limvector<N,T>& other) const
+  inline bool operator!=(const limvector<N, T> &other) const
   {
     return !(*this == other);
   }
 
   /** access elements of the vector. Note that indexing is checked */
-  template<typename idx_t>
-  inline const T& operator[] (idx_t ii) const
+  template <typename idx_t> inline const T &operator[](idx_t ii) const
   {
     if (size_t(ii) >= n) {
       throw indexexception();
@@ -185,8 +193,7 @@ public:
   }
 
   /** access elements of the vector. Note that indexing is checked */
-  template<typename idx_t>
-  inline T& operator [] (idx_t ii)
+  template <typename idx_t> inline T &operator[](idx_t ii)
   {
     if (size_t(ii) >= n) {
       throw indexexception();
@@ -195,70 +202,79 @@ public:
   }
 
   /** forced resize of the vector */
-  inline void resize(size_t s, const value_type& val = value_type())
+  inline void resize(size_t s, const value_type &val = value_type())
   {
-    if (s > N) throw indexexception();
-    if (s > n) for (size_t i = n; i < s; i++) d[i]=val;
+    if (s > N)
+      throw indexexception();
+    if (s > n)
+      for (size_t i = n; i < s; i++)
+        d[i] = val;
     n = s;
   }
 
   /** access as const pointer */
-  inline const T* ptr() const {return d;}
+  inline const T *ptr() const { return d; }
 
   /** access as pointer */
-  inline T* ptr() {return d;}
+  inline T *ptr() { return d; }
 
   /** push_back, but note the limit! */
-  inline void push_back(const value_type& __x)
-  {
-    resize(size() + 1, __x);
-  }
+  inline void push_back(const value_type &__x) { resize(size() + 1, __x); }
 
   /** pop_back, really inefficient! */
-  inline void pop_back(const value_type& __x)
-  {
-    resize(size() - 1);
-  }
+  inline void pop_back(const value_type &__x) { resize(size() - 1); }
 
   /** access first element */
-  inline reference front() {
-    if (n == 0) throw(indexexception());
+  inline reference front()
+  {
+    if (n == 0)
+      throw(indexexception());
     return *begin();
   }
   /** access first element */
-  inline const_reference front() const {
-    if (n == 0) throw(indexexception());
+  inline const_reference front() const
+  {
+    if (n == 0)
+      throw(indexexception());
     return *begin();
   }
   /** access last element */
-  inline reference back() {
-    if (n == 0) throw(indexexception());
+  inline reference back()
+  {
+    if (n == 0)
+      throw(indexexception());
     return *(end() - 1);
   }
   /** access last element */
-  inline const_reference back() const {
-    if (n == 0) throw(indexexception());
+  inline const_reference back() const
+  {
+    if (n == 0)
+      throw(indexexception());
     return *(end() - 1);
   }
 };
 
 /** Helper, for DCO object handling */
 template <size_t N, typename D>
-struct dco_traits<limvector<N,D> > : dco_traits_iterable,
-  pack_var_size, unpack_resize, diffpack_vector
+struct dco_traits<limvector<N, D>> :
+  dco_traits_iterable,
+  pack_var_size,
+  unpack_resize,
+  diffpack_vector
 {
   /** Helper function, creates a representative classname. */
-  static const char* _getclassname()
+  static const char *_getclassname()
   {
-    static std::stringstream cname;
-    if (cname.str().size() == 0) {
-      cname << "limvector<" << N << "," 
-            << dco_traits<D>::_getclassname() << ">";
+    static const char *cname = NULL;
+    if (!cname) {
+      PrintToChars _n;
+      _n << "limvector<" << N << "," << dco_traits<D>::_getclassname() << ">";
+      cname = _n.getNewCString();
     }
-    return cname.str().c_str();
+    return cname;
   }
   /** Value type for the elements of a trait's target. */
-  typedef D value_type; 
+  typedef D value_type;
   /** Value type for the keys of a trait's target, not used. */
   typedef void key_type;
 };
@@ -268,5 +284,5 @@ DUECA_NS_END;
 #include "msgpack-unstream-iter.hxx"
 MSGPACKUS_NS_START;
 template <typename S, size_t N, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i);
+void msg_unpack(S &i0, const S &iend, dueca::limvector<N, T> &i);
 MSGPACKUS_NS_END;

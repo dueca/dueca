@@ -280,7 +280,7 @@ struct dco_traits_iterablefix {
   constexpr const static MemberArity arity = FixedIterable;
 };
 
-/* standards for the some common stl containers. */
+/* standards for some common stl containers. */
 /* list is iterable, has a variable length */
 template <typename D>
 struct dco_traits<std::list<D> > : public dco_traits_iterable,

@@ -43,7 +43,8 @@ static void d_log_entry_init(DLogEntry *self) {}
 static DLogEntry *d_log_entry_new(const LogMessage &m)
 {
   auto res = D_LOG_ENTRY(g_object_new(d_log_entry_get_type(), NULL));
-  // logmessage is a fixed-size type, assignment to uninitialized mem is possible.
+  // logmessage is a fixed-size type, assignment to uninitialized mem is
+  // possible.
   res->msg = m;
   return res;
 }
@@ -66,7 +67,7 @@ static DLogLevel *d_log_level_new(const LogCategory &m, unsigned nnodes)
 {
   auto res = D_LOG_LEVEL(g_object_new(d_log_level_get_type(), NULL));
   res->cat = m;
-  new(&res->level) std::vector<unsigned>();
+  new (&res->level) std::vector<unsigned>();
   res->level.resize(nnodes);
   for (auto n = nnodes; n--;)
     res->level[n] = 2;
@@ -172,8 +173,7 @@ void LogViewGui::closeView(GtkButton *button, gpointer user_data)
   GtkDuecaView::toggleView(gui.menuaction);
 }
 
-gboolean LogViewGui::deleteView(GtkWidget *window, 
-                                gpointer user_data)
+gboolean LogViewGui::deleteView(GtkWidget *window, gpointer user_data)
 {
   g_signal_emit_by_name(G_OBJECT(gui.menuaction), "activate", NULL);
 
@@ -249,16 +249,16 @@ bool LogViewGui::open(unsigned int nrows)
     gtk_column_view_append_column(GTK_COLUMN_VIEW(gui.controltable), column);
 
     // release
-    //g_object_unref(fact);
-    //g_object_unref(column);
+    // g_object_unref(fact);
+    // g_object_unref(column);
   }
   delete cbbind;
   delete cbsetup;
 
   // request the DuecaView object to make an entry for my window,
   // opening it on activation
-  gui.menuaction= GtkDuecaView::single()->requestViewEntry("errorlog",
-    "Error Log View", GTK_WIDGET(gui.gwindow["log_view"]));
+  gui.menuaction = GtkDuecaView::single()->requestViewEntry(
+    "errorlog", "Error Log View", GTK_WIDGET(gui.gwindow["log_view"]));
 
   return true;
 }
@@ -274,7 +274,7 @@ void LogViewGui::appendLogCategory(const LogCategory &cat)
 {
   auto item = d_log_level_new(cat, nodes);
   g_list_store_append(gui.controltable_store, item);
-  // g_object_unref(item);
+  g_object_unref(item);
 }
 
 void LogViewGui::cbSetupLabel(GtkSignalListItemFactory *fact,
@@ -282,7 +282,7 @@ void LogViewGui::cbSetupLabel(GtkSignalListItemFactory *fact,
 {
   auto label = gtk_label_new("");
   gtk_list_item_set_child(object, label);
-  // g_object_unref(label);
+  //g_object_unref(label);
 }
 
 static void LogViewGui_changeLevel(GtkDropDown *self, GParamSpecUInt *pspec,
@@ -293,9 +293,8 @@ static void LogViewGui_changeLevel(GtkDropDown *self, GParamSpecUInt *pspec,
   auto node = reinterpret_cast<unsigned long>(
     g_object_get_data(G_OBJECT(self), "d_node"));
   lvlrow->level[node] = sel;
-  if (lvlrow)
-  {
-    reinterpret_cast<LogView*>(user_data)->setLevel(lvlrow->cat, node, sel);
+  if (lvlrow) {
+    reinterpret_cast<LogView *>(user_data)->setLevel(lvlrow->cat, node, sel);
   }
 }
 
@@ -310,7 +309,7 @@ void LogViewGui::cbSetupDropboxLevel(GtkSignalListItemFactory *fact,
   g_signal_connect(dd, "notify::selected", G_CALLBACK(LogViewGui_changeLevel),
                    this->master);
   gtk_list_item_set_child(object, dd);
-  // g_object_unref(dd);
+  //g_object_unref(dd);
 }
 
   /** bind  log time */

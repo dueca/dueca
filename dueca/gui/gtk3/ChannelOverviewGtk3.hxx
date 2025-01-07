@@ -146,11 +146,11 @@ public: // construction and further specification
 
 protected:
   /** update view */
-  void reflectChanges(unsigned channelid);
+  void reflectChanges(unsigned channelid) final;
   /** update view */
-  void reflectChanges(unsigned channelid, unsigned entryid);
+  void reflectChanges(unsigned channelid, unsigned entryid) final;
   /** update view */
-  void reflectChanges(unsigned channelid, unsigned entryid, unsigned readerid);
+  void reflectChanges(unsigned channelid, unsigned entryid, uint32_t readerid, unsigned creationid) final;
   /** update counts */
   void reflectCounts();
   /** redraw view */

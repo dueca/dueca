@@ -268,7 +268,7 @@ unsigned ChannelOverview::_processReadInfo(const ChannelReadInfo& data)
        (new ChannelInfoSet::EntryInfoSet::ReadInfoSet(readerid, data)));
   }
 
-  reflectChanges(chanid, entryid, data.creationid);
+  reflectChanges(chanid, entryid, readerid, data.creationid);
   return readerid;
 }
 
@@ -287,6 +287,13 @@ ChannelOverview::ChannelInfoSet::EntryInfoSet::EntryInfoSet
   seq_id(0),
   monitor(NULL)
 { }
+
+ChannelOverview::ChannelInfoSet::EntryInfoSet::readerlist_t::const_iterator ChannelOverview::ChannelInfoSet::EntryInfoSet::getReader(unsigned creationid) const
+{
+  readerlist_t::const_iterator ii = rdata.begin();
+  for (; ii != rdata.end() && (*ii)->rdata.creationid != creationid; ii++);
+  return ii;
+}
 
 ChannelOverview::ChannelInfoSet::EntryInfoSet::ReadInfoSet::ReadInfoSet
 (unsigned readerid, const ChannelReadInfo& rdata) :
@@ -377,6 +384,7 @@ void ChannelOverview::processWriteInfo(const TimeSpec& ts, ChannelReadToken*& r)
 
           // just in case, remove the monitor
           delete infolist[chanid]->entries[entryid]->monitor;
+          infolist[chanid]->entries[entryid]->monitor = NULL;
           infolist[chanid]->entries[entryid].reset();
 
           // delete, add, replace the entry
@@ -477,7 +485,7 @@ void ChannelOverview::reflectChanges(unsigned chanid, unsigned entryid)
 }
 
 void ChannelOverview::reflectChanges(unsigned chanid, unsigned entryid,
-                                     uint32_t readid)
+                                     uint32_t readid, unsigned creationid)
 {
   DEB("updated channel " << chanid << " entry " << entryid);
 }
