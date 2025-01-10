@@ -67,7 +67,7 @@ template <class T, typename RET, typename P1, typename P2, typename P3,
           typename P4>
 GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, gpointer), gpointer obj=NULL)
 {
-  return new GtkCallerImp4<T, RET, P1, P2, P3, P4>(call);
+  return new GtkCallerImp4<T, RET, P1, P2, P3, P4>(call, obj);
 }
 
 /** creation of a caller, 5 parameters and the gpointer parameter. */

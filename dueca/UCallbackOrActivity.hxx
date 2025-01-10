@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "DataTimeSpec.hxx"
+#include <DataTimeSpec.hxx>
 #include <Trigger.hxx>
 #include <cstddef>
 #include <dueca_ns.h>

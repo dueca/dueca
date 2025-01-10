@@ -23,12 +23,13 @@
 // include headers for functions/classes you need in the module
 #include <ChannelOverview.hxx>
 #include "GtkGladeWindow.hxx"
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 DUECA_NS_START
 
 // GObject derived struct to pass data between interface and application
 struct _DChannelInfo;
+typedef _DChannelInfo DChannelInfo;
 struct ChannelOverviewGtk4Private;
 
 /** A view on the DUECA channels
@@ -44,7 +45,7 @@ class ChannelOverviewGtk4 : public ChannelOverview
   typedef ChannelOverviewGtk4 _ThisModule_;
 
 private: // simulation data
-  //ChannelOverviewGtk4Private *self;
+  // ChannelOverviewGtk4Private *self;
 
   /** glade file */
   std::string gladefile;
@@ -66,7 +67,11 @@ private: // simulation data
 
   /** Store with the channel data */
   GListStore *store;
-  
+
+  /** Callback function object */
+  // GtkCaller *expand_subtree;
+  GtkCallerImp1<ChannelOverviewGtk4, GListModel *, gpointer> expand_subtree;
+
 public: // class name and trim/parameter tables
   /** Name of the module. */
   static const char *const classname;
@@ -103,17 +108,29 @@ public: // construction and further specification
 
 protected:
   /** update view */
-  void reflectChanges(unsigned channelid);
+  void reflectChanges(unsigned channelid) final;
   /** update view */
-  void reflectChanges(unsigned channelid, unsigned entryid);
+  void reflectChanges(unsigned channelid, unsigned entryid) final;
   /** update view */
-  void reflectChanges(unsigned channelid, unsigned entryid, unsigned readerid);
+  void reflectChanges(unsigned channelid, unsigned entryid,
+                      unsigned readerid) final;
   /** update counts */
-  void reflectCounts();
+  void reflectCounts(unsigned chanid) final;
   /** redraw view */
   void showChanges();
 
 private:
+  /** Search for the gtk object linking/representing a channel */
+  DChannelInfo *findChannel(unsigned ichan, unsigned &idxc);
+
+  /** Search for the gtk object linking/representing an entry */
+  DChannelInfo *findEntry(unsigned ichan, unsigned ientry, unsigned &idxc,
+                          unsigned &idxe);
+
+  /** Search for the gtk object linking/representing a reader */
+  DChannelInfo *findReader(unsigned ichan, unsigned ientry, unsigned ireader,
+                           unsigned &idxc, unsigned &idxe);
+
   /** close callback */
   void cbClose(GtkButton *button, gpointer gp);
   /** refresh read/write count */
@@ -181,12 +198,15 @@ private:
   void cbBindView(GtkSignalListItemFactory *fact, GtkListItem *item,
                   gpointer user_data);
 
+  /** expand a sub-list, entries or readers */
+  GListModel *cbExpandEntriesReaders(gpointer _item, gpointer user_data);
+
 public:
   /** Call from an opened monitor to close again */
   void closeMonitor(unsigned channelno, unsigned entryno);
 
   /** Toggle callback, to open/close monitor */
-  void monitorToggle(GtkToggleButton *btn, _DChannelInfo *path_str);
+  void monitorToggle(GtkCheckButton *btn, _DChannelInfo *path_str);
 };
 
 DUECA_NS_END

@@ -117,6 +117,9 @@ class CommObjectsListIterator:
     def __init__(self, colist):
         self._iter = iter(colist.dco)
 
+    def __iter__(self):
+        return self
+
     def __next__(self):
         elem = next(self._iter)
         while elem.base_project is None:

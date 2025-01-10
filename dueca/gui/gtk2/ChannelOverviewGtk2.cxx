@@ -52,7 +52,7 @@ const ParameterTable* ChannelOverviewGtk2::getMyParameterTable()
 
     { "count-delay",
       new VarProbe<_ThisModule_,unsigned>
-      (&_ThisModule_::delay_countcollect),
+      (&ChannelOverviewGtk2::delay_countcollect),
       "Delay to wait before collecting a requested count" },
 
     { "glade-file",
@@ -272,7 +272,7 @@ bool ChannelOverviewGtk2::complete()
     if (error) {
       /* DUECA UI.
 
-         Cannot load icon pixbuf. Check DUECA installation. 
+         Cannot load icon pixbuf. Check DUECA installation.
       */
       E_XTR("Could not load pixbuf " << error->message);
       g_error_free(error); error = NULL;
@@ -283,7 +283,7 @@ bool ChannelOverviewGtk2::complete()
     if (error) {
       /* DUECA UI.
 
-         Cannot load icon pixbuf. Check DUECA installation. 
+         Cannot load icon pixbuf. Check DUECA installation.
       */
       E_XTR("Could not load pixbuf " << error->message);
       g_error_free(error); error = NULL;
@@ -294,7 +294,7 @@ bool ChannelOverviewGtk2::complete()
     if (error) {
       /* DUECA UI.
 
-         Cannot load icon pixbuf. Check DUECA installation. 
+         Cannot load icon pixbuf. Check DUECA installation.
       */
       E_XTR("Could not load pixbuf " << error->message);
       g_error_free(error); error = NULL;
@@ -305,7 +305,7 @@ bool ChannelOverviewGtk2::complete()
     if (error) {
       /* DUECA UI.
 
-         Cannot load icon pixbuf. Check DUECA installation. 
+         Cannot load icon pixbuf. Check DUECA installation.
       */
       E_XTR("Could not load pixbuf " << error->message);
       g_error_free(error); error = NULL;
@@ -316,7 +316,7 @@ bool ChannelOverviewGtk2::complete()
     if (error) {
       /* DUECA UI.
 
-         Cannot load icon pixbuf. Check DUECA installation. 
+         Cannot load icon pixbuf. Check DUECA installation.
       */
       E_XTR("Could not load pixbuf " << error->message);
       g_error_free(error); error = NULL;
@@ -327,7 +327,7 @@ bool ChannelOverviewGtk2::complete()
     if (error) {
       /* DUECA UI.
 
-         Cannot load icon pixbuf. Check DUECA installation. 
+         Cannot load icon pixbuf. Check DUECA installation.
       */
       E_XTR("Could not load pixbuf " << error->message);
       g_error_free(error); error = NULL;
@@ -338,7 +338,7 @@ bool ChannelOverviewGtk2::complete()
     if (error) {
       /* DUECA UI.
 
-         Cannot load icon pixbuf. Check DUECA installation. 
+         Cannot load icon pixbuf. Check DUECA installation.
       */
       E_XTR("Could not load pixbuf " << error->message);
       g_error_free(error); error = NULL;
@@ -501,7 +501,7 @@ struct match_readid
 };
 
 void ChannelOverviewGtk2::reflectChanges(unsigned ichan, unsigned ientry,
-                                         uint32_t ireader, unsigned creationid)
+                                         unsigned creationid)
 {
   // was the entry already in the tree?
   GtkTreeIter itchan, itentry, itreader;
@@ -553,7 +553,7 @@ void ChannelOverviewGtk2::reflectChanges(unsigned ichan, unsigned ientry,
     gboolean not_at_end = TRUE;
     gtk_tree_model_get
       (GTK_TREE_MODEL(store), &itreader, 12, &reader_in_tree, -1);
-    while (ireader > reader_in_tree && not_at_end == TRUE) {
+    while (creationid > reader_in_tree && not_at_end == TRUE) {
       position++;
       not_at_end = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &itreader);
       if (not_at_end) {
@@ -565,9 +565,9 @@ void ChannelOverviewGtk2::reflectChanges(unsigned ichan, unsigned ientry,
   auto re = std::find_if
     (infolist[ichan]->entries[ientry]->rdata.begin(),
      infolist[ichan]->entries[ientry]->rdata.end(),
-     match_readid(ireader));
+     match_readid(creationid));
 
-  if (ireader != reader_in_tree &&
+  if (creationid != reader_in_tree &&
       re != infolist[ichan]->entries[ientry]->rdata.end()) {
 
     // new entry
@@ -587,7 +587,7 @@ void ChannelOverviewGtk2::reflectChanges(unsigned ichan, unsigned ientry,
        17, (*re)->rdata.sequential ? sequent_icon[0] : sequent_icon[1],
        -1);
   }
-  else if (ireader == reader_in_tree &&
+  else if (creationid == reader_in_tree &&
            re == infolist[ichan]->entries[ientry]->rdata.end()) {
 
     // delete the entry
@@ -598,7 +598,7 @@ void ChannelOverviewGtk2::reflectChanges(unsigned ichan, unsigned ientry,
 
        Failure updating entry information
     */
-    E_XTR("Channel overview logic failure " << ireader);
+    E_XTR("Channel overview logic failure " << creationid);
   }
 }
 

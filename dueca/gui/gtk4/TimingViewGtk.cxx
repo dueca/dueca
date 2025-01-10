@@ -421,6 +421,7 @@ void TimingViewGtk::cbBindSummaryActivity(GtkSignalListItemFactory *fact,
 {
   auto row = D_TIMING_SUMMARY(gtk_list_item_get_item(item));
   auto label = GTK_LABEL(gtk_list_item_get_child(item));
+  gtk_widget_set_halign(GTK_WIDGET(label), GTK_ALIGN_START);
   gtk_label_set_text(label, row->maker_and_act.c_str());
 }
 

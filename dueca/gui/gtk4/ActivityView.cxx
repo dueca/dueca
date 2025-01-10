@@ -13,7 +13,6 @@
 
 #include "ActivityLister.hxx"
 #include "gtk/gtk.h"
-#include "gui/gtk4/GtkGladeWindow.hxx"
 #define ActivityView_cc
 
 #include <dueca-conf.h>
@@ -674,6 +673,7 @@ void ActivityView::cbBindName(GtkSignalListItemFactory *f, GtkListItem *item,
                               gpointer user_data)
 {
   auto label = gtk_list_item_get_child(item);
+  gtk_widget_set_halign(label, GTK_ALIGN_START);
   auto act = D_ACTIVITY_INFO(gtk_list_item_get_item(item));
   gtk_label_set_text(GTK_LABEL(label), act->act.activity);
 }

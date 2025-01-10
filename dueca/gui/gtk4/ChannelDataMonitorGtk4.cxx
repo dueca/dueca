@@ -11,20 +11,29 @@
         license         : EUPL-1.2
 */
 
-#include "gio/gio.h"
-#include "glib-object.h"
 #include "gtk/gtk.h"
-#include "gtk/gtksingleselection.h"
-#include "gui/gtk4/GtkGladeWindow.hxx"
 #define ChannelDataMonitor_csxx
 #include "ChannelDataMonitorGtk4.hxx"
 #include <debug.h>
-#include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 #include <sstream>
 #include <iomanip>
-#define DEBPRINTLEVEL -1
+#define DEBPRINTLEVEL 2
 #include <debprint.h>
+
+namespace {
+
+// Gobject type system
+struct _DDataEntry
+{
+  GObject parent;
+  GListStore *children;
+  const ChannelDataViewPair *data;
+};
+
+enum DataEntryProperty { D_VALUE = 1, D_CHILDREN, D_NDATAEPROP };
+
+} // anonymous namespace
 
 DUECA_NS_START
 
@@ -32,9 +41,70 @@ DUECA_NS_START
 G_DECLARE_FINAL_TYPE(DDataEntry, d_data_entry, D, DATA_ENTRY, GObject);
 G_DEFINE_TYPE(DDataEntry, d_data_entry, G_TYPE_OBJECT);
 
-static void d_data_entry_class_init(DDataEntryClass *klass)
+// value is dynamic, need to bind through property
+static void d_data_entry_set_property(GObject *object, guint property_id,
+                                      const GValue *value, GParamSpec *pspec)
 {
-  //
+  DDataEntry *self = D_DATA_ENTRY(object);
+
+  switch ((DataEntryProperty)property_id) {
+  case D_VALUE:
+    assert(strlen(g_value_get_string(value)) == 0);
+    // self->data->value.insert(0, g_value_get_string(value));
+    break;
+
+  case D_CHILDREN:
+    self->children = G_LIST_STORE(g_value_get_object(value));
+    break;
+
+  default:
+      /* We don't have any other property... */
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+static void d_data_entry_get_property(GObject *object, guint property_id,
+                                      GValue *value, GParamSpec *pspec)
+{
+  DDataEntry *self = D_DATA_ENTRY(object);
+
+  switch ((DataEntryProperty)property_id) {
+  case D_VALUE:
+    g_value_set_string(value, self->data->value.c_str());
+    break;
+
+  case D_CHILDREN:
+    g_value_set_object(value, self->children);
+    break;
+
+  default:
+      /* We don't have any other property... */
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+static GParamSpec *object_properties[D_NDATAEPROP] = {
+  NULL,
+};
+
+static void d_data_entry_class_init(DDataEntryClass *_klass)
+{
+  auto klass = G_OBJECT_CLASS(_klass);
+  klass->set_property = d_data_entry_set_property;
+  klass->get_property = d_data_entry_get_property;
+
+  object_properties[D_VALUE] = g_param_spec_string(
+    "value", "Value", "String value", "",
+    (GParamFlags)(G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY |
+                  G_PARAM_CONSTRUCT));
+  object_properties[D_CHILDREN] = g_param_spec_object(
+    "children", "Children", "List of properties", gtk_list_store_get_type(),
+    (GParamFlags)(G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY |
+                  G_PARAM_CONSTRUCT));
+  g_object_class_install_properties(klass, G_N_ELEMENTS(object_properties),
+                                    object_properties);
 }
 
 static void d_data_entry_init(DDataEntry *self)
@@ -42,20 +112,22 @@ static void d_data_entry_init(DDataEntry *self)
   //
 }
 
-static DDataEntry *d_data_entry_new(const ChannelDataViewPair &p)
+static DDataEntry *d_data_entry_new(const ChannelDataViewPair *p)
 {
   auto res = D_DATA_ENTRY(g_object_new(d_data_entry_get_type(), NULL));
   res->data = p;
   return res;
 }
 
+/* called when expander activated, produces a sub-list to show under the
+   expander */
 static GListModel *add_data_element(gpointer _item, gpointer user_data)
 {
   auto item = D_DATA_ENTRY(_item);
-  if (item->data.children.size()) {
+  if (item->data->children.size()) {
     auto lm = g_list_store_new(d_data_entry_get_type());
-    for (auto &c : item->data.children) {
-      auto child = d_data_entry_new(c);
+    for (auto &c : item->data->children) {
+      auto child = d_data_entry_new(&c);
       g_list_store_append(lm, gpointer(child));
       g_object_unref(child);
     }
@@ -74,7 +146,7 @@ ChannelDataMonitorGtk4::ChannelDataMonitorGtk4(ChannelOverviewGtk4 *master,
   static GladeCallbackTable cb_table[] = {
     { "close", "clicked", gtk_callback(&_ThisModule_::cbClose) },
     { "refresh_data", "clicked", gtk_callback(&_ThisModule_::cbRefreshData) },
-    { "channel_data_view", "close-request",
+    { "channel_datamonitor", "close-request",
       gtk_callback(&_ThisModule_::cbDelete) },
     { "fact_elemname", "setup", gtk_callback(&_ThisModule_::cbSetupName) },
     { "fact_elemname", "bind", gtk_callback((&_ThisModule_::cbBindName)) },
@@ -96,10 +168,10 @@ ChannelDataMonitorGtk4::ChannelDataMonitorGtk4(ChannelOverviewGtk4 *master,
   }
 
   auto channeltree = GTK_COLUMN_VIEW(window["channel_data_view"]);
-  auto store = g_list_store_new(d_data_entry_get_type());
+  store = g_list_store_new(d_data_entry_get_type());
   auto model = gtk_tree_list_model_new(G_LIST_MODEL(store), FALSE, FALSE,
                                        add_data_element, NULL, NULL);
-  auto selection = gtk_single_selection_new(G_LIST_MODEL(model));
+  auto selection = gtk_no_selection_new(G_LIST_MODEL(model));
   gtk_column_view_set_model(channeltree, GTK_SELECTION_MODEL(selection));
 
   // set the title on the window
@@ -214,6 +286,13 @@ void ChannelDataMonitorGtk4::insertJsonArray(dvplist_t &dl, dvplist_it li,
 
       insertJsonValue(li->value, *it);
     }
+
+    li++;
+  }
+
+  // this may have shrunk, for variable-sized arrays & maps
+  if (li != dl.end()) {
+    dl.erase(li, dl.end());
   }
 }
 
@@ -248,6 +327,59 @@ void ChannelDataMonitorGtk4::insertJson(dvplist_t &dl, dvplist_it li,
       // insert value into value string
       insertJsonValue(li->value, it->value);
     }
+
+    // to next iterator for the dvplist
+    li++;
+  }
+
+  // this may have shrunk, for variable-sized arrays & maps
+  if (li != dl.end()) {
+    dl.erase(li, dl.end());
+  }
+}
+
+static void refreshTree(const dvplist_t &dl, GListStore *store);
+
+static void alignData(const ChannelDataViewPair &it, DDataEntry *dl)
+{
+  if (it.children.size() && dl->children) {
+    refreshTree(it.children, G_LIST_STORE(dl->children));
+  }
+  else if (it.children.size() && dl->children == NULL) {
+    dl->children = g_list_store_new(d_data_entry_get_type());
+  }
+  else if (it.children.size() == 0 && dl->children) {
+    g_object_unref(dl->children);
+    dl->children = NULL;
+  }
+
+  // force set the data and notify the change
+  dl->data = &it;
+  g_object_notify_by_pspec(G_OBJECT(dl), object_properties[D_VALUE]);
+}
+
+static void refreshTree(const dvplist_t &dl, GListStore *store)
+{
+  auto len = g_list_model_get_n_items(G_LIST_MODEL(store));
+  auto dllen = dl.size();
+
+  // shrink if applicable
+  if (dllen < len) {
+    g_list_store_splice(store, dllen, len - dllen, NULL, 0);
+    len = dllen;
+  }
+
+  unsigned idx = 0;
+  for (auto const &d : dl) {
+    auto dl = idx < len
+                ? D_DATA_ENTRY(g_list_model_get_item(G_LIST_MODEL(store), idx))
+                : d_data_entry_new(&d);
+    alignData(d, dl);
+    if (idx >= len) {
+      g_list_store_append(store, dl);
+      g_object_unref(dl);
+    }
+    idx++;
   }
 }
 
@@ -268,6 +400,9 @@ void ChannelDataMonitorGtk4::refreshData(const ChannelMonitorResult &rdata)
     doc.Parse(rdata.json.c_str());
 
     insertJson(data, data.begin(), doc);
+
+    // refresh through binding
+    refreshTree(data, store);
   }
   DEB1(rdata.json);
 }
@@ -285,9 +420,13 @@ void ChannelDataMonitorGtk4::cbSetupName(GtkSignalListItemFactory *fact,
                                          GtkListItem *item, gpointer user_data)
 {
   auto label = gtk_label_new("");
-  auto expander = gtk_tree_expander_new();
-  gtk_tree_expander_set_child(GTK_TREE_EXPANDER(expander), label);
-  gtk_list_item_set_child(item, expander);
+  auto expander = GTK_TREE_EXPANDER(gtk_tree_expander_new());
+  gtk_tree_expander_set_child(expander, label);
+  gtk_tree_expander_set_indent_for_depth(expander, TRUE);
+  gtk_tree_expander_set_indent_for_icon(expander, FALSE);
+  gtk_widget_set_halign(GTK_WIDGET(expander), GTK_ALIGN_START);
+  // gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_LEFT);
+  gtk_list_item_set_child(item, GTK_WIDGET(expander));
 }
 
   /** Create widgets for a value column */
@@ -295,6 +434,8 @@ void ChannelDataMonitorGtk4::cbSetupValue(GtkSignalListItemFactory *fact,
                                           GtkListItem *item, gpointer user_data)
 {
   auto label = gtk_label_new("");
+  // gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_LEFT);
+  gtk_widget_set_halign(GTK_WIDGET(label), GTK_ALIGN_START);
   gtk_list_item_set_child(item, label);
 }
 
@@ -306,11 +447,11 @@ void ChannelDataMonitorGtk4::cbBindName(GtkSignalListItemFactory *fact,
   auto row = gtk_list_item_get_item(item);
   auto dat = D_DATA_ENTRY(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
   auto label = gtk_tree_expander_get_child(GTK_TREE_EXPANDER(expander));
-  if (dat->data.children.size()) {
+  if (dat->children) {
     gtk_tree_expander_set_list_row(GTK_TREE_EXPANDER(expander),
                                    GTK_TREE_LIST_ROW(row));
   }
-  gtk_label_set_label(GTK_LABEL(label), dat->data.label.c_str());
+  gtk_label_set_label(GTK_LABEL(label), dat->data->label.c_str());
 }
 
 void ChannelDataMonitorGtk4::cbBindValue(GtkSignalListItemFactory *fact,
@@ -319,8 +460,10 @@ void ChannelDataMonitorGtk4::cbBindValue(GtkSignalListItemFactory *fact,
   auto label = gtk_list_item_get_child(item);
   auto row = gtk_list_item_get_item(item);
   auto dat = D_DATA_ENTRY(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
-  if (dat->data.children.size() == 0) {
-    gtk_label_set_label(GTK_LABEL(label), dat->data.value.c_str());
+  if (dat->data->children.size() == 0) {
+    gtk_label_set_label(GTK_LABEL(label), dat->data->value.c_str());
+    g_object_bind_property(dat, "value", label, "label", G_BINDING_DEFAULT);
+    DEB("Binding " << row << " current value " << dat->data->value);
   }
 }
 

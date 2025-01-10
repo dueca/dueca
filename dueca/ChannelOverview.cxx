@@ -268,7 +268,7 @@ unsigned ChannelOverview::_processReadInfo(const ChannelReadInfo& data)
        (new ChannelInfoSet::EntryInfoSet::ReadInfoSet(readerid, data)));
   }
 
-  reflectChanges(chanid, entryid, readerid, data.creationid);
+  reflectChanges(chanid, entryid, data.creationid);
   return readerid;
 }
 
@@ -485,12 +485,17 @@ void ChannelOverview::reflectChanges(unsigned chanid, unsigned entryid)
 }
 
 void ChannelOverview::reflectChanges(unsigned chanid, unsigned entryid,
-                                     uint32_t readid, unsigned creationid)
+                                     unsigned creationid)
 {
-  DEB("updated channel " << chanid << " entry " << entryid);
+  DEB("updated channel " << chanid << " entry " << entryid << " reader " << creationid);
 }
 
 void ChannelOverview::reflectCounts()
+{
+  DEB("new count");
+}
+
+void ChannelOverview::reflectCounts(unsigned chanid)
 {
   DEB("new count");
 }
@@ -579,6 +584,7 @@ void ChannelOverview::_processCount(const ChannelCountResult& cnt,
       }
     }
   }
+  reflectCounts(chanid);
 }
 
 void ChannelOverview::refreshMonitor(unsigned channelno, unsigned entryno)

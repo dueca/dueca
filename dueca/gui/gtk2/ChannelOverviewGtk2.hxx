@@ -142,7 +142,7 @@ protected:
   /** update view */
   void reflectChanges(unsigned channelid, unsigned entryid) final;
   /** update view */
-  void reflectChanges(unsigned channelid, unsigned entryid, uint32_t readerid, unsigned creationid) final;
+  void reflectChanges(unsigned channelid, unsigned entryid, unsigned creationid) final;
   /** update counts */
   void reflectCounts() final;
   /** redraw view */

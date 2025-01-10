@@ -116,7 +116,7 @@ public: // class name and trim/parameter tables
   /** Sorting helper */
   static gint sort_on_number(GtkTreeModel *model, GtkTreeIter *a,
 			     GtkTreeIter *b, gpointer userdata);
-  
+
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
   ChannelOverviewGtk3(Entity* e, const char* part, const PrioritySpec& ts);
@@ -150,7 +150,7 @@ protected:
   /** update view */
   void reflectChanges(unsigned channelid, unsigned entryid) final;
   /** update view */
-  void reflectChanges(unsigned channelid, unsigned entryid, uint32_t readerid, unsigned creationid) final;
+  void reflectChanges(unsigned channelid, unsigned entryid, unsigned creationid) final;
   /** update counts */
   void reflectCounts();
   /** redraw view */
