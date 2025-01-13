@@ -11,6 +11,7 @@
         license         : EUPL-1.2
 */
 
+#include "ChannelDef.hxx"
 #include "GenericCallback.hxx"
 #include "UCallbackOrActivity.hxx"
 #include <cstddef>
@@ -45,7 +46,7 @@ ChannelReadToken::ChannelReadToken(
   // read token with optional entry match
   handle =
     channel->addReadToken(this, dataclassname, entrylabel,
-                          isSingleEntryOption(arity) ? 0xfffe : 0xffff,
+                          isSingleEntryOption(arity) ? entry_bylabel : entry_any,
                           rmode, when_valid, requested_span);
 }
 

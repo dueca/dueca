@@ -279,7 +279,7 @@ TargetedLog(const std::string& channelname, const std::string& dataclass,
   always_logging(always_logging),
   reduction(reduction ? new PeriodicTimeSpec(*reduction) : NULL),
   r_token(masterid, NameSet(channelname), dataclass, label,
-          Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
+          Channel::AnyTimeAspect, Channel::OnlyOneEntry,
           Channel::ReadAllData)
 {
   //
@@ -297,7 +297,7 @@ TargetedLog(const std::string& channelname, const std::string& dataclass,
   always_logging(always_logging),
   reduction(reduction ? new PeriodicTimeSpec(*reduction) : NULL),
   r_token(masterid, NameSet(channelname), dataclass, 0,
-          Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
+          Channel::AnyTimeAspect, Channel::OnlyOneEntry,
           Channel::ReadAllData)
 {
   //
