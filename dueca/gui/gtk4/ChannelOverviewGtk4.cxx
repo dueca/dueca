@@ -196,37 +196,31 @@ static void d_channel_info_get_property(GObject *object, guint property_id,
   }
 }
 
+static GParamSpec *object_properties[D_NPROPERTIES] = {
+  NULL,
+  g_param_spec_uint("rwcount", "Count", "Counter", 0, 0xffffffff, 0,
+                    G_PARAM_READWRITE),
+  g_param_spec_boolean("monitor", "Monitor", "state of monitor window", FALSE,
+                       G_PARAM_READWRITE)
+};
+
 void d_channel_info_set_count(DChannelInfo *obj, unsigned count)
 {
-  GValue cnt = G_VALUE_INIT;
-  g_value_init(&cnt, G_TYPE_UINT);
-  g_value_set_uint(&cnt, count);
-  g_object_set_property(G_OBJECT(obj), "rwcount", &cnt);
+  obj->count = count;
+  g_object_notify_by_pspec(G_OBJECT(obj), object_properties[D_CINFO_COUNT]);
 }
 
 void d_channel_info_set_monitor(DChannelInfo *obj, bool monitor)
 {
-  GValue mon = G_VALUE_INIT;
-  g_value_init(&mon, G_TYPE_BOOLEAN);
-  g_value_set_boolean(&mon, monitor);
-  g_object_set_property(G_OBJECT(obj), "monitor", &mon);
+  obj->monitor = monitor;
+  g_object_notify_by_pspec(G_OBJECT(obj), object_properties[D_MONITOR]);
 }
-
-static GParamSpec *object_properties[D_NPROPERTIES] = {
-  NULL,
-};
 
 static void d_channel_info_class_init(DChannelInfoClass *_klass)
 {
   auto klass = G_OBJECT_CLASS(_klass);
   klass->set_property = d_channel_info_set_property;
   klass->get_property = d_channel_info_get_property;
-
-  object_properties[D_CINFO_COUNT] = g_param_spec_uint(
-    "rwcount", "Count", "Counter", 0, 0xffffffff, 0, G_PARAM_READWRITE);
-  object_properties[D_MONITOR] = g_param_spec_boolean(
-    "monitor", "Monitor", "state of monitor window", FALSE, G_PARAM_READWRITE);
-
   g_object_class_install_properties(klass, G_N_ELEMENTS(object_properties),
                                     object_properties);
 }
@@ -472,8 +466,8 @@ DChannelInfo *ChannelOverviewGtk4::findEntry(unsigned ichan, unsigned ientry,
       return D_CHANNEL_INFO(
         g_list_model_get_item(G_LIST_MODEL(chn->sublist), idxe));
     }
-    return NULL;
   }
+  return NULL;
 }
 
 void ChannelOverviewGtk4::reflectChanges(unsigned ichan)

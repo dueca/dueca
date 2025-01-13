@@ -85,7 +85,7 @@ GtkTrimView::GtkTrimView() :
     W_TRM("GtkTrimView needs DuecaView!");
     return;
   }
-
+#if 0
   // make the view, realize it so further work can be done
   window.readGladeFile(DuecaPath::prepend("trimcalc_window.glade3").c_str(),
                        "trimcalc_window", reinterpret_cast<gpointer>(this),
@@ -101,7 +101,6 @@ GtkTrimView::GtkTrimView() :
   // get the trim mode selector, and feed it with possible modes
   //  GtkWidget* trim_mode = window["trim_mode"];
 
-#if 0
   GtkMenu* mode_menu = GTK_COMBO_BOX
     (gtk_option_menu_get_menu(GTK_OPTION_MENU(trim_mode)));
   for (IncoMode ii = NoIncoModes; ii < Ground; ii = IncoMode(int(ii)+1)) {
@@ -113,7 +112,6 @@ GtkTrimView::GtkTrimView() :
     g_object_set_data(G_OBJECT(menuitem), "user_data",
                       reinterpret_cast<gpointer>(ii));
   }
-#endif
   // request the DuecaView object to make an entry for my window,
   // opening it on activation
   menuitem = GtkDuecaView::single()->requestViewEntry("trim", "Trim Window",
@@ -122,6 +120,7 @@ GtkTrimView::GtkTrimView() :
   // some assertions about the stuff
   //  assert(GTK_CTREE(trim_tree) != NULL);
   assert(GTK_LABEL(trim_status) != NULL);
+#endif
 }
 
 GtkTrimView::~GtkTrimView()
@@ -360,6 +359,7 @@ IncoVariableWork &GtkTrimView::getIncoVariable(unsigned int calculator,
 
 void GtkTrimView::refreshView()
 {
+#if 0 
   GtkTreeIter iter;
   gboolean f = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(trim_tree), &iter);
   while (f) {
@@ -369,6 +369,7 @@ void GtkTrimView::refreshView()
   //  DEB1("Refreshing the view");
   // gtk_ctree_post_recursive(GTK_CTREE(trim_tree), NULL,
   //                       update_all, 0);
+#endif
 }
 
 void *GtkTrimView::insertEntityNode(const char *name, void *vparent,

@@ -21,12 +21,7 @@
 // https://developer.gnome.org/documentation/tutorials/actions.html
 
 #include "gio/gio.h"
-#include "glib-object.h"
-#include "glib.h"
-#include "gtk/gtk.h"
-#include "gtk/gtksingleselection.h"
-#include "gui/gtk4/GtkGladeWindow.hxx"
-#include <cstdint>
+#include <memory>
 #define GtkDuecaView_cc
 #include <dueca-conf.h>
 
@@ -62,6 +57,219 @@ extern "C" {
 void read_md2_file(GtkWidget *widget, gpointer user_data);
 }
 
+// anonymous namespace for stuff that does not leave this unit
+namespace {
+
+// data type to hold node status
+struct _DNodeStatus
+{
+  GObject parent;
+  unsigned nodeno;
+  // status is pulled from the node manager with nodeno
+};
+
+// define an enum for the properties
+enum DNodeStatusProperty { D_NSP_STATUS = 1, D_NSP_NPROPERTIES };
+
+G_DECLARE_FINAL_TYPE(DNodeStatus, d_node_status, D, NODE_STATUS, GObject);
+G_DEFINE_TYPE(DNodeStatus, d_node_status, G_TYPE_OBJECT);
+
+static void d_node_status_set_property(GObject *object, guint property_id,
+                                       const GValue *value, GParamSpec *pspec)
+{
+  DNodeStatus *self = D_NODE_STATUS(object);
+  switch ((DNodeStatusProperty)property_id) {
+  case D_NSP_STATUS:
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+static void d_node_status_get_property(GObject *object, guint property_id,
+                                       GValue *value, GParamSpec *pspec)
+{
+  DNodeStatus *self = D_NODE_STATUS(object);
+  switch ((DNodeStatusProperty)property_id) {
+  case D_NSP_STATUS:
+    g_value_set_string(
+      value,
+      getString(dueca::NodeManager::single()->getNodeState(self->nodeno)));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+DNodeStatus *d_node_status_new(unsigned node)
+{
+  auto res = D_NODE_STATUS(g_object_new(d_node_status_get_type(), NULL));
+  res->nodeno = node;
+  return res;
+}
+
+// for some reason, the 1st entry should be NULL!
+static GParamSpec *node_status_properties[D_NSP_NPROPERTIES] = {
+  NULL,
+
+  g_param_spec_string("status", "Status", "Node status description", "",
+                      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY |
+                                    G_PARAM_CONSTRUCT))
+};
+
+static void d_node_status_class_init(DNodeStatusClass *_klass)
+{
+  auto klass = G_OBJECT_CLASS(_klass);
+  klass->set_property = d_node_status_set_property;
+  klass->get_property = d_node_status_get_property;
+  g_object_class_install_properties(klass, G_N_ELEMENTS(node_status_properties),
+                                    node_status_properties);
+}
+static void d_node_status_init(DNodeStatus *self) {}
+
+// entity status
+struct CoreEntityStatus
+{
+  std::string name;
+  dueca::StatusT1 *status;
+  unsigned nodeno;
+  unsigned ident;
+  std::list<std::shared_ptr<CoreEntityStatus>> children;
+  CoreEntityStatus() :
+    name(""),
+    status(NULL),
+    nodeno(0U),
+    ident(0U)
+  {}
+  CoreEntityStatus(const char *name, dueca::StatusT1 *status, unsigned nodeno,
+                   unsigned ident) :
+    name(name),
+    status(status),
+    nodeno(nodeno),
+    ident(ident)
+  {}
+  CoreEntityStatus &operator=(const CoreEntityStatus &o)
+  {
+    this->name = o.name;
+    this->status = o.status;
+    this->nodeno = o.nodeno;
+    this->ident = o.ident;
+    children.clear();
+    for (const auto &x : o.children) {
+      children.push_back(x);
+    }
+    return *this;
+  }
+};
+
+struct _DEntityStatus
+{
+  GObject parent;
+  std::shared_ptr<CoreEntityStatus> s;
+  GListStore *children;
+};
+
+enum DEntityStatusProperties {
+  D_ES_MODULESTATUS = 1,
+  D_ES_SIMSTATUS,
+  D_ES_NPROPERTIES
+};
+
+G_DECLARE_FINAL_TYPE(DEntityStatus, d_entity_status, D, ENTITY_STATUS, GObject);
+G_DEFINE_TYPE(DEntityStatus, d_entity_status, G_TYPE_OBJECT);
+
+static void d_entity_status_set_property(GObject *object, guint property_id,
+                                         const GValue *value, GParamSpec *pspec)
+{
+  DEntityStatus *self = D_ENTITY_STATUS(object);
+  switch ((DEntityStatusProperties)property_id) {
+  case D_ES_MODULESTATUS:
+  case D_ES_SIMSTATUS:
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+static void d_entity_status_get_property(GObject *object, guint property_id,
+                                         GValue *value, GParamSpec *pspec)
+{
+  DEntityStatus *self = D_ENTITY_STATUS(object);
+  switch ((DEntityStatusProperties)property_id) {
+  case D_ES_MODULESTATUS:
+    g_value_set_string(value, self->s->status->getModuleState().getString());
+    break;
+  case D_ES_SIMSTATUS:
+    g_value_set_string(value,
+                       self->s->status->getSimulationState().getString());
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+    break;
+  }
+}
+
+// for some reason, the 1st entry should be NULL!
+static GParamSpec *entity_status_properties[D_ES_NPROPERTIES] = {
+  NULL,
+
+  g_param_spec_string("mstatus", "MStatus", "Module status description", "",
+                      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY |
+                                    G_PARAM_CONSTRUCT)),
+  g_param_spec_string("sstatus", "SStatus", "Simulation Status", "",
+                      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY |
+                                    G_PARAM_CONSTRUCT))
+};
+
+DEntityStatus *d_entity_status_new(const std::shared_ptr<CoreEntityStatus> &c)
+{
+  auto res = D_ENTITY_STATUS(g_object_new(d_entity_status_get_type(), NULL));
+  res->s = c;
+  return res;
+}
+
+static void d_entity_status_dispose(GObject *object)
+{
+  auto *self = D_ENTITY_STATUS(object);
+  self->s.reset();
+  if (self->children) {
+    g_object_unref(self->children);
+    self->children = NULL;
+  }
+  // chain up to parent
+  G_OBJECT_CLASS(d_entity_status_parent_class)->dispose(object);
+}
+
+static void d_entity_status_class_init(DEntityStatusClass *_klass)
+{
+  auto klass = G_OBJECT_CLASS(_klass);
+  klass->set_property = d_entity_status_set_property;
+  klass->get_property = d_entity_status_get_property;
+  klass->dispose = d_entity_status_dispose;
+  g_object_class_install_properties(
+    klass, G_N_ELEMENTS(entity_status_properties), entity_status_properties);
+}
+static void d_entity_status_init(DEntityStatus *self) {}
+
+static GListModel *expand_entity(gpointer _item, gpointer user_data)
+{
+  auto item = D_ENTITY_STATUS(_item);
+  if (item->s->children.size()) {
+    auto lm = g_list_store_new(d_entity_status_get_type());
+    for (auto const &c : item->s->children) {
+      auto child = d_entity_status_new(c);
+      g_list_store_append(lm, child);
+      g_object_unref(child);
+    }
+    item->children = lm;
+    return G_LIST_MODEL(lm);
+  }
+  return G_LIST_MODEL(NULL);
+}
+
 // forward declaration for a function that hides or shows windows
 // in the "View" menu of the dueca main control window.
 static void hide_or_show_view(GSimpleAction *action, GVariant *variant)
@@ -74,6 +282,8 @@ static void hide_or_show_view(GSimpleAction *action, GVariant *variant)
   gtk_widget_set_visible(window, g_variant_get_boolean(newstate));
   g_simple_action_set_state(action, newstate);
 }
+
+} // end anonymous namespace
 
 DUECA_NS_START
 
@@ -113,121 +323,24 @@ GtkDuecaView::GtkDuecaView(Entity *e, const char *part,
   singleton = this;
 }
 
-// data type to hold node status
-struct _DNodeStatus
-{
-  GObject parent;
-  unsigned nodeno;
-  // status is pulled from the node manager with nodeno
-};
-
-G_DECLARE_FINAL_TYPE(DNodeStatus, d_node_status, D, NODE_STATUS, GObject);
-G_DEFINE_TYPE(DNodeStatus, d_node_status, G_TYPE_OBJECT);
-DNodeStatus *d_node_status_new(unsigned node)
-{
-  auto res = D_NODE_STATUS(g_object_new(d_node_status_get_type(), NULL));
-  res->nodeno = node;
-  return res;
-}
-
-static void d_node_status_class_init(DNodeStatusClass *klass) {}
-static void d_node_status_init(DNodeStatus *self) {}
-
-struct CoreEntityStatus
-{
-  std::string name;
-  StatusT1 *status;
-  unsigned nodeno;
-  unsigned ident;
-  std::list<std::shared_ptr<CoreEntityStatus>> children;
-  CoreEntityStatus() :
-    name(""),
-    status(NULL),
-    nodeno(0U),
-    ident(0U)
-  {}
-  CoreEntityStatus(const char *name, StatusT1 *status, unsigned nodeno,
-                   unsigned ident) :
-    name(name),
-    status(status),
-    nodeno(nodeno),
-    ident(ident)
-  {}
-  CoreEntityStatus &operator=(const CoreEntityStatus &o)
-  {
-    this->name = o.name;
-    this->status = o.status;
-    this->nodeno = o.nodeno;
-    this->ident = o.ident;
-    children.clear();
-    for (const auto &x : o.children) {
-      children.push_back(x);
-    }
-    return *this;
-  }
-};
-
-struct _DEntityStatus
-{
-  GObject parent;
-  CoreEntityStatus s;
-};
-
-G_DECLARE_FINAL_TYPE(DEntityStatus, d_entity_status, D, ENTITY_STATUS, GObject);
-G_DEFINE_TYPE(DEntityStatus, d_entity_status, G_TYPE_OBJECT);
-DEntityStatus *d_entity_status_new(const CoreEntityStatus &c)
-{
-  auto res = D_ENTITY_STATUS(g_object_new(d_entity_status_get_type(), NULL));
-  // placement new; the object should have the memory for the CoreEntityStatus,
-  // but assignment is not possible with the include list new(&(res->s))
-  // CoreEntityStatus(c);
-  new (&(res->s)) CoreEntityStatus(c);
-  return res;
-}
-
-static void d_entity_status_class_init(DEntityStatusClass *klass) {}
-static void d_entity_status_init(DEntityStatus *self) {}
-
-static GListModel *expand_entity(gpointer _item, gpointer user_data)
-{
-  auto item = D_ENTITY_STATUS(_item);
-  if (item->s.children.size()) {
-    auto lm = g_list_store_new(d_entity_status_get_type());
-    for (auto const &c : item->s.children) {
-      auto child = d_entity_status_new(*c);
-      g_list_store_append(lm, child);
-      g_object_unref(child);
-    }
-    return G_LIST_MODEL(lm);
-  }
-  return G_LIST_MODEL(NULL);
-}
-
-// prepare for an action name and callback table
-typedef void (GtkDuecaView::*cbfun)(GSimpleAction *, GVariant *, gpointer);
-struct action_and_callback
-{
-  const char *aname;
-  cbfun fcn;
-};
-
 bool GtkDuecaView::complete()
 {
   // load the button widgets
   load_dueca_buttons();
 
-  // install actions for the menu
-  static action_and_callback actions[] = {
-    { "about", &GtkDuecaView::cbShowAbout },
-    { "openadditional", &GtkDuecaView::cbExtraModDialog },
-    { "quit", &GtkDuecaView::cbShowQuit }
+  // use a callback table to assemble the actions
+  static GladeCallbackTable actions[] = {
+    { "about", "activate", gtk_callback(&GtkDuecaView::cbShowAbout, this) },
+    { "openadditional", "activate",
+      gtk_callback(&GtkDuecaView::cbExtraModDialog, this) },
+    { "quit", "activate", gtk_callback(&GtkDuecaView::cbShowQuit, this) }
   };
 
+  // create, connect and install the actions
   for (const auto &a : actions) {
 
-    auto action = g_simple_action_new(a.aname, NULL);
-    auto cb = gtk_callback(a.fcn, this);
-    g_signal_connect(action, "activate", G_CALLBACK(cb->callback()), cb);
+    auto action = g_simple_action_new(a.widget, NULL);
+    g_signal_connect(action, a.signal, G_CALLBACK(a.func->callback()), a.func);
 
     // add the action to the application?
     g_action_map_add_action(G_ACTION_MAP(GtkHandler::application()),
@@ -283,18 +396,14 @@ bool GtkDuecaView::complete()
     entities_store = g_list_store_new(d_entity_status_get_type());
     auto emodel = gtk_tree_list_model_new(G_LIST_MODEL(entities_store), FALSE,
                                           FALSE, expand_entity, NULL, NULL);
-    auto eselection = gtk_single_selection_new(G_LIST_MODEL(emodel));
+    auto eselection = gtk_no_selection_new(G_LIST_MODEL(emodel));
     gtk_column_view_set_model(entities_list, GTK_SELECTION_MODEL(eselection));
 
     // set up nodes store
     nodes_list = GTK_COLUMN_VIEW(window["nodes_list"]);
     nodes_store = g_list_store_new(d_node_status_get_type());
-    auto nselection = gtk_single_selection_new(G_LIST_MODEL(nodes_store));
+    auto nselection = gtk_no_selection_new(G_LIST_MODEL(nodes_store));
     gtk_column_view_set_model(nodes_list, GTK_SELECTION_MODEL(nselection));
-    for (unsigned n = 0; n < unsigned(NodeManager::single()->getNoOfNodes());
-         n++) {
-      g_list_store_append(nodes_store, d_node_status_new(n));
-    }
 
     // rapid access to commonly used widgets
     hw_off = window["hw_off"];
@@ -825,33 +934,51 @@ void GtkDuecaView::refreshEntitiesView()
   // gtk_widget_queue_draw(GTK_WIDGET());
 }
 
+static DEntityStatus *
+findESInStore(GListModel *store,
+              const std::function<bool(DEntityStatus *)> &compareIt)
+{
+  auto n = g_list_model_get_n_items(store);
+  for (auto i = n; i--;) {
+    auto item = D_ENTITY_STATUS(g_list_model_get_item(store, i));
+    if (compareIt(item)) {
+      return item;
+    }
+    else if (item->children) {
+      auto sub = findESInStore(G_LIST_MODEL(item->children), compareIt);
+      if (sub)
+        return sub;
+    }
+  }
+  return NULL;
+}
+
 void *GtkDuecaView::insertEntityNode(const char *name, void *vparent,
                                      int dueca_node, StatusT1 *obj)
 {
+  // keep the counter!
   static unsigned ident = 0;
+
   if (!entities_store)
     return NULL;
 
   if (vparent) {
-    unsigned idx = 0;
-    auto item =
-      D_ENTITY_STATUS(g_list_model_get_item(G_LIST_MODEL(entities_store), idx));
-    if (reinterpret_cast<void *>(item->s.ident) == vparent) {
-      item->s.children.emplace_back(
+    auto parent =
+      findESInStore(G_LIST_MODEL(entities_store), [vparent](DEntityStatus *t) {
+        return reinterpret_cast<void *>(t->s->ident) == vparent;
+      });
+    if (parent) {
+      parent->s->children.emplace_back(
         new CoreEntityStatus(name, obj, dueca_node, ++ident));
     }
-    else if (!item->s.children.empty()) {
-      for (auto &c : item->s.children) {
-        if (reinterpret_cast<void *>(c->ident) == vparent) {
-          c->children.emplace_back(
-            new CoreEntityStatus(name, obj, dueca_node, ++ident));
-        }
-      }
+    else {
+      E_STS("Cannot find parent for status " << name);
     }
   }
   else {
-    g_list_store_append(entities_store, d_entity_status_new(CoreEntityStatus(
-                                          name, obj, dueca_node, ++ident)));
+    std::shared_ptr<CoreEntityStatus> ptr(
+      new CoreEntityStatus(name, obj, dueca_node, ++ident));
+    g_list_store_append(entities_store, d_entity_status_new(ptr));
   }
 
   return reinterpret_cast<void *>(ident);
@@ -861,6 +988,18 @@ void GtkDuecaView::refreshNodesView()
 {
   if (!nodes_store)
     return;
+
+  if (!g_list_model_get_n_items(G_LIST_MODEL(nodes_store))) {
+    for (unsigned n = 0; n < unsigned(NodeManager::single()->getNoOfNodes());
+         n++) {
+      g_list_store_append(nodes_store, d_node_status_new(n));
+    }
+  }
+
+  for (auto n = g_list_model_get_n_items(G_LIST_MODEL(nodes_store)); n--;) {
+    auto obj = g_list_model_get_item(G_LIST_MODEL(nodes_store), n);
+    g_object_notify_by_pspec(G_OBJECT(obj), node_status_properties[D_NSP_STATUS]);
+  }
   // gtk_widget_queue_draw(GTK_WIDGET(nodes_list));
 }
 
@@ -971,14 +1110,14 @@ void GtkDuecaView::bindModuleName(GtkSignalListItemFactory *fact,
   auto obj =
     D_ENTITY_STATUS(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
   auto label = gtk_tree_expander_get_child(GTK_TREE_EXPANDER(expander));
-  if (obj->s.children.size()) {
+  if (obj->s->children.size()) {
     gtk_tree_expander_set_list_row(GTK_TREE_EXPANDER(expander),
                                    GTK_TREE_LIST_ROW(row));
   }
   else {
     gtk_tree_expander_set_list_row(GTK_TREE_EXPANDER(expander), NULL);
   }
-  gtk_label_set_label(GTK_LABEL(label), obj->s.name.c_str());
+  gtk_label_set_label(GTK_LABEL(label), obj->s->name.c_str());
 }
 
 void GtkDuecaView::bindModuleStatus(GtkSignalListItemFactory *fact,
@@ -989,7 +1128,8 @@ void GtkDuecaView::bindModuleStatus(GtkSignalListItemFactory *fact,
   auto obj =
     D_ENTITY_STATUS(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
   gtk_label_set_label(GTK_LABEL(label),
-                      obj->s.status->getModuleState().getString());
+                      obj->s->status->getModuleState().getString());
+  g_object_bind_property(obj, "mstatus", label, "label", G_BINDING_DEFAULT);
 }
 
 void GtkDuecaView::bindSimulationStatus(GtkSignalListItemFactory *fact,
@@ -1000,7 +1140,8 @@ void GtkDuecaView::bindSimulationStatus(GtkSignalListItemFactory *fact,
   auto obj =
     D_ENTITY_STATUS(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
   gtk_label_set_label(GTK_LABEL(label),
-                      obj->s.status->getSimulationState().getString());
+                      obj->s->status->getSimulationState().getString());
+  g_object_bind_property(obj, "sstatus", label, "label", G_BINDING_DEFAULT);
 }
 
 void GtkDuecaView::bindModuleNode(GtkSignalListItemFactory *fact,
@@ -1011,7 +1152,7 @@ void GtkDuecaView::bindModuleNode(GtkSignalListItemFactory *fact,
   auto obj =
     D_ENTITY_STATUS(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
   gtk_label_set_label(GTK_LABEL(label),
-                      boost::str(boost::format("%d") % obj->s.nodeno).c_str());
+                      boost::str(boost::format("%d") % obj->s->nodeno).c_str());
 }
 
 void GtkDuecaView::bindNodeNumber(GtkSignalListItemFactory *fact,
@@ -1031,6 +1172,7 @@ void GtkDuecaView::bindNodeState(GtkSignalListItemFactory *fact,
   gtk_label_set_label(
     GTK_LABEL(label),
     getString(NodeManager::single()->getNodeState(obj->nodeno)));
+  g_object_bind_property(obj, "status", label, "label", G_BINDING_DEFAULT);
 }
 
 void GtkDuecaView::requestToKeepRunning(bool keep_running)

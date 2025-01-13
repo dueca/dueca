@@ -48,7 +48,6 @@ public:
   /** Obtain the single possible instance of this class. */
   static DuecaView* single();
 
-public:
   /** return a pointer to the list of entity entries. \todo Can this
       go out? */
   virtual void* getEntitiesList() { return NULL; }

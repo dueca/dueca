@@ -7,7 +7,7 @@
 
 pkg_check_modules(GTK4 REQUIRED gtk4)
 
-set(SOURCES GtkTrimView.cxx GtkTrimView.hxx
+set(SOURCES 
   DusimeControllerGtk.cxx DusimeControllerGtk.hxx
   ReplayMasterGtk4.cxx ReplayMasterGtk4.hxx
   SnapshotInventoryGtk4.cxx SnapshotInventoryGtk4.hxx)

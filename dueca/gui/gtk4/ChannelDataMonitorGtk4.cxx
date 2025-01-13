@@ -23,19 +23,24 @@
 
 namespace {
 
-// Gobject type system
+/** Single data entry in the channel (data member, nested member or array) */
 struct _DDataEntry
 {
+  // parent, for the type system
   GObject parent;
+
+  // optionally, expanded sub-parts (from object or array)
   GListStore *children;
+
+  // level, for indentation
+  guint level;
+
+  // link to the data model
   const ChannelDataViewPair *data;
 };
 
-enum DataEntryProperty { D_VALUE = 1, D_CHILDREN, D_NDATAEPROP };
-
-} // anonymous namespace
-
-DUECA_NS_START
+// Properties of the entry class
+enum DataEntryProperty { D_VALUE = 1, D_NDATAEPROP };
 
 // create a type for the DCO data pieces
 G_DECLARE_FINAL_TYPE(DDataEntry, d_data_entry, D, DATA_ENTRY, GObject);
@@ -51,10 +56,6 @@ static void d_data_entry_set_property(GObject *object, guint property_id,
   case D_VALUE:
     assert(strlen(g_value_get_string(value)) == 0);
     // self->data->value.insert(0, g_value_get_string(value));
-    break;
-
-  case D_CHILDREN:
-    self->children = G_LIST_STORE(g_value_get_object(value));
     break;
 
   default:
@@ -74,10 +75,6 @@ static void d_data_entry_get_property(GObject *object, guint property_id,
     g_value_set_string(value, self->data->value.c_str());
     break;
 
-  case D_CHILDREN:
-    g_value_set_object(value, self->children);
-    break;
-
   default:
       /* We don't have any other property... */
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -87,6 +84,10 @@ static void d_data_entry_get_property(GObject *object, guint property_id,
 
 static GParamSpec *object_properties[D_NDATAEPROP] = {
   NULL,
+  g_param_spec_string("value", "Value", "String value", "",
+                      (GParamFlags)(G_PARAM_READWRITE |
+                                    G_PARAM_EXPLICIT_NOTIFY |
+                                    G_PARAM_CONSTRUCT))
 };
 
 static void d_data_entry_class_init(DDataEntryClass *_klass)
@@ -94,15 +95,6 @@ static void d_data_entry_class_init(DDataEntryClass *_klass)
   auto klass = G_OBJECT_CLASS(_klass);
   klass->set_property = d_data_entry_set_property;
   klass->get_property = d_data_entry_get_property;
-
-  object_properties[D_VALUE] = g_param_spec_string(
-    "value", "Value", "String value", "",
-    (GParamFlags)(G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY |
-                  G_PARAM_CONSTRUCT));
-  object_properties[D_CHILDREN] = g_param_spec_object(
-    "children", "Children", "List of properties", gtk_list_store_get_type(),
-    (GParamFlags)(G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY |
-                  G_PARAM_CONSTRUCT));
   g_object_class_install_properties(klass, G_N_ELEMENTS(object_properties),
                                     object_properties);
 }
@@ -112,10 +104,12 @@ static void d_data_entry_init(DDataEntry *self)
   //
 }
 
-static DDataEntry *d_data_entry_new(const ChannelDataViewPair *p)
+static DDataEntry *d_data_entry_new(const ChannelDataViewPair *p,
+                                    guint level = 0)
 {
   auto res = D_DATA_ENTRY(g_object_new(d_data_entry_get_type(), NULL));
   res->data = p;
+  res->level = level;
   return res;
 }
 
@@ -127,7 +121,7 @@ static GListModel *add_data_element(gpointer _item, gpointer user_data)
   if (item->data->children.size()) {
     auto lm = g_list_store_new(d_data_entry_get_type());
     for (auto &c : item->data->children) {
-      auto child = d_data_entry_new(&c);
+      auto child = d_data_entry_new(&c, item->level + 1U);
       g_list_store_append(lm, gpointer(child));
       g_object_unref(child);
     }
@@ -135,6 +129,10 @@ static GListModel *add_data_element(gpointer _item, gpointer user_data)
   }
   return G_LIST_MODEL(NULL);
 }
+
+} // anonymous namespace
+
+DUECA_NS_START
 
 ChannelDataMonitorGtk4::ChannelDataMonitorGtk4(ChannelOverviewGtk4 *master,
                                                unsigned channelno,
@@ -265,28 +263,39 @@ void ChannelDataMonitorGtk4::insertJsonArray(dvplist_t &dl, dvplist_it li,
 
   for (JValue::ConstValueIterator it = doc.Begin(); it != doc.End(); ++it) {
     std::stringstream name;
-    name << std::setw(3) << idx++;
+    name << std::setw(3) << idx++;        // with increment of index
+
     if (li == dl.end()) {
+
+      // extend the data list if needed
       dl.emplace_back(name.str());
       li = std::prev(dl.end());
     }
     else {
+
+      // overwrite current label to be sure
       li->label = name.str();
     }
 
     if (it->IsObject()) {
+
+      // recursively insert object
       li->value = "";
       insertJson(li->children, li->children.begin(), *it);
     }
     else if (it->IsArray()) {
+
+      // recursively insert array
       li->value = "[]";
       insertJsonArray(li->children, li->children.begin(), *it);
     }
     else {
 
+      // insert the array member value
       insertJsonValue(li->value, *it);
     }
 
+    // next array element
     li++;
   }
 
@@ -338,17 +347,25 @@ void ChannelDataMonitorGtk4::insertJson(dvplist_t &dl, dvplist_it li,
   }
 }
 
+// copy over the extracted list to a store
 static void refreshTree(const dvplist_t &dl, GListStore *store);
 
 static void alignData(const ChannelDataViewPair &it, DDataEntry *dl)
 {
   if (it.children.size() && dl->children) {
+
+    // this branch already opened, recursively update the data in the
+    // g_list_store.
     refreshTree(it.children, G_LIST_STORE(dl->children));
   }
   else if (it.children.size() && dl->children == NULL) {
-    dl->children = g_list_store_new(d_data_entry_get_type());
+
+    // branch not opened, keep it that way
+    // dl->children = g_list_store_new(d_data_entry_get_type());
   }
   else if (it.children.size() == 0 && dl->children) {
+
+    // children gone now? can that be?
     g_object_unref(dl->children);
     dl->children = NULL;
   }
@@ -439,7 +456,7 @@ void ChannelDataMonitorGtk4::cbSetupValue(GtkSignalListItemFactory *fact,
   gtk_list_item_set_child(item, label);
 }
 
-  /** Bind name data */
+/** Bind name data */
 void ChannelDataMonitorGtk4::cbBindName(GtkSignalListItemFactory *fact,
                                         GtkListItem *item, gpointer user_data)
 {
@@ -447,11 +464,12 @@ void ChannelDataMonitorGtk4::cbBindName(GtkSignalListItemFactory *fact,
   auto row = gtk_list_item_get_item(item);
   auto dat = D_DATA_ENTRY(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
   auto label = gtk_tree_expander_get_child(GTK_TREE_EXPANDER(expander));
-  if (dat->children) {
+  if (dat->data->children.size()) {
     gtk_tree_expander_set_list_row(GTK_TREE_EXPANDER(expander),
                                    GTK_TREE_LIST_ROW(row));
   }
   gtk_label_set_label(GTK_LABEL(label), dat->data->label.c_str());
+  gtk_widget_set_margin_start(GTK_WIDGET(expander), dat->level * 8);
 }
 
 void ChannelDataMonitorGtk4::cbBindValue(GtkSignalListItemFactory *fact,

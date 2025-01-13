@@ -4,6 +4,7 @@
   <!-- interface-name channel_overview_gtk4.ui -->
   <requires lib="gtk" version="4.10" />
   <object class="GtkWindow" id="channel_view">
+    <property name="title">Channel Overview</property>
     <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>

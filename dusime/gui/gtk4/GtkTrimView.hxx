@@ -31,6 +31,7 @@ DUECA_NS_START
 class IncoCalculator;
 struct IncoVariable;
 
+// @note currently U/S
 
 /** Presentation of trim controls and results on an interface
     window. */
