@@ -68,6 +68,9 @@ public:
   /** Something has changed in the state of nodes, do a refresh. */
   virtual void refreshNodesView();
 
+  /** Change in the state of a single node */
+  virtual void syncNode(void* nid);
+
   /** update buttons entity control */
   virtual void updateEntityButtons(const ModuleState& confirmed_state,
                                    const ModuleState& command_state,

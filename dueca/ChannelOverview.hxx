@@ -320,6 +320,9 @@ public: // the member functions that are called for activities
   /** incoming channel monitor data */
   void processMonitorData(const TimeSpec &ts);
 
+  /** const access to internal info */
+  inline const infolist_t &getInfoList() { return infolist; }
+
 protected:
   /** update model */
   virtual void reflectChanges(unsigned channelid);

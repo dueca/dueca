@@ -13,6 +13,7 @@
 
 #include "gtk/gtk.h"
 #include "gtk/gtkdropdown.h"
+#include <boost/smart_ptr/intrusive_ptr.hpp>
 #define ReplayMasterGtk4_cxx
 #include "ReplayMasterGtk4.hxx"
 
@@ -110,21 +111,33 @@ std::string formatTime(const boost::posix_time::ptime &now,
 struct _DReplayRun
 {
   GObject parent;
-  ReplayMaster::ReplayInfo rr;
+  boost::intrusive_ptr<const ReplayMaster::ReplayInfo> rr;
 };
 
 G_DECLARE_FINAL_TYPE(DReplayRun, d_replay_run, D, REPLAY_RUN, GObject);
 G_DEFINE_TYPE(DReplayRun, d_replay_run, G_TYPE_OBJECT);
 
-static void d_replay_run_class_init(DReplayRunClass *klass) {}
+static void d_replay_run_dispose(GObject *object)
+{
+  auto rr = D_REPLAY_RUN(object);
+  rr->rr.reset();
+}
+
+static void d_replay_run_class_init(DReplayRunClass *_klass)
+{
+  auto klass = G_OBJECT_CLASS(_klass);
+  klass->dispose = d_replay_run_dispose;
+}
+
 static void d_replay_run_init(DReplayRun *self) {}
 
-static DReplayRun *d_replay_run_new(const ReplayMaster::ReplayInfo &rr)
+static DReplayRun *d_replay_run_new(boost::intrusive_ptr<const ReplayMaster::ReplayInfo> &rr)
 {
   auto res = D_REPLAY_RUN(g_object_new(d_replay_run_get_type(), NULL));
   res->rr = rr;
   return res;
 }
+
 
 bool ReplayMasterGtk4::complete()
 {
@@ -308,7 +321,8 @@ bool ReplayMasterGtk4::complete()
 
   // callback that adds new replays
   auto fcn = [this](const ReplayMaster::ReplayInfo &rep) {
-    auto item = d_replay_run_new(rep);
+    boost::intrusive_ptr<const ReplayMaster::ReplayInfo> ref(&rep);
+    auto item = d_replay_run_new(ref);
     g_list_store_append(this->replay_store, item);
   };
 
@@ -389,18 +403,18 @@ void ReplayMasterGtk4::cbSelectReplay(GtkSelectionModel *sel, guint position,
     auto it =
       D_REPLAY_RUN(g_list_model_get_item(G_LIST_MODEL(replay_store), position));
     gtk_editable_set_text(GTK_EDITABLE(window["replay_inco_selected"]),
-                          it->rr.inco_name.c_str());
+                          it->rr->inco_name.c_str());
     gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendinitial"]), TRUE);
 
-    if (it->rr.label.size()) {
+    if (it->rr->label.size()) {
       gtk_editable_set_text(GTK_EDITABLE(window["replay_recording_selected"]),
-                            it->rr.label.c_str());
+                            it->rr->label.c_str());
       gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendrecording"]),
                                FALSE);
     }
-    replays->changeSelection(it->rr.cycle);
+    replays->changeSelection(it->rr->cycle);
     DEB("cbSelectReplay, changing to replay "
-        << it->rr.cycle << "/" << it->rr.label << " inco " << it->rr.inco_name);
+        << it->rr->cycle << "/" << it->rr->label << " inco " << it->rr->inco_name);
   }
   else {
     gtk_editable_set_text(GTK_EDITABLE(window["replay_inco_selected"]), "");
@@ -471,7 +485,7 @@ void ReplayMasterGtk4::cbBindReplayName(GtkSignalListItemFactory *fact,
 {
   auto label = GTK_LABEL(gtk_list_item_get_child(item));
   auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
-  gtk_label_set_text(label, entry->rr.label.c_str());
+  gtk_label_set_text(label, entry->rr->label.c_str());
 }
 
 void ReplayMasterGtk4::cbBindReplayDate(GtkSignalListItemFactory *fact,
@@ -479,7 +493,7 @@ void ReplayMasterGtk4::cbBindReplayDate(GtkSignalListItemFactory *fact,
 {
   auto label = GTK_LABEL(gtk_list_item_get_child(item));
   auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
-  gtk_label_set_text(label, entry->rr.getTimeLocal().c_str());
+  gtk_label_set_text(label, entry->rr->getTimeLocal().c_str());
 }
 
 void ReplayMasterGtk4::cbBindReplayDuration(GtkSignalListItemFactory *fact,
@@ -490,7 +504,7 @@ void ReplayMasterGtk4::cbBindReplayDuration(GtkSignalListItemFactory *fact,
   auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
   gtk_label_set_text(
     label,
-    boost::str(boost::format("%4d s") % entry->rr.getSpanInSeconds()).c_str());
+    boost::str(boost::format("%4d s") % entry->rr->getSpanInSeconds()).c_str());
 }
 
 void ReplayMasterGtk4::cbBindReplayInitial(GtkSignalListItemFactory *fact,
@@ -499,7 +513,7 @@ void ReplayMasterGtk4::cbBindReplayInitial(GtkSignalListItemFactory *fact,
 {
   auto label = GTK_LABEL(gtk_list_item_get_child(item));
   auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
-  gtk_label_set_text(label, entry->rr.label.c_str());
+  gtk_label_set_text(label, entry->rr->label.c_str());
 }
 
 bool ReplayMasterGtk4::setPositionAndSize(const std::vector<int> &p)

@@ -368,7 +368,7 @@
             <child>
               <object class="GtkColumnView" id="nodes_list">
                 <child>
-                  <object class="GtkColumnViewColumn" id="nodes_number_col">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">#</property>
                     <property name="factory">
                       <object class="GtkSignalListItemFactory" id="nodes_number_fact" />
@@ -376,7 +376,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkColumnViewColumn" id="nodes_state_col">
+                  <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">status</property>
                     <property name="factory">
                       <object class="GtkSignalListItemFactory" id="nodes_state_fact" />

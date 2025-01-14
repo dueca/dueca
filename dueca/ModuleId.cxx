@@ -55,9 +55,19 @@ ModuleId& ModuleId::create(const NameSet& ns, const GlobalId& id)
 {
   vector<vstring> nameparts;
   nameparts.push_back(ns.getEntity());
+  #if OLD_INDEXING
   if (ns.getPart() != std::string("")) nameparts.push_back(ns.getPart());
   if (ns.getClass() != std::string("")) nameparts.push_back(ns.getClass());
-
+#else
+  if (ns.getClass().size()) {
+    if (ns.getPart().size()) {
+      nameparts.push_back(ns.getClass() + ':' + ns.getPart());
+    }
+    else {
+      nameparts.push_back(ns.getClass());
+    }
+  }
+#endif
   return create(nameparts, id);
 }
 

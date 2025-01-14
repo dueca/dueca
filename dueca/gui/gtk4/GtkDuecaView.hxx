@@ -14,6 +14,7 @@
 #ifndef GtkDuecaView_hh
 #define GtkDuecaView_hh
 
+#include <memory>
 #ifdef GtkDuecaView_cc
 #endif
 
@@ -30,6 +31,32 @@
 
 DUECA_NS_START
 struct ParameterTable;
+
+// entity status, DUECA side
+struct CoreEntityStatus
+{
+  // name of the entity/module
+  std::string name;
+
+  // status summary
+  dueca::StatusT1 *status;
+
+  // node number
+  unsigned nodeno;
+
+  // unique identification counter
+  unsigned ident;
+
+  // optionally, children
+  std::list<std::shared_ptr<CoreEntityStatus>> children;
+
+  // link to the status
+  GObject *gstatus;
+
+  // complete constructor
+  CoreEntityStatus(const char *name, dueca::StatusT1 *status, unsigned nodeno,
+                   unsigned ident);
+};
 
 /** Handles -- at least part of -- the communication with the
     experiment leader via the user interface. */
@@ -62,6 +89,9 @@ class GtkDuecaView : public Module, public DuecaView
 
   /** Variant of the interface. */
   bool simple_io;
+
+  /** map to quickly find status objects */
+  std::map<unsigned,std::shared_ptr<CoreEntityStatus>> status_map;
 
   /** Widgets for entity level control. */
   GtkWidget *hw_off, *hw_safe, *hw_on, *emergency;
@@ -115,7 +145,7 @@ public:
 
   /** Is called after the constructor and after insertion of parameter
       values; completes construction. */
-  bool complete();
+  bool complete() final;
 
   /** Destructor. */
   ~GtkDuecaView();
@@ -125,13 +155,13 @@ public:
 
   /** Start the GtkDuecaView module. Is not really used, GtkDuecaView is
       intrinsically started. */
-  void startModule(const TimeSpec &time);
+  void startModule(const TimeSpec &time) final;
 
   /** Stop the GtkDuecaView module. As for startModule, not really used. */
-  void stopModule(const TimeSpec &time);
+  void stopModule(const TimeSpec &time) final;
 
   /** Will always be prepared. */
-  bool isPrepared();
+  bool isPrepared() final;
 
   /** Update interface. */
   void updateInterface(const TimeSpec &time);
@@ -241,13 +271,16 @@ public:
   void bindNodeState(GtkSignalListItemFactory *fact, GtkListItem *item,
                      gpointer user_data);
 
+  /** Callback when nodes list visible */
+  void cbNodesListVisible(GtkWidget *cv, gpointer user_data);
+
   /** Auxiliary, clean styles from buttons */
   void clean_style(GtkWidget *w);
 
   /** update buttons entity control */
   void updateEntityButtons(const ModuleState &confirmed_state,
                            const ModuleState &command_state,
-                           bool emergency_flag);
+                           bool emergency_flag) final;
 
   /** Insert a new entity node.
       \param  name      name for the node
@@ -256,16 +289,21 @@ public:
       \param  obj       pointer to the object on the Dueca side.
       \returns          A pointer to the node on the toolkit side. */
   virtual void *insertEntityNode(const char *name, void *parent, int dueca_node,
-                                 StatusT1 *obj);
+                                 StatusT1 *obj) override;
+
+
 
   /** Refresh the entity list view. */
-  void refreshEntitiesView();
+  void refreshEntitiesView() override;
 
   /** Refresh the nodes list view. */
-  void refreshNodesView();
+  void refreshNodesView() override;
 
   /** Control the switch-off buttons */
-  void requestToKeepRunning(bool keep_running);
+  void requestToKeepRunning(bool keep_running) override;
+
+  /** Reflect the change in a single node */
+  void syncNode(void *nid) override;
 };
 
 DUECA_NS_END

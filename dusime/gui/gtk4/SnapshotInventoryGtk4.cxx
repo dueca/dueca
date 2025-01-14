@@ -16,11 +16,7 @@
         license         : EUPL-1.2
 */
 
-#include "SnapshotInventory.hxx"
-#include "gio/gio.h"
-#include "gtk/gtk.h"
-#include <boost/smart_ptr/shared_ptr.hpp>
-#include <memory>
+#include "glib-object.h"
 #define SnapshotInventoryGtk4_cxx
 
 // include the definition of the module class
@@ -43,6 +39,74 @@
 #define DO_INSTANTIATE
 #define NO_TYPE_CREATION
 #include <dueca/dueca.h>
+
+namespace {
+
+// define the datatype to be held in the store, top level
+struct _DSnapShotSet
+{
+  GObject parent;
+  dueca::SnapshotInventory::snapmap_t::const_iterator data;
+  GListStore *children;
+};
+
+G_DECLARE_FINAL_TYPE(DSnapShotSet, d_snap_shot_set, D, SNAP_SHOT_SET, GObject);
+G_DEFINE_TYPE(DSnapShotSet, d_snap_shot_set, G_TYPE_OBJECT);
+
+// level below, individual snapshots
+struct _DSnapShot
+{
+  GObject parent;
+  std::list<dueca::Snapshot>::const_iterator data;
+};
+
+G_DECLARE_FINAL_TYPE(DSnapShot, d_snap_shot, D, SNAP_SHOT, GObject);
+G_DEFINE_TYPE(DSnapShot, d_snap_shot, G_TYPE_OBJECT);
+
+static void d_snap_shot_class_init(DSnapShotClass *klass) {}
+static void d_snap_shot_init(DSnapShot *self) {}
+
+static void d_snap_shot_set_class_init(DSnapShotSetClass *klass) {}
+static void d_snap_shot_set_init(DSnapShotSet *self) {}
+
+static DSnapShotSet *d_snap_shot_set_new(
+  const dueca::SnapshotInventory::snapmap_t::const_iterator &data)
+{
+  auto res = D_SNAP_SHOT_SET(g_object_new(d_snap_shot_set_get_type(), NULL));
+  res->data = data;
+  return res;
+}
+
+static DSnapShot *d_snap_shot_new(const std::list<Snapshot>::const_iterator &ii)
+{
+  auto res = D_SNAP_SHOT(g_object_new(d_snap_shot_get_type(), NULL));
+  res->data = ii;
+  return res;
+}
+
+static void d_snap_shop_set_unref_children(gpointer _item, GObject *oldlist)
+{
+  auto item = D_SNAP_SHOT_SET(_item);
+  item->children = NULL;
+}
+
+static GListModel *add_data_element(gpointer _item, gpointer user_data)
+{
+  auto item = D_SNAP_SHOT_SET(_item);
+  assert(item->children == NULL);
+  auto lm = g_list_store_new(d_snap_shot_get_type());
+  for (auto c = item->data->second.snaps.begin();
+       c != item->data->second.snaps.end(); c++) {
+    auto child = d_snap_shot_new(c);
+    g_list_store_append(lm, gpointer(child));
+    g_object_unref(child);
+  }
+  g_object_weak_ref(G_OBJECT(lm), d_snap_shop_set_unref_children, item);
+  item->children = lm;
+  return G_LIST_MODEL(lm);
+}
+
+} // end anonymous namespace
 
 DUECA_NS_START;
 
@@ -114,65 +178,6 @@ static std::string formatTime(const boost::posix_time::ptime &now,
   wss.imbue(loc);
   wss << now;
   return wss.str();
-}
-
-// define the datatype to be held in the store
-struct _DSnapShotSet
-{
-  GObject parent;
-  std::string name;
-  std::string date_time;
-  struct SnapShotData
-  {
-    std::string origin;
-    std::string coding;
-    std::string sample;
-    SnapShotData(const std::string &o, const std::string &c,
-                 const std::string &s) :
-      origin(o),
-      coding(c),
-      sample(s)
-    {}
-  };
-  std::list<std::shared_ptr<SnapShotData>> snaps;
-  std::shared_ptr<SnapShotData> snap;
-};
-
-G_DECLARE_FINAL_TYPE(DSnapShotSet, d_snap_shot_set, D, SNAP_SHOT_SET, GObject);
-G_DEFINE_TYPE(DSnapShotSet, d_snap_shot_set, G_TYPE_OBJECT);
-
-static void d_snap_shot_set_class_init(DSnapShotSetClass *klass) {}
-static void d_snap_shot_set_init(DSnapShotSet *self) {}
-
-static DSnapShotSet *
-d_snap_shot_set_new(const std::string name,
-                    const SnapshotInventory::SnapshotData *set,
-                    std::shared_ptr<DSnapShotSet::SnapShotData> snap)
-{
-  auto res = D_SNAP_SHOT_SET(g_object_new(d_snap_shot_set_get_type(), NULL));
-  res->name = name;
-  if (snap) {
-    res->snap = snap;
-  }
-  else {
-    res->date_time = set->getTimeLocal();
-  }
-  return res;
-}
-
-static GListModel *add_data_element(gpointer _item, gpointer user_data)
-{
-  auto item = D_SNAP_SHOT_SET(_item);
-  if (item->snaps.size()) {
-    auto lm = g_list_store_new(d_snap_shot_set_get_type());
-    for (auto &c : item->snaps) {
-      auto child = d_snap_shot_set_new("", NULL, c);
-      g_list_store_append(lm, gpointer(child));
-      g_object_unref(child);
-    }
-    return G_LIST_MODEL(lm);
-  }
-  return G_LIST_MODEL(NULL);
 }
 
 bool SnapshotInventoryGtk4::complete()
@@ -254,21 +259,19 @@ bool SnapshotInventoryGtk4::complete()
   // leafs for the different snapshots
 
   // load the tree with the currently present data
-  for (const auto &snapset : inventory->getSnapshotData()) {
+  for (auto isn = inventory->getSnapshotData().begin();
+       isn != inventory->getSnapshotData().end(); isn++) {
 
-    auto nset = d_snap_shot_set_new(snapset.first, &snapset.second, NULL);
+    auto nset = d_snap_shot_set_new(isn);
     g_list_store_append(snaps_store, nset);
-    for (const auto &snap : snapset.second.snaps) {
-      nset->snaps.emplace_back(new DSnapShotSet::SnapShotData(
-        snap.originator.name, getString(snap.coding), snap.getSample(30)));
-    }
   }
 
   // create a callback for getting any new incoming snapshot sets
   inventory->informOnNewSet(
     [this](const std::string &name,
            const SnapshotInventory::SnapshotData &snapset) {
-      auto nset = d_snap_shot_set_new(name, &snapset, NULL);
+      auto newset = inventory->getSnapshotData().find(name);
+      auto nset = d_snap_shot_set_new(newset);
       g_list_store_append(snaps_store, nset);
     });
 
@@ -276,8 +279,10 @@ bool SnapshotInventoryGtk4::complete()
     auto n = g_list_model_get_n_items(G_LIST_MODEL(snaps_store));
     auto lset =
       D_SNAP_SHOT_SET(g_list_model_get_item(G_LIST_MODEL(snaps_store), n - 1));
-    lset->snaps.emplace_back(new DSnapShotSet::SnapShotData(
-      snap.originator.name, getString(snap.coding), snap.getSample(30)));
+    if (lset->children) {
+      auto lastsnap = std::prev(lset->data->second.snaps.end());
+      g_list_store_append(lset->children, d_snap_shot_new(lastsnap));
+    }
   });
 
   // set a title
@@ -325,7 +330,7 @@ void SnapshotInventoryGtk4::stopModule(const TimeSpec &time)
 void SnapshotInventoryGtk4::cbClose(GtkWidget *button, gpointer gp)
 {
   GtkDuecaView::toggleView(menuaction);
-  //g_signal_emit_by_name(G_OBJECT(menuaction), "activate", NULL);
+  // g_signal_emit_by_name(G_OBJECT(menuaction), "activate", NULL);
 }
 
 void SnapshotInventoryGtk4::cbSetName(GtkWidget *text, gpointer gp)
@@ -350,14 +355,18 @@ void SnapshotInventoryGtk4::cbSelection(GtkSelectionModel *sel, guint position,
                                         guint n_items, gpointer gp)
 {
   if (gtk_selection_model_is_selected(sel, position)) {
+
     auto it = D_SNAP_SHOT_SET(
       g_list_model_get_item(G_LIST_MODEL(snaps_store), position));
+    assert(inventory->changeSelection(it->data->first.c_str()));
+
     gtk_label_set_text(GTK_LABEL(window["initials_selected"]),
-                       it->name.c_str());
+                       it->data->first.c_str());
     gtk_widget_set_sensitive(GTK_WIDGET(window["initials_send"]), TRUE);
     gtk_label_set_text(GTK_LABEL(window["initials_status"]), "selected");
   }
   else {
+
     gtk_label_set_text(GTK_LABEL(window["initials_selected"]),
                        "<< none selected >>");
     gtk_widget_set_sensitive(GTK_WIDGET(window["initials_send"]), FALSE);
@@ -368,7 +377,7 @@ void SnapshotInventoryGtk4::cbSelection(GtkSelectionModel *sel, guint position,
 gboolean SnapshotInventoryGtk4::cbDelete(GtkWidget *window, gpointer user_data)
 {
   // fixes the menu check, and closes the window
-  //g_signal_emit_by_name(G_OBJECT(menuaction), "activate", NULL);
+  // g_signal_emit_by_name(G_OBJECT(menuaction), "activate", NULL);
   GtkDuecaView::toggleView(menuaction);
   // indicate that the event is handled
   return TRUE;
@@ -382,8 +391,8 @@ bool SnapshotInventoryGtk4::setPositionAndSize(const std::vector<int> &p)
   else {
     /* DUECA UI.
 
-       Window setting needs 2 (for size) or 4 (also location)
-       arguments. */
+         Window setting needs 2 (for size) or 4 (also location)
+         arguments. */
     E_CNF(getId() << '/' << classname << " need 2 or 4 arguments");
     return false;
   }
@@ -410,38 +419,40 @@ void SnapshotInventoryGtk4::cbSetupExpander(GtkSignalListItemFactory *fact,
 void SnapshotInventoryGtk4::cbBindName(GtkSignalListItemFactory *fact,
                                        GtkListItem *item, gpointer user_data)
 {
-  auto expander = gtk_list_item_get_child(item);
+  auto expander = GTK_TREE_EXPANDER(gtk_list_item_get_child(item));
   auto row = gtk_list_item_get_item(item);
-  auto snap =
-    D_SNAP_SHOT_SET(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
-  auto label = gtk_tree_expander_get_child(GTK_TREE_EXPANDER(expander));
-  if (snap->snaps.size()) {
-    gtk_tree_expander_set_list_row(GTK_TREE_EXPANDER(expander),
-                                   GTK_TREE_LIST_ROW(row));
+  auto _snap = gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row));
+  if (D_IS_SNAP_SHOT_SET(_snap)) {
+    auto snap = D_SNAP_SHOT_SET(_snap);
+    auto label = gtk_tree_expander_get_child(expander);
+    gtk_tree_expander_set_list_row(expander, GTK_TREE_LIST_ROW(row));
+    gtk_label_set_label(GTK_LABEL(label), snap->data->first.c_str());
   }
-  gtk_label_set_label(GTK_LABEL(label), snap->name.c_str());
 }
 
 void SnapshotInventoryGtk4::cbBindDateTime(GtkSignalListItemFactory *fact,
                                            GtkListItem *item,
                                            gpointer user_data)
 {
-  auto label = gtk_list_item_get_child(item);
   auto row = gtk_list_item_get_item(item);
-  auto snap =
-    D_SNAP_SHOT_SET(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
-  gtk_label_set_label(GTK_LABEL(label), snap->date_time.c_str());
+  auto _snap = gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row));
+  if (D_IS_SNAP_SHOT_SET(_snap)) {
+    auto snap = D_SNAP_SHOT_SET(_snap);
+    auto label = gtk_list_item_get_child(item);
+    gtk_label_set_label(GTK_LABEL(label),
+                        snap->data->second.getTimeLocal().c_str());
+  }
 }
 
 void SnapshotInventoryGtk4::cbBindOrigin(GtkSignalListItemFactory *fact,
                                          GtkListItem *item, gpointer user_data)
 {
   auto row = gtk_list_item_get_item(item);
-  auto snap =
-    D_SNAP_SHOT_SET(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
-  if (snap->snap) {
+  auto _snap = gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row));
+  if (D_IS_SNAP_SHOT(_snap)) {
+    auto snap = D_SNAP_SHOT(_snap);
     auto label = gtk_list_item_get_child(item);
-    gtk_label_set_label(GTK_LABEL(label), snap->snap->origin.c_str());
+    gtk_label_set_label(GTK_LABEL(label), snap->data->originator.name.c_str());
   }
 }
 
@@ -449,11 +460,11 @@ void SnapshotInventoryGtk4::cbBindCoding(GtkSignalListItemFactory *fact,
                                          GtkListItem *item, gpointer user_data)
 {
   auto row = gtk_list_item_get_item(item);
-  auto snap =
-    D_SNAP_SHOT_SET(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
-  if (snap->snap) {
+  auto _snap = gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row));
+  if (D_IS_SNAP_SHOT(_snap)) {
+    auto snap = D_SNAP_SHOT(_snap);
     auto label = gtk_list_item_get_child(item);
-    gtk_label_set_label(GTK_LABEL(label), snap->snap->coding.c_str());
+    gtk_label_set_label(GTK_LABEL(label), getString(snap->data->coding));
   }
 }
 
@@ -461,11 +472,11 @@ void SnapshotInventoryGtk4::cbBindSample(GtkSignalListItemFactory *fact,
                                          GtkListItem *item, gpointer user_data)
 {
   auto row = gtk_list_item_get_item(item);
-  auto snap =
-    D_SNAP_SHOT_SET(gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row)));
-  if (snap->snap) {
+  auto _snap = gtk_tree_list_row_get_item(GTK_TREE_LIST_ROW(row));
+  if (D_IS_SNAP_SHOT(_snap)) {
+    auto snap = D_SNAP_SHOT(_snap);
     auto label = gtk_list_item_get_child(item);
-    gtk_label_set_label(GTK_LABEL(label), snap->snap->sample.c_str());
+    gtk_label_set_label(GTK_LABEL(label), snap->data->getSample().c_str());
   }
 }
 

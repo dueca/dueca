@@ -119,7 +119,7 @@ void GtkHandler::init(bool xlib_lock)
   g_signal_connect(app, "activate", G_CALLBACK(app_activate),
   		   reinterpret_cast<gpointer>(this));
   g_application_hold(G_APPLICATION(app));
-  
+
   runHooks();
 }
 
@@ -136,8 +136,8 @@ void GtkHandler::passControl()
 
   // transfer to gtk application
   int result = g_application_run(G_APPLICATION(app), *p_argc, *p_argv);
-  g_object_unref(app);
-  
+  //g_object_unref(app);
+
   if (result != 0) {
     /* DUECA graphics.
 
@@ -152,8 +152,9 @@ void GtkHandler::returnControl()
   /* DUECA graphics.
 
      Information on commanding end of graphics code run. */
-  I_SYS("Calling gtk_main_quit()");
+  I_SYS("Calling g_application_release()");
   g_application_release(G_APPLICATION(app));
+  g_application_quit(G_APPLICATION(app));
   //gtk_main_quit();
 }
 DUECA_NS_END

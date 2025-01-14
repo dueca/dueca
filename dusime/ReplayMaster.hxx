@@ -17,7 +17,6 @@
 #include <dueca/dueca_ns.h>
 #include <dusime/dusime.h>
 #include <dueca/ChannelWatcher.hxx>
-#include <fstream>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/smart_ptr/intrusive_ref_counter.hpp>
 #include "SnapshotInventory.hxx"

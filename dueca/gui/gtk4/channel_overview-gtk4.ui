@@ -57,7 +57,7 @@
             <child>
               <object class="GtkColumnView" id="channel_col_view">
                 <child>
-                  <object class="GtkColumnViewColumn">
+                  <object class="GtkColumnViewColumn" id="channel_col_num">
                     <property name="title">chan #</property>
                     <property name="factory">
                       <object class="GtkSignalListItemFactory" id="fact_channelnum">
@@ -66,7 +66,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkColumnViewColumn">
+                  <object class="GtkColumnViewColumn" id="channel_col_name">
                     <property name="title">chan name</property>
                     <property name="factory">
                       <object class="GtkSignalListItemFactory" id="fact_channelname">

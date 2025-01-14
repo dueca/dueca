@@ -55,6 +55,7 @@ NodeManager::NodeManager(int this_node, int no_of_nodes) :
   node_state(no_of_nodes, NodeControlMessage::NodeLoose),
   interval(int(1.0 / Ticker::single()->getTimeGranule() + 0.5)),
   slow_query(false),
+  once_in_a_while(20),
   t_control(getId(), NameSet("dueca", "NodeUpdates", ""),
             "NodeControlMessage", "", Channel::Events,
             Channel::OneOrMoreEntries, Channel::ReadReservation),
@@ -202,6 +203,10 @@ void NodeManager::processMessages(const TimeSpec& time)
               " changed to state " << d.data().state);
 
         DuecaView::single()->refreshNodesView();
+      }
+      else if (this_node == 0 && --once_in_a_while == 0U) {
+        DuecaView::single()->refreshNodesView();
+        once_in_a_while = 100U;
       }
     }
     break;

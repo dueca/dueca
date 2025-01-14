@@ -127,7 +127,7 @@ static GListModel *add_data_element(gpointer _item, gpointer user_data)
     }
     return G_LIST_MODEL(lm);
   }
-  return G_LIST_MODEL(NULL);
+  return NULL;
 }
 
 } // anonymous namespace

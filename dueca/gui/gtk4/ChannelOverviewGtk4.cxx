@@ -17,6 +17,8 @@
 */
 
 #include "glib-object.h"
+#include "glib.h"
+#include "gtk/gtk.h"
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
@@ -88,6 +90,10 @@ const ParameterTable *ChannelOverviewGtk4::getMyParameterTable()
 // entry info or reader info
 enum _ChannelInfoType { Unknown, Channel, Entry, Reader };
 
+// should re-design, with separate ChannelInfo, EntryInfo and ReaderInfo types
+// count only on the entry and reader,
+// sublist only on the channel and entry
+// type to be detected
 struct _DChannelInfo
 {
   GObject parent;
@@ -308,6 +314,73 @@ inline GdkPaintable *loadTextureFromFile(const char *fname)
   return GDK_PAINTABLE(tex);
 }
 
+gint smallerString(gconstpointer _1, gconstpointer _2, gpointer self)
+{
+  auto const &infolist =
+    reinterpret_cast<ChannelOverview *>(self)->getInfoList();
+  auto r1 = GTK_TREE_LIST_ROW(const_cast<gpointer>(_1));
+  auto r2 = GTK_TREE_LIST_ROW(const_cast<gpointer>(_2));
+  auto const c1 = D_CHANNEL_INFO(gtk_tree_list_row_get_item(r1));
+  auto const c2 = D_CHANNEL_INFO(gtk_tree_list_row_get_item(r2));
+
+  if (infolist[c1->channel]->name < infolist[c2->channel]->name)
+    return -1;
+  if (infolist[c1->channel]->name > infolist[c2->channel]->name)
+    return 1;
+
+  // channel nnames are equal, next comparison, channel with "anything else"
+  if (c1->type == Channel) 
+    return -1;
+  if (c2->type == Channel)
+    return 1;
+
+  // now compare on entry no
+  if (c1->entry < c2->entry)
+    return -1;
+  if (c1->entry > c2->entry)
+    return 1;
+
+  // channel and entry numbers are equal, next on reader
+  if (c1->reader < c2->reader)
+    return -1;
+  if (c1->reader > c2->reader)
+    return 1;
+
+  return 0;
+}
+
+gint smallerNumber(gconstpointer _1, gconstpointer _2, gpointer self)
+{
+  auto r1 = GTK_TREE_LIST_ROW(const_cast<gpointer>(_1));
+  auto r2 = GTK_TREE_LIST_ROW(const_cast<gpointer>(_2));
+  auto const c1 = D_CHANNEL_INFO(gtk_tree_list_row_get_item(r1));
+  auto const c2 = D_CHANNEL_INFO(gtk_tree_list_row_get_item(r2));
+  if (c1->channel < c2->channel)
+    return -1;
+  if (c1->channel > c2->channel)
+    return 1;
+  
+  // channel numbers are equal, next comparison, channel with "anything else"
+  if (c1->type == Channel) 
+    return -1;
+  if (c2->type == Channel)
+    return 1;
+
+  // now compare on entry no
+  if (c1->entry < c2->entry)
+    return -1;
+  if (c1->entry > c2->entry)
+    return 1;
+
+  // channel and entry numbers are equal, next on reader
+  if (c1->reader < c2->reader)
+    return -1;
+  if (c1->reader > c2->reader)
+    return 1;
+
+  return 0;
+}
+
 bool ChannelOverviewGtk4::complete()
 {
   static GladeCallbackTable cb_table[] = {
@@ -385,8 +458,20 @@ bool ChannelOverviewGtk4::complete()
   auto model =
     gtk_tree_list_model_new(G_LIST_MODEL(store), FALSE, FALSE,
                             expand_subtree.c_callback(), &expand_subtree, NULL);
-  auto selection = gtk_no_selection_new(G_LIST_MODEL(model));
+  auto cvsorter = gtk_column_view_get_sorter(channel_tree);
+  auto sort_model = gtk_sort_list_model_new(G_LIST_MODEL(model), cvsorter);
+  auto selection = gtk_no_selection_new(G_LIST_MODEL(sort_model));
   gtk_column_view_set_model(channel_tree, GTK_SELECTION_MODEL(selection));
+
+  // and set the sorters
+  auto namesort = gtk_custom_sorter_new(smallerString, this, NULL);
+  auto numsort = gtk_custom_sorter_new(smallerNumber, NULL, NULL);
+  gtk_column_view_column_set_sorter(
+    GTK_COLUMN_VIEW_COLUMN(window.getObject("channel_col_name")), GTK_SORTER(namesort));
+  gtk_column_view_column_set_sorter(
+    GTK_COLUMN_VIEW_COLUMN(window.getObject("channel_col_num")), GTK_SORTER(numsort));
+  g_object_unref(namesort);
+  g_object_unref(numsort);
 
   // create icons for different channel types
   if (stream_icon == NULL) {

@@ -28,14 +28,14 @@ static GdkPaintable *button_icons[5] = { NULL, NULL, NULL };
 inline GdkPaintable *loadTextureFromFile(const char *fname)
 {
   GError *error = NULL;
-  auto tex = gdk_texture_new_from_file(
-    g_file_new_for_path(DuecaPath::prepend(fname).c_str()), &error);
+  auto tex = gdk_texture_new_from_filename(
+    DuecaPath::prepend(fname).c_str(), &error);
   if (error) {
     /* DUECA UI.
 
        Cannot load icon texture. Check DUECA installation.
     */
-    E_XTR("Could not load texture \"" << fname << "\": " << error->message);
+    E_XTR("Could not load texture \"" << DuecaPath::prepend(fname) << "\": " << error->message);
     g_error_free(error);
     error = NULL;
     return NULL;
