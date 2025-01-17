@@ -107,6 +107,8 @@ option(BUILD_DDFF          "Build Delft Direct File Format logging" ON)
 option(TRY_INSTALL_PYTHON_BUILD "If needed, use pip to install python build" OFF)
 set(UNREAD_DATAPOINTS_THRESHOLD 1000 CACHE STRING
   "Threshold for warning about unread data in channels")
+set(RUNTEST_SERVER "Xephyr" CACHE STRING
+                           "Nested X server to use for runtest")
 
 if (APPLE)
   set(CMAKE_FIND_FRAMEWORK LAST)

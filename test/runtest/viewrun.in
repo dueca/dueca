@@ -5,8 +5,8 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-@XVNCSERVER@ @DISPLAY@ -geometry @DISPLAYSIZE@ -noxstartup -SecurityTypes None
-XVNCSERVERPID=$!
+@NESTSERVER@ @DISPLAY@ -geometry @DISPLAYSIZE@  @NESTEXTRAARGS@ &
+NESTSERVERPID=$!
 export DISPLAY=@DISPLAY@
 export GDK_BACKEND=x11
 export -n WAYLAND_DISPLAY
@@ -20,7 +20,7 @@ sleep 1
 RESULT=$?
 sleep 1
 
-@XVNCSERVER@ -kill @DISPLAY@
+@NESTSERVER_CLEAN@
 exit ${RESULT}
 
 

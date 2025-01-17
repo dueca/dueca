@@ -254,7 +254,7 @@ static GListModel *expand_entity(gpointer _item, gpointer user_data)
     item->children = lm;
   }
 
-  return reinterpret_cast<GListModel*>(item->children);
+  return reinterpret_cast<GListModel *>(item->children);
 }
 
 // forward declaration for a function that hides or shows windows
@@ -442,10 +442,6 @@ bool GtkDuecaView::complete()
       { "nodes_state_fact", "bind",
         gtk_callback(&GtkDuecaView::bindNodeState) },
       { "dueca_if", "close-request", gtk_callback(&GtkDuecaView::deleteView) },
-#if 0
-      { "nodes_list", "realize",
-        gtk_callback(&GtkDuecaView::cbNodesListVisible) },
-#endif
       { NULL, NULL, NULL, NULL }
     };
     window.connectCallbacks(reinterpret_cast<gpointer>(this), cb_links);
@@ -971,6 +967,10 @@ void *GtkDuecaView::insertEntityNode(const char *name, void *vparent,
         new CoreEntityStatus(name, obj, dueca_node, ++ident));
     }
     else {
+      /* DUECA UI.
+
+         Issue in inserting status summary in the right place.
+      */
       E_STS("Cannot find parent for status " << name);
     }
   }
@@ -999,13 +999,15 @@ void GtkDuecaView::refreshNodesView()
   // gtk_widget_queue_draw(GTK_WIDGET(nodes_list));
 }
 
-static void refreshNodeStatus(GListModel* list, unsigned ident)
+static void refreshNodeStatus(GListModel *list, unsigned ident)
 {
-  for (unsigned ii = g_list_model_get_n_items(list); ii--; ) {
-    auto es =  D_ENTITY_STATUS(g_list_model_get_item(list, ii));
+  for (unsigned ii = g_list_model_get_n_items(list); ii--;) {
+    auto es = D_ENTITY_STATUS(g_list_model_get_item(list, ii));
     if (es->s->ident == ident) {
-      g_object_notify_by_pspec(G_OBJECT(es), entity_status_properties[D_ES_MODULESTATUS]);
-      g_object_notify_by_pspec(G_OBJECT(es), entity_status_properties[D_ES_SIMSTATUS]);
+      g_object_notify_by_pspec(G_OBJECT(es),
+                               entity_status_properties[D_ES_MODULESTATUS]);
+      g_object_notify_by_pspec(G_OBJECT(es),
+                               entity_status_properties[D_ES_SIMSTATUS]);
       return;
     }
     if (es->children) {
