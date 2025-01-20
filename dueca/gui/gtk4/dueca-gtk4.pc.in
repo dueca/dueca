@@ -11,4 +11,4 @@ Description: Real-time distributed control or simulation environment
 Version: ${version}
 Libs: -L${libdir} -ldueca-gtk4${staticsuffix} @dueca_glut_util_libs@ @X11_libs@
 Cflags: -DDUECA_CONFIG_GTK4 -I${dueca_includedir}/dueca/gui/gtk4
-Requires: dueca = ${version}, gtk4, @dueca_glut_util_pkgs@
+Requires: dueca = ${version}, gtk4

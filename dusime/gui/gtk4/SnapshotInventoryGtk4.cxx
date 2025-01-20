@@ -251,6 +251,8 @@ bool SnapshotInventoryGtk4::complete()
   auto model = gtk_tree_list_model_new(G_LIST_MODEL(snaps_store), FALSE, FALSE,
                                        add_data_element, NULL, NULL);
   auto selection = gtk_single_selection_new(G_LIST_MODEL(model));
+  gtk_single_selection_set_autoselect(selection, FALSE);
+  gtk_single_selection_set_can_unselect(selection, TRUE);
   auto cb = gtk_callback(&_ThisModule_::cbSelection, this);
   g_signal_connect(selection, "selection-changed", cb->callback(), cb);
   gtk_column_view_set_model(treeview, GTK_SELECTION_MODEL(selection));
@@ -341,7 +343,7 @@ void SnapshotInventoryGtk4::cbSetName(GtkWidget *text, gpointer gp)
 void SnapshotInventoryGtk4::cbSendInitial(GtkWidget *btn, gpointer gp)
 {
   if (inventory->sendSelected()) {
-    gtk_label_set_text(GTK_LABEL(window["initials_status"]), "sent");
+    gtk_label_set_text(GTK_LABEL(window["initials_status"]), "loaded");
     gtk_widget_set_sensitive(GTK_WIDGET(window["initials_send"]), FALSE);
     // gtk_tree_selection_unselect_all(GTK_TREE_SELECTION
     //  (window["initials_listselection"]));

@@ -439,8 +439,8 @@ void ChannelDataMonitorGtk4::cbSetupName(GtkSignalListItemFactory *fact,
   auto label = gtk_label_new("");
   auto expander = GTK_TREE_EXPANDER(gtk_tree_expander_new());
   gtk_tree_expander_set_child(expander, label);
-  gtk_tree_expander_set_indent_for_depth(expander, TRUE);
-  gtk_tree_expander_set_indent_for_icon(expander, FALSE);
+  //gtk_tree_expander_set_indent_for_depth(expander, TRUE);
+  //gtk_tree_expander_set_indent_for_icon(expander, FALSE);
   gtk_widget_set_halign(GTK_WIDGET(expander), GTK_ALIGN_START);
   // gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_LEFT);
   gtk_list_item_set_child(item, GTK_WIDGET(expander));

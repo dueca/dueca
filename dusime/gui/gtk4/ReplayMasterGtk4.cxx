@@ -11,8 +11,10 @@
         license         : EUPL-1.2
 */
 
+#include "GtkGladeWindow.hxx"
 #include "gtk/gtk.h"
 #include "gtk/gtkdropdown.h"
+#include "gtk/gtksingleselection.h"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #define ReplayMasterGtk4_cxx
 #include "ReplayMasterGtk4.hxx"
@@ -131,13 +133,13 @@ static void d_replay_run_class_init(DReplayRunClass *_klass)
 
 static void d_replay_run_init(DReplayRun *self) {}
 
-static DReplayRun *d_replay_run_new(boost::intrusive_ptr<const ReplayMaster::ReplayInfo> &rr)
+static DReplayRun *
+d_replay_run_new(boost::intrusive_ptr<const ReplayMaster::ReplayInfo> &rr)
 {
   auto res = D_REPLAY_RUN(g_object_new(d_replay_run_get_type(), NULL));
   res->rr = rr;
   return res;
 }
-
 
 bool ReplayMasterGtk4::complete()
 {
@@ -265,6 +267,12 @@ bool ReplayMasterGtk4::complete()
                                FALSE);
       break;
 
+    case ReplayMaster::Collecting:
+    
+      // collecting data
+      gtk_label_set_text(GTK_LABEL(window["record_status"]), "collecting");
+      break;
+
     default:
       break;
     };
@@ -282,6 +290,22 @@ bool ReplayMasterGtk4::complete()
       gtk_callback(&_ThisModule_::cbRecordPrepare) },
     { "replay_select_view", "close-request",
       gtk_callback(&_ThisModule_::cbDelete) },
+    { "replay_name_fact", "setup",
+      gtk_callback((&_ThisModule_::cbSetupLabel)) },
+    { "replay_date_fact", "setup",
+      gtk_callback((&_ThisModule_::cbSetupLabel)) },
+    { "replay_duration_fact", "setup",
+      gtk_callback((&_ThisModule_::cbSetupLabel)) },
+    { "replay_initial_fact", "setup",
+      gtk_callback((&_ThisModule_::cbSetupLabel)) },
+    { "replay_name_fact", "bind",
+      gtk_callback((&_ThisModule_::cbBindReplayName)) },
+    { "replay_date_fact", "bind",
+      gtk_callback((&_ThisModule_::cbBindReplayDate)) },
+    { "replay_duration_fact", "bind",
+      gtk_callback((&_ThisModule_::cbBindReplayDuration)) },
+    { "replay_initial_fact", "bind",
+      gtk_callback((&_ThisModule_::cbBindReplayInitial)) },
     { NULL }
   };
 
@@ -315,6 +339,8 @@ bool ReplayMasterGtk4::complete()
     GTK_COLUMN_VIEW(window["replay_recording_overview"]);
   replay_store = g_list_store_new(d_replay_run_get_type());
   auto selection = gtk_single_selection_new(G_LIST_MODEL(replay_store));
+  gtk_single_selection_set_autoselect(selection, FALSE);
+  gtk_single_selection_set_can_unselect(selection, TRUE);
   auto cb = gtk_callback(&_ThisModule_::cbSelectReplay, this);
   g_signal_connect(selection, "selection-changed", cb->callback(), cb);
   gtk_column_view_set_model(replaytree, GTK_SELECTION_MODEL(selection));
@@ -324,6 +350,8 @@ bool ReplayMasterGtk4::complete()
     boost::intrusive_ptr<const ReplayMaster::ReplayInfo> ref(&rep);
     auto item = d_replay_run_new(ref);
     g_list_store_append(this->replay_store, item);
+    g_object_unref(item);
+    //gtk_widget_queue_draw(this->window["replay_recording_overview"]);
   };
 
   // install callback for initial and incremental
@@ -413,8 +441,9 @@ void ReplayMasterGtk4::cbSelectReplay(GtkSelectionModel *sel, guint position,
                                FALSE);
     }
     replays->changeSelection(it->rr->cycle);
-    DEB("cbSelectReplay, changing to replay "
-        << it->rr->cycle << "/" << it->rr->label << " inco " << it->rr->inco_name);
+    DEB("cbSelectReplay, changing to replay " << it->rr->cycle << "/"
+                                              << it->rr->label << " inco "
+                                              << it->rr->inco_name);
   }
   else {
     gtk_editable_set_text(GTK_EDITABLE(window["replay_inco_selected"]), "");
@@ -426,10 +455,16 @@ void ReplayMasterGtk4::cbSendInitial(GtkButton *button, gpointer gp)
 {
   // this button should only be sensitive when the correct inco
   // has been selected
-  bool success = inco_inventory->sendSelected();
+  auto crp = replays->getCurrentReplay();
+  if (!crp) {
+    DEB("No replay selected, cannot send inco");
+    return;
+  }
+
+  bool success = inco_inventory->sendNamed(crp->inco_name);
 
   DEB("cbSendInitial, result=" << success << " sending "
-                               << inco_inventory->getSelected());
+                               << crp->inco_name);
 
   // whatever, block further sending
   gtk_widget_set_sensitive(GTK_WIDGET(window["replay_sendinitial"]), FALSE);
@@ -477,7 +512,7 @@ void ReplayMasterGtk4::cbSetupLabel(GtkSignalListItemFactory *fact,
 {
   auto label = gtk_label_new("");
   gtk_list_item_set_child(object, label);
-  g_object_unref(label);
+  // g_object_unref(label);
 }
 
 void ReplayMasterGtk4::cbBindReplayName(GtkSignalListItemFactory *fact,
@@ -513,7 +548,7 @@ void ReplayMasterGtk4::cbBindReplayInitial(GtkSignalListItemFactory *fact,
 {
   auto label = GTK_LABEL(gtk_list_item_get_child(item));
   auto entry = D_REPLAY_RUN(gtk_list_item_get_item(item));
-  gtk_label_set_text(label, entry->rr->label.c_str());
+  gtk_label_set_text(label, entry->rr->inco_name.c_str());
 }
 
 bool ReplayMasterGtk4::setPositionAndSize(const std::vector<int> &p)

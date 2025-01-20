@@ -78,6 +78,7 @@ public:
   /** states for the state machine logic */
   enum ReplayMasterMode {
     AskForConfiguration,   /**< First time only, ask current file data */
+    TransferIdle,          /**< Stop catchup action */
     Idle,                  /**< Holdcurrent, replay can be configured */
     RecordingPrepared,     /**< Prepared for recording; initial state
                                 known (set/obtained), name for recording set. */
@@ -360,6 +361,9 @@ public:
 
   /** Can command advance after replay */
   bool canAdvanceAfterReplay() const;
+
+  /** Access current replay data */
+  inline const ReplayInfo *getCurrentReplay() { return current_replay.get(); }
 
 protected:
 

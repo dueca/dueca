@@ -69,9 +69,11 @@
                       <object class="GtkDropDown" id="replay_todoafter">
                         <property name="model">
                           <object class="GtkStringList">
-                            <property name="strings">Hold after Replay
-Advance after Replay</property>
-                          </object>
+			    <items>
+			      <item translatable="yes">Hold after Replay</item>
+			      <item translatable="yes">Advance after Replay</item>
+                            </items>
+			  </object>
                         </property>
                       </object>
                     </child>

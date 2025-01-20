@@ -828,20 +828,25 @@ void GtkDuecaView::cbShowQuit(GSimpleAction *action, GVariant *arg,
 static void process_file_result(GObject *dialog, GAsyncResult *res,
                                 gpointer view)
 {
+#if GTK_CHECK_VERSION(4, 10, 0)
   auto file = gtk_file_dialog_open_finish(GTK_FILE_DIALOG(dialog), res, NULL);
   if (file) {
     Environment::getInstance()->readMod(g_file_peek_path(file));
     g_object_unref(file);
   }
+#endif
 }
 
 void GtkDuecaView::cbExtraModDialog(GSimpleAction *action, GVariant *arg,
                                     gpointer user_data)
 {
   if (DUECA_NS::EntityManager::single()->stopIsOK()) {
+#if GTK_CHECK_VERSION(4, 10, 0)
+
     gtk_file_dialog_open(GTK_FILE_DIALOG(window["additional_def"]),
                          GTK_WINDOW(window["dueca_if"]), NULL,
                          process_file_result, this);
+#endif
   }
   else {
     gtk_widget_set_visible(gw_common["dont_change_a_running"], TRUE);
