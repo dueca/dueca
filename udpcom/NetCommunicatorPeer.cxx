@@ -39,7 +39,7 @@
 #include "UDPPeerInfo.hxx"
 #include "UDPPeerConfig.hxx"
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 #ifdef BUILD_TESTOPT

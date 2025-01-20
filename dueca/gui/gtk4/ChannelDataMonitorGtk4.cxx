@@ -18,7 +18,7 @@
 #include <boost/format.hpp>
 #include <sstream>
 #include <iomanip>
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -2
 #include <debprint.h>
 
 namespace {

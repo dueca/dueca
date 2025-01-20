@@ -14,7 +14,7 @@
 #define PacketCommunicator_cxx
 #include "PacketCommunicator.hxx"
 #include <boost/serialization/singleton.hpp>
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START;

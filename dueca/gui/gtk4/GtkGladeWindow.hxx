@@ -217,7 +217,7 @@ struct GladeCallbackTable
     @code{.cxx}
     // define a mapping between the enum values, and interface strings
     // note that whithout mappings (use NULL), the enum values are used
-    // directly in the interface. The mapping must remain valid, use a 
+    // directly in the interface. The mapping must remain valid, use a
     // "static" keyword for that.
 
     // each enum gets a mapping to label strings
@@ -419,6 +419,9 @@ public:
   */
   void hide(const char *widget = NULL);
 
+  /** Callback for placing the window */
+  void placeWindow(GtkWidget *w, gpointer user_data);
+
   /** Struct for mapping enum name to representation string */
   struct OptionMapping
   {
@@ -551,7 +554,7 @@ public:
                    x. p[1] offset y, if either < 0, position hints are
                    ignored. p[2] width, p[3] height, if either <= 0,
                    size hints are ignored. Vector must have 2 or 4 elements. */
-  inline void setWindow(const std::vector<int> &p)
+  inline bool setWindow(const std::vector<int> &p)
   {
     if (p.size() == 2 || p.size() == 4) {
       offset_x = p[0];
@@ -561,6 +564,7 @@ public:
       size_x = p[2];
       size_y = p[3];
     }
+    return p.size() == 2 || p.size() == 4;
   }
 };
 

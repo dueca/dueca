@@ -38,7 +38,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <dueca/ObjectManager.hxx>
-#define DEBPRINTLEVEL 2
+#define DEBPRINTLEVEL -2
 #include <debprint.h>
 #include <dueca/DuecaPath.hxx>
 

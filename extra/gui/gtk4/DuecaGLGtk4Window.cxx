@@ -200,18 +200,21 @@ void DuecaGLGtk4Window::placeWindow()
 {
   if (GDK_IS_X11_DISPLAY(gdk_display_id)) {
 
-    auto xw = GDK_SURFACE_XID(
-      GDK_SURFACE(gtk_native_get_surface(GTK_NATIVE(gtk_win_id))));
-    auto xd = GDK_SURFACE_XDISPLAY(
-      GDK_SURFACE(gtk_native_get_surface(GTK_NATIVE(gtk_win_id))));
-    XMoveWindow(xd, xw, x, y);
+    auto surf = GDK_SURFACE(gtk_native_get_surface(GTK_NATIVE(gtk_win_id)));
+    if (surf) {
+      auto xw = GDK_SURFACE_XID(surf);
+      auto xd = GDK_SURFACE_XDISPLAY(surf);
+      if (xd) {
+        XMoveWindow(xd, xw, x, y);
+      }
+    }
   }
   else if (GDK_IS_WAYLAND_DISPLAY(gdk_display_id)) {
     /* DUECA extra.
 
-        Under wayland, it is (currently) not possible to request a window
-        position
-      */
+          Under wayland, it is (currently) not possible to request a window
+          position
+        */
     W_XTR("Cannot influence window position on wayland");
   }
 }

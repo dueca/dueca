@@ -246,6 +246,7 @@ class KeyPress:
             if w is None:
                 raise ValueError(f"Cannot find window {self.window}")
             x, y = translation.toScreen(self.x, self.y, w)
+            w.activate()
         else:
             x, y = self.x, self.y
 
@@ -254,6 +255,7 @@ class KeyPress:
             await asyncio.sleep(self.wait)
 
         the_keyboard.press(self.key)
+        await asyncio.sleep(self.wait)
         the_keyboard.release(self.key)
 
 

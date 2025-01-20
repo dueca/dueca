@@ -13,7 +13,7 @@
 
 #define __CUSTOM_COMPATLEVEL_110
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 #define __CUSTOM_FUNCTION_PRINT
