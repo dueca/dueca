@@ -47,6 +47,7 @@ INPUT = mainpage-api.md \
         @CMAKE_CURRENT_SOURCE_DIR@/simplesimulation.md \
         @CMAKE_CURRENT_SOURCE_DIR@/simplesimulationb.md \
         @CMAKE_CURRENT_SOURCE_DIR@/vscode.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/gtk4interface.md \
         @apifiles@
 
 INCLUDE_PATH=@CMAKE_SOURCE_DIR@/dueca \

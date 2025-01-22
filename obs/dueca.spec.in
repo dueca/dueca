@@ -10,6 +10,7 @@
 %define hdf5_config 1
 %define udpcom_config 1
 %define python3_config 1
+%define gtkfour_config 1
 
 %if 0%{?sle_version} && 0%{?sle_version} <= 120300 && 0
 %define websock_config 0
@@ -60,6 +61,13 @@ BuildRequires: compat-guile18-devel
 BuildRequires:  gtkmm3-devel
 BuildRequires:  gtk3-devel
 %endif
+
+%if 0%{?gtkfour_config}
+%define GTKFOUR_CONFIG -DBUILD_GTK4=ON -DBUILD_GTKMM4=ON
+BuildRequires:  gtkmm4-devel
+BuildRequires:  gtk4-devel
+%endif
+
 BuildRequires: fdupes
 BuildRequires: fltk-devel
 BuildRequires: eigen3-devel
@@ -89,6 +97,7 @@ BuildRequires: python3-setuptools
 BuildRequires: python3-wheel
 BuildRequires: python3-GitPython
 BuildRequires: python3-pip
+BuildRequires: xmlstarlet
 
 %if 0%{?python3_config}
 BuildRequires: python3-devel
@@ -351,6 +360,8 @@ Documentation for users of the DUSIME and DUECA API
        %{?GLUI_CONFIG} \
        %{?GTKMM_CONFIG} \
        %{?GTKTHREE_CONFIG} \
+       %{?GTKFOUR_CONFIG} \
+       %{?GTKMMFOUR_CONFIG} \
        %{?HDF5_CONFIG} \
        %{?UDPCOM_CONFIG} \
        %{?WEBSOCK_CONFIG} \

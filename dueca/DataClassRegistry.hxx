@@ -16,8 +16,6 @@
 #define DataClassRegistry_hxx
 
 #include <inttypes.h>
-#include <limits>
-
 #include "dueca_ns.h"
 #include "DataClassRegistryPredef.hxx"
 

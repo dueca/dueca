@@ -71,6 +71,9 @@ public:
       memory management. */
   static void* operator new(size_t size);
 
+  /** accompanying placement operator "new" */
+  static void* operator new(size_t size, void* mem);
+
   /** new operator "delete", to go with the new version
       of operator new. */
   static void operator delete(void* p);

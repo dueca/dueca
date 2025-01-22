@@ -68,6 +68,11 @@ const char* CommObjectReaderWriter::getClassname() const
   return DataClassRegistry::single().getEntryClassname(entry);
 }
 
+const CommObjectMemberAccessBase& CommObjectReaderWriter::getMemberAccessor(unsigned i) const
+{
+  return *DataClassRegistry::single().getMemberAccessor(entry, i);
+}
+
 CommObjectReaderWriter& CommObjectReaderWriter::operator =
 (const CommObjectReaderWriter& o)
 {

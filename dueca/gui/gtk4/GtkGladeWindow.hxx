@@ -43,21 +43,22 @@ class ElementReader;
 
 /** creation of a caller, 1 parameter and the gpointer parameter. */
 template <class T, typename RET, typename P1>
-GtkCaller *gtk_callback(RET (T::*call)(P1, gpointer), gpointer obj=NULL)
+GtkCaller *gtk_callback(RET (T::*call)(P1, gpointer), gpointer obj = NULL)
 {
   return new GtkCallerImp1<T, RET, P1>(call, obj);
 }
 
 /** creation of a caller, 2 parameters and the gpointer parameter. */
 template <class T, typename RET, typename P1, typename P2>
-GtkCaller *gtk_callback(RET (T::*call)(P1, P2, gpointer), gpointer obj=NULL)
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, gpointer), gpointer obj = NULL)
 {
   return new GtkCallerImp2<T, RET, P1, P2>(call, obj);
 }
 
 /** creation of a caller, 3 parameters and the gpointer parameter. */
 template <class T, typename RET, typename P1, typename P2, typename P3>
-GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, gpointer), gpointer obj=NULL)
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, gpointer),
+                        gpointer obj = NULL)
 {
   return new GtkCallerImp3<T, RET, P1, P2, P3>(call, obj);
 }
@@ -65,7 +66,8 @@ GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, gpointer), gpointer obj=NULL)
 /** creation of a caller, 4 parameters and the gpointer parameter. */
 template <class T, typename RET, typename P1, typename P2, typename P3,
           typename P4>
-GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, gpointer), gpointer obj=NULL)
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, gpointer),
+                        gpointer obj = NULL)
 {
   return new GtkCallerImp4<T, RET, P1, P2, P3, P4>(call, obj);
 }
@@ -73,7 +75,8 @@ GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, gpointer), gpointer obj=N
 /** creation of a caller, 5 parameters and the gpointer parameter. */
 template <class T, typename RET, typename P1, typename P2, typename P3,
           typename P4, typename P5>
-GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, gpointer), gpointer obj=NULL)
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, gpointer),
+                        gpointer obj = NULL)
 {
   return new GtkCallerImp5<T, RET, P1, P2, P3, P4, P5>(call, obj);
 }
@@ -81,7 +84,8 @@ GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, gpointer), gpointer o
 /** creation of a caller, 6 parameters and the gpointer parameter. */
 template <class T, typename RET, typename P1, typename P2, typename P3,
           typename P4, typename P5, typename P6>
-GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, gpointer), gpointer obj=NULL)
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, gpointer),
+                        gpointer obj = NULL)
 {
   return new GtkCallerImp6<T, RET, P1, P2, P3, P4, P5, P6>(call, obj);
 }
@@ -89,7 +93,8 @@ GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, gpointer), gpoint
 /** creation of a caller, 7 parameters and the gpointer parameter. */
 template <class T, typename RET, typename P1, typename P2, typename P3,
           typename P4, typename P5, typename P6, typename P7>
-GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, P7, gpointer), gpointer obj=NULL)
+GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, P7, gpointer),
+                        gpointer obj = NULL)
 {
   return new GtkCallerImp7<T, RET, P1, P2, P3, P4, P5, P6, P7>(call, obj);
 }
@@ -98,7 +103,8 @@ GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, P7, gpointer), gp
 template <class T, typename RET, typename P1, typename P2, typename P3,
           typename P4, typename P5, typename P6, typename P7, typename P8>
 GtkCaller *gtk_callback(RET (T::*call)(P1, P2, P3, P4, P5, P6, P7, P8,
-                                       gpointer), gpointer obj=NULL)
+                                       gpointer),
+                        gpointer obj = NULL)
 {
   return new GtkCallerImp8<T, RET, P1, P2, P3, P4, P5, P6, P7, P8>(call, obj);
 }
@@ -315,15 +321,15 @@ class GtkGladeWindow
   bool _setValue(const char *wname, bool value, bool warn);
 
   /** Helper, set any value on a widget */
-  bool _setValue(const char *wname, const char *mname, boost::any &b,
-                 bool warn);
+  bool _setValue(const char *wname, const CommObjectReader &cor, unsigned im,
+                 boost::any &b, bool warn);
 
   /** Helper, get a state from a widget */
   template <class T>
-  bool __getValue(const char *wname, boost::any &alue, bool warn);
+  bool __getValue(const char *wname, boost::any &value, bool warn);
 
   /** Helper, get any value from a widget */
-  bool _getValue(const char *wname, const char *mname, const char *klass,
+  bool _getValue(const char *wname, const CommObjectWriter& cow, unsigned ii,
                  boost::any &b, bool warn);
 
 public:
@@ -348,9 +354,7 @@ public:
       @param table       Table linking widget, signal, callback
                          function and optionally the pointer argument
                          to the callback function.
-      @param connect_signals Connect gobject callback signals. The user_data
-                         argument to callback functions is obtained from
-                         the "client" argument.
+      @param connect_signals Obsolete for the gtk4 version.
       @param warn        Warn when widgets in the callback table are not
                          found in the interface.
       @returns           true if all OK. */
@@ -446,6 +450,14 @@ private:
   bool _fillOptions(const char *wname, ElementWriter &writer,
                     ElementReader &reader, const OptionMapping *mapping,
                     bool warn);
+
+  /** Helper for enum to radio mapping */
+  bool _getEnumFromRadios(const char *gtkid, const CommObjectWriter &dco,
+                          unsigned im, boost::any &b, bool warn);
+
+  /** Helper for enum to radio mapping */
+  bool _setRadiosFromEnum(const char *gtkid, const CommObjectReader &dco,
+                          unsigned im, boost::any &b, bool warn);
 
 public:
   /** Use the enum items in a DCO object to fill DropDown tree models

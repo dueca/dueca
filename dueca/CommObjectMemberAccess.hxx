@@ -53,7 +53,7 @@ public:
                     extract data, or start a recursive inspection if the
                     member queried is itself a DCO object.
  */
-  virtual ElementReader getReader(const void* obj) = 0;
+  virtual ElementReader getReader(const void* obj) const = 0;
 
   /** Given a void pointer to an object, return a helper to write the
       element data.
@@ -63,7 +63,7 @@ public:
                     modify data, or start a recursive inspection if the
                     member queried is itself a DCO object.
   */
-  virtual ElementWriter getWriter(void* obj) = 0;
+  virtual ElementWriter getWriter(void* obj) const = 0;
 
   /** Get the class name of the element
 
@@ -171,7 +171,7 @@ public:
   /** Return an accessor object that can read the actual data. If
       the data member is iterable (list, vector, etc.), the accessor
       objects's methods allow repeated reading of the element. */
-  ElementReader getReader(const void* obj)
+  ElementReader getReader(const void* obj) const
   {
     // create a new element accessor
     ElementReader a;
@@ -190,7 +190,7 @@ public:
       the data member is iterable (list, vector, etc.), the accessor
       objects's methods allow repeated writing until the object is
       full (or unlimited, if the object can be extended without limit). */
-  ElementWriter getWriter(void* obj)
+  ElementWriter getWriter(void* obj) const
   {
     // create a new element accessor
     ElementWriter a;

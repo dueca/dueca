@@ -50,6 +50,7 @@ G_DEFINE_TYPE(DDataEntry, d_data_entry, G_TYPE_OBJECT);
 static void d_data_entry_set_property(GObject *object, guint property_id,
                                       const GValue *value, GParamSpec *pspec)
 {
+#if 0
   DDataEntry *self = D_DATA_ENTRY(object);
 
   switch ((DataEntryProperty)property_id) {
@@ -63,6 +64,7 @@ static void d_data_entry_set_property(GObject *object, guint property_id,
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
     break;
   }
+#endif
 }
 
 static void d_data_entry_get_property(GObject *object, guint property_id,
@@ -83,11 +85,10 @@ static void d_data_entry_get_property(GObject *object, guint property_id,
 }
 
 static GParamSpec *object_properties[D_NDATAEPROP] = {
-  NULL,
-  g_param_spec_string("value", "Value", "String value", "",
-                      (GParamFlags)(G_PARAM_READWRITE |
-                                    G_PARAM_EXPLICIT_NOTIFY |
-                                    G_PARAM_CONSTRUCT))
+  NULL, g_param_spec_string("value", "Value", "String value", "",
+                            (GParamFlags)(G_PARAM_READWRITE |
+                                          G_PARAM_EXPLICIT_NOTIFY |
+                                          G_PARAM_CONSTRUCT))
 };
 
 static void d_data_entry_class_init(DDataEntryClass *_klass)
@@ -439,8 +440,8 @@ void ChannelDataMonitorGtk4::cbSetupName(GtkSignalListItemFactory *fact,
   auto label = gtk_label_new("");
   auto expander = GTK_TREE_EXPANDER(gtk_tree_expander_new());
   gtk_tree_expander_set_child(expander, label);
-  //gtk_tree_expander_set_indent_for_depth(expander, TRUE);
-  //gtk_tree_expander_set_indent_for_icon(expander, FALSE);
+  // gtk_tree_expander_set_indent_for_depth(expander, TRUE);
+  // gtk_tree_expander_set_indent_for_icon(expander, FALSE);
   gtk_widget_set_halign(GTK_WIDGET(expander), GTK_ALIGN_START);
   // gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_LEFT);
   gtk_list_item_set_child(item, GTK_WIDGET(expander));

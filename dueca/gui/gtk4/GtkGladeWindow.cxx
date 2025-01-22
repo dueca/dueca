@@ -11,6 +11,7 @@
         license         : EUPL-1.2
 */
 
+#include "gtk/gtk.h"
 #define GtkGladeWindow_cxx
 
 #include <dueca-conf.h>
@@ -33,6 +34,10 @@
 #define W_CNF
 #include "debug.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/format.hpp>
+
+#define DEBPRINTLEVEL -1
+#include <debprint.h>
 
 DUECA_NS_START
 
@@ -276,6 +281,23 @@ bool GtkGladeWindow::_setValue(const char *wname, double value, bool warn)
                               svalue.c_str(), svalue.size());
     return true;
   }
+
+  // also try for a dropdown
+  if (GTK_IS_DROP_DOWN(o)) {
+    auto _model = gtk_drop_down_get_model(GTK_DROP_DOWN(o));
+    if (GTK_IS_STRING_LIST(_model)) {
+      auto model = GTK_STRING_LIST(_model);
+      for (auto n = g_list_model_get_n_items(G_LIST_MODEL(model)); n--;) {
+        DEB("Testing " << gtk_string_list_get_string(model, n));
+        if (boost::lexical_cast<double>(gtk_string_list_get_string(model, n)) ==
+            value) {
+          gtk_drop_down_set_selected(GTK_DROP_DOWN(o), n);
+          return true;
+        }
+      }
+    }
+  }
+
   if (warn) {
     /* DUECA graphics.
 
@@ -492,6 +514,11 @@ bool GtkGladeWindow::_setValue(const char *wname, bool value, bool warn)
     gtk_toggle_button_set_active(t, value ? TRUE : FALSE);
     return true;
   }
+  else if (GTK_IS_CHECK_BUTTON(o)) {
+    auto t = GTK_CHECK_BUTTON(o);
+    gtk_check_button_set_active(t, value ? TRUE : FALSE);
+    return true;
+  }
 
   if (warn) {
     /* DUECA graphics.
@@ -505,29 +532,42 @@ bool GtkGladeWindow::_setValue(const char *wname, bool value, bool warn)
   return false;
 }
 
-bool GtkGladeWindow::_setValue(const char *wname, const char *mname,
-                               boost::any &b, bool warn)
+bool GtkGladeWindow::_setValue(const char *wname, const CommObjectReader &cor,
+                               unsigned im, boost::any &b, bool warn)
 {
-  if (b.type() == typeid(double)) {
+  if (cor.getMemberAccessor(im).isEnum() &&
+      _setRadiosFromEnum(wname, cor, im, b, false)) {
+    return true;
+  }
+  else if (b.type() == typeid(double)) {
     return _setValue(wname, boost::any_cast<double>(b), warn);
   }
   else if (b.type() == typeid(float)) {
     return _setValue(wname, boost::any_cast<float>(b), warn);
   }
+  else if (b.type() == typeid(int8_t)) {
+    return _setValue(wname, double(boost::any_cast<int8_t>(b)), warn);
+  }
+  else if (b.type() == typeid(int16_t)) {
+    return _setValue(wname, double(boost::any_cast<int16_t>(b)), warn);
+  }
   else if (b.type() == typeid(int32_t)) {
     return _setValue(wname, double(boost::any_cast<int32_t>(b)), warn);
   }
   else if (b.type() == typeid(int64_t)) {
-    return _setValue(wname, double(boost::any_cast<int32_t>(b)), warn);
-  }
-  else if (b.type() == typeid(int64_t)) {
     return _setValue(wname, double(boost::any_cast<int64_t>(b)), warn);
   }
-  else if (b.type() == typeid(uint64_t)) {
-    return _setValue(wname, double(boost::any_cast<int32_t>(b)), warn);
+  else if (b.type() == typeid(uint8_t)) {
+    return _setValue(wname, double(boost::any_cast<uint8_t>(b)), warn);
+  }
+  else if (b.type() == typeid(uint16_t)) {
+    return _setValue(wname, double(boost::any_cast<uint16_t>(b)), warn);
+  }
+  else if (b.type() == typeid(uint32_t)) {
+    return _setValue(wname, double(boost::any_cast<uint32_t>(b)), warn);
   }
   else if (b.type() == typeid(uint64_t)) {
-    return _setValue(wname, double(boost::any_cast<int64_t>(b)), warn);
+    return _setValue(wname, double(boost::any_cast<uint64_t>(b)), warn);
   }
   else if (b.type() == typeid(bool)) {
     return _setValue(wname, boost::any_cast<bool>(b), warn);
@@ -536,6 +576,7 @@ bool GtkGladeWindow::_setValue(const char *wname, const char *mname,
     return _setValue(wname, boost::any_cast<std::string>(b).c_str(), warn);
   }
   try {
+    // try this with enum's, strings, any....
     return _setValue(wname, boost::any_cast<std::string>(b).c_str(), warn);
   }
   catch (const std::exception &) {
@@ -544,9 +585,9 @@ bool GtkGladeWindow::_setValue(const char *wname, const char *mname,
   if (warn) {
     /* DUECA graphics.
 
-         Could not interpreting the data of a DCO member */
+       Could not interpret the data of a DCO member */
     W_XTR("GtkGladeWindow::setValue: could not interpret type of member "
-          << mname);
+          << cor.getMemberName(im));
   }
   return false;
 }
@@ -559,10 +600,10 @@ bool GtkGladeWindow::__getValue(const char *wname, boost::any &b, bool warn)
     if (warn) {
       /* DUECA graphics.
 
-           When trying to get a value from the interface, the widget name
-           corresponding to the DCO member name was not found. This may
-           be a typo in your ui definition, or incidental.
-        */
+         When trying to get a value from the interface, the widget name
+         corresponding to the DCO member name was not found. This may
+         be a typo in your ui definition, or incidental.
+      */
       W_XTR("GtkGladeWindow::getValue: Could not find gtk object with id \""
             << wname << "\"");
     }
@@ -594,13 +635,28 @@ bool GtkGladeWindow::__getValue(const char *wname, boost::any &b, bool warn)
     return true;
   }
 
+  if (GTK_IS_DROP_DOWN(o)) {
+    auto _model = gtk_drop_down_get_model(GTK_DROP_DOWN(o));
+    if (GTK_IS_STRING_LIST(_model)) {
+      auto model = GTK_STRING_LIST(_model);
+      auto sel = gtk_drop_down_get_selected(GTK_DROP_DOWN(o));
+      try {
+        b = boost::lexical_cast<T>(gtk_string_list_get_string(model, sel));
+        return true;
+      }
+      catch (const std::exception &e) {
+        // not readable
+      }
+    }
+  }
+
   if (warn) {
     /* DUECA graphics.
 
-         Trying to get a numeric value from a widget, but getting a
-         numeric value from this widget type is not supported.
-       */
-    W_XTR("GtkGladeWindow::getValue: Setting double/float for gtk object \""
+       Trying to get a numeric value from a widget, but getting a
+       numeric value from this widget type is not supported.
+    */
+    W_XTR("GtkGladeWindow::getValue: Getting double/float for gtk object \""
           << wname << "\" not implemented");
   }
   return false;
@@ -627,6 +683,10 @@ bool GtkGladeWindow::__getValue<bool>(const char *wname, boost::any &b,
 
   if (GTK_IS_TOGGLE_BUTTON(o)) {
     b = bool(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(o)));
+    return true;
+  }
+  else if (GTK_IS_CHECK_BUTTON(o)) {
+    b = bool(gtk_check_button_get_active(GTK_CHECK_BUTTON(o)));
     return true;
   }
 
@@ -705,31 +765,47 @@ bool GtkGladeWindow::__getValue<std::string>(const char *wname, boost::any &b,
   return false;
 }
 
-bool GtkGladeWindow::_getValue(const char *wname, const char *mname,
-                               const char *klass, boost::any &value, bool warn)
+bool GtkGladeWindow::_getValue(const char *wname, const CommObjectWriter &cor,
+                               unsigned im, boost::any &value, bool warn)
 {
-  if (!strcmp(klass, "double")) {
+  if (cor.getMemberAccessor(im).isEnum() &&
+      _getEnumFromRadios(wname, cor, im, value, warn)) {
+    return true;
+  }
+  if (!strcmp(cor.getMemberClass(im), "double")) {
     return __getValue<double>(wname, value, warn);
   }
-  if (!strcmp(klass, "float")) {
+  if (!strcmp(cor.getMemberClass(im), "float")) {
     return __getValue<float>(wname, value, warn);
   }
-  if (!strcmp(klass, "int32_t")) {
+  if (!strcmp(cor.getMemberClass(im), "int8_t")) {
+    return __getValue<int8_t>(wname, value, warn);
+  }
+  if (!strcmp(cor.getMemberClass(im), "int16_t")) {
+    return __getValue<int16_t>(wname, value, warn);
+  }
+  if (!strcmp(cor.getMemberClass(im), "int32_t")) {
     return __getValue<int32_t>(wname, value, warn);
   }
-  if (!strcmp(klass, "uint32_t")) {
-    return __getValue<uint32_t>(wname, value, warn);
-  }
-  if (!strcmp(klass, "int64_t")) {
+  if (!strcmp(cor.getMemberClass(im), "int64_t")) {
     return __getValue<int64_t>(wname, value, warn);
   }
-  if (!strcmp(klass, "uint64_t")) {
+  if (!strcmp(cor.getMemberClass(im), "uint8_t")) {
+    return __getValue<uint8_t>(wname, value, warn);
+  }
+  if (!strcmp(cor.getMemberClass(im), "uint16_t")) {
+    return __getValue<uint16_t>(wname, value, warn);
+  }
+  if (!strcmp(cor.getMemberClass(im), "uint32_t")) {
+    return __getValue<uint32_t>(wname, value, warn);
+  }
+  if (!strcmp(cor.getMemberClass(im), "uint64_t")) {
     return __getValue<uint64_t>(wname, value, warn);
   }
-  if (!strcmp(klass, "bool")) {
+  if (!strcmp(cor.getMemberClass(im), "bool")) {
     return __getValue<bool>(wname, value, warn);
   }
-  if (!strcmp(klass, "std::string")) {
+  if (!strcmp(cor.getMemberClass(im), "std::string")) {
     return __getValue<std::string>(wname, value, warn);
   }
   try {
@@ -744,7 +820,8 @@ bool GtkGladeWindow::_getValue(const char *wname, const char *mname,
          Could not read data from this DCO member.
       */
     W_XTR("GtkGladeWindow::getValue: Could not interpret type of member \""
-          << mname << "\" with class \"" << klass << '"');
+          << cor.getMemberName(im) << "\" with class \"" << cor.getClassname()
+          << '"');
   }
   return false;
 }
@@ -759,7 +836,7 @@ unsigned GtkGladeWindow::setValues(CommObjectReader &dco, const char *format,
       snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii));
       boost::any b;
       dco[ii].read(b);
-      if (_setValue(gtkid, dco.getMemberName(ii), b, warn)) {
+      if (_setValue(gtkid, dco, ii, b, warn)) {
         nset++;
       }
     }
@@ -772,7 +849,7 @@ unsigned GtkGladeWindow::setValues(CommObjectReader &dco, const char *format,
           snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii), idx);
           boost::any b;
           ereader.read(b);
-          if (_setValue(gtkid, dco.getMemberName(ii), b, warn)) {
+          if (_setValue(gtkid, dco, ii, b, warn)) {
             nset++;
           }
         }
@@ -802,6 +879,84 @@ unsigned GtkGladeWindow::setValues(CommObjectReader &dco, const char *format,
   return nset;
 }
 
+bool GtkGladeWindow::_getEnumFromRadios(const char *gtkid,
+                                        const CommObjectWriter &dco,
+                                        unsigned im, boost::any &b, bool warn)
+{
+  auto converter = DataClassRegistry::single().getConverter(dco.getClassname());
+  void *object = converter->clone(NULL);
+
+  // reader and writer are used to find enum names
+  auto eltreader = dco.getMemberAccessor(im).getReader(object);
+  auto eltwriter = dco.getMemberAccessor(im).getWriter(object);
+
+  eltwriter.setFirstValue();
+  do {
+    std::string value;
+    eltreader.peek(value);
+    auto wname = boost::str(boost::format("%s-%s") % gtkid % value);
+    auto w = getObject(wname.c_str());
+    if (w && GTK_IS_CHECK_BUTTON(w) &&
+        gtk_check_button_get_active(GTK_CHECK_BUTTON(w))) {
+      b = value;
+      return true;
+    }
+  }
+  while (eltwriter.setNextValue());
+
+  if (warn) {
+    /* DUECA graphics.
+
+       Could not find radio buttons (=linked checkbuttons) with naming to match
+       a given enum. The base name must match the given dco object name, the
+       enum value must be coded after a colon. Example:
+       "prefix_dcomembername:One", "prefix_dcomembername:Two", if One, Two are
+       the enum values, etc.
+    */
+    W_XTR("GtkGladeWindow::getValues, no match for radio button to enum");
+  }
+  return false;
+}
+
+bool GtkGladeWindow::_setRadiosFromEnum(const char *gtkid,
+                                        const CommObjectReader &dco,
+                                        unsigned im, boost::any &b, bool warn)
+{
+  auto converter = DataClassRegistry::single().getConverter(dco.getClassname());
+  void *object = converter->clone(NULL);
+
+  // reader and writer are used to find enum names
+  auto eltreader = dco.getMemberAccessor(im).getReader(object);
+  auto eltwriter = dco.getMemberAccessor(im).getWriter(object);
+
+  eltwriter.setFirstValue();
+  do {
+    std::string value;
+    eltreader.peek(value);
+    auto wname = boost::str(boost::format("%s-%s") % gtkid % value);
+    auto w = getObject(wname.c_str());
+    if (w && GTK_IS_CHECK_BUTTON(w) &&
+        boost::any_cast<std::string>(b) == value) {
+      gtk_check_button_set_active(GTK_CHECK_BUTTON(w), TRUE);
+      return true;
+    }
+  }
+  while (eltwriter.setNextValue());
+
+  if (warn) {
+    /* DUECA graphics.
+
+       Could not find radio buttons (=linked checkbuttons) with naming to match
+       a given enum. The base name must match the given dco object name, the
+       enum value must be coded after a colon. Example:
+       "prefix_dcomembername:One", "prefix_dcomembername:Two", if One, Two are
+       the enum values, etc.
+    */
+    W_XTR("GtkGladeWindow::getValues, no match for enum to radio button");
+  }
+  return false;
+}
+
 unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
                                    const char *arrformat, bool warn)
 {
@@ -811,8 +966,7 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
     if (dco.getMemberArity(ii) == Single) {
       snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii));
       boost::any b;
-      if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii), b,
-                    warn)) {
+      if (_getValue(gtkid, dco, ii, b, warn)) {
         nset++;
         try {
           dco[ii].write(b);
@@ -828,6 +982,7 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         }
       }
     }
+
     else if (dco.getMemberArity(ii) == FixedIterable) {
       if (arrformat != NULL) {
         auto ewriter = dco[ii];
@@ -835,8 +990,7 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         while (!ewriter.isEnd()) {
           snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
           boost::any b;
-          if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii), b,
-                        warn)) {
+          if (_getValue(gtkid, dco, ii, b, warn)) {
             nset++;
             ewriter.write(b);
           }
@@ -846,12 +1000,12 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         }
       }
       else {
-        /* DUECA graphics.
+          /* DUECA graphics.
 
-             You have an array member in the DCO object you try to
-             connect to a gtk window, but have not supplied an array
-             format string.
-          */
+       You have an array member in the DCO object you try to
+       connect to a gtk window, but have not supplied an array
+       format string.
+    */
         W_XTR("GtkGladeWindow::getValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
@@ -863,8 +1017,7 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         while (true) {
           snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
           boost::any b;
-          if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii), b,
-                        warn)) {
+          if (_getValue(gtkid, dco, ii, b, warn)) {
             ewriter.write(b);
           }
           else {
@@ -873,22 +1026,22 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         }
       }
       else {
-        /* DUECA graphics.
+          /* DUECA graphics.
 
-             You have an array member in the DCO object you try to
-             connect to a gtk window, but have not supplied an array
-             format string.
-          */
+       You have an array member in the DCO object you try to
+       connect to a gtk window, but have not supplied an array
+       format string.
+    */
         W_XTR("GtkGladeWindow::getValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
     }
     else {
-      /* DUECA graphics.
+        /* DUECA graphics.
 
-           This member class (mapping, variable size array or nested) cannot
-           be used in connecting to a gtk interface.
-        */
+     This member class (mapping, variable size array or nested) cannot
+     be used in connecting to a gtk interface.
+  */
       W_XTR("GtkGladeWindow::getValues: Could not interpret organisation of "
             "member "
             << dco.getMemberName(ii));
@@ -910,12 +1063,12 @@ _searchMapping(const GtkGladeWindow::OptionMappings *mappings, const char *key,
     }
   }
   if (warn) {
-    /* DUECA graphics.
+      /* DUECA graphics.
 
-           In the given key is missing from the option string mapping for
-           selecting an Enum with a ComboBox. Check the mapping against
-           the DCO definition for the enum.
-        */
+     In the given key is missing from the option string mapping for
+     selecting an Enum with a ComboBox. Check the mapping against
+     the DCO definition for the enum.
+  */
     W_XTR("GtkGladeWindow::fillOptions: Mapping for member \""
           << key << "\" not given in options mapping");
   }
@@ -928,65 +1081,65 @@ bool GtkGladeWindow::fillOptions(const char *dcoclass, const char *format,
 {
   auto eclass = DataClassRegistry::single().getEntryShared(dcoclass);
   if (!eclass.get()) {
-    /* DUECA Graphics.
+      /* DUECA Graphics.
 
-           When trying to fill selections for combobox entries in a GUI,
-           (GtkGladeWindow::fillOptions), the specified dco data class is
-           not available. Check spelling, or add the class to the
-           executable.
-        */
+     When trying to fill selections for combobox entries in a GUI,
+     (GtkGladeWindow::fillOptions), the specified dco data class is
+     not available. Check spelling, or add the class to the
+     executable.
+  */
     E_XTR("GtkGladeWindow cannot access data class " << dcoclass);
     return false;
   }
 
-  // work variable
+    // work variable
   char gtkid[128];
   auto converter = DataClassRegistry::single().getConverter(dcoclass);
   void *object = converter->clone(NULL);
 
-  /** Run through all members. */
+    /** Run through all members. */
   for (size_t im = 0;
        im < DataClassRegistry::single().getNumMembers(eclass.get()); im++) {
     auto access =
       DataClassRegistry::single().getMemberAccessor(eclass.get(), im);
 
-    // only the enums
+      // only the enums
     if (access->isEnum()) {
-      // reader and writer are used to find enum names
+        // reader and writer are used to find enum names
       auto eltreader = access->getReader(object);
       auto eltwriter = access->getWriter(object);
 
-      // iterable, run through the
+        // iterable, run through the
       if (access->getArity() == FixedIterable) {
         if (arrformat != NULL) {
           for (unsigned idx = access->getSize(); idx--;) {
             snprintf(gtkid, sizeof(gtkid), arrformat, access->getName(), idx);
-            // now need to get the enum values?
+              // now need to get the enum values?
             _fillOptions(gtkid, eltwriter, eltreader,
                          _searchMapping(mappings, access->getName(), warn),
                          warn);
           }
         }
         else {
-          /* DUECA Graphics.
+            /* DUECA Graphics.
 
-                 There is an enum array specified, but no array format
-                 available for finding it in the interface.
-              */
+           There is an enum array specified, but no array format
+           available for finding it in the interface.
+        */
           W_XTR("GtkGladeWindow::fillOptions missing array format");
         }
       }
       else if (access->getArity() == Single) {
 
         snprintf(gtkid, sizeof(gtkid), format, access->getName());
-        // again, enum values
+          // again, enum values
         _fillOptions(gtkid, eltwriter, eltreader,
                      _searchMapping(mappings, access->getName(), warn), warn);
       }
     }
   }
 
-  // return the memory
+    // return the memory
   converter->delData(object);
 
   return true;

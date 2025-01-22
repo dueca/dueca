@@ -150,7 +150,7 @@ simulation.
 
 <li>  [Additional utilities](@ref extra)
 
-<li> [Application development with dueca-project (old)](@ref appdevel)
+<li>  [Application development with dueca-project (old)](@ref appdevel)
 
 <li>  [Application development with dueca-gproject](@ref appdevelg)
 
@@ -164,7 +164,9 @@ simulation.
 
 <li>  [Plotting live data with a web browser](@ref plotting)
 
-<li> [Log message generation and control]( @ref log)
+<li>  [Log message generation and control](@ref log)
+
+<li>  [Creating user interfaces with gtk4](@ref gtk4)
 
 <li>  [Frequently Asked Questions (and Encountered Problems)](@ref faq)
 
