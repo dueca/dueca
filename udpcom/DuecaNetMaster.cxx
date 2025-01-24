@@ -234,7 +234,7 @@ bool DuecaNetMaster::complete()
        Could not open /dev/random to get a random group magic number,
        beware of old DUECA processess potentially polluting communication.
     */
-    W_MOD("Could not open /dev/random, using a non-random group id");
+    W_NET("Could not open /dev/random, using a non-random group id");
   }
 
   ssize_t nread = read(fr, &group_magic, sizeof(group_magic));
@@ -244,7 +244,7 @@ bool DuecaNetMaster::complete()
        Could not read /dev/random to get a random group magic number,
        beware of old DUECA processess potentially polluting communication.
     */
-    W_MOD("Could not read /dev/random, using a non-random group id");
+    W_NET("Could not read /dev/random, using a non-random group id");
   }
 
   return res;
@@ -299,7 +299,7 @@ void DuecaNetMaster::cbValid(const TimeSpec& ts, const std::string& name)
      Information on validating the channel token for sending timing
      and capacity data.
   */
-  W_MOD("Validated write token for net timing/capacity data " << name);
+  W_NET("Validated write token for net timing/capacity data " << name);
 }
 
 DuecaNetMaster::~DuecaNetMaster()

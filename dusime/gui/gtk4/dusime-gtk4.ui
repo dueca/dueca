@@ -318,7 +318,7 @@
             <property name="vexpand">True</property>
             <child>
               <object class="GtkColumnView" id="entity_status">
-                <property name="width-request">260</property>
+                <property name="width-request">240</property>
                 <property name="hexpand">1</property>
                 <child>
                   <object class="GtkColumnViewColumn" id="entity_module_col">
@@ -368,7 +368,7 @@
             <property name="vexpand">True</property>
             <child>
               <object class="GtkColumnView" id="nodes_list">
-                <property name="width-request">180</property>
+                <property name="width-request">140</property>
                 <child>
                   <object class="GtkColumnViewColumn">
                     <property name="title" translatable="1">#</property>

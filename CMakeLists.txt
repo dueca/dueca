@@ -4,6 +4,7 @@
 #       date            : 1610xx
 #       category        : cmake definition
 #       copyright       : (c) 2016 TUDelft-AE-C&S
+#       copyright       : (c) 2022- DUECA authors
 
 cmake_minimum_required(VERSION 3.0)
 
@@ -19,11 +20,11 @@ endforeach()
 
 # version information, please update accordingly
 set(VERMAJOR 4)
-set(VERMINOR 1)
-set(REVISION 3)
+set(VERMINOR 2)
+set(REVISION 0)
 set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "13 Nov 2024")
+set(VERSION_DATE "24 Jan 2025")
 string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
 set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 
@@ -377,6 +378,7 @@ pkg_check_modules(GTKGLEXT gtkglext-1.0)
 pkg_check_modules(GTK3 gtk+-3.0)
 pkg_check_modules(GTKMM30 gtkmm-3.0)
 pkg_check_modules(GTKMM40 gtkmm-4.0)
+pkg_check_modules(GTK4 gtk4)
 
 # rapidjson for channel data coding
 pkg_check_modules(RAPIDJSON RapidJSON)

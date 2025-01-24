@@ -154,7 +154,7 @@ bool DDFFDataRecorder::isValid()
        A DataRecorder needs both entity and key defined. One or
        both are empty.
     */
-    W_MOD("DataRecorder is not correctly initialized, entity=\"" <<
+    W_CNF("DataRecorder is not correctly initialized, entity=\"" <<
           entity << "\", key=\"" << key << "\"");
     return false;
   }
@@ -164,7 +164,7 @@ bool DDFFDataRecorder::isValid()
 
        Replay filer has not been found?
     */
-    E_MOD("DataRecorder, have no filer for entity=\"" << entity <<
+    E_CNF("DataRecorder, have no filer for entity=\"" << entity <<
           "\"");
     return false;
   }

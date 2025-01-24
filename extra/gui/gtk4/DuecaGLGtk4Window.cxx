@@ -93,6 +93,8 @@ void DuecaGLGtk4Window::swapBuffers()
   // no-op?
 }
 
+void DuecaGLGtk4Window::callDisplay() { display(); }
+
 static void changeCursor(int cursor, GtkWidget *win, GdkCursor *&gcursor,
                          GdkDisplay *display)
 {
@@ -151,44 +153,33 @@ DuecaGLGtk4Window::~DuecaGLGtk4Window()
 
 static gboolean on_render(GtkGLArea *area, GdkGLContext *context, gpointer self)
 {
-  if (gtk_gl_area_get_error(area) != NULL)
-    return FALSE;
+  // if (gtk_gl_area_get_error(area) != NULL)
+  //   return FALSE;
 
-  gtk_gl_area_make_current(area);
+  // gtk_gl_area_make_current(area);
+
   reinterpret_cast<DuecaGLGtk4Window *>(self)->display();
   return TRUE;
 }
 
-GdkGLContext *DUECA_GTK4GL_common_gc = NULL;
-
-static gboolean on_realize(GtkGLArea *area, gpointer self)
+static void on_realize(GtkGLArea *area, gpointer self)
 {
   gtk_gl_area_make_current(area);
-  // gtk_gl_area_attach_buffers(area);
-  if (gtk_gl_area_get_error(area) != NULL) {
+  gtk_gl_area_attach_buffers(area);
+
+  auto gerr = gtk_gl_area_get_error(area);
+  if (gerr) {
     /* DUECA extra.
 
        Unspecified error signalled by the gtk2 gl area. */
-    E_XTR("Errors with the GL area");
-    return FALSE;
+    E_XTR("Errors with the GL area " << gerr->message);
+    return;
   }
 
   reinterpret_cast<DuecaGLGtk4Window *>(self)->passShape();
   reinterpret_cast<DuecaGLGtk4Window *>(self)->initGL();
 
-  return TRUE;
-}
-
-static GdkGLContext *on_context(GtkGLArea *area, gpointer self)
-{
-  if (DUECA_GTK4GL_common_gc) {
-    return DUECA_GTK4GL_common_gc;
-  }
-  auto ctxt = gdk_surface_create_gl_context(GDK_SURFACE(area), NULL);
-  if (CSE.getShareGLContexts()) {
-    DUECA_GTK4GL_common_gc = ctxt;
-  }
-  return ctxt;
+  return;
 }
 
 void on_window_realize(GtkWindow *win, gpointer self)
@@ -232,8 +223,8 @@ void DuecaGLGtk4Window::openWindow()
                      this);
   }
   area = gtk_gl_area_new();
-  gtk_gl_area_set_required_version(GTK_GL_AREA(area), 4, 0);
-  // gtk_gl_area_set_auto_render(GTK_GL_AREA(area), FALSE);
+  gtk_gl_area_set_required_version(GTK_GL_AREA(area), 4, 4);
+  gtk_gl_area_set_auto_render(GTK_GL_AREA(area), FALSE);
   if (CSE.getGraphicDepthBufferSize()) {
     gtk_gl_area_set_has_depth_buffer(GTK_GL_AREA(area), TRUE);
   }
@@ -250,7 +241,6 @@ void DuecaGLGtk4Window::openWindow()
 
   g_signal_connect(area, "render", G_CALLBACK(on_render), this);
   g_signal_connect(area, "realize", G_CALLBACK(on_realize), this);
-  g_signal_connect(area, "create-context", G_CALLBACK(on_context), this);
 
   // DuecaGtkInteraction::init(area);
   gtk_box_append(GTK_BOX(box), GTK_WIDGET(area));

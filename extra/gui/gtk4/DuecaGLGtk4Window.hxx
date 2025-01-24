@@ -23,7 +23,6 @@
 DUECA_NS_START;
 
 /** Provides a DUECA shell around a window with a Gtk4 GtkGlarea.
-    If Gtk4 does not have GtkGLarea, tough luck (GTK3 < 3.16).
 
     After deriving from this class, you should implement
     the GL drawing routine.
@@ -58,6 +57,9 @@ class DuecaGLGtk4Window: public DuecaGtkInteraction
 
   /** selected cursor */
   int                  cursortype;
+
+  /** did the init */
+  bool                 need_init;
 
 public:
   /** Constructor
@@ -125,6 +127,8 @@ public:
       etc.) the window needs to be current. First call this routine in
       that case. */
   void makeCurrent();
+
+  void callDisplay();
 
 public:
   /** Function to implement in a derived class. Can assume that the GL

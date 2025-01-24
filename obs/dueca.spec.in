@@ -358,6 +358,7 @@ Documentation for users of the DUSIME and DUECA API
        %{?STATICLIBS_CONFIG} \
        -DDUECA_DOC_PATH:PATH=%{_docdir} \
        %{?GLUI_CONFIG} \
+       -DBUILD_GTK2=ON \
        %{?GTKMM_CONFIG} \
        %{?GTKTHREE_CONFIG} \
        %{?GTKFOUR_CONFIG} \
@@ -491,6 +492,11 @@ getent group rtdueca || groupadd rtdueca
 %{_libdir}/libdueca-gtk3.so.*
 %{_libdir}/libdueca-gtkmm3.so.*
 %endif
+%if 0%{?gtkfour_config}
+%{_libdir}/libdueca-extra-gtk4.so.*
+%{_libdir}/libdueca-gtk4.so.*
+%{_libdir}/libdueca-gtkmm4.so.*
+%endif
 %{_libdir}/libdueca-ip*.so.*
 %{_libdir}/libdueca-shm*.so.*
 %{_libdir}/libdueca-extra.so.*
@@ -570,6 +576,14 @@ getent group rtdueca || groupadd rtdueca
 %{_libdir}/libdueca-gtk3.%{so_or_a}
 %{_libdir}/libdueca-gtk3-??.%{startsoa}
 %{_libdir}/libdueca-gtkmm3.%{so_or_a}
+%endif
+%%if 0%{?gtkfour_config}
+%{_libdir}/pkgconfig/dueca-gtk4*.pc
+%{_libdir}/pkgconfig/dueca-gtkmm4.pc
+%{_libdir}/libdueca-extra-gtk4.%{so_or_a}
+%{_libdir}/libdueca-gtk4.%{so_or_a}
+%{_libdir}/libdueca-gtk4-??.%{startsoa}
+%{_libdir}/libdueca-gtkmm4.%{so_or_a}
 %endif
 %{_libdir}/libdueca-ip.%{so_or_a}
 %{_libdir}/libdueca-ip-??.%{startsoa}
@@ -714,6 +728,9 @@ getent group rtdueca || groupadd rtdueca
 %if 0%{?gtkthree_config}
 %{_libdir}/libdueca-dusime-gtk3.so.*
 %endif
+%%if 0%{?gtkfour_config}
+%{_libdir}/libdueca-dusime-gtk4.so.*
+%endif
 %endif
 
 %files dusime-devel
@@ -725,6 +742,10 @@ getent group rtdueca || groupadd rtdueca
 %if 0%{?gtkthree_config}
 %{_libdir}/libdueca-dusime-gtk3.%{so_or_a}
 %{_libdir}/libdueca-dusime-gtk3-??.%{startsoa}
+%endif
+%if 0%{?gtkfour_config}
+%{_libdir}/libdueca-dusime-gtk4.%{so_or_a}
+%{_libdir}/libdueca-dusime-gtk4-??.%{startsoa}
 %endif
 %{_includedir}/dueca/dusime
 %{_libdir}/pkgconfig/dueca-dusime*pc

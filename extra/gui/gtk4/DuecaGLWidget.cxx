@@ -21,7 +21,7 @@
 
 DUECA_NS_START;
 
-extern GdkGLContext *DUECA_GTK4GL_common_gc;
+//extern GdkGLContext *DUECA_GTK4GL_common_gc;
 
 DuecaGLWidget::DuecaGLWidget(DuecaGLWidgetArea *area) :
   DuecaGtkInteraction(GTK_WIDGET(area)),
@@ -36,18 +36,6 @@ static gboolean on_render(DuecaGLWidgetArea *area, GdkGLContext *context,
 {
   reinterpret_cast<DuecaGLWidget *>(self)->display();
   return TRUE;
-}
-
-static GdkGLContext *on_context(DuecaGLWidgetArea *area, gpointer self)
-{
-  if (DUECA_GTK4GL_common_gc) {
-    return DUECA_GTK4GL_common_gc;
-  }
-  auto ctxt = gdk_surface_create_gl_context(GDK_SURFACE(area), NULL);
-  if (CSE.getShareGLContexts()) {
-    DUECA_GTK4GL_common_gc = ctxt;
-  }
-  return ctxt;
 }
 
 static void on_realize(DuecaGLWidgetArea *area, gpointer self)
@@ -73,7 +61,7 @@ void DuecaGLWidget::_init()
 
   g_signal_connect(area, "render", G_CALLBACK(on_render), this);
   g_signal_connect(area, "realize", G_CALLBACK(on_realize), this);
-  g_signal_connect(area, "create-context", G_CALLBACK(on_context), this);
+  // g_signal_connect(area, "create-context", G_CALLBACK(on_context), this);
 
   DuecaGtkInteraction::init(GTK_WIDGET(area));
 }

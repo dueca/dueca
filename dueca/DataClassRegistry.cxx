@@ -264,7 +264,7 @@ unsigned DataClassRegistry::completeIndices(map_type::mapped_type ix)
              A transportable (DCO) data type has a member that shadows
              a member in one of its parent data types. Check your .dco
              files. */
-          W_MOD("DCO " << ix->converter->getClassname() << " member \"" <<
+          W_CNF("DCO " << ix->converter->getClassname() << " member \"" <<
                 pm.first << "\" shadows member in parent");
         }
         else {

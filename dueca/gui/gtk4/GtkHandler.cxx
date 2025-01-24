@@ -142,7 +142,7 @@ void GtkHandler::passControl()
     /* DUECA graphics.
 
        Result after application run is non-zero */
-    W_MOD("Non-zero result from gtk application " << result);
+    W_STS("Non-zero result from gtk application " << result);
   }
 }
 

@@ -2,6 +2,23 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.2.0] - 2025-01-24
+
+- Add manual triggerpuller
+- Noble (24.4) is now ci platform, adapt github config
+- gtk4 added as interface option
+- gtk4 versions of the DUECA/DUSIME interfaces
+- New documentation page on gtk4 interfaces with Workbench
+- Correction on channel entry linking to token; selecting by label
+  would link to multiple entries, while one was expected. 
+- Corrected how hdf and ddff loggers select entry by label, limit
+  to one entry
+- Add gtk4/python concept test example
+- Add ci test scenario with gtk4
+- Option to switch branch of checked out test platform in testing code
+- Switch to Xephyr as nested X server for creating test scenarios
+- Use xmlstarlet to dumb down some gtkt ui files for older platforms
+
 ## [4.1.3] - 2024-11-12
 
 - Fixes gtkgladewindow DCO reading and writing

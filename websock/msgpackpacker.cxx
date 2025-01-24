@@ -292,7 +292,7 @@ boost::any decode_value(const msgpack::object &doc, typeindex_t tix)
     }
   }
   catch (const boost::bad_any_cast &e) {
-    /* DUECA websock.
+    /* DUECA websockets.
 
        Unexpected error in converting a XML string to a DCO
        write. Cannot interpret the given variable type.
@@ -301,7 +301,7 @@ boost::any decode_value(const msgpack::object &doc, typeindex_t tix)
     val = std::string("-- cannot decode --");
   }
   catch (const std::exception &e) {
-    /* DUECA websock.
+    /* DUECA websockets.
 
        Unexpected error in converting a XML string to a DCO write.
     */
@@ -414,9 +414,9 @@ void decode_dco(const mainmap_t &obj, CommObjectWriter &dco)
       }
     }
     catch (const std::exception &e) {
-      /* DUECA websock.
+      /* DUECA websockets.
 
-         Failing to match the structure received on a msgpack value to 
+         Failing to match the structure received on a msgpack value to
          a target DCO structure.
       */
       E_XTR("Cannot write msgpack value into DCO " << e.what());
