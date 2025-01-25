@@ -610,6 +610,9 @@ GAction *GtkDuecaView::requestViewEntry(const char *name, const char *label,
   g_object_set_data(G_OBJECT(action), "window", object);
   g_signal_connect(action, "activate", G_CALLBACK(hide_or_show_view), action);
 
+  // set transient? NOOOOO
+  // gtk_window_set_transient_for(GTK_WINDOW(object), GTK_WINDOW(window["dueca_if"]));
+
   // add the action to the application?
   g_action_map_add_action(G_ACTION_MAP(GtkHandler::application()),
                           G_ACTION(action));

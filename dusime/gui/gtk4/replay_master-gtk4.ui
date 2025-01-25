@@ -221,6 +221,7 @@
                   <object class="GtkButton" id="record_prepare">
                     <property name="label">Prepare Record</property>
                     <property name="sensitive">false</property>
+                    <property name="has-default">true</property>
                     <layout>
                       <property name="row">2</property>
                       <property name="column">0</property>
@@ -239,6 +240,13 @@
                 <child>
                   <object class="GtkEntry" id="record_name">
                     <property name="sensitive">false</property>
+                    <property name="focusable">true</property>
+                    <property name="activates-default">true</property>
+                    <property name="buffer">
+                      <object class="GtkEntryBuffer">
+                        <property name="text"></property>
+                      </object>
+                    </property>
                     <layout>
                       <property name="row">1</property>
                       <property name="column">1</property>

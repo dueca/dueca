@@ -35,6 +35,8 @@ Then I recomment the following extensions, using the extension manager ("four bl
 - "XML", by redhat
 - "autoDocstring", by njpwerner
 
+The "clangd" extension has one (to me) annoying feature, in that it tries to add header files for functions that you type automatically. This may not be the header file that you need, and for me it often broke a compilation. If you want to stop that (as you should), go into its settings, and add the argument "--header-insertion=never".
+
 ## Use
 
 Before use of the extensions and settings, first do a one-time configure (and compile) of your project, and install default configuration files for your VSCode/Codium, in your project folder, run:
@@ -45,7 +47,7 @@ Before use of the extensions and settings, first do a one-time configure (and co
     # default configuration files
     dueca-gproject build --vscode
 
-If you have multiple projects, repeat this for each project. You should now have the following files there (do not enter into git!):
+If you have multiple projects, repeat this for each project. You should now a set of additional files there. Since you can easily re-generate these, it is better if you do not enter these into git, unless you needed to modify these, e.g., to add another debug configuration in the launch.json.
 
     compile_commands.json
     .clang-format

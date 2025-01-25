@@ -12,7 +12,8 @@ export GDK_BACKEND=x11
 export -n WAYLAND_DISPLAY
 
 sleep 1
-@WINDOWMANAGER@ &
+unset DBUS_SESSION_BUS_ADDRESS
+LC_ALL=en_US.UTF-8 dbus-launch --exit-with-session @WINDOWMANAGER@-session &
 sleep 1
 @Python_EXECUTABLE@ @CMAKE_CURRENT_SOURCE_DIR@/testrunner.py \
        --base @TESTRUN_BASE@ \
