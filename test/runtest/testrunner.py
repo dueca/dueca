@@ -819,25 +819,25 @@ parser.add_argument(
 )
 parser.add_argument(
     "--offset-x",
-    default=0,
+    default=-2,
     type=int,
     help="Offset of the x origin given by the window manager",
 )
 parser.add_argument(
     "--offset-y",
-    default=22,
+    default=26,
     type=int,
     help="Offset of the y origin given by the window manager",
 )
 parser.add_argument(
     "--extra-x",
-    default=0,
+    default=4,
     type=int,
     help="Additional x size (borders) by window manager",
 )
 parser.add_argument(
     "--extra-y",
-    default=32,
+    default=18,
     type=int,
     help="Additional y size (borders, header) by window manager",
 )

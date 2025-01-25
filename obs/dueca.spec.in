@@ -653,6 +653,9 @@ getent group rtdueca || groupadd rtdueca
 %if 0%{?gtkthree_config}
 %{_libdir}/libdueca-udp-gtk3.so.*
 %endif
+%if 0%{?gtkfour_config}
+%{_libdir}/libdueca-udp-gtk4.so.*
+%endif
 %{_libdir}/libdueca-udp-gtk2.so.*
 %endif
 
@@ -665,6 +668,10 @@ getent group rtdueca || groupadd rtdueca
 %if 0%{?gtkthree_config}
 %{_libdir}/libdueca-udp-gtk3.%{so_or_a}
 %{_libdir}/libdueca-udp-gtk3-??.%{startsoa}
+%endif
+%if 0%{?gtkfour_config}
+%{_libdir}/libdueca-udp-gtk4.%{so_or_a}
+%{_libdir}/libdueca-udp-gtk4-??.%{startsoa}
 %endif
 %{_libdir}/libdueca-udp-gtk2.%{so_or_a}
 %{_libdir}/libdueca-udp-gtk2-??.%{startsoa}
