@@ -9,6 +9,8 @@
       <xs:sequence>
         <xs:element name="project" type="project_t"
           minOccurs="1" maxOccurs="1" />
+        <xs:element name="offset" type="offset_t"
+          minOccurs="0" maxOccurs="1" />
         <xs:element name="repository" type="xs:string"
           minOccurs="1" maxOccurs="1" />
         <xs:element name="version" type="xs:string"
@@ -45,6 +47,11 @@
       <xs:element name="snap" type="snap_t" minOccurs="1" maxOccurs="1" />
       <xs:element name="key" type="key_t" minOccurs="1" maxOccurs="1" />
     </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="offset_t">
+    <xs:attribute name="x" type="xs:integer" />
+    <xs:attribute name="y" type="xs:integer" />
   </xs:complexType>
 
   <xs:complexType name="check_t">

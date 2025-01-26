@@ -51,6 +51,9 @@
 #include "Callback.hxx"
 #include "VarProbe.hxx"
 
+#define DEBPRINTLEVEL 1
+#include <debprint.h>
+
 extern "C" {
 void read_md2_file(GtkWidget *widget, gpointer user_data);
 }
@@ -449,9 +452,12 @@ bool GtkDuecaView::complete()
     // menu actions
 
     // add a gesture controller for the emergency widget
-    auto emergency = window["emergency"];
+    // auto emergency = window["emergency"];
     auto ctrl = gtk_gesture_click_new();
     auto cbgest = gtk_callback(&GtkDuecaView::cbEmerg2, this);
+    gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(ctrl),
+                                               GTK_PHASE_CAPTURE);
+
     g_signal_connect(ctrl, "released", cbgest->callback(), cbgest);
     gtk_widget_add_controller(emergency, GTK_EVENT_CONTROLLER(ctrl));
 
@@ -522,6 +528,16 @@ bool GtkDuecaView::complete()
   gtk_dueca_button_load_image(hw_safe, 0);
   gtk_dueca_button_load_image(hw_on, 0);
   gtk_dueca_emergency_load_image(emergency, 0);
+
+  // hack, to properly load buttons here
+  const char *dusimebuttons[] = { "inactive", "holdcurrent", "calibrate",
+                                  "advance", "replay", "calibrate" };
+  for (const auto bname : dusimebuttons) {
+    if (window[bname]) {
+      gtk_dueca_button_load_image(window[bname], 0);
+      gtk_widget_set_sensitive(window[bname], FALSE);
+    }
+  }
 
   // set the application on the window
   gtk_window_set_application(GTK_WINDOW(window["dueca_if"]),
@@ -611,7 +627,8 @@ GAction *GtkDuecaView::requestViewEntry(const char *name, const char *label,
   g_signal_connect(action, "activate", G_CALLBACK(hide_or_show_view), action);
 
   // set transient? NOOOOO
-  // gtk_window_set_transient_for(GTK_WINDOW(object), GTK_WINDOW(window["dueca_if"]));
+  // gtk_window_set_transient_for(GTK_WINDOW(object),
+  // GTK_WINDOW(window["dueca_if"]));
 
   // add the action to the application?
   g_action_map_add_action(G_ACTION_MAP(GtkHandler::application()),
@@ -1050,6 +1067,7 @@ void GtkDuecaView::cbOn2(GtkWidget *widget, gpointer user_data)
 void GtkDuecaView::cbEmerg2(GtkGestureClick *click, gint n_press, gdouble x,
                             gdouble y, gpointer user_data)
 {
+  D_MOD("Gesture click b=" << n_press << " xy=" << x << "," << y);
   if (safe_armed) {
     // pressed for the second time. Exciting. Does the event indicate
     // that the lower portion was pressed?
@@ -1070,14 +1088,14 @@ void GtkDuecaView::cbEmerg2(GtkGestureClick *click, gint n_press, gdouble x,
     }
     else {
       safe_armed = false;
-      gtk_dueca_button_load_image(emergency, 0);
+      gtk_dueca_emergency_load_image(emergency, 0);
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(emergency), FALSE);
     }
   }
   else {
     safe_armed = true;
     // set the yes/return face
-    gtk_dueca_button_load_image(emergency, 1);
+    gtk_dueca_emergency_load_image(emergency, 1);
     // but leave the toggle button out
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(emergency), FALSE);
   }

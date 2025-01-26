@@ -7,20 +7,17 @@
 
 (Type double)
 (Type string16 "#include <dueca/stringoptions.h>")
-(Type vector6double 
-	      "
+(Type vector6double "
 #include <dueca/fixvector_withdefault.hxx>
 typedef dueca::fixvector_withdefault<6,double,-1> vector6double;")
-(Type vector3double 
-	      "
+(Type vector3double "
 #include <dueca/fixvector_withdefault.hxx>
 typedef dueca::fixvector_withdefault<3,double,-1> vector3double;")
-(Type matrix44double
-              "
+(Type matrix44double "
 #include <dueca/fixvector_withdefault.hxx>
 #include <dueca/fixvector.hxx>
 typedef dueca::fixvector_withdefault<16,double,-1> matrix44double;
-typedef dueca::fixvector_withdefault<4,dueca::fixvector<4,double>,-1>
+typedef dueca::fixvector<4,dueca::fixvector_withdefault<4,double,-1>>
         matrix44double2;")
 
 ;; Head pose data
@@ -28,7 +25,7 @@ typedef dueca::fixvector_withdefault<4,dueca::fixvector<4,double>,-1>
         (Option hdf5)
         (Option msgpack)
 	(IncludeFile PupilRemoteHeadPoseExtra)
-	
+
         ;; reported topic
 	(string16 topic)
 
@@ -40,7 +37,7 @@ typedef dueca::fixvector_withdefault<4,dueca::fixvector<4,double>,-1>
 
 	;; camera trace? (can be 3 nan)
 	(vector3double camera_trace (Default 0.0))
-	
+
 	;; camera pose matrix (can be None or 4x4)
 	(matrix44double camera_pose_matrix (Default 0.0))
 

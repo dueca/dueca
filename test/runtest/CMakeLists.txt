@@ -16,6 +16,7 @@ find_program(WINDOWMANAGER NAMES openbox)
 find_program(WMCTRL NAMES wmctrl)
 find_package(LibXml2 REQUIRED)
 find_program(H5DUMP NAMES h5dump)
+find_program(XMLSTARLET NAMES xmlstarlet)
 
 # variables for running
 set(DISPLAYSIZE 1280x1024)
@@ -178,6 +179,24 @@ if (PYTHON_HAVE_PIL EQUAL 0 AND
 elseif(NESTSERVER MATCHES ".*-NOTFOUND")
   message(WARNING "No ${RUNTEST_SERVER}, cannot create a scenario creation script")
 endif()
+
+if(NOT XMLSTARLET MATCHES ".*-NOTFOUND")
+  foreach(SCN ${CONTROLFILES})
+    add_custom_command(
+      OUTPUT ${CMAKE_BINARY_DIR}/${SCN}-clean.xml
+      COMMAND ${XMLSTARLET} edit -N x="https://dueca.tudelft.nl"
+      --delete 'x:scenario/x:actions/x:snap'
+      --delete 'x:scenario/x:actions/x:click'
+      --delete 'x:scenario/x:actions/x:check'
+      --delete 'x:scenario/x:actions/x:key'
+      ${SCN}.xml > ${CMAKE_BINARY_DIR}/${SCN}-clean.xml
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      DEPENDS ${SCN}.xml)
+    list(APPEND CLNFILES ${CMAKE_BINARY_DIR}/${SCN}-clean.xml)
+  endforeach()
+endif()
+
+add_custom_target(clnfiles ALL DEPENDS ${CLNFILES})
 
 # User interaction with DUECA windows is read from xml files, and replayed
 # through a python script.

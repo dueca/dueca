@@ -48,28 +48,30 @@ void load_dueca_buttons()
 {
   // load the emergency and button icons
   if (!emergency_icons[0]) {
-    emergency_icons[0] = loadTextureFromFile("pixmaps/abort.xpm");
-    emergency_icons[1] = loadTextureFromFile("pixmaps/confirm-abort.xpm");
-    button_icons[0] = loadTextureFromFile("pixmaps/inactive.xpm");
-    button_icons[1] = loadTextureFromFile("pixmaps/inprogress.xpm");
-    button_icons[2] = loadTextureFromFile("pixmaps/active.xpm");
-    button_icons[3] = loadTextureFromFile("pixmaps/incomplete.xpm");
-    button_icons[4] = loadTextureFromFile("pixmaps/fell-back.xpm");
+    emergency_icons[0] = loadTextureFromFile("pixmaps/abort.svg");
+    emergency_icons[1] = loadTextureFromFile("pixmaps/confirm-abort.svg");
+    button_icons[0] = loadTextureFromFile("pixmaps/inactive.svg");
+    button_icons[1] = loadTextureFromFile("pixmaps/inprogress.svg");
+    button_icons[2] = loadTextureFromFile("pixmaps/active.svg");
+    button_icons[3] = loadTextureFromFile("pixmaps/incomplete.svg");
+    button_icons[4] = loadTextureFromFile("pixmaps/fell-back.svg");
   }
 };
 
 void gtk_dueca_button_load_image(GtkWidget *btn, unsigned imno)
 {
   assert(imno < 5);
-  auto img = GTK_IMAGE(gtk_widget_get_first_child(btn));
-  gtk_image_set_from_paintable(img, button_icons[imno]);
+  auto img = GTK_PICTURE(gtk_widget_get_first_child(btn));
+  //gtk_image_set_icon_size(img, GTK_ICON_SIZE_LARGE);
+  gtk_picture_set_paintable(img, button_icons[imno]);
 }
 
 void gtk_dueca_emergency_load_image(GtkWidget *btn, unsigned imno)
 {
   assert(imno < 2);
-  auto img = GTK_IMAGE(gtk_widget_get_first_child(btn));
-  gtk_image_set_from_paintable(img, emergency_icons[imno]);
+  auto img = GTK_PICTURE(gtk_widget_get_first_child(btn));
+  //gtk_image_set_icon_size(img, GTK_ICON_SIZE_LARGE);
+  gtk_picture_set_paintable(img, emergency_icons[imno]);
 }
 
 DUECA_NS_END;

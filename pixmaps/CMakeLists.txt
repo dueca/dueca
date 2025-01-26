@@ -9,6 +9,11 @@ set(SVGIMG
   event-logo.svg multi-logo.svg picking-logo.svg stream-logo.svg
   label-logo.svg number-logo.svg sequential-logo.svg)
 
+set(SVGDIRECT
+active.svg fell-back.svg incomplete.svg abort.svg
+confirm-abort.svg inactive.svg inprogress.svg
+)
+
 # convert svg files to png
 foreach(SVG ${SVGIMG})
   string(REPLACE .svg .png PNG ${SVG})
@@ -25,6 +30,6 @@ foreach(SVG ${SVGIMG})
 endforeach()
 
 add_custom_target(pngfiles ALL DEPENDS ${PNGFILES})
-install(FILES ${PNGFILES}
+install(FILES ${PNGFILES} ${SVGDIRECT}
   DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca/pixmaps)
 

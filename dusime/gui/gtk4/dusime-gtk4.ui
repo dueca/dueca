@@ -17,7 +17,7 @@
     </submenu>
     <submenu id="view_menu">
       <attribute name="label" translatable="1">_View</attribute>
-    <!--  <section id="view_section">
+      <!--  <section id="view_section">
       </section>-->
     </submenu>
     <submenu>
@@ -105,6 +105,7 @@
         <child>
           <object class="GtkLabel">
             <property name="label" translatable="1">stop</property>
+            <property name="halign">end</property>
             <layout>
               <property name="column">3</property>
               <property name="row">2</property>
@@ -114,6 +115,7 @@
         <child>
           <object class="GtkLabel">
             <property name="label" translatable="1">safe</property>
+            <property name="halign">end</property>
             <layout>
               <property name="column">3</property>
               <property name="row">3</property>
@@ -122,8 +124,8 @@
         </child>
         <child>
           <object class="GtkLabel">
-            <property name="label" translatable="1">work
-</property>
+            <property name="label" translatable="1">work</property>
+            <property name="halign">end</property>
             <layout>
               <property name="column">3</property>
               <property name="row">4</property>
@@ -153,7 +155,8 @@
         <child>
           <object class="GtkToggleButton" id="hw_off">
             <child>
-              <object class="GtkImage" id="hw_off_img">
+              <object class="GtkPicture" id="hw_off_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
               </object>
             </child>
             <layout>
@@ -165,7 +168,9 @@
         <child>
           <object class="GtkToggleButton" id="hw_safe">
             <child>
-              <object class="GtkImage" id="hw_safe_img" />
+              <object class="GtkPicture" id="hw_safe_img">>
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">4</property>
@@ -176,7 +181,9 @@
         <child>
           <object class="GtkToggleButton" id="hw_on">
             <child>
-              <object class="GtkImage" id="hw_on_img" />
+              <object class="GtkPicture" id="hw_on_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">4</property>
@@ -187,7 +194,9 @@
         <child>
           <object class="GtkToggleButton" id="emergency">
             <child>
-              <object class="GtkImage" id="emergency_img" />
+              <object class="GtkPicture" id="emergency_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">2</property>
@@ -260,7 +269,9 @@
         <child>
           <object class="GtkToggleButton" id="inactive">
             <child>
-              <object class="GtkImage" id="inactive_img" />
+              <object class="GtkPicture" id="inactive_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">4</property>
@@ -271,7 +282,9 @@
         <child>
           <object class="GtkToggleButton" id="holdcurrent">
             <child>
-              <object class="GtkImage" id="holdcurrent_img" />
+              <object class="GtkPicture" id="holdcurrent_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">4</property>
@@ -282,7 +295,9 @@
         <child>
           <object class="GtkToggleButton" id="advance">
             <child>
-              <object class="GtkImage" id="advance_img" />
+              <object class="GtkPicture" id="advance_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">4</property>
@@ -293,7 +308,9 @@
         <child>
           <object class="GtkToggleButton" id="replay">
             <child>
-              <object class="GtkImage" id="replay_img" />
+              <object class="GtkPicture" id="replay_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">3</property>
@@ -304,7 +321,9 @@
         <child>
           <object class="GtkToggleButton" id="hw_calibrate">
             <child>
-              <object class="GtkImage" id="hw_calibrate_img" />
+              <object class="GtkPicture" id="hw_calibrate_img">
+                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+              </object>
             </child>
             <layout>
               <property name="column">3</property>

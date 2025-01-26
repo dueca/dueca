@@ -33,14 +33,18 @@ class Translation:
         self.offset_y = offset_y
         self.extra_y = extra_y
 
-    def inWindow(self, x, y, w):
-        if x < w.x - self.offset_x:
+    def adjust(self, x, y):
+        self.offset_x = x
+        self.offset_y = y
+
+    def inWindow(self, x, y, w, margin=0):
+        if x < w.x - self.offset_x - margin:
             return False
-        if x > w.x + w.w - self.offset_x:
+        if x > w.x + w.w - self.offset_x + margin:
             return False
-        if y < w.y - self.offset_y - self.extra_y:
+        if y < w.y - self.offset_y - self.extra_y - margin:
             return False
-        if y > w.y + w.h - self.offset_y:
+        if y > w.y + w.h - self.offset_y + margin:
             return False
         # print(f"In window {w.wm_name} at {w.x},{w.y} size {w.w}x{w.h}")
         return True
@@ -72,9 +76,17 @@ def findWindow(name: str):
     return None
 
 
-def findWindowUnder(wlist, x: int, y: int, recording=False):
+def findWindowUnder(wlist, x: int, y: int, recording=False, margin=0):
     global translation
     foundwin = None
+
+    if margin:
+        # first try without
+        foundwin = findWindowUnder(wlist, x, y, recording, 0)
+        if foundwin:
+            return foundwin
+        print(f"Window not found, now with margin of {margin}")
+
     for w in Window.list():
         if w.wm_name not in known_windows:
             known_windows[w.wm_name] = (w.x, w.y)
@@ -87,7 +99,7 @@ def findWindowUnder(wlist, x: int, y: int, recording=False):
         if (
             w.wm_name in wlist
             and "focused" in w.wm_state
-            and translation.inWindow(x, y, w)
+            and translation.inWindow(x, y, w, margin)
         ):
             # print(f"focus window {w.wm_name} at {w.x},{w.y} size {w.w}x{w.h}")
             foundwin = w
@@ -95,7 +107,7 @@ def findWindowUnder(wlist, x: int, y: int, recording=False):
         return w
 
     for w in Window.list():
-        if translation.inWindow(x, y, w):
+        if translation.inWindow(x, y, w, margin):
             # print(f"found window {w.wm_name} at {w.x},{w.y} size {w.w}x{w.h}")
             foundwin = w
     return foundwin
@@ -145,6 +157,26 @@ class Execute:
             if self.platform is None or self.node is None:
                 raise ValueError("xml file incomplete")
 
+class Offset:
+
+    def __init__(self, xmlroot=None, xmlnode=None, x=0, y=0):
+
+        global translation
+        if xmlroot is not None:
+            self.xmlnode = etree.SubElement(xmlroot, "offset")
+            self.xmlnode.set("x", str(x))
+            self.xmlnode.set("y", str(y))
+        elif xmlnode is not None:
+            self.xmlnode = xmlnode
+            x = int(xmlnode.get("x", "0"))
+            y = int(xmlnode.get("y", "0"))
+
+        translation.adjust(x, y)
+
+    def adjust(self, x, y):
+        self.xmlnode.set("x", str(x))
+        self.xmlnode.set("y", str(y))
+        translation.adjust(x, y)
 
 class Click:
     buttonmap = {
@@ -454,6 +486,7 @@ class Scenario:
             self.project = None
             self.actions = []
             self.version = None
+            self.offset = None
 
             # read from file
             try:
@@ -466,6 +499,8 @@ class Scenario:
                             pass
                         elif XML_tag(node, "project"):
                             self.project = Project(xmlnode=node)
+                        elif XML_tag(node, "offset"):
+                            self.offset = Offset(xmlnode=node)
                         elif XML_tag(node, "repository"):
                             self.repository = node.text.strip()
                         elif XML_tag(node, "version"):
@@ -538,6 +573,13 @@ class Scenario:
             )
             return True
 
+        elif key in (Key.f3,):
+            window = findWindowUnder(self.project.windows, self.x, self.y, True, margin=40)
+            print(f"press {self.x},{self.y}, window {window.x},{window.y}")
+            if self.offset is None:
+                self.offset = Offset(xmlroot=self.xmltree, x=self.x-window.x, y=self.y-window.y)
+            return True
+ 
         elif key in (Key.esc,):
             return False
 
@@ -568,17 +610,17 @@ class Scenario:
             queue = asyncio.Queue()
 
             def on_press(key):
-                print("on_press called")
+                # print("on_press called")
                 loop.call_soon_threadsafe(queue.put_nowait, key)
 
             pynput.keyboard.Listener(on_press=on_press).start()
 
             def pass_move(x, y):
-                print("on_move called")
+                # print("on_move called")
                 loop.call_soon_threadsafe(queue.put_nowait, (x, y))
 
             def pass_click(x, y, button, pressed):
-                print("on_click called")
+                # print("on_click called")
                 loop.call_soon_threadsafe(queue.put_nowait, (x, y, button, pressed))
 
             pynput.mouse.Listener(on_click=pass_click, on_move=pass_move).start()

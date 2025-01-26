@@ -3,6 +3,22 @@
 echo "This script configures an un-optimized version, with debugging"
 echo "information. This is the configuration for development and testing."
 
+PYTHON=$(which python3)
+CWD=$(pwd)
+
+if [ "${PYTHON}" = "${CWD}/mypy/bin/python" ]; then
+    echo "Using $PYTHON"
+elif [ -r ${CWD}/mypy/bin/python ]; then
+    echo "Activating ${CWD}/mypy/"
+    source ${CWD}/mypy/bin/activate
+else
+
+    python3 -m venv --system-site-packages mypy
+    pip install wmctrl
+    pip install pynput
+    source ${CWD}/mypy/bin/activate
+fi
+
 OPTLEVEL=${OPTLEVEL:-0}
 
 BUILDDIR=build-test

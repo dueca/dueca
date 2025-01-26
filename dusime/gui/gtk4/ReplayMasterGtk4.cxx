@@ -193,6 +193,9 @@ bool ReplayMasterGtk4::complete()
       gtk_label_set_text(GTK_LABEL(this->window["record_inco_status"]),
                          name.c_str());
 
+      // check whether record already possible
+      cbRecordName(this->window["record_name"], NULL);
+
       // enable entering a recording name
       gtk_widget_set_sensitive(GTK_WIDGET(this->window["record_name"]), TRUE);
       break;
@@ -268,9 +271,15 @@ bool ReplayMasterGtk4::complete()
       break;
 
     case ReplayMaster::Collecting:
-    
+
       // collecting data
       gtk_label_set_text(GTK_LABEL(window["record_status"]), "collecting");
+      break;
+
+    case dueca::ReplayMaster::TransferIdle:
+
+      // collecting done
+      gtk_label_set_text(GTK_LABEL(window["record_status"]), "not prepared");
       break;
 
     default:
