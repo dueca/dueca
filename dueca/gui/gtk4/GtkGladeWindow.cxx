@@ -102,26 +102,39 @@ bool GtkGladeWindow::readGladeFile(const char *file, const char *mainwidget,
 
   gtk_builder_add_from_file(builder, file, NULL);
 
-  // get the main widget
-  window = GTK_WIDGET(gtk_builder_get_object(builder, mainwidget));
+  // get the main widget, if this is the first file being read
   if (!window) {
-    /* DUECA graphics.
+    if (mainwidget) {
+      window = GTK_WIDGET(gtk_builder_get_object(builder, mainwidget));
+      if (!window) {
+        /* DUECA graphics.
 
-       Cannot find the main widget in the glade builder windowing
-       file. Please check the file and main widget name.
-    */
-    E_CNF("Cannot find main widget " << mainwidget << " in " << file);
-    return false;
+           Cannot find the main widget in the glade builder windowing
+           file. Please check the file and main widget name.
+        */
+        E_CNF("Cannot find main widget " << mainwidget << " in " << file);
+        return false;
+      }
+    }
+    else if (mainwidget) {
+      /* DUECA graphics.
+      
+         You are trying to load a second ui file, and select a main widget, 
+         but the main window/widget is already set. Ignoring this mainwidget
+         name.
+      */
+      W_CNF("Second window specified for Gtk builder.");
+    }
   }
 
   // position requested?
-  if (offset_x >= 0 && offset_y >= 0) {
+  if (mainwidget && offset_x >= 0 && offset_y >= 0) {
     g_signal_connect(window, "realize", G_CALLBACK(GtkGladeWindow_placeWindow),
                      this);
   }
 
   // size requested?
-  if (size_x > 0 && size_y > 0) {
+  if (mainwidget && size_x > 0 && size_y > 0) {
     gtk_widget_set_size_request(window, size_x, size_y);
   }
 
@@ -129,13 +142,6 @@ bool GtkGladeWindow::readGladeFile(const char *file, const char *mainwidget,
   if (client && table) {
     connectCallbacks(client, table, warn);
   }
-
-  // and connect signals gobject etc.
-#if 0
-  if (connect_signals) {
-    this->connectCallbackSymbols(reinterpret_cast<gpointer>(client));
-  }
-#endif
 
   // done
   return true;

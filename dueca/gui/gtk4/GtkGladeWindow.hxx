@@ -290,7 +290,7 @@ class GtkGladeWindow
   /** A flag that avoids multiple initialization of gtkmm. */
   static bool initialised_gtkmm;
 
-  /** The main window. */
+  /** The main window, if present. */
   GtkWidget *window;
 
   /** Builder */

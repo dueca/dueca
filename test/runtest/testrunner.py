@@ -569,8 +569,9 @@ class Scenario:
         elif key in (Key.f2,):
 
             self.actions.append(
-                Snap(xmlroot=self.actionnode, name=f"snapshot{self.snapnum:04d}.png")
+                Snap(xmlroot=self.actionnode, name=f"snapshot{self.snapnum:03d}.png")
             )
+            self.snapnum += 1
             return True
 
         elif key in (Key.f3,):
@@ -757,9 +758,13 @@ class DuecaRunner:
                     shell=True,
                     stderr=subprocess.PIPE,
                 )
-
+                if c1.returncode != 0:
+                    raise RuntimeError(
+                        f"Failing clean for {self.project}:\n{c1.stderr}"
+                    )
+                
                 c1 = subprocess.run(
-                    "dueca-gproject build",
+                    "dueca-gproject build --debug",
                     cwd=f"{self.pdir}",
                     shell=True,
                     stderr=subprocess.PIPE,

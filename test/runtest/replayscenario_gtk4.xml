@@ -21,8 +21,7 @@
     <platform>solo</platform>
     <node>recordreplay</node>
   </execute>
-  <!-- Keep 'actions' clean, this will be filled by the script. You
-       can later edit and correct actions if you want. -->
+  <offset x="1" y="-15"/>
   <actions>
     <snap name="replayscenario-gtk4-01-started.png"/>
     <check window="DUECA/DUSIME control panel" x="498" y="69" r="59" g="255" b="10" timeout="10.0" wait="3.5"/>

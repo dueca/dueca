@@ -115,7 +115,7 @@ class GtkDuecaView : public Module, public DuecaView
   GtkGladeWindow window;
 
   /** About information. */
-  GtkGladeWindow gw_common;
+  // GtkGladeWindow gw_common;
 
   /** Callback object, for interface feedback. */
   Callback<GtkDuecaView> cb;

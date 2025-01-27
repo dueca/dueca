@@ -131,7 +131,17 @@ void BareDuecaGLWindow::setWindow(int posx, int posy, int width, int height)
   setWindow(wpos);
 }
 
-BareDuecaGLWindow::~BareDuecaGLWindow() { delete my; }
+BareDuecaGLWindow::~BareDuecaGLWindow()
+{
+  if (my) {
+    glXDestroyContext(static_dpy, my->glc);
+    XDestroyWindow(static_dpy, my->xwin);
+    // unselect gc if needed
+    selectGraphicsContext(false);
+    delete my;
+    my = NULL;
+  }
+}
 
 struct BareDuecaGLWindowError : public std::exception
 {
@@ -263,7 +273,8 @@ void BareDuecaGLWindow::openWindow()
   }
 
   // this waits for the creation notification
-  XEvent event; memset(&event, 0, sizeof(event));
+  XEvent event;
+  memset(&event, 0, sizeof(event));
   XIfEvent(static_dpy, &event, WaitForNotify,
            reinterpret_cast<char *>(my->xwin));
 
@@ -321,6 +332,7 @@ void BareDuecaGLWindow::openWindow()
       }
     }
   }
+
   // according to valgrind (SLED11, 100129)
   // there is still an uninitialised value/cond jump for this call??
   glXMakeCurrent(static_dpy, my->xwin, my->glc);
@@ -429,6 +441,16 @@ static const XGlutCharLink key_trans_table[] = {
   { XK_KP_End, GLUT_KEY_END },
   { 0, 0 }
 };
+
+void BareDuecaGLWindow::selectGraphicsContext(bool do_select)
+{
+  if (my && do_select) {
+    glXMakeCurrent(static_dpy, my->xwin, my->glc);
+  }
+  else if (my) {
+    glXMakeCurrent(static_dpy, None, NULL);
+  }
+}
 
 void BareDuecaGLWindow::redraw()
 {

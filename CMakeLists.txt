@@ -378,17 +378,17 @@ pkg_check_modules(GTKGLEXT gtkglext-1.0)
 pkg_check_modules(GTK3 gtk+-3.0)
 pkg_check_modules(GTKMM30 gtkmm-3.0)
 pkg_check_modules(GTKMM40 gtkmm-4.0)
-pkg_check_modules(GTK4 gtk4)
+pkg_check_modules(GTK4 gtk4-x11)
 
 # rapidjson for channel data coding
 pkg_check_modules(RAPIDJSON RapidJSON)
 
 # msgpack should be there for storage and packing
-find_package(msgpack)
+find_package(msgpack-cxx)
 
-# opensuse variants have that in msgpack-cxx!
-if (NOT msgpack_FOUND)
-  find_package(msgpack-cxx REQUIRED)
+# opensuse variants and have that in msgpack-cxx!
+if (NOT msgpack_cxx_FOUND)
+  find_package(msgpack)
 endif()
 
 message(STATUS "msgpack ${MSGPACK_VERSION}")

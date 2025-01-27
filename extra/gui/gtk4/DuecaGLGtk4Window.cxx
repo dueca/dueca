@@ -93,8 +93,6 @@ void DuecaGLGtk4Window::swapBuffers()
   // no-op?
 }
 
-void DuecaGLGtk4Window::callDisplay() { display(); }
-
 static void changeCursor(int cursor, GtkWidget *win, GdkCursor *&gcursor,
                          GdkDisplay *display)
 {

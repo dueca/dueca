@@ -17,6 +17,7 @@
     <platform>simlab</platform>
     <node>igtest</node>
   </execute>
+  <offset x="1" y="-15"/>
   <actions>
     <check window="DUECA/DUSIME control panel" x="479" y="65" r="65" g="255" b="11" timeout="10.0" wait="10.5"/>
     <snap name="simplesimulation-start.png"/>

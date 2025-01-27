@@ -1,12 +1,15 @@
 #!/bin/bash
 
 export LC_ALL=C
-@XVFB@ @DISPLAY@ -screen 0 @DISPLAYSIZE@x24 &
+@ESTSERVER@ @DISPLAY@ @NESTEXTRAARGS@ &
 XVFBPID=$!
 export DISPLAY=@DISPLAY@
 
 sleep 1
-@WINDOWMANAGER@ &
+env -i DISPLAY=@DISPLAY@ \
+    GDK_BACKEND=x11 \
+    USER=${USER} HOME=${HOME} LC_ALL=en_US.UTF-8 PATH=${PATH} \
+    dbus-launch --exit-with-session @WINDOWMANAGER@ &
 sleep 1
 timeout 10s @Python_EXECUTABLE@ -c "import pynput"
 RESULT=$?

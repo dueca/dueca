@@ -1,7 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<scenario xmlns="https://dueca.tudelft.nl"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
+<scenario xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
   <project name="DuecaTestCommunication">
     <window>DUECA/DUSIME control panel</window>
     <window>Are you serious?</window>
@@ -15,76 +13,51 @@
     <platform>udp-two</platform>
     <node>node1</node>
   </execute>
+  <offset x="1" y="-15"/>
   <actions>
-    <check window="DUECA/DUSIME control panel" x="478" y="63" r="65" g="255" b="11" timeout="20.0"
-      wait="15.5" />
-    <snap name="tmsudptwo-01-started.png" />
-    <check window="DUECA/DUSIME control panel" x="477" y="105" r="104" g="104" b="104"
-      timeout="10.0" wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="477" y="108" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="477" y="108" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="477" y="108" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <check window="DUECA/DUSIME control panel" x="479" y="150" r="104" g="104" b="104"
-      timeout="15.0" wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="482" y="150" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="482" y="150" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="482" y="150" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="478" y="233" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="478" y="233" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="478" y="233" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="428" y="231" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="428" y="231" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="478" y="232" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <check window="DUECA/DUSIME control panel" x="479" y="275" r="104" g="104" b="104" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="479" y="275" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="479" y="275" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="478" y="275" r="65" g="255" b="11" timeout="5.0"
-      wait="10.5" />
-    <snap name="tmsudptwo-02-running.png" />
-    <click window="DUECA/DUSIME control panel" x="479" y="234" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="479" y="234" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="479" y="233" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="478" y="191" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="478" y="191" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="478" y="191" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="476" y="108" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="476" y="108" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="476" y="108" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="478" y="67" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="478" y="67" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="478" y="67" r="65" g="255" b="11" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="24" y="10" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="24" y="10" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="55" y="67" r="53" g="132" b="228" timeout="5.0"
-      wait="0.5" />
-    <check window="DUECA/DUSIME control panel" x="79" y="65" r="53" g="132" b="228" timeout="5.0"
-      wait="0.5" />
-    <click window="DUECA/DUSIME control panel" x="79" y="65" button="Button.left" pressed="true" />
-    <click window="DUECA/DUSIME control panel" x="79" y="65" button="Button.left" pressed="false"
-      wait="0.2" />
-    <check window="Are you serious?" x="15" y="58" r="248" g="248" b="247" timeout="5.0" wait="0.5" />
-    <click window="Are you serious?" x="15" y="58" button="Button.left" pressed="true" />
-    <click window="Are you serious?" x="15" y="58" button="Button.left" pressed="false" wait="0.2" />
-    <check timeout="0.0" wait="10.0" />
-    <snap name="tmsudptwo-99-closed.png" />
+    <snap name="tmsudptwo-start.png"/>
+    <check window="DUECA/DUSIME control panel" x="477" y="34" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="474" y="77" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="77" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="77" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="474" y="77" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="474" y="117" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="117" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="117" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="474" y="163" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="201" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="201" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="201" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="201" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="423" y="199" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="423" y="199" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="423" y="199" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="476" y="204" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="476" y="243" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="243" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="243" button="Button.left" pressed="false" wait="0.2"/>
+    <snap name="tmsudptwo-running.png"/>
+    <check window="DUECA/DUSIME control panel" x="474" y="202" r="104" g="104" b="104" timeout="10.0" wait="10.5"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="202" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="202" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="160" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="160" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="160" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="476" y="74" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="74" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="74" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="476" y="33" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="33" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="33" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="32" y="-17" r="250" g="250" b="250" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="32" y="-17" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="32" y="-17" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="68" y="37" r="222" g="222" b="222" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="68" y="37" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="68" y="37" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="Are you serious?" x="87" y="37" r="245" g="245" b="245" timeout="10.0" wait="0.5"/>
+    <click window="Are you serious?" x="87" y="37" button="Button.left" pressed="true" wait="0.2"/>
+    <click x="131" y="225" button="Button.left" pressed="false" wait="0.2"/>
+    <click x="131" y="225" button="Button.left" pressed="true" wait="0.2"/>
   </actions>
 </scenario>
