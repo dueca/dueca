@@ -30,7 +30,7 @@ jobs:
         sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_24.04/ ./"
         sudo apt --assume-yes update
         sudo apt --assume-yes upgrade
-        sudo apt --assume-yes install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev libglade2-dev graphviz libgtkmm-2.4-dev freeglut3-dev libgtkglext1-dev libglui2c2 libglui-dev python3-pyparsing libboost-dev inkscape cmake libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu hdf5-tools python3-msgpack python3-h5py python3-jinja2 xnest python3-crcmod libopenscenegraph-dev libtirpc-dev libepoxy-dev libsdl2-dev xmlstarlet dbus-x11 libgtk-4-dev libgtkmm-4.0-dev python3-venv
+        sudo apt --assume-yes install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev libglade2-dev graphviz libgtkmm-2.4-dev freeglut3-dev libgtkglext1-dev libglui2c2 libglui-dev python3-pyparsing libboost-dev librsvg2-bin cmake libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu hdf5-tools python3-msgpack python3-h5py python3-jinja2 xnest python3-crcmod libopenscenegraph-dev libtirpc-dev libepoxy-dev libsdl2-dev xmlstarlet dbus-x11 libgtk-4-dev libgtkmm-4.0-dev python3-venv
 
     - name: Install Python packages
       run: |
@@ -45,11 +45,12 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build
+      run: source ./dpyenv/bin/activate &&
+         cmake -B ${{github.workspace}}/build
         -DCMAKE_CXX_FLAGS="-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_30"
         -DCMAKE_INSTALL_PREFIX=${{env.PREFIX}}
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -DBUILD_DOC=ON
+        -DBUILD_DOC=ON \
         -DDUECA_BUILD_SHARED=ON
         -DDUECA_BUILD_STATIC=OFF
         -DBUILD_UDP=ON
@@ -78,17 +79,22 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: |
+        source ./dpyenv/bin/activate
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Install
       # Installs to a local prefix, needed for running some of the tests
-      run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: |
+        source ./dpyenv/bin/activate
+        cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: |
+        source ./dpyenv/bin/activate
         git config --global user.email "ghtest@example.com"
         git config --global user.name  "example runner"
         source ${{env.PREFIX}}/dueca-env.sh && USER=example ctest -C ${{env.BUILD_TYPE}}
