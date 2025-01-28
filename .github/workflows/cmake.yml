@@ -30,15 +30,17 @@ jobs:
         sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_24.04/ ./"
         sudo apt --assume-yes update
         sudo apt --assume-yes upgrade
-        sudo apt --assume-yes install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev libglade2-dev graphviz libgtkmm-2.4-dev freeglut3-dev libgtkglext1-dev libglui2c2 libglui-dev python3-pyparsing libboost-dev inkscape cmake libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu hdf5-tools python3-msgpack python3-h5py python3-jinja2 xnest python3-crcmod libopenscenegraph-dev libtirpc-dev libepoxy-dev libsdl2-dev xmlstarlet dbus-x11
+        sudo apt --assume-yes install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev libglade2-dev graphviz libgtkmm-2.4-dev freeglut3-dev libgtkglext1-dev libglui2c2 libglui-dev python3-pyparsing libboost-dev inkscape cmake libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu hdf5-tools python3-msgpack python3-h5py python3-jinja2 xnest python3-crcmod libopenscenegraph-dev libtirpc-dev libepoxy-dev libsdl2-dev xmlstarlet dbus-x11 libgtk-4-dev libgtkmm-4.0-dev python3-venv
 
     - name: Install Python packages
       run: |
-        pip3 install wmctrl --user
-        pip3 install pynput --user
-        pip3 install attrs --user
-        pip3 install pillow --user
-        pip3 install build --user
+        python3 -m venv --system-site-packages dpyenv
+        source ./dpyenv/bin/activate
+        pip3 install wmctrl
+        pip3 install pynput
+        pip3 install attrs
+        pip3 install pillow
+        pip3 install build
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -55,7 +57,7 @@ jobs:
         -DSCRIPT_PYTHON=ON
         -DBUILD_GTK2=ON -DBUILD_GTKMM=ON
         -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON
-        -DBUILD_GTK4=ON 
+        -DBUILD_GTK4=ON
         -DBUILD_GLUT=ON -DBUILD_GLUTGUI=ON
         -DBUILD_X11GL=ON -DRTC_RATE=1024
         -DNEW_LOGGING=ON -DBUILD_MOREWARN=ON
