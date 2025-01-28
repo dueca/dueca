@@ -455,6 +455,11 @@ class Scenario:
     def __init__(self, fname=None):
         self.clean = None
         self.fname = fname
+        basename = fname.split(os.sep)[-1]
+        if basename.endswith('-clean.xml'):
+            self.basename = basename[:-len('clean.xml')]
+        else:
+            self.basename = basename[:-len('.xml')]
         self.name = (fname and pathlib.Path(fname).stem) or "anonymous"
         self._sync()
 
@@ -569,7 +574,7 @@ class Scenario:
         elif key in (Key.f2,):
 
             self.actions.append(
-                Snap(xmlroot=self.actionnode, name=f"snapshot{self.snapnum:03d}.png")
+                Snap(xmlroot=self.actionnode, name=f"{self.basename}{self.snapnum:03d}.png")
             )
             self.snapnum += 1
             return True
@@ -781,6 +786,16 @@ class DuecaRunner:
         rdir = f"{self.pdir}/run/{platform}/{node}"
 
         cmpl = subprocess.run(
+            ("source", "clean.script"),
+            executable="/usr/bin/bash",
+            cwd=rdir,
+            text=True,
+            stderr=subprocess.PIPE,
+        )
+        if cmpl.returncode != 0:
+            print(f"Failure to run clean.script:\n{cmpl.stderr}")
+
+        cmpl = subprocess.run(
             ("source", "links.script"),
             executable="/usr/bin/bash",
             cwd=rdir,
@@ -866,25 +881,25 @@ parser.add_argument(
 )
 parser.add_argument(
     "--offset-x",
-    default=-2,
+    default=0,
     type=int,
     help="Offset of the x origin given by the window manager",
 )
 parser.add_argument(
     "--offset-y",
-    default=26,
+    default=0,
     type=int,
     help="Offset of the y origin given by the window manager",
 )
 parser.add_argument(
     "--extra-x",
-    default=4,
+    default=0,
     type=int,
     help="Additional x size (borders) by window manager",
 )
 parser.add_argument(
     "--extra-y",
-    default=18,
+    default=0,
     type=int,
     help="Additional y size (borders, header) by window manager",
 )

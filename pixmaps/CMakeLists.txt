@@ -4,15 +4,17 @@ set(PIXMAPS active.xpm fell-back.xpm incomplete.xpm abort.xpm
 install(FILES ${PIXMAPS}
   DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca/pixmaps)
 
-set(SVGIMG
-
-  event-logo.svg multi-logo.svg picking-logo.svg stream-logo.svg
-  label-logo.svg number-logo.svg sequential-logo.svg)
-
 set(SVGDIRECT
   active.svg fell-back.svg incomplete.svg abort.svg
   confirm-abort.svg inactive.svg inprogress.svg
 )
+
+set(SVGIMG
+
+  event-logo.svg multi-logo.svg picking-logo.svg stream-logo.svg
+  label-logo.svg number-logo.svg sequential-logo.svg
+)
+
 
 # scale the svg buttons
 if (NOT RSVGCONVERT STREQUAL "RSVGCONVERT-NOTFOUND")
@@ -20,7 +22,7 @@ if (NOT RSVGCONVERT STREQUAL "RSVGCONVERT-NOTFOUND")
     add_custom_command(
       OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${SVG}
       COMMAND 
-      ${RSVGCONVERT} -f svg -z 0.8 ${CMAKE_CURRENT_SOURCE_DIR}/${SVG} --output ${SVG}
+      ${RSVGCONVERT} -f svg -z 0.7 ${CMAKE_CURRENT_SOURCE_DIR}/${SVG} --output ${SVG}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       DEPENDS ${SVG})
     list(APPEND SVGFILES ${CMAKE_CURRENT_BINARY_DIR}/${SVG})
@@ -39,6 +41,20 @@ foreach(SVG ${SVGIMG})
     ${SVG_CONVERSION_COMMAND}
     ${SVG_PNGFILE_ARG}="${CMAKE_CURRENT_BINARY_DIR}/${PNG}"
     ${SVG_ICON_SIZE_ARG}
+    "${CMAKE_CURRENT_SOURCE_DIR}/${SVG}"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${SVG})
+  list(APPEND PNGFILES ${CMAKE_CURRENT_BINARY_DIR}/${PNG})
+endforeach()
+
+foreach(SVG ${SVGDIRECT})
+  string(REPLACE .svg .png PNG ${SVG})
+  message(STATUS "Adding target ${PNG}, using ${SVG_CONVERSION_COMMAND}")
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PNG}
+    COMMAND
+    ${SVG_CONVERSION_COMMAND}
+    ${SVG_PNGFILE_ARG}="${CMAKE_CURRENT_BINARY_DIR}/${PNG}"
+    ${SVG_ICON_SIZE2_ARG}
     "${CMAKE_CURRENT_SOURCE_DIR}/${SVG}"
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${SVG})

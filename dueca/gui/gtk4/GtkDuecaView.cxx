@@ -470,9 +470,9 @@ bool GtkDuecaView::complete()
                                             &GtkDuecaView::cbQuit2) },
                                         { NULL, NULL, NULL, NULL } };
 
-      res =
-        window.readGladeFile(commonglade.c_str(), NULL,
-                             reinterpret_cast<gpointer>(this), cb_links, true, true);
+      res = window.readGladeFile(commonglade.c_str(), NULL,
+                                 reinterpret_cast<gpointer>(this), cb_links,
+                                 true, true);
       if (!res) {
         /* DUECA UI.
 
@@ -521,8 +521,8 @@ bool GtkDuecaView::complete()
   gtk_dueca_emergency_load_image(emergency, 0);
 
   // hack, to properly load buttons here
-  const char *dusimebuttons[] = { "inactive", "holdcurrent", "calibrate",
-                                  "advance",  "replay",      "calibrate" };
+  const char *dusimebuttons[] = { "inactive", "holdcurrent", "hw_calibrate",
+                                  "advance", "replay" };
   for (const auto bname : dusimebuttons) {
     if (window[bname]) {
       gtk_dueca_button_load_image(window[bname], 0);

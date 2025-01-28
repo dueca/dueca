@@ -378,7 +378,7 @@ pkg_check_modules(GTKGLEXT gtkglext-1.0)
 pkg_check_modules(GTK3 gtk+-3.0)
 pkg_check_modules(GTKMM30 gtkmm-3.0)
 pkg_check_modules(GTKMM40 gtkmm-4.0)
-pkg_check_modules(GTK4 gtk4-x11)
+pkg_check_modules(GTK4 gtk4)
 
 # rapidjson for channel data coding
 pkg_check_modules(RAPIDJSON RapidJSON)
@@ -686,6 +686,7 @@ if (NOT RSVGCONVERT STREQUAL "RSVGCONVERT-NOTFOUND")
     set(SVG_CONVERSION_COMMAND ${RSVGCONVERT})
     set(SVG_PNGFILE_ARG "--output")
     set(SVG_ICON_SIZE_ARG --width=18 --height=18 --keep-aspect-ratio)
+    set(SVG_ICON_SIZE2_ARG --width=24 --keep-aspect-ratio)
   else()
     message(WARNING "Test failed: ${RSVGCONVERT} --output=/dev/null ${CMAKE_SOURCE_DIR}/doc/images/threads.svg")
   endif()
@@ -704,6 +705,9 @@ if (NOT SVG_PNGFILE_ARG)
     set(SVG_CONVERSION_COMMAND ${INKSCAPE})
     set(SVG_ICON_SIZE_ARG
       --export-area-page --export-width=18 --export-height=18)
+      set(SVG_ICON_SIZE2_ARG
+      --export-area-page --export-width=24)
+
 
     # figure out the required argument for png export
     EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-filename="test.png"

@@ -51,7 +51,7 @@
     <property name="title" translatable="1">DUECA/DUSIME control panel</property>
     <property name="icon_name">applications-utilities</property>
     <child>
-      <object class="GtkGrid" id="grid1">
+      <object class="GtkGrid">
         <property name="hexpand">1</property>
         <property name="vexpand">1</property>
         <child>
@@ -60,13 +60,14 @@
             <layout>
               <property name="column">0</property>
               <property name="row">0</property>
-              <property name="column-span">6</property>
+              <property name="column-span">3</property>
             </layout>
           </object>
         </child>
         <child>
           <object class="GtkLabel">
             <property name="label" translatable="1">DUECA nodes</property>
+            <property name="vexpand">false</property>
             <layout>
               <property name="column">0</property>
               <property name="row">1</property>
@@ -76,6 +77,7 @@
         <child>
           <object class="GtkLabel">
             <property name="label" translatable="1">Entities</property>
+            <property name="vexpand">false</property>
             <layout>
               <property name="column">1</property>
               <property name="row">1</property>
@@ -83,251 +85,260 @@
           </object>
         </child>
         <child>
-          <object class="GtkLabel">
-            <property name="label" translatable="1">Hardware</property>
+          <object class="GtkGrid">
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">Hardware</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">Model</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">0</property>
+                  <property name="column-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">stop</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">safe</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">work</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label7">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">stop</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label8">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">work</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_off">
+                <child>
+                  <object class="GtkPicture" id="hw_off_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_safe">
+                <child>
+                  <object class="GtkPicture" id="hw_safe_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_on">
+                <child>
+                  <object class="GtkPicture" id="hw_on_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="emergency">
+                <child>
+                  <object class="GtkPicture" id="emergency_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                  <property name="row-span">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="snap">
+                <property name="label" translatable="1">snap</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="1">calibrate</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="1">replay</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">inactive</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">hold</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">advance</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="inactive">
+                <child>
+                  <object class="GtkPicture" id="inactive_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="holdcurrent">
+                <child>
+                  <object class="GtkPicture" id="holdcurrent_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="advance">
+                <child>
+                  <object class="GtkPicture" id="advance_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="replay">
+                <child>
+                  <object class="GtkPicture" id="replay_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_calibrate">
+                <child>
+                  <object class="GtkPicture" id="hw_calibrate_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
             <layout>
-              <property name="column">2</property>
+              <property name="column">3</property>
               <property name="row">1</property>
-              <property name="column-span">2</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="label" translatable="1">Model</property>
-            <layout>
-              <property name="column">4</property>
-              <property name="row">1</property>
-              <property name="column-span">2</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="label" translatable="1">stop</property>
-            <property name="halign">end</property>
-            <layout>
-              <property name="column">3</property>
-              <property name="row">2</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="label" translatable="1">safe</property>
-            <property name="halign">end</property>
-            <layout>
-              <property name="column">3</property>
-              <property name="row">3</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="label" translatable="1">work</property>
-            <property name="halign">end</property>
-            <layout>
-              <property name="column">3</property>
-              <property name="row">4</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label7">
-            <property name="halign">start</property>
-            <property name="label" translatable="1">stop</property>
-            <layout>
-              <property name="column">5</property>
-              <property name="row">3</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label8">
-            <property name="halign">start</property>
-            <property name="label" translatable="1">work</property>
-            <layout>
-              <property name="column">5</property>
-              <property name="row">4</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="hw_off">
-            <child>
-              <object class="GtkPicture" id="hw_off_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">4</property>
-              <property name="row">2</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="hw_safe">
-            <child>
-              <object class="GtkPicture" id="hw_safe_img">>
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">4</property>
-              <property name="row">3</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="hw_on">
-            <child>
-              <object class="GtkPicture" id="hw_on_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">4</property>
-              <property name="row">4</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="emergency">
-            <child>
-              <object class="GtkPicture" id="emergency_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">2</property>
-              <property name="row">2</property>
-              <property name="row-span">3</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="snap">
-            <property name="label" translatable="1">snap</property>
-            <property name="halign">center</property>
-            <property name="valign">center</property>
-            <layout>
-              <property name="column">2</property>
-              <property name="row">5</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="halign">end</property>
-            <property name="label" translatable="1">calibrate</property>
-            <layout>
-              <property name="column">2</property>
-              <property name="row">6</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="halign">end</property>
-            <property name="label" translatable="1">replay</property>
-            <layout>
-              <property name="column">2</property>
-              <property name="row">7</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="halign">start</property>
-            <property name="label" translatable="1">inactive</property>
-            <layout>
-              <property name="column">5</property>
-              <property name="row">5</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="halign">start</property>
-            <property name="label" translatable="1">hold</property>
-            <layout>
-              <property name="column">5</property>
-              <property name="row">6</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="halign">start</property>
-            <property name="label" translatable="1">advance</property>
-            <layout>
-              <property name="column">5</property>
-              <property name="row">7</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="inactive">
-            <child>
-              <object class="GtkPicture" id="inactive_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">4</property>
-              <property name="row">5</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="holdcurrent">
-            <child>
-              <object class="GtkPicture" id="holdcurrent_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">4</property>
-              <property name="row">6</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="advance">
-            <child>
-              <object class="GtkPicture" id="advance_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">4</property>
-              <property name="row">7</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="replay">
-            <child>
-              <object class="GtkPicture" id="replay_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">3</property>
-              <property name="row">7</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleButton" id="hw_calibrate">
-            <child>
-              <object class="GtkPicture" id="hw_calibrate_img">
-                <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
-              </object>
-            </child>
-            <layout>
-              <property name="column">3</property>
-              <property name="row">6</property>
+              <property name="row-span">2</property>
             </layout>
           </object>
         </child>
@@ -377,7 +388,6 @@
             <layout>
               <property name="column">1</property>
               <property name="row">2</property>
-              <property name="row-span">6</property>
             </layout>
           </object>
         </child>
@@ -409,7 +419,6 @@
             <layout>
               <property name="column">0</property>
               <property name="row">2</property>
-              <property name="row-span">6</property>
             </layout>
           </object>
         </child>

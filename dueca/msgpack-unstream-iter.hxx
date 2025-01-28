@@ -554,9 +554,27 @@ struct unstream {
   static float unpack_float(S& i0, const S& iend)
   {
     check_iterator_notend(i0, iend);
-    uint8_t flag = uint8_t(*i0); ++i0;
+    uint8_t flag = uint8_t(*i0);
     if (flag == 0xca) {
+      ++i0;
       return process_float<endian::native,S,float>::get(i0, iend);
+    }
+
+    // was converted to int
+    try {
+      if (flag == 0xcf) {
+        uint64_t i;
+        unpack_int(i0, iend, i);
+        return float(i);
+      }
+      else {
+        int64_t i;
+        unpack_int(i0, iend, i);
+        return float(i);
+      }
+    }
+    catch (const msgpack_unpack_mismatch& e) {
+        // no int either
     }
     throw  msgpack_unpack_mismatch("wrong type, cannot convert to float");
   }
@@ -570,9 +588,27 @@ struct unstream {
   static double unpack_double(S& i0, const S& iend)
   {
     check_iterator_notend(i0, iend);
-    uint8_t flag = uint8_t(*i0); ++i0;
+    uint8_t flag = uint8_t(*i0);
     if (flag == 0xcb) {
+      ++i0;
       return process_float<endian::native,S,double>::get(i0, iend);
+    } 
+
+    // was converted to int
+    try {
+      if (flag == 0xcf) {
+        uint64_t i;
+        unpack_int(i0, iend, i);
+        return double(i);
+      }
+      else {
+        int64_t i;
+        unpack_int(i0, iend, i);
+        return double(i);
+      }
+    }
+    catch (const msgpack_unpack_mismatch& e) {
+        // no int either
     }
     throw  msgpack_unpack_mismatch("wrong type, cannot convert to double");
   }
