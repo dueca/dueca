@@ -36,11 +36,11 @@ struct CommObjectDataTable;
 #define MASTER_DCO
 #endif
 {{ typeincludes }}
-{{ plug_header_include }}
 #ifdef MASTER_DCO
 #undef MASTER_DCO
 #undef NESTED_DCO
 #endif
+{{ plug_header_include }}
 {{ namespacecmd0 }} {{ packpragma }}
 {{ classcomment }}
 struct {{ name }}{{ inherits }}

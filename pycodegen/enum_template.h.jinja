@@ -27,10 +27,19 @@ class AmorphReStore;
 #endif
 #include <dueca/CommObjectTraits.hxx>
 #endif
-
 #include <iostream>
+
 {{ extraheader }}
-{{ typeincludes }}{{ plug_header_include }}
+#ifndef NESTED_DCO
+#define NESTED_DCO
+#define MASTER_DCO
+#endif
+{{ typeincludes }}
+#ifdef MASTER_DCO
+#undef MASTER_DCO
+#undef NESTED_DCO
+#endif
+{{ plug_header_include }}
 
 {{ namespacecmd0 }}
 {{ enumdec }}

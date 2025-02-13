@@ -1,4 +1,4 @@
-# -*-bash-*-
+# -*-sh-*-
 # this file cleans all temporary run files and also the symbolic links
 # from the data directory
 
