@@ -189,6 +189,11 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
 } // namespace messagepack
 } // namespace dueca
 
+namespace msgunpack {
+template<typename S>
+void msg_unpack(S& i0, const S& iend, {{ nsprefix }}{{ name }}&i);
+} // namespace msgunpack
+
 # ifndef __CUSTOM_MSGPACK_UNPACK_{{ name }}
 namespace msgunpack {
 template<typename S>
@@ -405,8 +410,10 @@ class AddOn(object):
         """ print the lines that will be added to the header's include area
         """
         return """
-# include <dueca/msgpack.hxx>
-# include <dueca/msgpack-unstream-iter.hxx>"""
+#include <dueca/msgpack.hxx>
+#ifndef NESTED_DCO
+#include <dueca/msgpack-unstream-iter.hxx>
+#endif"""
 
     def printBodyInclude(self):
         """ print the lines that will be added to the body's include area

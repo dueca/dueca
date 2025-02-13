@@ -31,8 +31,16 @@ struct CommObjectDataTable;
 #endif
 #include <iostream>
 {{ extraheader }}
+#ifndef NESTED_DCO
+#define NESTED_DCO
+#define MASTER_DCO
+#endif
 {{ typeincludes }}
 {{ plug_header_include }}
+#ifdef MASTER_DCO
+#undef MASTER_DCO
+#undef NESTED_DCO
+#endif
 {{ namespacecmd0 }} {{ packpragma }}
 {{ classcomment }}
 struct {{ name }}{{ inherits }}

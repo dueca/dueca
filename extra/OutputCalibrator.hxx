@@ -166,7 +166,7 @@ R OutputCalibrator<T,R>::newConversion()
 
   // new remainder, and integer output value
   rem = out - rint(out);
-  out_going = int(rint(out));
+  out_going = R(rint(out));
 
   // limit the integer output value
   if (out_going < int_min) return int_min;
