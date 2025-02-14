@@ -104,6 +104,9 @@ public:
   inline void peek(boost::any& a)
   { static boost::any dum; base()->peek(a, dum); }
 
+  /** specifically for enums */
+  inline void peek(long& i) { base()->peek(i); }
+
   /** recursively access a nested object. k returns the key if it exists */
   inline CommObjectReader recurse(std::string& k)
   { return base()->recurse(k); }

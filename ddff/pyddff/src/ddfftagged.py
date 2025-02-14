@@ -172,9 +172,9 @@ class DDFFTagged(DDFFInventoried):
             raise KeyError("need to supply tag, stream and member")
 
         if len(key) == 3:
-            period, streamid, member = key
+            streamid, period, member = key
         elif len(key) == 2:
-            period, streamid = key
+            streamid, period = key
             member = None
         else:
             raise KeyError("Supply 2 or 3 elements for key")
@@ -196,12 +196,12 @@ class DDFFTagged(DDFFInventoried):
         return DDFFTagStream.ValueIt(stream, member, idx0, idx1)
 
 
-    def time(self, period, streamid):
+    def time(self, streamid, period):
         """Access time stamps, for a specific period and named stream
 
         Arguments:
-            period -- Name or number of period
             streamid -- Name or number of requested stream
+            period -- Name or number of period
 
         Returns:
             Iterator for time ticks
