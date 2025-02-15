@@ -310,9 +310,13 @@ template <typename O>
 inline void pack_member_id_inarray(O &o, const char *mid) {}
 
 #ifdef MSGPACK_USE_DEFINE_MAP
+
 #define MSGPACK_PACK_MEMBER_ID pack_member_id_inmap
 /// Packing macro for use in DCO objects
 #define MSGPACK_DCO_OBJECT(N) o.pack_map((N))
+
+
+
 #else
 #define MSGPACK_PACK_MEMBER_ID pack_member_id_inarray
 /// Packing macro for use in DCO objects

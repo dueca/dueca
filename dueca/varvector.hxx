@@ -299,7 +299,6 @@ struct dco_nested<varvector<D>> : public dco_nested<D> {};
 
 DUECA_NS_END;
 
-#include "msgpack-unstream-iter.hxx"
 MSGPACKUS_NS_START;
 template <typename S, typename T>
 void msg_unpack(S &i0, const S &iend, dueca::varvector<T> &i);

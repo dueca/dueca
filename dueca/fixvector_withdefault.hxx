@@ -180,8 +180,6 @@ ostream &operator<<(ostream &os,
 
 PRINT_NS_END;
 
-#include "msgpack-unstream-iter.hxx"
-
 MSGPACKUS_NS_START;
 
 /** unstream/unpack a fixvector_default */

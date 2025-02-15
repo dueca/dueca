@@ -848,12 +848,23 @@ class Refresh(OnExistingProject):
             '--auto-find-url', action='store_true', default=False,
             help="Verify the presence of a URL before using it, and if\n"
             "needed, search/adapt the url by checking defined roots")
+        parser.add_argument(
+            '--machineclass', type=str, default='', nargs='?',
+            help="Switch to a different machine class before the refresh")
         parser.set_defaults(handler=Refresh)
 
     def __call__(self, ns):
 
         try:
             self.pushDir()
+
+            if ns.machineclass:
+                mclasses = os.listdir('.config/class')
+                if ns.machineclass not in mclasses:
+                    raise Exception(f"Machine class {ns.machineclass} does not exist")
+
+            with open(f'{self.projectdir}/.config/machine', 'w') as m:
+                m.write(ns.machineclass+'\n')
 
             m = Modules()
             m.refreshBorrowed(auto_dco=ns.auto_borrow_for_dco,

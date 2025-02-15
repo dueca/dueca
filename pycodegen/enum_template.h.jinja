@@ -32,11 +32,11 @@ class AmorphReStore;
 {{ extraheader }}
 #ifndef NESTED_DCO
 #define NESTED_DCO
-#define MASTER_DCO
+#define MASTER_DCO_{{ name }}
 #endif
 {{ typeincludes }}
-#ifdef MASTER_DCO
-#undef MASTER_DCO
+#ifdef MASTER_DCO_{{ name }}
+#undef MASTER_DCO_{{ name }}
 #undef NESTED_DCO
 #endif
 {{ plug_header_include }}

@@ -285,7 +285,6 @@ struct dco_nested<limvector<N, D>> : public dco_nested<D> {};
 
 DUECA_NS_END;
 
-#include "msgpack-unstream-iter.hxx"
 MSGPACKUS_NS_START;
 template <typename S, size_t N, typename T>
 void msg_unpack(S &i0, const S &iend, dueca::limvector<N, T> &i);

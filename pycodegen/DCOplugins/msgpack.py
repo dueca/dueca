@@ -411,8 +411,9 @@ class AddOn(object):
         """
         return """
 #include <dueca/msgpack.hxx>
-#ifndef NESTED_DCO
 #include <dueca/msgpack-unstream-iter.hxx>
+#ifndef NESTED_DCO
+#include <dueca/msgpack-unstream-iter.ixx>
 #endif"""
 
     def printBodyInclude(self):
@@ -420,8 +421,7 @@ class AddOn(object):
         """
         return """
 # include <algorithm>
-# include <ddff/DDFFDCOMetaFunctor.hxx>
-# include <dueca/msgpack-unstream-iter.ixx>"""
+# include <ddff/DDFFDCOMetaFunctor.hxx>"""
 
     def printBodyCheck(self):
         """print the lines *after* a possible include of custom body code to
