@@ -74,6 +74,8 @@ PRINT_NS_END;
 template <>
 const char* dueca::getclassname<{{objprefix}}{{name}}>();
 template <>
+const char* dueca::getenumintrep<{{objprefix}}{{name}}>();
+template <>
 inline const char* dueca::getclassname<const {{objprefix}}{{name}}>()
 { return dueca::getclassname<{{objprefix}}{{name}}>(); }
 

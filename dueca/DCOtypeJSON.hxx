@@ -47,8 +47,9 @@ DUECA_NS_START;
       alternatively "primitive" (c/c++ type, or common std types like
       std::string) or "enum", in which case data are string values
       representing enumeration items.
-    - "enumvalues" (optional), a nested object with keys representing enum
-      writing mapping to the integer represenation of the enums.
+    - "enumvalues" (only with enum), a nested object with keys representing
+      enum writing mapping to the integer represenation of the enums.
+    - "enumclass" (only with enum), integer class representing enum
     - "size" (optional), an integer indicating array size if the size of
       the arrays is fixed.
     - "container" (optional),

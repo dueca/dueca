@@ -154,11 +154,12 @@ class ToHdf5:
         elif info["type"] == "object":
             btype = None
         elif info["type"] == "enum":
+            ebasetype = ToHdf5.typemap.get(info.get("enumint", ""), np.uint32)
             if info.get("enumvalues", False):
-                btype = h5py.enum_dtype(info["enumvalues"], basetype="i")
+                btype = h5py.enum_dtype(info["enumvalues"], basetype=ebasetype)
             else:
-                # old recordings, enum values not coded
-                btype = h5py.string_dtype(encoding="utf-8")
+                # old recordings, just ints
+                btype = ebasetype
         else:
             raise ValueError(f"Wrong info specification {info}")
 
@@ -171,8 +172,9 @@ class ToHdf5:
             dtype = h5py.vlen_dtype(btype)
         else:
             dtype = btype
+        vprint(f"{info['name']} shape {shape} from {info['class']} type {dtype}")
 
-        return shape, dtype
+        return dict(shape=shape, dtype=dtype)
 
     @classmethod
     def args(cls, subparsers):
@@ -202,7 +204,6 @@ class ToHdf5:
 
     def __call__(self, ns: argparse.Namespace):
 
-        print(ns)
         if ns.compress:
             compressargs = {"compression": ns.compress}
         else:
@@ -217,6 +218,7 @@ class ToHdf5:
         except Exception as e:
             print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
             sys.exit(-1)
+        vprint("Opened file", ns.filename)
 
         # either all stream id's, or just the selected ones
         if not ns.streamids:
@@ -234,6 +236,7 @@ class ToHdf5:
         hf = h5py.File(ns.outfile, "w")
 
         for streamid in ns.streamids:
+            vprint("Processing stream", streamid)
             gg = hf.create_group(streamid)
             dg = gg.create_group("data")
 
@@ -249,6 +252,7 @@ class ToHdf5:
 
                     if info["type"] == "object":
 
+                        vprint("processing member object", m)
                         # will it be wrappable, all primitives in there?
                         mtypes = []
                         excluded = []
@@ -294,27 +298,36 @@ class ToHdf5:
 
                     if info.get("container", None) == "map":
 
+                        vprint("processing member map", m)
                         d = dg.create_dataset(
-                            m, *self.shapeAndType(count, info), **compressargs
+                            m, **self.shapeAndType(count, info), **compressargs
                         )
                         for i, x in enumerate(f[streamid, ns.period, im]):
-                            d[i] = x  # maybe it is an object in the msgpack?
+                            d[i] = x.items()  # maybe it is an object in the msgpack?
                         continue
 
-                    if info.get("enumvalues", None):
-                        enumtype = h5py.enum_dtype(info["enumvalues"], basetype="i")
-                        d = dg.create_dataset(m, shape, dtype=enumtype, **compressargs)
-                        if info.get("container", "") == "array":
-                            for i, x in enumerate(f[streamid, ns.period, im]):
-                                d[i] = [info["enumvalues"][_x] for _x in x]
-                        else:
-                            d[i] = info["enumvalues"][x]
+                    # though numpy array iteration for non-complex members, fixed
+                    # size arrays and straight
+                    if not info.get("container", False):
+                        vprint("quick processing default member", m)
+                        _d = np.fromiter(
+                            f[streamid, ns.period, im],
+                            dtype=self.shapeAndType(count, info)["dtype"], count=count)
+                        d = dg.create_dataset(m, data=_d)
+                        continue
+
+                    elif info.get("size", False):
+                        vprint("processing fixed-size member", m)
+                        _d = np.zeros(**self.shapeAndType(count, info))
+                        for i, x in enumerate(f[streamid, ns.period, im]):
+                            _d[i,:] = x
+                        d = dg.create_dataset(m, data=_d)
                         continue
 
                     # otherwise straight up?
+                    vprint("processing default member", m)
                     d = dg.create_dataset(
-                        m, *self.shapeAndType(count, info), **compressargs
-                    )
+                        m, **self.shapeAndType(count, info), **compressargs)
                     for i, x in enumerate(f[streamid, ns.period, im]):
                         d[i] = x
 

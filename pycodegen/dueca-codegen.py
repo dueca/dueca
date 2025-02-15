@@ -986,6 +986,9 @@ namespace dueca {
   /** This function retrieves the classname of an %(masterprefix)s%(name)s */
   template <>
   const char* getclassname<%(objprefix)s%(masterprefix)s%(name)s>();
+  /** This function retrieves a string with int rep %(masterprefix)s%(name)s */
+  template <>
+  const char* getenumintrep<%(objprefix)s%(masterprefix)s%(name)s>();
 }; // end namespace dueca
 
 #if !defined(__DCO_NOPACK)
@@ -1110,6 +1113,9 @@ namespace dueca {{
 template <>
 const char* getclassname<{objprefix}{masterprefix}{name}>()
 {{ return "{masterprefix}{name}"; }}
+template <>
+const char* getenumintrep<{objprefix}{masterprefix}{name}>()
+{{ return "{ctype}"; }}
 }};
 """.format(name=self.name, objprefix=master.objprefix,
            masterprefix=(master.name and f'{master.name}::') or '',
@@ -1207,6 +1213,9 @@ namespace dueca {{
 template <>
 const char* getclassname<{objprefix}{masterprefix}{name}>()
 {{ return "{masterprefix}{name}"; }}
+template <>
+const char* getenumintrep<{objprefix}{masterprefix}{name}>()
+{{ return "{ctype}"; }}
 }};
 '''.format(name=self.name,
            mastername = master.name,

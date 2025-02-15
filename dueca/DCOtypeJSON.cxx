@@ -33,14 +33,14 @@ static void DCOEnumOptions(rapidjson::Writer<rapidjson::StringBuffer> &writer,
 {
   auto converter = DataClassRegistry::single().getConverter(dco.getClassname());
   void *object = converter->clone(NULL);
-  
+
   // reader and writer are used to find enum names
   auto eltreader = dco.getMemberAccessor(im).getReader(object);
   auto eltwriter = dco.getMemberAccessor(im).getWriter(object);
 
   writer.Key("enumvalues");
   writer.StartObject();
-  
+
   eltwriter.setFirstValue();
   do {
     std::string value;
@@ -79,6 +79,8 @@ static void DCOlistMembers(rapidjson::Writer<rapidjson::StringBuffer> &writer,
     }
     else if (dcoi->isEnum()) {
       writer.String("enum");
+      writer.Key("enumint");
+      writer.String(dcoi->getEnumIntName());
       DCOEnumOptions(writer, dcoinfo, im);
     }
     else {
@@ -88,6 +90,7 @@ static void DCOlistMembers(rapidjson::Writer<rapidjson::StringBuffer> &writer,
     case FixedIterable:
       writer.Key("size");
       writer.Uint(dcoi->getSize());
+      // no break!
     case Iterable:
       writer.Key("container");
       writer.String("array");

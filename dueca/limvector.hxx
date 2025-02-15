@@ -279,6 +279,10 @@ struct dco_traits<limvector<N, D>> :
   typedef void key_type;
 };
 
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <size_t N, typename D>
+struct dco_nested<limvector<N, D>> : public dco_nested<D> {};
+
 DUECA_NS_END;
 
 #include "msgpack-unstream-iter.hxx"

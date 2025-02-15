@@ -157,6 +157,12 @@ struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE>> :
   typedef void key_type;
 };
 
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <size_t N, typename D, int DEFLT, unsigned BASE>
+struct dco_nested<fixvector_withdefault<N, D, DEFLT, BASE>> :
+  public dco_nested<D>
+{};
+
 DUECA_NS_END;
 
 PRINT_NS_START;

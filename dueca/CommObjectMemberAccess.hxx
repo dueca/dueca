@@ -37,10 +37,13 @@ DUECA_NS_START;
 */
 class CommObjectMemberAccessBase
 {
-  const char* name;
+  const char *name;
+
 public:
   /** Constructor */
-  CommObjectMemberAccessBase(const char* name) : name(name) {}
+  CommObjectMemberAccessBase(const char *name) :
+    name(name)
+  {}
 
   /** Destructor */
   virtual ~CommObjectMemberAccessBase() {}
@@ -53,7 +56,7 @@ public:
                     extract data, or start a recursive inspection if the
                     member queried is itself a DCO object.
  */
-  virtual ElementReader getReader(const void* obj) const = 0;
+  virtual ElementReader getReader(const void *obj) const = 0;
 
   /** Given a void pointer to an object, return a helper to write the
       element data.
@@ -63,7 +66,7 @@ public:
                     modify data, or start a recursive inspection if the
                     member queried is itself a DCO object.
   */
-  virtual ElementWriter getWriter(void* obj) const = 0;
+  virtual ElementWriter getWriter(void *obj) const = 0;
 
   /** Get the class name of the element
 
@@ -71,7 +74,7 @@ public:
                     e.g. "double", or in case of nested DCO objects, the
                     class name of the object.
   */
-  virtual const char* getClassname() const = 0;
+  virtual const char *getClassname() const = 0;
 
   /** Get the class name of the element's key
 
@@ -79,7 +82,7 @@ public:
                     e.g. "double", or in case of nested DCO objects, the
                     class name of the object.
   */
-  virtual const char* getKeyClassname() const = 0;
+  virtual const char *getKeyClassname() const = 0;
 
   /** Get information on the number of elements
 
@@ -101,10 +104,13 @@ public:
   virtual bool getNested() const = 0;
 
   /** get the name */
-  inline const char* getName() const { return name; }
+  inline const char *getName() const { return name; }
 
   /** Return information on the type; native, object, or enum */
   virtual bool isEnum() const = 0;
+
+  /** Name of the integer representing an enum */
+  virtual const char *getEnumIntName() const = 0;
 };
 
 /** Access object to a unitary member of class C, with type of the
@@ -123,55 +129,62 @@ public:
                      treatments; i.e. single values versus
                      lists/vectors/maps etc.
 */
-template<typename C, typename T>
+template <typename C, typename T>
 class CommObjectMemberAccess : public CommObjectMemberAccessBase
 {
   /** Class member pointer, to be combined with a class instance for
       accessing actual data */
-  T C:: *data_ptr;
+  T C::*data_ptr;
+
 public:
   /** Constructor, accepts a pointer to a class member */
-  CommObjectMemberAccess(T C:: *dp, const char* name) :
+  CommObjectMemberAccess(T C::*dp, const char *name) :
     CommObjectMemberAccessBase(name),
-    data_ptr(dp) { }
+    data_ptr(dp)
+  {}
 
   /** Destructor */
   ~CommObjectMemberAccess() {}
 
   /** Return a string representation of the data member's class */
-  const char* getClassname() const
+  const char *getClassname() const
 #if 1
-  { return dco_traits<typename dco_traits<T>::value_type>::_getclassname(); }
+  {
+    return dco_traits<typename dco_traits<T>::value_type>::_getclassname();
+  }
 #else
-  { return getclassname<typename elementdata
-                        <typename dco_traits<T>::rtype,T>::elt_value_type>(); }
+  {
+    return getclassname<
+      typename elementdata<typename dco_traits<T>::rtype, T>::elt_value_type>();
+  }
 #endif
 
   /** Return a string representation of the data member's key class */
-  const char* getKeyClassname() const
+  const char *getKeyClassname() const
 #if 1
-  { return dco_traits<typename dco_traits<T>::key_type>::_getclassname(); }
+  {
+    return dco_traits<typename dco_traits<T>::key_type>::_getclassname();
+  }
 #else
-  { return getclassname<typename elementdata
-                        <typename dco_traits<T>::rtype,T>::elt_key_type>(); }
+  {
+    return getclassname<
+      typename elementdata<typename dco_traits<T>::rtype, T>::elt_key_type>();
+  }
 #endif
-  
+
   /** Return the arity enum of the member */
-  MemberArity getArity() const
-  { return dco_traits<T>::arity; }
+  MemberArity getArity() const { return dco_traits<T>::arity; }
 
   /** Return a fixed size (if available) of the member */
-  size_t getSize() const
-  { return dco_traits<T>::nelts; }
+  size_t getSize() const { return dco_traits<T>::nelts; }
 
   /** Return whether the element is nested or not */
-  bool getNested() const
-  { return isNested(dco_nested<T>()); }
+  bool getNested() const { return isNested(dco_nested<T>()); }
 
   /** Return an accessor object that can read the actual data. If
       the data member is iterable (list, vector, etc.), the accessor
       objects's methods allow repeated reading of the element. */
-  ElementReader getReader(const void* obj) const
+  ElementReader getReader(const void *obj) const
   {
     // create a new element accessor
     ElementReader a;
@@ -180,8 +193,8 @@ public:
     assert(sizeof(ReadElement<T>) <= ElementReader::RESERVE);
 
     // insert the inner accessor with placement new
-    new(a.placement()) ReadElement<T>
-      ( (* reinterpret_cast<const C*>(obj)) .* data_ptr);
+    new (a.placement())
+      ReadElement<T>((*reinterpret_cast<const C *>(obj)).*data_ptr);
     // and produce the result
     return a;
   }
@@ -190,7 +203,7 @@ public:
       the data member is iterable (list, vector, etc.), the accessor
       objects's methods allow repeated writing until the object is
       full (or unlimited, if the object can be extended without limit). */
-  ElementWriter getWriter(void* obj) const
+  ElementWriter getWriter(void *obj) const
   {
     // create a new element accessor
     ElementWriter a;
@@ -199,8 +212,8 @@ public:
     assert(sizeof(WriteElement<T>) <= ElementWriter::RESERVE);
 
     // insert the inner accessor with placement new
-    new(a.placement()) WriteElement<T>
-      ( (* reinterpret_cast<C*>(obj)) .* data_ptr);
+    new (a.placement())
+      WriteElement<T>((*reinterpret_cast<C *>(obj)).*data_ptr);
     // and produce the result
     return a;
   }
@@ -208,21 +221,33 @@ public:
   /** Return information on the type; native, object, or enum */
   bool isEnum() const final { return isEnum(dco_nested<T>()); }
 
+  /** String on the integer representation of an enum */
+  const char *getEnumIntName() const final
+  {
+    return getEnumIntName(dco_nested<T>());
+  }
+
 private:
-  inline bool isNested(const dco_isdirect&) const { return false; }
-  inline bool isNested(const dco_isnested&) const { return true; }
-  inline bool isEnum(const dco_isenum&) const { return true; }
-  inline bool isEnum(const dco_isdirect&) const { return false; }
-  inline bool isEnum(const dco_isnested&) const { return false; }
+  inline bool isNested(const dco_isdirect &) const { return false; }
+  inline bool isNested(const dco_isnested &) const { return true; }
+  inline bool isEnum(const dco_isenum &) const { return true; }
+  inline bool isEnum(const dco_isdirect &) const { return false; }
+  inline bool isEnum(const dco_isnested &) const { return false; }
+  inline const char *getEnumIntName(const dco_isenum &) const
+  {
+    return getenumintrep<T>();
+  }
+  inline const char *getEnumIntName(const dco_isdirect &) const { return NULL; }
+  inline const char *getEnumIntName(const dco_isnested &) const { return NULL; }
 };
 
-
 /** Handy define for the pointer to an accessor */
-typedef CommObjectMemberAccessBase* CommObjectMemberAccessBasePtr;
+typedef CommObjectMemberAccessBase *CommObjectMemberAccessBasePtr;
 
 /** Table with data. Links class member's name with the pointer to the
     object that helps accessing the class member data. */
-struct CommObjectDataTable {
+struct CommObjectDataTable
+{
   /** Object helping in data access. Also defines whether the member
       is iterable and/or nested. */
   const CommObjectMemberAccessBasePtr access;

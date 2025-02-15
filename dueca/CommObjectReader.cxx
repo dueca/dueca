@@ -71,20 +71,6 @@ DCOReader::~DCOReader()
   }
 }
 
-#if 0
-ElementReader DCOReader::operator [] (const char* ename)
-{
-  //access();
-  return CommObjectReader::operator [] (ename);
-}
-
-ElementReader DCOReader::operator [] (unsigned i)
-{
-  //access();
-  return CommObjectReader::operator [] (i);
-}
-#endif
-
 void DCOReader::access()
 {
   if (obj != NULL) return;

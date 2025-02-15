@@ -293,6 +293,10 @@ struct dco_traits<varvector<D>> :
   typedef void key_type;
 };
 
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <typename D>
+struct dco_nested<varvector<D>> : public dco_nested<D> {};
+
 DUECA_NS_END;
 
 #include "msgpack-unstream-iter.hxx"

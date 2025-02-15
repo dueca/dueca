@@ -234,6 +234,10 @@ struct dco_traits<fixvector<N, D>> : public dco_traits_iterablefix,
   typedef void key_type;
 };
 
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <size_t N, typename D>
+struct dco_nested<fixvector<N, D>> : public dco_nested<D> {};
+
 DUECA_NS_END;
 
 PRINT_NS_START;
