@@ -857,14 +857,13 @@ class Refresh(OnExistingProject):
 
         try:
             self.pushDir()
-
             if ns.machineclass:
                 mclasses = os.listdir('.config/class')
                 if ns.machineclass not in mclasses:
                     raise Exception(f"Machine class {ns.machineclass} does not exist")
 
-            with open(f'{self.projectdir}/.config/machine', 'w') as m:
-                m.write(ns.machineclass+'\n')
+                with open(f'{self.projectdir}/.config/machine', 'w') as m:
+                    m.write(str(ns.machineclass)+'\n')
 
             m = Modules()
             m.refreshBorrowed(auto_dco=ns.auto_borrow_for_dco,
