@@ -10,9 +10,9 @@
      executable.
      -->
 <nodes
-    xmlns="https://dueca.tudelft.nl"
+    xmlns="https://dueca.tudelft.nl/machinemapping"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/machinemapping.xsd">
+    xsi:schemaLocation="https://dueca.tudelft.nl/machinemapping https://dueca.tudelft.nl/schemas/machinemapping.xsd">
   <!-- default development set-up -->
   <node name="solo" machineclass="solo" sparse-checkout="false"/>
 </nodes>

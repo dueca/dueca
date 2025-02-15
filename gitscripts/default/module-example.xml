@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!-- Example/test version of an modules xml file -->
 <machine
-    xmlns="https://dueca.tudelft.nl"
+    xmlns="https://dueca.tudelft.nl/modules"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/modules.xsd">
+    xsi:schemaLocation="https://dueca.tudelft.nl/modules https://dueca.tudelft.nl/schemas/modules.xsd">
     <project main="true">
       <version>1.0</version>
       <module>flexi-stick</module>

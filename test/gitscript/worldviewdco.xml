@@ -3,9 +3,9 @@
     Example file with some try-out definitions for policy editing.
 
 -->
-<policies xmlns="https://dueca.tudelft.nl"
+<policies xmlns="https://dueca.tudelft.nl/policies"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/policies.xsd">
+  xsi:schemaLocation="https://dueca.tudelft.nl/policies https://dueca.tudelft.nl/schemas/policies.xsd">
 
   <policy name="replace-worldview-dco-motion" id="21-001">
     <description>

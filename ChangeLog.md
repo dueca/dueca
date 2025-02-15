@@ -22,6 +22,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Better status feedback on recording interface
 - default name for recording; to circumvent character input in gtk4
   pynput test code
+- fixes for runtest; fixing the GTK theme to default
+- correct msgpack templating issues for nested DCO/Enum with header includes
+- speedup, testing and extension of ddff-convert script
+- improve type information from DCOtypeJSON, add enum info, enum int class,
+  correct primitive/object confusion for containered (vector, map, list)
+  types.
 
 ## [4.1.3] - 2024-11-12
 
@@ -44,7 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Add a convenience function to load a gtk3 combo box with values
 - Fixes to DCO path interpretation for home dco
 - Major work on the websocket server; offering a json and a msgpack
-  variant for that now, unified the set-up messages; the server alway
+  variant for that now, unified the set-up messages; the server always
   responds with communication set-up information now, and added a test
   case for websocket communication.
 - Related to the previous, offer an option for a token validity
@@ -75,7 +81,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [4.0.7] - 2024-02-15
 
 - extensions for dueca-gproject; prepareplatform with scriptlets,
-  speudo module creation, vscode tweaks
+  pseudo module creation, vscode tweaks
 
 ## [4.0.6] - 2024-01-31
 

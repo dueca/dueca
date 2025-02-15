@@ -458,7 +458,7 @@ class CloneProject:
             '--version', type=str, default='master',
             help="git version, branch, etc., default master")
         parser.add_argument(
-            '--no-refresh', type=bool, default=False, const=True, nargs='?',
+            '--no-refresh', action='store_true', default=False,
             help="Do not refresh or check out borrowed modules/dco")
         parser.add_argument(
             '--full', action='store_true',
@@ -838,14 +838,14 @@ class Refresh(OnExistingProject):
             Refresh.command,
             help='Refresh borrowed modules and comm-objects.')
         parser.add_argument(
-            '--force', default=False, const=True, nargs='?',
+            '--force', action='store_true', default=False,
             help="Force refresh, even if no changes detected")
         parser.add_argument(
-            '--auto-borrow-for-dco', type=bool, const=True, nargs='?',
+            '--auto-borrow-for-dco', action='store_true', default=False,
             help="Try to automatically borrow projects based on DCO entries\n"
             "Careful. This requires that the donating url matches the project url")
         parser.add_argument(
-            '--auto-find-url', type=bool, const=True, nargs='?',
+            '--auto-find-url', action='store_true', default=False,
             help="Verify the presence of a URL before using it, and if\n"
             "needed, search/adapt the url by checking defined roots")
         parser.set_defaults(handler=Refresh)
@@ -1087,7 +1087,7 @@ class NewMachineClass(OnExistingProject):
             choices=_gui_choices(),
             help="GUI system to include in the class")
         parser.add_argument(
-            '--switch', type=bool, default=False,
+            '--switch', action='store_true', default=False,
             help="Switch over to the new class")
         parser.set_defaults(handler=NewMachineClass)
 
@@ -1342,22 +1342,22 @@ class RunPolicies(OnExistingProject):
             '--policiesurl', type=str, nargs='+',
             help='Location of applicable policies')
         parser.add_argument(
-            '--explain', type=bool, const=True, nargs='?',
+            '--explain', action='store_true', default=False,
             help='Explain condition testing')
         parser.add_argument(
             '--apply', type=str, nargs='+',
-            help='Labels for all the policies to automatically apply')
+            help='Labels for all the policies to apply')
         parser.add_argument(
-            '--apply-all', type=bool, const=True, nargs='?',
+            '--apply-all', action='store_true', default=False,
             help='Automatically apply all found policies')
         parser.add_argument(
             '--skip', type=str, nargs='+',
             help='Skip the listed policies')
         parser.add_argument(
-            '--include-default', type=bool, const=True, nargs='?',
+            '--include-default', action='store_true', default=False,
             help='Also test default policy locations when given a url')
         parser.add_argument(
-            '--force', type=bool, const=False, nargs='?',
+            '--force', action='store_true', default=False,
             help='Force application, even is the policy is considered '
                  'to have already been applied')
         parser.set_defaults(handler=RunPolicies)

@@ -22,9 +22,9 @@
      it follows the original git clone, run `git remote -v` to find out
      where it is.
 -->
-<machine xmlns="https://dueca.tudelft.nl"
+<machine xmlns="https://dueca.tudelft.nl/modules"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/modules.xsd">
+  xsi:schemaLocation="https://dueca.tudelft.nl/modules https://dueca.tudelft.nl/schemas/modules.xsd">
   <project main="true">
   </project>
 </machine>

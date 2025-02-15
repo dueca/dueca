@@ -1,22 +1,13 @@
 <?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	   targetNamespace="https://dueca.tudelft.nl"
-	   xmlns="https://dueca.tudelft.nl"
-	   elementFormDefault="qualified">
-
-  <xs:element name="machine">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="project" type="project_t"
-		    minOccurs="0" maxOccurs="unbounded"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
+  targetNamespace="https://dueca.tudelft.nl/modules"
+  xmlns="https://dueca.tudelft.nl/modules"
+  elementFormDefault="qualified">
 
   <xs:complexType name="module_t">
     <xs:simpleContent>
       <xs:extension base="xs:string">
-	<xs:attribute name="pseudo" type="xs:boolean" default="false"/>
+        <xs:attribute name="pseudo" type="xs:boolean" default="false" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -24,17 +15,27 @@
   <xs:complexType name="project_t">
     <xs:sequence>
       <xs:element name="url"
-		  type="xs:string"
-		  minOccurs="0"
-		  maxOccurs="1"/>
+        type="xs:string"
+        minOccurs="0"
+        maxOccurs="1" />
       <xs:element name="version"
-		  type="xs:string"
-		  minOccurs="0"/>
+        type="xs:string"
+        minOccurs="0" />
       <xs:element name="module"
-		  type="module_t"
-		  minOccurs="0"
-		  maxOccurs="unbounded"/>
+        type="module_t"
+        minOccurs="0"
+        maxOccurs="unbounded" />
     </xs:sequence>
-    <xs:attribute name="main" type="xs:boolean"/>
+    <xs:attribute name="main" type="xs:boolean" />
   </xs:complexType>
+
+  <xs:element name="machine">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="project" type="project_t"
+          minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
 </xs:schema>
