@@ -3,7 +3,7 @@ import os
 
 pres = parser.parse_args(
     ("--verbose", "hdf5", "--outfile=/tmp/result.hdf5", 
-    f"{os.environ['HOME']}/tmp/varstab/runlogs/2025-02-13_15:07:08/simlog-20250213_140803.ddff")
+    f"{os.environ['HOME']}/gdapps/VarStabCitation2/VarStabCitation2/run/solo/solo/simlog-20250216_084323.ddff")
 )
 
 pres.handler()(pres)

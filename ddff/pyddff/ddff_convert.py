@@ -116,8 +116,9 @@ Info.args(subparsers)
 
 
 def doExclude(x: list, idxes: list):
-    for i in idxes[-1:-1:]:
+    for i in reversed(idxes):
         del x[i]
+    return x
 
 
 class ToHdf5:
@@ -281,11 +282,18 @@ class ToHdf5:
                         if info.get("size", None):
 
                             # fixed size dataset array
-                            d = dg.create_dataset(m, (count,), np.dtype(mtypes))
+                            d = dg.create_dataset(
+                                m, (count, info.get("size")), np.dtype(mtypes)
+                            )
 
                             # data will be lists of lists of data
-                            for i, x in enumerate(f[streamid, ns.period, im]):
-                                d[i] = map(partial(doExclude, idxes=excluded), x)
+                            if excluded:
+                                fxit = partial(doExclude, idxes=excluded)
+                                for i, x in enumerate(f[streamid, ns.period, im]):
+                                    d[i] = [fxit(_x) for _x in x]
+                            else:
+                                for i, x in enumerate(f[streamid, ns.period, im]):
+                                    d[i] = x
 
                         else:
 
@@ -312,7 +320,9 @@ class ToHdf5:
                         vprint("quick processing default member", m)
                         _d = np.fromiter(
                             f[streamid, ns.period, im],
-                            dtype=self.shapeAndType(count, info)["dtype"], count=count)
+                            dtype=self.shapeAndType(count, info)["dtype"],
+                            count=count,
+                        )
                         d = dg.create_dataset(m, data=_d)
                         continue
 
@@ -320,14 +330,15 @@ class ToHdf5:
                         vprint("processing fixed-size member", m)
                         _d = np.zeros(**self.shapeAndType(count, info))
                         for i, x in enumerate(f[streamid, ns.period, im]):
-                            _d[i,:] = x
+                            _d[i, :] = x
                         d = dg.create_dataset(m, data=_d)
                         continue
 
                     # otherwise straight up?
                     vprint("processing default member", m)
                     d = dg.create_dataset(
-                        m, **self.shapeAndType(count, info), **compressargs)
+                        m, **self.shapeAndType(count, info), **compressargs
+                    )
                     for i, x in enumerate(f[streamid, ns.period, im]):
                         d[i] = x
 
