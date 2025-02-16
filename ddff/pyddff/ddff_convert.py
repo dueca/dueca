@@ -118,7 +118,7 @@ Info.args(subparsers)
 def doExclude(x: list, idxes: list):
     for i in reversed(idxes):
         del x[i]
-    return x
+    return tuple(x)
 
 
 class ToHdf5:
@@ -149,11 +149,29 @@ class ToHdf5:
 
     @classmethod
     def shapeAndType(cls, count, info):
+        exd = dict()
+
         shape = info.get("size", False) and (count, info.get("size")) or (count,)
         if info["type"] == "primitive":
             btype = cls.typemap.get(info["class"], None)
         elif info["type"] == "object":
-            btype = None
+
+            # nested object, run through the members
+            excluded = []
+            mtypes =[]
+            for im, m in enumerate(info["members"]):
+                if m["type"] == "primitive":
+                    if m.get("container", None) is None:
+                        mtypes.append((m["name"], ToHdf5.typemap[m["class"]]))
+                    elif m.get("container") == "array" and m.get("size", None):
+                        mtypes.append(
+                            (m["name"], ToHdf5.typemap[m["class"]], m["size"])
+                        )
+                    else:
+                        excluded.append(im)
+            btype = np.dtype(mtypes)
+            exd = dict(excluded=excluded)
+
         elif info["type"] == "enum":
             ebasetype = ToHdf5.typemap.get(info.get("enumint", ""), np.uint32)
             if info.get("enumvalues", False):
@@ -175,7 +193,7 @@ class ToHdf5:
             dtype = btype
         vprint(f"{info['name']} shape {shape} from {info['class']} type {dtype}")
 
-        return dict(shape=shape, dtype=dtype)
+        return dict(shape=shape, dtype=dtype, **exd)
 
     @classmethod
     def args(cls, subparsers):
@@ -254,54 +272,37 @@ class ToHdf5:
                     if info["type"] == "object":
 
                         vprint("processing member object", m)
-                        # will it be wrappable, all primitives in there?
-                        mtypes = []
-                        excluded = []
-                        for imbr, mbr in enumerate(info["members"]):
-                            if mbr["type"] == "primitive":
-                                if mbr.get("container", None) is None:
-                                    mtypes.append(
-                                        (mbr["name"], ToHdf5.typemap[mbr["class"]])
-                                    )
-                                elif mbr.get("container") == "array" and mbr.get(
-                                    "size", None
-                                ):
-                                    mtypes.append(
-                                        (
-                                            mbr["name"],
-                                            ToHdf5.typemap[mbr["class"]],
-                                            mbr["size"],
-                                        )
-                                    )
-                                else:
-                                    excluded.append(imbr)
+
+                        res = self.shapeAndType(count, info)
+                        shape, dtype, excluded = res['shape'], res['dtype'], res['excluded']
                         if len(excluded) == info["members"]:
                             print("Cannot nest-code member", m)
                             continue
 
+                        # fixed size dataset array
+                        _d = np.zeros(shape, dtype)
+                        fxit = partial(doExclude, idxes=excluded)
+
                         if info.get("size", None):
 
-                            # fixed size dataset array
-                            d = dg.create_dataset(
-                                m, (count, info.get("size")), np.dtype(mtypes)
-                            )
+                            # array size, data will be lists of lists of data
+                            for i, x in enumerate(f[streamid, ns.period, im]):
+                                _d[i] = [fxit(_x) for _x in x]
 
-                            # data will be lists of lists of data
-                            if excluded:
-                                fxit = partial(doExclude, idxes=excluded)
-                                for i, x in enumerate(f[streamid, ns.period, im]):
-                                    d[i] = [fxit(_x) for _x in x]
-                            else:
-                                for i, x in enumerate(f[streamid, ns.period, im]):
-                                    d[i] = x
+                        elif info.get("container", "") == "array":
+
+                            # variable size array, don't know if this works
+                            for i, x in enumerate(f[streamid, ns.period, im]):
+                                _d[i] = tuple((fxit(_x) for _x in x))
 
                         else:
 
-                            # probably single member
-                            d = dg.create_dataset(m, shape, np.dtype(mtypes))
-
+                            # single object member
                             for i, x in enumerate(f[streamid, ns.period, im]):
-                                d[i] = doExclude(x, excluded)
+                                _d[1] = fxit(x)
+
+                        # with that, create the dataset
+                        d = dg.create_dataset(m, data=_d, **compressargs)
                         continue
 
                     if info.get("container", None) == "map":
@@ -323,7 +324,7 @@ class ToHdf5:
                             dtype=self.shapeAndType(count, info)["dtype"],
                             count=count,
                         )
-                        d = dg.create_dataset(m, data=_d)
+                        d = dg.create_dataset(m, data=_d, **compressargs)
                         continue
 
                     elif info.get("size", False):
@@ -331,7 +332,7 @@ class ToHdf5:
                         _d = np.zeros(**self.shapeAndType(count, info))
                         for i, x in enumerate(f[streamid, ns.period, im]):
                             _d[i, :] = x
-                        d = dg.create_dataset(m, data=_d)
+                        d = dg.create_dataset(m, data=_d, **compressargs)
                         continue
 
                     # otherwise straight up?
