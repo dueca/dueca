@@ -294,7 +294,7 @@ struct DDFFDCOReadFunctor: public dueca::ddff::DDFFDCOReadFunctor {
 
     // when completely in the recording range, as it should be
     if (ts.getValidityStart() >= startend->getValidityStart()) {
-      pk.pack(ts.getValidityStart() - startend->getValidityStart());
+      pk.pack(ts.getValidityStart());
       pk.pack(ts.getValiditySpan());
     }
 
