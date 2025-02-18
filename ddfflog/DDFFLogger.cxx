@@ -163,7 +163,7 @@ bool DDFFLogger::complete()
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
   // file name
-  
+
   if (r_config) {
     // wait for hdf file name or start command
     /* DUECA ddff.
@@ -285,13 +285,13 @@ void DDFFLogger::TargetedLog::createFunctor(std::weak_ptr<FileWithSegments> nfil
     // get a description of the data for the stream label
     rapidjson::StringBuffer doc;
     DCOtypeJSON(doc, ei.data_class.c_str());
-   
+
     // request a stream in the file
     wstream = nfile.lock()->createNamedWrite
       (prefix+logpath, doc.GetString());
   } catch (const std::exception& e) {
     /* DUECA ddff.
-    
+
        Could not create an entry in the ddff file for logging, may be related
        to the datatype not being known, or related to file access.
     */
@@ -574,6 +574,11 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
       try {
         // create the file
         nfile.reset(new FileWithSegments(filename, FileHandler::Mode::New));
+
+        // if there is no prefix, create a defaule epoch
+        if (cnf.data().prefix.size() == 0) {
+          nfile->nameRecording("0", cnf.data().attribute);
+        }
       }
       catch (const std::exception &e) {
         /* DUECA ddff.
@@ -593,10 +598,15 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
 
     else {
 
+      // keep the current file
       nfile = hfile;
       filename = current_filename;
     }
 
+    // add a new epoch if requested
+    if (cnf.data().prefix.size()) {
+      nfile->nameRecording(cnf.data().prefix, cnf.data().attribute);
+    }
 
 #ifndef DDFF_NOCATCH
     try
