@@ -175,16 +175,16 @@
       wait="0.2" />
     <check window="TEAM 1 control panel" x="475" y="35" r="65" g="255" b="11" timeout="10.0"
       wait="0.5" />
-    <check x="593" y="41" r="250" g="250" b="250" timeout="10.0" wait="0.5" />
+    <check x="593" y="41" r="246" g="245" b="244" timeout="10.0" wait="0.5" />
     <click x="593" y="41" button="Button.left" pressed="true" wait="0.2" />
     <click x="593" y="41" button="Button.left" pressed="false" wait="0.2" />
-    <check window="TEAM 1 control panel" x="72" y="37" r="222" g="222" b="222" timeout="10.0"
+    <check window="TEAM 1 control panel" x="72" y="37" r="53" g="132" b="228" timeout="10.0"
       wait="0.5" />
     <click window="TEAM 1 control panel" x="72" y="37" button="Button.left" pressed="true"
       wait="0.2" />
     <click window="TEAM 1 control panel" x="72" y="37" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="Are you serious?" x="114" y="28" r="245" g="245" b="245" timeout="10.0"
+    <check window="Are you serious?" x="114" y="28" r="248" g="248" b="247" timeout="10.0"
       wait="0.5" />
     <click window="Are you serious?" x="114" y="28" button="Button.left" pressed="true" wait="0.2" />
     <click x="609" y="933" button="Button.left" pressed="false" wait="0.2" />
@@ -216,19 +216,19 @@
       wait="0.2" />
     <check window="TEAM 2 control panel" x="476" y="35" r="65" g="255" b="11" timeout="10.0"
       wait="0.5" />
-    <check window="TEAM 2 control panel" x="32" y="-18" r="250" g="250" b="250" timeout="10.0"
+    <check window="TEAM 2 control panel" x="32" y="-18" r="246" g="245" b="244" timeout="10.0"
       wait="0.5" />
     <click window="TEAM 2 control panel" x="32" y="-18" button="Button.left" pressed="true"
       wait="0.2" />
     <click window="TEAM 2 control panel" x="32" y="-18" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="TEAM 2 control panel" x="76" y="38" r="222" g="222" b="222" timeout="10.0"
+    <check window="TEAM 2 control panel" x="76" y="38" r="53" g="132" b="228" timeout="10.0"
       wait="0.5" />
     <click window="TEAM 2 control panel" x="76" y="38" button="Button.left" pressed="true"
       wait="0.2" />
     <click window="TEAM 2 control panel" x="76" y="38" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="Are you serious?" x="81" y="16" r="245" g="245" b="245" timeout="10.0" wait="0.5" />
+    <check window="Are you serious?" x="81" y="16" r="248" g="248" b="247" timeout="10.0" wait="0.5" />
     <click window="Are you serious?" x="81" y="16" button="Button.left" pressed="true" wait="0.2" />
     <click x="576" y="921" button="Button.left" pressed="false" wait="0.2" />
     <check window="DUECA/DUSIME control panel" x="475" y="122" r="65" g="255" b="11" timeout="10.0"
@@ -247,19 +247,19 @@
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="472" y="32" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="32" y="-17" r="250" g="250" b="250" timeout="10.0"
+    <check window="DUECA/DUSIME control panel" x="32" y="-17" r="246" g="245" b="244" timeout="10.0"
       wait="0.5" />
     <click window="DUECA/DUSIME control panel" x="32" y="-17" button="Button.left" pressed="true"
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="32" y="-17" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="68" y="38" r="222" g="222" b="222" timeout="10.0"
+    <check window="DUECA/DUSIME control panel" x="68" y="38" r="53" g="132" b="228" timeout="10.0"
       wait="0.5" />
     <click window="DUECA/DUSIME control panel" x="68" y="38" button="Button.left" pressed="true"
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="68" y="38" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="Are you serious?" x="34" y="35" r="245" g="245" b="245" timeout="10.0" wait="0.5" />
+    <check window="Are you serious?" x="34" y="35" r="248" g="248" b="247" timeout="10.0" wait="0.5" />
     <click window="Are you serious?" x="34" y="35" button="Button.left" pressed="true" wait="0.2" />
     <click x="529" y="714" button="Button.left" pressed="false" wait="0.2" />
     <click x="529" y="714" button="Button.left" pressed="true" wait="0.2" />
