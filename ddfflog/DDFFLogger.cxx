@@ -575,7 +575,7 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
         // create the file
         nfile.reset(new FileWithSegments(filename, FileHandler::Mode::New));
 
-        // if there is no prefix, create a defaule epoch
+        // if there is no prefix, create a default epoch
         if (cnf.data().prefix.size() == 0) {
           nfile->nameRecording("0", cnf.data().attribute);
         }

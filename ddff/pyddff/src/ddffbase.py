@@ -180,7 +180,8 @@ class DDFFStream(list):
 
 class DDFFReadStream:
 
-    maxobjectsize = 8192
+    # buffer size for loading data. 
+    maxobjectsize = 1024*1024
 
     def __init__(self, block: DDFFBlock, file: FileIO):
         self.block = block
@@ -188,10 +189,21 @@ class DDFFReadStream:
         self.file = file
         self.unpacker = msgpack.Unpacker()
         self.topup
+        self.unpacked = []
+        self.maxobjectsize = DDFFReadStream.maxobjectsize
+        
 
     def topup(self):
+        """ Feeds data blocks from the file until the unpacker buffer has reached
+            the given (1Mb fill size) or the file is exchausted
+
+        Returns
+        -------
+        bool
+            True if any data was added to the unpacker, False if not.
+        """
         topped = False
-        while self.block and self.loaded - self.upacker.tell() < maxobjectsize:
+        while self.block and self.loaded - self.upacker.tell() < self.maxobjectsize:
             self.unpacker.feed(block.tail)
             topped = True
             if self.block.next_offset:
@@ -203,20 +215,28 @@ class DDFFReadStream:
         return topped
 
     def __iter__(self):
-        try:
-            obj = self.unpacker.unpack()
-        except msgpack.OutOfData:
-            while self.topup():
-                try:
-                    obj = self.unpacker.unpack()
-                    return
-                except msgpack.OutOfData:
-                    self.maxobjectsize *= 2
-                except msgpack.ExtraData:
-                    return
-        except msgpack.ExtraData:
-            pass
-        return
+        """ Extract data objects from the stream
+        """
+        if self.unpacked:
+            return self.unpacked.pop(0)
+
+        while not self.unpacked:
+            try:
+                # transfer from file to unpacker
+                if not self.topup():
+                    return None
+
+                # fill the unpacked again
+                for o in self.unpacker:
+                    self.unpacked.append(o)
+
+            except msgpack.OutOfData:
+                self.maxobjectsize *= 2
+            except msgpack.ExtraData:
+                pass
+        if self.unpacked:
+            return self.unpacked.pop(0)
+        return None
 
 
 class DDFF:
