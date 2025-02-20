@@ -246,7 +246,6 @@ public:
       been processed, immediately returns true.
 
       @param tick        Time specification of the completion.
-      @param label       Comment or text to add.
 
       @returns           True, if the data has been successfully flushed,
                          false if not.

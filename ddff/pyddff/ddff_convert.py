@@ -11,7 +11,7 @@
         license         : EUPL-1.2
 """
 try:
-    from pyddff import DDFFTagged, DDFFInventoried, toShapeAndType
+    from pyddff import DDFFTagged, DDFFInventoried, shapeAndType
 except ModuleNotFoundError:
     # debug/test?
     from src.ddffinventoried import DDFFInventoried
@@ -204,7 +204,7 @@ class ToHdf5:
 
                         vprint("processing member object", m)
 
-                        res = self.shapeAndType(count, info)
+                        res = shapeAndType(count, info)
                         shape, dtype, excluded = res['shape'], res['dtype'], res['excluded']
                         if len(excluded) == info["members"]:
                             print("Cannot nest-code member", m)
@@ -240,7 +240,7 @@ class ToHdf5:
 
                         vprint("processing member map", m)
                         d = dg.create_dataset(
-                            m, **self.shapeAndType(count, info), **compressargs
+                            m, **shapeAndType(count, info), **compressargs
                         )
                         for i, x in enumerate(f[streamid, ns.period, im]):
                             d[i] = x.items()  # maybe it is an object in the msgpack?
@@ -252,7 +252,7 @@ class ToHdf5:
                         vprint("quick processing default member", m)
                         _d = np.fromiter(
                             f[streamid, ns.period, im],
-                            dtype=self.shapeAndType(count, info)["dtype"],
+                            dtype=shapeAndType(count, info)["dtype"],
                             count=count,
                         )
                         d = dg.create_dataset(m, data=_d, **compressargs)
@@ -260,7 +260,7 @@ class ToHdf5:
 
                     elif info.get("size", False):
                         vprint("processing fixed-size member", m)
-                        _d = np.zeros(**self.shapeAndType(count, info))
+                        _d = np.zeros(**shapeAndType(count, info))
                         for i, x in enumerate(f[streamid, ns.period, im]):
                             _d[i, :] = x
                         d = dg.create_dataset(m, data=_d, **compressargs)
@@ -269,7 +269,7 @@ class ToHdf5:
                     # otherwise straight up?
                     vprint("processing default member", m)
                     d = dg.create_dataset(
-                        m, **self.shapeAndType(count, info), **compressargs
+                        m, **shapeAndType(count, info), **compressargs
                     )
                     for i, x in enumerate(f[streamid, ns.period, im]):
                         d[i] = x
