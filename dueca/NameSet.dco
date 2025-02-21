@@ -11,7 +11,8 @@
         documentation   : DUECA_API")
 
 ;; use standard stl string to capture the name
-(Type std::string "#include <string>")
+(Type std::string
+"#include <string>")
 
 ;; Name tuple as used in DUECA. The tuple is typically written in URL-type
 ;; fashion, with the data class type before the dots, e.g.,
