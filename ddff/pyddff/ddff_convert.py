@@ -11,11 +11,13 @@
         license         : EUPL-1.2
 """
 try:
-    from pyddff import DDFFTagged, DDFFInventoried, shapeAndType
+    from pyddff import DDFFTagged, DDFFInventoried, shapeAndType, ddffbase
+
 except ModuleNotFoundError:
     # debug/test?
     from src.ddffinventoried import DDFFInventoried
     from src.ddfftagged import DDFFTagged
+    import src.ddffbase as ddffbase
 import numpy as np
 import h5py
 import argparse
@@ -173,6 +175,7 @@ class ToHdf5:
         # either all stream id's, or just the selected ones
         if not ns.streamids:
             ns.streamids = [i for i in f.keys()]
+        vprint("Streams to convert ", ns.streamids)
 
         # hdf5 file name
         if not ns.outfile:
@@ -180,7 +183,7 @@ class ToHdf5:
                 ns.outfile = os.path.basename(ns.filename[:-4] + "hdf5")
             else:
                 ns.outfile = os.path.basename(ns.filename + ".hdf5")
-            vprint("output file", ns.outfile)
+        vprint("output file", ns.outfile)
 
         # create the file
         hf = h5py.File(ns.outfile, "w")
@@ -189,6 +192,14 @@ class ToHdf5:
             vprint("Processing stream", streamid)
             gg = hf.create_group(streamid)
             dg = gg.create_group("data")
+
+            time, dtime, values = f.stream(streamid).getData(2000000)
+
+            gg.create_dataset("tick", data=time, **compressargs)
+            for m, v in values.items():
+                gg.create_dataset(m, data=v, **compressargs)
+
+            """
 
             # first the matching time
             d = np.fromiter(f.time(streamid, ns.period), dtype=np.uint64)
@@ -278,7 +289,7 @@ class ToHdf5:
                     print(
                         f"Cannot convert data {streamid}, {m} with {info}, to numpy array, problem {e}"
                     )
-
+"""
         hf.close()
 
 
@@ -292,6 +303,7 @@ if __name__ == "__main__":
     # verbose output, todo
     if pres.verbose:
         __verbose = True
+        ddffbase.__verbose = True
 
     # extract the handler
     try:

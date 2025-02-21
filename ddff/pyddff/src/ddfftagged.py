@@ -6,9 +6,9 @@ Created on Fri Apr  8 17:16:10 2022
 @author: repa
 """
 try:    
-    from .ddffinventoried import DDFFInventoried
+    from .ddffinventoried import DDFFInventoried, DDFFInventoriedStream
 except ImportError:
-    from ddffinventoried import DDFFInventoried
+    from ddffinventoried import DDFFInventoried, DDFFInventoriedStream
 import itertools
 
 class DDFFTag:
@@ -46,7 +46,7 @@ class DDFFTagStream(dict):
         """
         super(DDFFTagStream).__init__(*args, **kwargs)
         self.base = ddffs
-        for st in self.base:
+        for st in self.base.reader():
             self[st[-2]] = DDFFTag(*st)
 
     class TimeIt:
@@ -100,7 +100,7 @@ class DDFFTagged(DDFFInventoried):
     stream.
     """
 
-    def __init__(self, name: str, mode='r', *args, **kwargs):
+    def __init__(self, name: str, mode='r', nstreams=2, *args, **kwargs):
         """Open a tagged stream datafile
 
         Arguments:
@@ -111,7 +111,7 @@ class DDFFTagged(DDFFInventoried):
         """
 
         # analyse with base DDFF read
-        super().__init__(name, mode=mode, *args, **kwargs)
+        super().__init__(name, *args, mode=mode, nstreams=nstreams, **kwargs)
 
         # replace/parse stream 1, to get a tagstream
         self.streams[1] = DDFFTagStream(self.streams[1])
@@ -135,7 +135,7 @@ class DDFFTagged(DDFFInventoried):
         """
         return self.streams[1]
 
-    def keys(self):
+    def periods(self):
         """List the keys of the available periods
 
         Returns:
@@ -168,20 +168,17 @@ class DDFFTagged(DDFFInventoried):
             Iterator for data, either for a single member, or the whole data
             list/struct
         """
-        if isinstance(key, str):
-            raise KeyError("need to supply tag, stream and member")
-
-        if len(key) == 3:
+        if isinstance(key, str|int):
+            streamid = key
+            period = None
+            member = None
+        elif len(key) == 3:
             streamid, period, member = key
         elif len(key) == 2:
             streamid, period = key
             member = None
         else:
             raise KeyError("Supply 2 or 3 elements for key")
-
-        # get start and end time corresponding to the tag
-        it = self.streams[1][period]
-        idx0, idx1 = it.index0, it.index1
 
         # get stream number corresponding to the key (or int index)
         if isinstance(streamid, int):
@@ -191,6 +188,14 @@ class DDFFTagged(DDFFInventoried):
 
         if isinstance(member, str):
             member = stream.members[member]
+
+        # if no period given, treat as inventoried stream
+        if period is None:
+            return DDFFInventoriedStream.ValueIt(stream.base, member)
+
+        # get start and end time corresponding to the tag
+        it = self.streams[1][period]
+        idx0, idx1 = it.index0, it.index1
 
         # use this to return an iterator
         return DDFFTagStream.ValueIt(stream, member, idx0, idx1)
