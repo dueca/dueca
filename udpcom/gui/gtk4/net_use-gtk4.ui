@@ -26,14 +26,14 @@
             </style>
             <property name="can-focus">0</property>
             <property name="valign">start</property>
-            <child>
+            <!-- <child>
               <object class="GtkButton" id="close">
                 <property name="can-focus">0</property>
                 <property name="label" translatable="1">_Close</property>
                 <property name="use-underline">1</property>
                 <property name="icon-name">window-close</property>
               </object>
-            </child>
+            </child> -->
             <child>
               <object class="GtkSeparator" />
             </child>
@@ -60,7 +60,7 @@
                 </property>
                 <property name="name">sutlabel</property>
                 <property name="can-focus">0</property>
-                <property name="label" translatable="1">0.0 [&amp;#956;s] + 0.0 [&amp;#956;s/byte]</property>
+                <property name="label" translatable="1">0.0 &amp;#956;s + 0.0 &amp;#956;s/b</property>
                 <property name="use-markup">1</property>
               </object>
             </child>
@@ -81,14 +81,11 @@
                     <property name="can-focus">0</property>
                     <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkDrawingArea" id="timing_view">
-                        <property name="name">timing_view</property>
-                        <property name="width-request">220</property>
-                        <property name="can-focus">0</property>
-                        <property name="tooltip-markup" translatable="1">&lt;big&gt;Histogram of
-                          communication cycle timing.&lt;/big&gt;
+                      <object class="GtkDrawingArea" id="comm_timing_view">
+                        <property name="content-width">220</property>
+                        <property name="content-height">80</property>
+                        <property name="tooltip-markup" translatable="1">&lt;big&gt;Histogram of communication cycle timing.&lt;/big&gt;
                           20-point histogram. The red line indicates when cycle time is exceeded.</property>
-                        <property name="halign">start</property>
                       </object>
                     </child>
                     <child>

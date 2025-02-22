@@ -11,7 +11,7 @@
         license         : EUPL-1.2
 """
 try:
-    from pyddff import DDFFTagged, DDFFInventoried, shapeAndType, ddffbase
+    from pyddff import DDFFTagged, DDFFInventoried, ddffbase
 
 except ModuleNotFoundError:
     # debug/test?
@@ -103,10 +103,10 @@ class Info:
         if not ns.streamid and not ns.period:
             try:
                 if not ns.inventory:
-                    print('Available periods:\n"', '", "'.join(f.keys()), '"', sep="")
+                    print('Available periods:\n"', '", "'.join(f.periods()), '"', sep="")
                 print(
                     'Available streams:\n"',
-                    '", "'.join(f.inventory().keys()),
+                    '", "'.join(f.keys()),
                     '"',
                     sep="",
                 )
@@ -151,6 +151,10 @@ class ToHdf5:
             help="Filename for output file, if not specified, created from\n"
             "the input filename",
         )
+        parser.add_argument(
+            '--expected-size', type=int, default=1000,
+            help="Expected data size, for pre-allocating numpy arrays"
+        )
         parser.add_argument("filename", type=str, help="File name to be analysed")
         parser.set_defaults(handler=ToHdf5)
 
@@ -175,7 +179,6 @@ class ToHdf5:
         # either all stream id's, or just the selected ones
         if not ns.streamids:
             ns.streamids = [i for i in f.keys()]
-        vprint("Streams to convert ", ns.streamids)
 
         # hdf5 file name
         if not ns.outfile:
@@ -193,103 +196,12 @@ class ToHdf5:
             gg = hf.create_group(streamid)
             dg = gg.create_group("data")
 
-            time, dtime, values = f.stream(streamid).getData(2000000)
-
+            time, dtime, values = f.stream(streamid).getData(ns.expected_size)
+            vprint(f"number of data points {time.shape[0]}")
             gg.create_dataset("tick", data=time, **compressargs)
             for m, v in values.items():
                 gg.create_dataset(m, data=v, **compressargs)
 
-            """
-
-            # first the matching time
-            d = np.fromiter(f.time(streamid, ns.period), dtype=np.uint64)
-            count = d.shape[0]
-            gg.create_dataset("tick", data=d, **compressargs)
-
-            for m, im in f.mapping[streamid].members.items():
-
-                try:
-                    info = f.stream(streamid).getMeta(im)
-
-                    if info["type"] == "object":
-
-                        vprint("processing member object", m)
-
-                        res = shapeAndType(count, info)
-                        shape, dtype, excluded = res['shape'], res['dtype'], res['excluded']
-                        if len(excluded) == info["members"]:
-                            print("Cannot nest-code member", m)
-                            continue
-
-                        # fixed size dataset array
-                        _d = np.zeros(shape, dtype)
-                        fxit = partial(doExclude, idxes=excluded)
-
-                        if info.get("size", None):
-
-                            # array size, data will be lists of lists of data
-                            for i, x in enumerate(f[streamid, ns.period, im]):
-                                _d[i] = [fxit(_x) for _x in x]
-
-                        elif info.get("container", "") == "array":
-
-                            # variable size array, don't know if this works
-                            for i, x in enumerate(f[streamid, ns.period, im]):
-                                _d[i] = tuple((fxit(_x) for _x in x))
-
-                        else:
-
-                            # single object member
-                            for i, x in enumerate(f[streamid, ns.period, im]):
-                                _d[1] = fxit(x)
-
-                        # with that, create the dataset
-                        d = dg.create_dataset(m, data=_d, **compressargs)
-                        continue
-
-                    if info.get("container", None) == "map":
-
-                        vprint("processing member map", m)
-                        d = dg.create_dataset(
-                            m, **shapeAndType(count, info), **compressargs
-                        )
-                        for i, x in enumerate(f[streamid, ns.period, im]):
-                            d[i] = x.items()  # maybe it is an object in the msgpack?
-                        continue
-
-                    # though numpy array iteration for non-complex members, fixed
-                    # size arrays and straight
-                    if not info.get("container", False):
-                        vprint("quick processing default member", m)
-                        _d = np.fromiter(
-                            f[streamid, ns.period, im],
-                            dtype=shapeAndType(count, info)["dtype"],
-                            count=count,
-                        )
-                        d = dg.create_dataset(m, data=_d, **compressargs)
-                        continue
-
-                    elif info.get("size", False):
-                        vprint("processing fixed-size member", m)
-                        _d = np.zeros(**shapeAndType(count, info))
-                        for i, x in enumerate(f[streamid, ns.period, im]):
-                            _d[i, :] = x
-                        d = dg.create_dataset(m, data=_d, **compressargs)
-                        continue
-
-                    # otherwise straight up?
-                    vprint("processing default member", m)
-                    d = dg.create_dataset(
-                        m, **shapeAndType(count, info), **compressargs
-                    )
-                    for i, x in enumerate(f[streamid, ns.period, im]):
-                        d[i] = x
-
-                except Exception as e:
-                    print(
-                        f"Cannot convert data {streamid}, {m} with {info}, to numpy array, problem {e}"
-                    )
-"""
         hf.close()
 
 

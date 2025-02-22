@@ -10,7 +10,7 @@ pkg_check_modules(GTK4 REQUIRED gtk4)
 
 set(SOURCES NetUseOverviewGtk4.cxx NetUseOverviewGtk4.hxx)
 
-set(GLADEFILES net_use.ui)
+set(GLADEFILES net_use-gtk4.ui)
 
 install(FILES ${GLADEFILES}
   DESTINATION ${CMAKE_INSTALL_DATADIR}/dueca)

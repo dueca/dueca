@@ -543,7 +543,7 @@ void DDFFLogger::doCalculation(const TimeSpec &ts)
 
         // if there is no prefix, create a default epoch
         if (cnf.data().prefix.size() == 0) {
-          nfile->nameRecording("0", cnf.data().attribute);
+          nfile->nameRecording("", cnf.data().attribute);
         }
       }
       catch (const std::exception &e) {
@@ -570,37 +570,50 @@ void DDFFLogger::doCalculation(const TimeSpec &ts)
 
     // add a new epoch if requested
     if (cnf.data().prefix.size()) {
+
+      if (loggingactive) {
+        // close off the current recording
+        hfile->completeStretch(ts.getValidityStart());
+      }
+
+      // set this name for the upcoming recording
       nfile->nameRecording(cnf.data().prefix, cnf.data().attribute);
+
+      // and start it
+      nfile->startStretch(ts.getValidityStart());
     }
 
+    // only when using a new file, re-create
+    if (nfile != hfile) {
 #ifndef DDFF_NOCATCH
-    try
+      try
 #endif
-    {
+      {
         // create or re-create all functors
-      for (targeted_list_t::iterator ii = targeted.begin();
-           ii != targeted.end(); ii++) {
-        (*ii)->createFunctor(nfile, this, cnf.data().prefix);
-      }
+        for (targeted_list_t::iterator ii = targeted.begin();
+             ii != targeted.end(); ii++) {
+          (*ii)->createFunctor(nfile, this, cnf.data().prefix);
+        }
 
-      for (watcher_list_t::iterator ww = watched.begin(); ww != watched.end();
-           ww++) {
-        (*ww)->createFunctors(nfile, cnf.data().prefix);
+        for (watcher_list_t::iterator ww = watched.begin(); ww != watched.end();
+             ww++) {
+          (*ww)->createFunctors(nfile, cnf.data().prefix);
+        }
       }
-    }
 #ifndef DDFF_NOCATCH
-    catch (const std::exception &e) {
+      catch (const std::exception &e) {
       /* DUECA ddff.
 
-         Unforeseen error in creating a functor.
-       */
-      E_XTR("DDFF exception creating functors, " << e.what());
-      sendStatus(std::string("DDFF creating functors, ") + e.what(), true,
-                 ts.getValidityStart());
-      setLoggingActive(false);
-      return;
-    }
+           Unforeseen error in creating a functor.
+         */
+        E_XTR("DDFF exception creating functors, " << e.what());
+        sendStatus(std::string("DDFF creating functors, ") + e.what(), true,
+                   ts.getValidityStart());
+        setLoggingActive(false);
+        return;
+      }
 #endif
+    }
 
     // set the new file current, this may also call destructor &
     // closing of any previous file
@@ -619,9 +632,9 @@ void DDFFLogger::doCalculation(const TimeSpec &ts)
       // if (inholdcurrent) break;
       // optime.validity_end = 0;
     inholdcurrent = true;
-    if (loggingactive) {
-      hfile->completeStretch(ts.getValidityStart());
-    }
+    // if (loggingactive) {
+    //   hfile->completeStretch(ts.getValidityStart());
+    // }
     break;
   case SimulationState::Replay:
   case SimulationState::Advance:
@@ -630,7 +643,7 @@ void DDFFLogger::doCalculation(const TimeSpec &ts)
       if (inholdcurrent) {
         optime.validity_start = ts.getValidityStart();
         inholdcurrent = false;
-        hfile->startStretch(ts.getValidityStart());
+        // hfile->startStretch(ts.getValidityStart());
       }
     }
     else {

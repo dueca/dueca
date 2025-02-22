@@ -32,7 +32,7 @@ const char *const NetUseOverviewGtk4::classname = "net-view";
 NetUseOverviewGtk4::NetUseOverviewGtk4(Entity *e, const char *part,
                                        const PrioritySpec &ps) :
   NetUseOverview(e, part, ps),
-  gladefile(DuecaPath::prepend("net_use.ui")),
+  gladefile(DuecaPath::prepend("net_use-gtk4.ui")),
   window(),
   timingcanvas(NULL),
   tlabel(NULL),
@@ -62,7 +62,7 @@ bool NetUseOverviewGtk4::complete()
     return res;
 
   static GladeCallbackTable cb_table[] = {
-    { "close", "clicked", gtk_callback(&_ThisModule_::cbClose) },
+    // { "close", "clicked", gtk_callback(&_ThisModule_::cbClose) },
     { "net_use_view", "close-request", gtk_callback(&_ThisModule_::deleteView) },
     { NULL, NULL, NULL }
   };
@@ -81,10 +81,10 @@ bool NetUseOverviewGtk4::complete()
   }
 
   // access the timing canvas, and the box with canvases
-  timingcanvas = window["timing_view"];
+  timingcanvas = window["comm_timing_view"];
   g_object_set_data(G_OBJECT(timingcanvas), "node",
                     reinterpret_cast<gpointer>(-1));
-  g_signal_connect(G_OBJECT(timingcanvas), "realize",
+  g_signal_connect(G_OBJECT(timingcanvas), "configure-event",
                    G_CALLBACK(DUECA_NS::cbConfigure),
                    reinterpret_cast<gpointer>(this));
 
@@ -109,12 +109,14 @@ bool NetUseOverviewGtk4::complete()
            << "indicates the size of regular data" << std::endl
            << "gray bars show the size with bulk data included.";
     GtkWidget *canvas = gtk_drawing_area_new();
-    gtk_widget_set_size_request(canvas, 220, 80);
+    gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(canvas), 80);
+    gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(canvas), 220);
+    // gtk_widget_set_size_request(canvas, 220, 80);
     // gtk_widget_set_halign(canvas, GTK_ALIGN_START);
     g_object_ref(canvas);
     g_object_set_data(G_OBJECT(canvas), "node", reinterpret_cast<gpointer>(ii));
     gtk_box_append(GTK_BOX(canvasbox), canvas);
-    g_signal_connect(G_OBJECT(canvas), "configure_event",
+    g_signal_connect(G_OBJECT(canvas), "configure-event",
                      G_CALLBACK(DUECA_NS::cbConfigure),
                      reinterpret_cast<gpointer>(this));
     gtk_drawing_area_set_draw_func(
@@ -185,15 +187,15 @@ int NetUseOverviewGtk4::cbDraw(GtkDrawingArea *w, cairo_t *cr, int width,
     // set max time on label
     gtk_label_set_markup(GTK_LABEL(tlabel),
                          (boost::lexical_cast<std::string>(timing_log.t_max) +
-                          std::string(" <span>[&#956;s]</span>"))
+                          std::string(" <span>&#956;s</span>"))
                            .c_str());
 
     // message setup time
     {
       std::stringstream str;
       str << std::fixed << std::setprecision(1) << timing_log.net_permessage
-          << " [&#956;s] + " << std::setprecision(2) << timing_log.net_perbyte
-          << " [&#956;s/byte]";
+          << " &#956;s + " << std::setprecision(2) << timing_log.net_perbyte
+          << " &#956;s/b";
       gtk_label_set_markup(GTK_LABEL(sutlabel), str.str().c_str());
     }
   }
@@ -236,13 +238,13 @@ int NetUseOverviewGtk4::cbConfigure(GtkWidget *w, gpointer user_data)
   // int dirty = int(g_object_get_data(G_OBJECT(w), "dirty"));
 
   DEB(getId() << " " << classname << " cbConfigure " << node);
-  auto current_w = gtk_widget_get_height(w);
-  auto current_h = gtk_widget_get_width(w);
+  auto current_w = gtk_drawing_area_get_content_width(GTK_DRAWING_AREA(w));
+  auto current_h = gtk_drawing_area_get_content_height(GTK_DRAWING_AREA(w));
 
   // check whether widget is large enough
-  if (current_h < 80 || current_w < 200) {
-    gtk_widget_set_size_request(w, 200, 80);
-  }
+  //if (current_h < 80 || current_w < 200) {
+  //  gtk_widget_set_size_request(w, 200, 80);
+  //}
 
   // set dirty, so a redraw will actually be done
   // g_object_set_data(G_OBJECT(w), "dirty", reinterpret_cast<gpointer>(1));

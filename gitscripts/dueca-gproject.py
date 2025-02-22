@@ -1467,6 +1467,9 @@ class BuildProject(OnExistingProject):
             '--clean', dest='clean', action='store_true', default=False,
             help="Clean all code from the build folder, don't configure")
         parser.add_argument(
+            '--rebuild', action='store_true', default=False,
+            help="Clean, then reconfigure and rebuild")
+        parser.add_argument(
             '-D', '--option', type=str, nargs='*', default=[],
             help='Provide additional options for the configure stage')
         parser.add_argument(
@@ -1485,7 +1488,7 @@ class BuildProject(OnExistingProject):
 
         self.pushDir(f'{self.projectdir}/build')
         dprint(f"Build, arguments {ns}")
-        if ns.clean:
+        if ns.clean or ns.rebuild:
             try:
                 files = [ str(f) for f in os.listdir('.') if f != '.gitignore' ]
                 # dprint([ 'rm', '-rf'] + files)
@@ -1500,9 +1503,10 @@ class BuildProject(OnExistingProject):
             except Exception as e:
                 print(f"Could not clean out the build folder, {e}",
                       file=sys.stderr)
-        elif not ns.vscode:
+
+        if not (ns.vscode or ns.clean):
             try:
-                if len(os.listdir('.')) == 1:
+                if not os.path.isfile('./Makefile'):
                     options = [ (o[0] == '-' and o) or f'-D{o}' for
                                  o in ns.option ]
                     if ns.debug:

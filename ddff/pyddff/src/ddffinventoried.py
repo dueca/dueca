@@ -37,8 +37,20 @@ _typemap = {
     "bool": bool,
 }
 
+def singleType(info: dict):
+    if info["type"] == "primitive":
+        return _typemap.get(info["class"], None)
+    if info["type"] == "enum":
+        ebasetype = _typemap.get(info.get("enumint", ""), np.uint32)
+        if info.get("enumvalues", False):
+            return h5py.enum_dtype(info["enumvalues"], basetype=ebasetype)
+        else:
+            # old recordings, just ints
+            return ebasetype
 
-def shapeAndType(count: int, info: dict):
+
+
+def shapeTypeExclude(count: int, info: dict):
     """ Given type information, return the array shape and numpy/hdf5 type information
 
     Parameters
@@ -59,7 +71,7 @@ def shapeAndType(count: int, info: dict):
     ValueError
         info dict not correct.
     """
-    exd = dict()
+    excluded = []
 
     shape = info.get("size", False) and (count, info.get("size")) or (count,)
     if info["type"] == "primitive":
@@ -67,20 +79,18 @@ def shapeAndType(count: int, info: dict):
     elif info["type"] == "object":
 
         # nested object, run through the members
-        excluded = []
         mtypes =[]
         for im, m in enumerate(info["members"]):
-            if m["type"] == "primitive":
+            if m["type"] in ("primitive", "enum"):
                 if m.get("container", None) is None:
-                    mtypes.append((m["name"], _typemap[m["class"]]))
+                    mtypes.append((m["name"], singleType(m)))
                 elif m.get("container") == "array" and m.get("size", None):
                     mtypes.append(
-                        (m["name"], _typemap[m["class"]], m["size"])
+                        (m["name"], singleType(m), m["size"])
                     )
                 else:
                     excluded.append(im)
         btype = np.dtype(mtypes)
-        exd = dict(excluded=excluded)
 
     elif info["type"] == "enum":
         ebasetype = _typemap.get(info.get("enumint", ""), np.uint32)
@@ -103,7 +113,7 @@ def shapeAndType(count: int, info: dict):
         dtype = btype
     dprint(f"{info['name']} shape {shape} from {info['class']} type {dtype}")
 
-    return dict(shape=shape, dtype=dtype, **exd)
+    return dict(shape=shape, dtype=dtype), excluded
 
 
 class DDFFInventoriedStream:
@@ -222,7 +232,7 @@ class DDFFInventoriedStream:
         Parameters
         ----------
         key : int | str | None, optional
-            access either metadata for a single member (give by key) or for the whole 
+            access either metadata for a single member (give by key) or for the whole
             stream, by default None
 
         Returns
@@ -257,12 +267,12 @@ class DDFFInventoriedStream:
 
         for m, midx in self.members.items():
             meminfo = self.getMeta(midx)
-            res = shapeAndType(icount, meminfo)
+            res, excluded = shapeTypeExclude(icount, meminfo)
 
             # create empty default array
             result[m] = np.zeros(**res)
 
-            if 'excluded' in res:
+            if excluded:
                 # object with excluded members
                 if meminfo.get("container", "") == "array":
                     if 'size' in meminfo:
@@ -319,15 +329,15 @@ def copyObjectFixedArrayExclude(obj, i, res, midx, excluded):
 
 def copyObjectArrayExclude(obj, i, res, midx, excluded):
     # nested tuples
-    res[i] = tuple((x for ix, x in enumerate(obj[m]) if ix not in excluded))
+    res[i] = tuple((x for ix, x in enumerate(obj[midx]) if ix not in excluded))
 
 def copyObjectExclude(obj, i, res, midx, excluded):
     # single tuple
-    res[i] = (x for ix, x in enumerate(obj[m]) if ix not in excluded)
+    res[i] = (x for ix, x in enumerate(obj[midx]) if ix not in excluded)
 
 def copyObjectFixedArray(obj, i, res, midx):
     # array of tuples
-    res[i] = ([(x for x in obj[m])])
+    res[i] = [tuple(x) for x in obj[midx]]
 
 def copyObjectArray(obj, i, res, midx):
     # nested tuples
@@ -362,7 +372,8 @@ class DDFFInventoried(DDFF):
     data type.
     """
 
-    def __init__(self, fname, mode="r", nstreams=1, *args, **kwargs):
+    def __init__(self, fname, mode="r", nstreams=frozenset((0,)),
+                 *args, **kwargs):
         """Open a DDFF datafile with stream inventory
 
         Arguments:
@@ -372,28 +383,34 @@ class DDFFInventoried(DDFF):
             mode -- open mode, read or write (default: {'r'})
         """
 
-        # analyse with base DDFF read
+        # analyse with base DDFF read, scans my requested number of base
+        # streams
         super().__init__(fname, *args, mode=mode, nstreams=nstreams, **kwargs)
         self.mapping = {}
 
-        # complete finding the descriptions stream, & possibly additional ones
-        self._scanStreams(nstreams)
+        # read the inventory into the stream as list
+        self.streams[0].readToList()
 
         # Read how many data streams are there
-        descriptions = [ d for d in self.streams[0].reader() ]
+        descriptions = self.streams[0]
+        neededstreams = frozenset((d[1] for d in descriptions))
 
         # also scan these streams
-        self._scanStreams(len(descriptions) + nstreams)
+        self._scanStreams(neededstreams)
 
         # Use the inventory to enhance the streams
         for tag, streamid, description in descriptions:
 
-            # replace/swap the raw streams with inventoried ones
-            self.streams[streamid] = DDFFInventoriedStream(
-                self.streams[streamid], tag, description
-            )
-
-            self.mapping[tag] = self.streams[streamid]
+            try:
+                # replace/swap the raw streams with inventoried ones
+                self.streams[streamid] = DDFFInventoriedStream(
+                    self.streams[streamid], tag, description
+                )
+                self.mapping[tag] = self.streams[streamid]
+            except KeyError:
+                print(f"Cannot find data for stream {streamid}/{tag}, create empty")
+                base = DDFFStream(self.file, stream_id=streamid)
+                self.streams[streamid] = DDFFInventoriedStream(base, tag, description)
 
     def inventory(self):
         """Return the inventory itself, for compatibility purposes
