@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - improve type information from DCOtypeJSON, add enum info, enum int class,
   correct primitive/object confusion for containered (vector, map, list)
   types.
+- Correct gtk4 net use overview
+- Modify ddfflogger to emit period/epoch markers
 
 ## [4.1.3] - 2024-11-12
 
