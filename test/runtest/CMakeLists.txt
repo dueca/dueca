@@ -184,7 +184,7 @@ if(NOT XMLSTARLET MATCHES ".*-NOTFOUND")
   foreach(SCN ${CONTROLFILES})
     add_custom_command(
       OUTPUT ${CMAKE_BINARY_DIR}/${SCN}-clean.xml
-      COMMAND ${XMLSTARLET} edit -N x="https://dueca.tudelft.nl"
+      COMMAND ${XMLSTARLET} edit -N x="https://dueca.tudelft.nl/testscenario"
       --delete 'x:scenario/x:actions/x:snap'
       --delete 'x:scenario/x:actions/x:click'
       --delete 'x:scenario/x:actions/x:check'
