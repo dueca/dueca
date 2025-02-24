@@ -2,8 +2,29 @@
 <scenario xmlns="https://dueca.tudelft.nl/testscenario"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="https://dueca.tudelft.nl/testscenario https://dueca.tudelft.nl/schemas/testscenario.xsd">
-  <!-- set the proper project name here. The project will be checked
-       out and configured and compiled -->
+  <!-- Scenario description:
+
+    This uses the DuecaTestCommunication project, which has a number of 
+    modules that create different channel types and send data over these.
+
+    To recreate:
+
+    - Operate DUECA/DUSIME state machine to calibrate
+    - Open the Initials control from the view menu
+      - Take a snapshot
+    - Open the Record & replay control
+      - Open tab record
+      - Start a recording
+    - Proceed to advance
+    - Return to holdcurrent
+    - In record & replay
+      - Open tab replay
+      - select the created recording
+      - upload the inco ^
+      - load the recording >
+    - Proceed to replay
+    - Back up to stop and exit DUECA
+   -->
   <project name="DuecaTestCommunication">
     <!-- The project will be filled with a list of windows that were
 	 used. Each window needs to have a unique name -->

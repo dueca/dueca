@@ -362,7 +362,7 @@ class DDFFInventoried(DDFF):
     data type.
     """
 
-    def __init__(self, fname, mode="r", nstreams=1, *args, **kwargs):
+    def __init__(self, fname, mode="r", nstreams=frozenset((1,)), *args, **kwargs):
         """Open a DDFF datafile with stream inventory
 
         Arguments:

@@ -100,7 +100,7 @@ class DDFFTagged(DDFFInventoried):
     stream.
     """
 
-    def __init__(self, name: str, mode='r', nstreams=2, *args, **kwargs):
+    def __init__(self, name: str, mode='r', nstreams=frozenset((0, 1)), *args, **kwargs):
         """Open a tagged stream datafile
 
         Arguments:

@@ -8,6 +8,7 @@ fi
 
 @NESTSERVER@ @DISPLAY@ @NESTEXTRAARGS@ &
 NESTSERVERPID=$!
+xauth extract @CMAKE_BINARY_DIR@/.Xauthority @DISPLAY@ 
 
 echo "Operate the DUECA process with mouse clicks and keypresses"
 echo "- F1 button to insert a color check at the cursor"
@@ -19,6 +20,7 @@ sleep 1
 env -i DISPLAY=@DISPLAY@ \
     GDK_BACKEND=x11 \
     USER=${USER} HOME=${HOME} LC_ALL=en_US.UTF-8 PATH=${PATH} \
+    XAUTHORITY=@CMAKE_BINARY_DIR@/.Xauthority \
     dbus-launch --exit-with-session @WINDOWMANAGER@ &
 sleep 1
 env -i DISPLAY=@DISPLAY@ \
@@ -27,6 +29,7 @@ env -i DISPLAY=@DISPLAY@ \
     USER=${USER} HOME=${HOME} LC_ALL=en_US.UTF-8 PATH=${PATH} \
     PYTHONPATH=${PYTHONPATH} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
     PKG_CONFIG_PATH=${PKG_CONFIG_PATH} \
+    XAUTHORITY=@CMAKE_BINARY_DIR@/.Xauthority \
     @Python_EXECUTABLE@ @CMAKE_CURRENT_SOURCE_DIR@/testrunner.py \
        --base @TESTRUN_BASE@ \
        --control $1 --learn
