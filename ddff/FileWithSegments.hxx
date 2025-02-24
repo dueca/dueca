@@ -184,6 +184,18 @@ public:
   /** Switch for determining recording periods. */
   const DataTimeSpec* getRunTimeSpec() { return &ts_switch; }
 
+  /** Create a write stream and add it to the inventory.
+
+      @param key     Unique identifying key.
+      @param label   Additional information.
+      @param bufsize Size of the buffers in this stream. Should be a
+                     multiple of the handler's blocksize.
+      @returns       FileStreamWrite object.
+  */
+  FileStreamWrite::pointer createNamedWrite(const std::string& key,
+    const std::string& label,
+    size_t bufsize=0);
+
   /** Find a matching filer
 
       @param entity   Entity or other key type for the filer.
@@ -246,7 +258,6 @@ public:
       been processed, immediately returns true.
 
       @param tick        Time specification of the completion.
-      @param label       Comment or text to add.
 
       @returns           True, if the data has been successfully flushed,
                          false if not.

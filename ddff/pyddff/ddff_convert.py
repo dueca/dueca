@@ -11,11 +11,13 @@
         license         : EUPL-1.2
 """
 try:
-    from pyddff import DDFFTagged, DDFFInventoried
+    from pyddff import DDFFTagged, DDFFInventoried, shapeAndType, ddffbase
+
 except ModuleNotFoundError:
     # debug/test?
     from src.ddffinventoried import DDFFInventoried
     from src.ddfftagged import DDFFTagged
+    import src.ddffbase as ddffbase
 import numpy as np
 import h5py
 import argparse
@@ -125,75 +127,6 @@ class ToHdf5:
 
     command = "hdf5"
 
-    typemap = {
-        "int32_t": np.int32,
-        "int64_t": np.int64,
-        "int16_t": np.int16,
-        "int8_t": np.int8,
-        "uint32_t": np.uint32,
-        "uint64_t": np.uint64,
-        "uint16_t": np.uint16,
-        "uint8_t": np.uint8,
-        "float": np.float32,
-        "double": np.float64,
-        "std::string": h5py.string_dtype(encoding="utf-8"),
-        "string8": h5py.string_dtype(encoding="utf-8", length=8),
-        "string16": h5py.string_dtype(encoding="utf-8", length=16),
-        "string32": h5py.string_dtype(encoding="utf-8", length=32),
-        "string64": h5py.string_dtype(encoding="utf-8", length=64),
-        "string128": h5py.string_dtype(encoding="utf-8", length=128),
-        "smartstring": h5py.string_dtype(encoding="utf-8"),
-        "LogString": h5py.string_dtype(encoding="utf-8", length=236),
-        "bool": bool,
-    }
-
-    @classmethod
-    def shapeAndType(cls, count, info):
-        exd = dict()
-
-        shape = info.get("size", False) and (count, info.get("size")) or (count,)
-        if info["type"] == "primitive":
-            btype = cls.typemap.get(info["class"], None)
-        elif info["type"] == "object":
-
-            # nested object, run through the members
-            excluded = []
-            mtypes =[]
-            for im, m in enumerate(info["members"]):
-                if m["type"] == "primitive":
-                    if m.get("container", None) is None:
-                        mtypes.append((m["name"], ToHdf5.typemap[m["class"]]))
-                    elif m.get("container") == "array" and m.get("size", None):
-                        mtypes.append(
-                            (m["name"], ToHdf5.typemap[m["class"]], m["size"])
-                        )
-                    else:
-                        excluded.append(im)
-            btype = np.dtype(mtypes)
-            exd = dict(excluded=excluded)
-
-        elif info["type"] == "enum":
-            ebasetype = ToHdf5.typemap.get(info.get("enumint", ""), np.uint32)
-            if info.get("enumvalues", False):
-                btype = h5py.enum_dtype(info["enumvalues"], basetype=ebasetype)
-            else:
-                # old recordings, just ints
-                btype = ebasetype
-        else:
-            raise ValueError(f"Wrong info specification {info}")
-
-        ktype = cls.typemap.get(info.get("key_class", ""), None)
-        if ktype:
-            dtype = h5py.vlen_dtype(np.dtype([("key", ktype), ("val", dtype)]))
-        elif "size" in info:
-            dtype = btype
-        elif info.get("container", "") == "array":
-            dtype = h5py.vlen_dtype(btype)
-        else:
-            dtype = btype
-        vprint(f"{info['name']} shape {shape} from {info['class']} type {dtype}")
-
-        return dict(shape=shape, dtype=dtype, **exd)
 
     @classmethod
     def args(cls, subparsers):
@@ -242,6 +175,7 @@ class ToHdf5:
         # either all stream id's, or just the selected ones
         if not ns.streamids:
             ns.streamids = [i for i in f.keys()]
+        vprint("Streams to convert ", ns.streamids)
 
         # hdf5 file name
         if not ns.outfile:
@@ -249,7 +183,7 @@ class ToHdf5:
                 ns.outfile = os.path.basename(ns.filename[:-4] + "hdf5")
             else:
                 ns.outfile = os.path.basename(ns.filename + ".hdf5")
-            vprint("output file", ns.outfile)
+        vprint("output file", ns.outfile)
 
         # create the file
         hf = h5py.File(ns.outfile, "w")
@@ -258,6 +192,14 @@ class ToHdf5:
             vprint("Processing stream", streamid)
             gg = hf.create_group(streamid)
             dg = gg.create_group("data")
+
+            time, dtime, values = f.stream(streamid).getData(2000000)
+
+            gg.create_dataset("tick", data=time, **compressargs)
+            for m, v in values.items():
+                gg.create_dataset(m, data=v, **compressargs)
+
+            """
 
             # first the matching time
             d = np.fromiter(f.time(streamid, ns.period), dtype=np.uint64)
@@ -273,7 +215,7 @@ class ToHdf5:
 
                         vprint("processing member object", m)
 
-                        res = self.shapeAndType(count, info)
+                        res = shapeAndType(count, info)
                         shape, dtype, excluded = res['shape'], res['dtype'], res['excluded']
                         if len(excluded) == info["members"]:
                             print("Cannot nest-code member", m)
@@ -309,7 +251,7 @@ class ToHdf5:
 
                         vprint("processing member map", m)
                         d = dg.create_dataset(
-                            m, **self.shapeAndType(count, info), **compressargs
+                            m, **shapeAndType(count, info), **compressargs
                         )
                         for i, x in enumerate(f[streamid, ns.period, im]):
                             d[i] = x.items()  # maybe it is an object in the msgpack?
@@ -321,7 +263,7 @@ class ToHdf5:
                         vprint("quick processing default member", m)
                         _d = np.fromiter(
                             f[streamid, ns.period, im],
-                            dtype=self.shapeAndType(count, info)["dtype"],
+                            dtype=shapeAndType(count, info)["dtype"],
                             count=count,
                         )
                         d = dg.create_dataset(m, data=_d, **compressargs)
@@ -329,7 +271,7 @@ class ToHdf5:
 
                     elif info.get("size", False):
                         vprint("processing fixed-size member", m)
-                        _d = np.zeros(**self.shapeAndType(count, info))
+                        _d = np.zeros(**shapeAndType(count, info))
                         for i, x in enumerate(f[streamid, ns.period, im]):
                             _d[i, :] = x
                         d = dg.create_dataset(m, data=_d, **compressargs)
@@ -338,7 +280,7 @@ class ToHdf5:
                     # otherwise straight up?
                     vprint("processing default member", m)
                     d = dg.create_dataset(
-                        m, **self.shapeAndType(count, info), **compressargs
+                        m, **shapeAndType(count, info), **compressargs
                     )
                     for i, x in enumerate(f[streamid, ns.period, im]):
                         d[i] = x
@@ -347,7 +289,7 @@ class ToHdf5:
                     print(
                         f"Cannot convert data {streamid}, {m} with {info}, to numpy array, problem {e}"
                     )
-
+"""
         hf.close()
 
 
@@ -361,6 +303,7 @@ if __name__ == "__main__":
     # verbose output, todo
     if pres.verbose:
         __verbose = True
+        ddffbase.__verbose = True
 
     # extract the handler
     try:

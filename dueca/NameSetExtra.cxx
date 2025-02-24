@@ -13,37 +13,32 @@
 #include <dueca/visibility.h>
 #include <sstream>
 
-NameSet::NameSet(const std::string& e, const std::string& c,
-                 const std::string& p) :
-  name(p.size() ? c + string("://") + e + string("/") + p :
-       c + string("://") + e)
+NameSet::NameSet(const std::string &e, const std::string &c,
+                 const std::string &p) :
+  name(p.size() ? c + string("://") + e + string("/") + p
+                : c + string("://") + e)
 {
   validate_set();
 }
 
 #include <boost/lexical_cast.hpp>
 
-NameSet::NameSet(const std::string& e, const std::string& c, int p) :
+NameSet::NameSet(const std::string &e, const std::string &c, int p) :
   name(c + string("://") + e + string("/") +
        boost::lexical_cast<std::string>(p))
 {
   validate_set();
 }
 
-class LNK_PUBLIC improper_nameset: public std::exception
+improper_nameset::improper_nameset(const std::string &ns)
 {
-  std::stringstream message;
-  public:
-  improper_nameset(const std::string& ns) {
-    message << "Name '" << ns
-	    << "' is not a proper nameset; need form of class://path";
-  }
+  message << "Name '" << ns
+          << "' is not a proper nameset; need form of class://path";
+}
 
   /** Re-implementation of std:exception what. */
-  const char* what() const throw()
-  {return message.str().c_str();}
-};
-
+const char *improper_nameset::what() const throw()
+{ return message.str().c_str(); }
 
 void NameSet::validate_set()
 {
@@ -67,16 +62,17 @@ void NameSet::validate_set()
 std::string NameSet::getEntity() const
 {
   size_t idxc = name.find("://");
-  return name.substr(idxc+3, name.find('/', idxc+3)-idxc-3);
+  return name.substr(idxc + 3, name.find('/', idxc + 3) - idxc - 3);
 }
 
 std::string NameSet::getPart() const
 {
   const std::string empty("");
   size_t idxc = name.find("://");
-  size_t idxe = name.find('/', idxc+3);
-  if (idxe == string::npos) return empty;
-  return name.substr(idxe+1);
+  size_t idxe = name.find('/', idxc + 3);
+  if (idxe == string::npos)
+    return empty;
+  return name.substr(idxe + 1);
 }
 
 std::string NameSet::getClass() const
@@ -85,7 +81,7 @@ std::string NameSet::getClass() const
 }
 
 #define __CUSTOM_FUNCTION_PRINT
-std::ostream & NameSet::print(std::ostream& s) const
+std::ostream &NameSet::print(std::ostream &s) const
 {
   s << this->name;
   return s;

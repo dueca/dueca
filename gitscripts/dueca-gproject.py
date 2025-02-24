@@ -865,6 +865,10 @@ class Refresh(OnExistingProject):
                 with open(f'{self.projectdir}/.config/machine', 'w') as m:
                     m.write(str(ns.machineclass)+'\n')
 
+            else:
+                with open(f'{self.projectdir}/.config/machine', 'r') as m:
+                    ns.machineclass = m.read().strip()
+
             m = Modules()
             m.refreshBorrowed(auto_dco=ns.auto_borrow_for_dco,
                               auto_url=ns.auto_find_url)
@@ -872,7 +876,7 @@ class Refresh(OnExistingProject):
         finally:
             self.popDir()
 
-        print("Refreshed code for borrowed modules")
+        print("Refreshed code for borrowed modules, machine", ns.machineclass)
 
 Refresh.args(subparsers)
 

@@ -15,7 +15,7 @@
     @param c    %Class part
     @param p    %part
 */
-NameSet(const std::string& e, const std::string& c, const std::string& p);
+NameSet(const std::string &e, const std::string &c, const std::string &p);
 
 /** Old compatibility constructor for a complete name, with the part
     as an integer. Often used for automatically generating a series
@@ -24,7 +24,7 @@ NameSet(const std::string& e, const std::string& c, const std::string& p);
     @param c    %Class part
     @param p    %part, converted to string from integer
 */
-NameSet(const std::string& e, const std::string& c,  int p);
+NameSet(const std::string &e, const std::string &c, int p);
 
 /** Return the entity part only */
 std::string getEntity() const;
@@ -41,14 +41,35 @@ std::string getPart() const;
     @param o The other nameset
     @returns true if smaller
 */
-inline bool operator < (const NameSet& o) const { return this->name < o.name; }
+inline bool operator<(const NameSet &o) const { return this->name < o.name; }
+
 /** A nameset is considered larger, when its name is alphabetically
     larger.
 
     @param o The other nameset
     @returns true if larger
 */
-inline bool operator > (const NameSet& o) const { return this->name > o.name; }
+inline bool operator>(const NameSet &o) const { return this->name > o.name; }
 
 /** validate, and throw an dueca::improper_nameset exception if required. */
 void validate_set();
+}
+;
+
+/** Exception class indicating that a string cannot be decoded as a nameset */
+class improper_nameset : public std::exception
+{
+  /** To compose a proper message */
+  std::stringstream message;
+
+public:
+  /** Constructor
+      @param ns  failed string
+    */
+  improper_nameset(const std::string &ns);
+
+  /** Re-implementation of std:exception what. */
+  const char *what() const throw();
+};
+
+namespace {
