@@ -49,6 +49,12 @@ class DDFFTagStream(dict):
         for st in self.base.reader():
             self[st[-2]] = DDFFTag(*st)
 
+    def offsets(self, period: int|str=0):
+        if isinstance(period, int):
+            return self.base[period][0]
+        elif isinstance(period, str):
+            return self[period][0]
+
     class TimeIt:
         def __init__(self, ddffs, t0, t1):
             self.iter0 = iter(ddffs.base)
@@ -118,7 +124,8 @@ class DDFFTagged(DDFFInventoried):
         self.streams[1].readToList()
         self.streams[1] = DDFFTagStream(self.streams[1])
 
-        # keep the further inventoried streams
+        # Scan initial blocks for the inventory streams
+        self._doInitialScan(map(lambda x: x-28, self.streams[1].offsets()))
 
     def inventory(self):
         """Access the base DDFFInventory class

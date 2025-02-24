@@ -391,12 +391,20 @@ class DDFFInventoried(DDFF):
         # read the inventory into the stream as list
         self.streams[0].readToList()
 
+        if len(nstreams) == 1:
+            self._doInitialScan()
+
+    def _doInitialScan(self, offsets=None):
+
         # Read how many data streams are there
         descriptions = self.streams[0]
         neededstreams = frozenset((d[1] for d in descriptions))
 
-        # also scan these streams
-        self._scanStreams(neededstreams)
+        # find the initial blocks for streams with data
+        if offsets:
+            self._initStreams(neededstreams, offsets)
+        else:
+            self._scanStreams(neededstreams)
 
         # Use the inventory to enhance the streams
         for tag, streamid, description in descriptions:
@@ -411,6 +419,7 @@ class DDFFInventoried(DDFF):
                 print(f"Cannot find data for stream {streamid}/{tag}, create empty")
                 base = DDFFStream(self.file, stream_id=streamid)
                 self.streams[streamid] = DDFFInventoriedStream(base, tag, description)
+
 
     def inventory(self):
         """Return the inventory itself, for compatibility purposes
