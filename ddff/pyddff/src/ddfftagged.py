@@ -5,7 +5,7 @@ Created on Fri Apr  8 17:16:10 2022
 
 @author: repa
 """
-try:    
+try:
     from .ddffinventoried import DDFFInventoried, DDFFInventoriedStream
 except ImportError:
     from ddffinventoried import DDFFInventoried, DDFFInventoriedStream
@@ -57,17 +57,17 @@ class DDFFTagStream(dict):
                 while tmp[0] < t0:
                     tmp = next(self.iter0)
             self.t1 = t1
-            
+
         def __iter__(self):
             self.iter0, self.it = itertools.tee(self.iter0)
             return self
-        
+
         def __next__(self):
             tmp = next(self.it)
             if tmp[0] > self.t1:
                 raise StopIteration()
             return tmp[0]
-    
+
     class ValueIt:
         def __init__(self, ddffs, idx, t0, t1):
             self.idx = idx
@@ -81,7 +81,7 @@ class DDFFTagStream(dict):
         def __iter__(self):
             self.iter0, self.it = itertools.tee(self.iter0)
             return self
-        
+
         def __next__(self):
             tmp = next(self.it)
             if tmp[0] > self.t1:
@@ -92,7 +92,7 @@ class DDFFTagStream(dict):
 
 
 class DDFFTagged(DDFFInventoried):
-    """DDFF file with inventory and stretch/time tags. 
+    """DDFF file with inventory and stretch/time tags.
 
     Handles datafiles with an inventory in stream 0, describing the datatype
     written in each stream (from 2 onwards), and a time section tagging in
@@ -100,7 +100,8 @@ class DDFFTagged(DDFFInventoried):
     stream.
     """
 
-    def __init__(self, name: str, mode='r', nstreams=frozenset((0, 1)), *args, **kwargs):
+    def __init__(self, name: str, mode='r', nstreams=frozenset((0, 1)),
+                 *args, **kwargs):
         """Open a tagged stream datafile
 
         Arguments:
@@ -114,9 +115,10 @@ class DDFFTagged(DDFFInventoried):
         super().__init__(name, *args, mode=mode, nstreams=nstreams, **kwargs)
 
         # replace/parse stream 1, to get a tagstream
+        self.streams[1].readToList()
         self.streams[1] = DDFFTagStream(self.streams[1])
 
-        # keep the conventional inventoried streams
+        # keep the further inventoried streams
 
     def inventory(self):
         """Access the base DDFFInventory class
@@ -161,7 +163,7 @@ class DDFFTagged(DDFFInventoried):
             return
 
         Raises:
-            KeyError: key not found, either period, stream or member name 
+            KeyError: key not found, either period, stream or member name
             missing.
 
         Returns:
@@ -215,7 +217,7 @@ class DDFFTagged(DDFFInventoried):
         # get start and end time corresponding to the tag
         it = self.streams[1][period]
         idx0, idx1 = it.index0, it.index1
-        
+
         # get stream number corresponding to the key (or int index)
         if isinstance(streamid, int):
             stream = self.streams[streamid+2]
@@ -229,7 +231,7 @@ class DDFFTagged(DDFFInventoried):
 if __name__ == '__main__':
     import os
 
-    f2 = DDFFTagged(os.path.dirname(__file__) + 
+    f2 = DDFFTagged(os.path.dirname(__file__) +
             '/../../../test/ddff/recordings-PHLAB-new.ddff')
     keys = [ k for k in f2.keys() ]
     nameds = [ n for n in f2.inventory().keys() ]

@@ -143,7 +143,6 @@ class DDFFStream(list):
         else:
             raise ValueError("Need block or stream id")
 
-        self.unpacker = msgpack.Unpacker()
         self.file = file
         super().__init__(*args, **kwargs)
 
@@ -165,15 +164,9 @@ class DDFFStream(list):
         """
         return DDFFReadStream(self.block0, self.file)
 
-    def readBlock(self, block):
-        self.unpacker.feed(block.tail)
-        try:
-            for unpacked in self.unpacker:
-                self.append(unpacked)
-                #print(unpacked)
-        except ValueError:
-            dprint("Unpack fails, object number", len(self))
-            pass
+    def readToList(self):
+        for x in self.reader():
+            self.append(x)
 
     def write(self, fd, blocksize=4096):
         """ Write memory data to file
@@ -207,7 +200,7 @@ class DDFFStream(list):
 
 class DDFFReadStream:
 
-    # buffer size for loading data. 
+    # buffer size for loading data.
     maxobjectsize = 1024*1024
 
     def __init__(self, block: DDFFBlock, file):
@@ -215,10 +208,9 @@ class DDFFReadStream:
         self.loaded = block.block_fill
         self.file = file
         self.unpacker = msgpack.Unpacker()
-        self.topup
         self.unpacked = []
         self.maxobjectsize = DDFFReadStream.maxobjectsize
-        
+
 
     def topup(self):
         """ Feeds data blocks from the file until the unpacker buffer has reached
@@ -284,10 +276,11 @@ class DDFF:
 
         self.file = open(fname, mode+'b')
         self.streams = dict()
+        self.scanpoint = 0
         self._scanStreams(nstreams)
         self.blocksize = blocksize
 
-    def _scanStreams(self, nstreams: int|None=None):
+    def _scanStreams(self, neededstreams: set|None):
         """Internal method to parse data and create streams
 
         Parameters
@@ -297,23 +290,20 @@ class DDFF:
             otherwise read full file to find all streams
         """
 
-        if nstreams is not None:
-            neededstreams = frozenset(range(nstreams))
-            if neededstreams < set(self.streams.keys()):
-                return
-
         # reset file to zero position
-        self.file.seek(0)
+        self.file.seek(self.scanpoint)
         try:
             while self.file:
                 hdr = DDFFBlock(self.file)
                 if hdr.stream_id not in self.streams:
-                    vprint("found new stream", hdr.stream_id, "offset", self.file.tell())
+                    vprint("Found data stream", hdr.stream_id,
+                           "offset", self.file.tell()-hdr.block_size)
                     self.streams[hdr.stream_id] = DDFFStream(block=hdr, file=self.file)
-                    if nstreams is not None and neededstreams < self.streams.keys():
+                    if neededstreams is not None and neededstreams <= self.streams.keys():
                         return
         except ValueError:
             pass
+        self.scanpoint = self.file.tell()
 
     def createStream(self):
         """Create a new DDFF stream

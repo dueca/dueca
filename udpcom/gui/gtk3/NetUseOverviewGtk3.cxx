@@ -81,7 +81,7 @@ bool NetUseOverviewGtk3::complete()
   }
 
   // access the timing canvas, and the box with canvases
-  timingcanvas = window["timing_view"];
+  timingcanvas = window["comm_timing_view"];
   g_object_set_data(G_OBJECT(timingcanvas), "node",
                     reinterpret_cast<gpointer>(-1));
   g_signal_connect(G_OBJECT(timingcanvas), "configure_event",

@@ -125,7 +125,7 @@
                     <property name="can-focus">False</property>
                     <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkDrawingArea" id="timing_view">
+                      <object class="GtkDrawingArea" id="comm_timing_view">
                         <property name="name">timing_view</property>
                         <property name="width-request">220</property>
                         <property name="visible">True</property>
