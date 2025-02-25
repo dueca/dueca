@@ -23,7 +23,7 @@ def dprint(*args, **kwargs):
 
     When activated, prints all kinds of debug messages
     """
-    # print(*args, **kwargs)
+    print(*args, **kwargs)
     pass
 
 
@@ -129,9 +129,13 @@ class DDFFBlock:
         ) = struct.unpack(">qHHIIII", header)
         dprint(
             f"Block at {offset}, stream {self.stream_id}, fill {self.block_fill}"
-            f", size {self.block_size}, first object at {self.object_offset}, block #{self.block_num}"
+            f", size {self.block_size}, first object at {self.object_offset}, "
+            f", next at {self.next_offset}, block #{self.block_num}"
         )
-        self.tail = f.read(self.block_size - 28)
+        if self.block_size:
+            self.tail = f.read(self.block_size - 28)
+        else:
+            self.tail = b''
         dprint("crc", crc, "from data", crc16(header[10:] + self.tail))
         if crc != crc16(header[10:] + self.tail):
             raise ValueError("CRC failure in reading ddff block")

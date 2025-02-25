@@ -14,7 +14,8 @@ d = np.array([(3, 2.2, 3), (4.0, 5.1, 0)], dtype=dtype)
 d2 = np.zeros((2,3), dtype=dtype)
 d2[0] = (1, 2, 3)
 
-fname = f"{os.environ['HOME']}/tmp/recording-PHLAB-new.ddff"
+fname = f"{os.environ['HOME']}/gdapps/VarStabCitation2/VarStabCitation2/run/solo/solo/simlog-20250225_155749.ddff"
+#fname = f"{os.environ['HOME']}/tmp/recording-PHLAB-new.ddff"
 #fname = f"{os.environ['HOME']}/tmp/varstab/runlogs/2025-02-13_15:07:08/simlog-20250213_140803.ddff"
 # separate test of the readstream
 #df = DDFFTagged(fname)

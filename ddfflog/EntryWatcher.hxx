@@ -17,7 +17,8 @@
 #include <string>
 #include <ChannelWatcher.hxx>
 #include <dueca.h>
-#include "FileWithSegments.hxx"
+#include <ddff/FileWithSegments.hxx>
+#include <ddff/SegmentedRecorderBase.hxx>
 #include "ddff_ns.h"
 #include <memory>
 #include <boost/scoped_ptr.hpp>
@@ -50,7 +51,7 @@ class EntryWatcher: public dueca::ChannelWatcher
   DataTimeSpec      *reduction;
 
   /** Combination of data needed for reading & storing a single entry */
-  struct EntryData {
+  struct EntryData: SegmentedRecorderBase {
 
     /** Acccess to the channel */
     ChannelReadToken                r_token;
@@ -90,7 +91,7 @@ class EntryWatcher: public dueca::ChannelWatcher
   };
 
   /** List type of above */
-  typedef std::list<std::shared_ptr<EntryData> > entrylist_type;
+  typedef std::list<boost::intrusive_ptr<EntryData> > entrylist_type;
 
   /** The resulting list */
   entrylist_type entrylist;

@@ -38,8 +38,8 @@
 #include "DDFFDCOWriteFunctor.hxx"
 #include "DDFFDCOReadFunctor.hxx"
 #include "DDFFDCOMetaFunctor.hxx"
+#include <ddff/SegmentedRecorderBase.hxx>
 #include "ddff_ns.h"
-#include <map>
 #include <list>
 #include <string>
 #include <memory>
@@ -88,7 +88,7 @@ private: // simulation data
   bool loggingactive;
 
   /** set of data for a targeted (read one entry) channel read&save */
-  struct TargetedLog {
+  struct TargetedLog: SegmentedRecorderBase {
     /** path name for log */
     std::string logpath;
 
@@ -136,7 +136,7 @@ private: // simulation data
   };
 
   /** Type definition for the list */
-  typedef std::list<std::shared_ptr<TargetedLog> > targeted_list_t;
+  typedef std::list<boost::intrusive_ptr<TargetedLog> > targeted_list_t;
 
   /** List of targeted channel entries */
   targeted_list_t             targeted;

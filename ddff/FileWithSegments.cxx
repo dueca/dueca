@@ -13,6 +13,7 @@
 
 #define FileWithSegments_cxx
 #include "FileWithSegments.hxx"
+#include "DDFFExceptions.hxx"
 #include <limits>
 #include <sstream>
 #include <iomanip>
@@ -24,8 +25,8 @@
 #include <dueca/ObjectManager.hxx>
 #include <dueca/ChronoTimePoint.hxx>
 #include <dassert.h>
-#include "DDFFDataRecorder.hxx"
 #include <dueca/debug.h>
+#include <boost/format.hpp>
 
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
@@ -44,8 +45,9 @@ MSGPACK_API_VERSION_NAMESPACE(v1)
     operator()(msgpack::packer<Stream> &o,
                const dueca::ddff::FileWithSegments::Tag &t) const
     {
-      o.pack_array(7);
+      o.pack_array(8);
       o.pack(t.offset); // 1, offset vector
+      o.pack(t.inblock_offset); // in-block offset vector
       o.pack(t.cycle);  // 2, cycle for the stretch
       o.pack(t.index0); // 3, start index time
       o.pack(t.index1); // 4, end index time
@@ -68,6 +70,7 @@ inline void msg_unpack(S &i0, const S &iend,
   uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
   assert(len == 7);
   msg_unpack(i0, iend, e.offset);
+  msg_unpack(i0, iend, e.inblock_offset);
   msg_unpack(i0, iend, e.cycle);
   msg_unpack(i0, iend, e.index0);
   msg_unpack(i0, iend, e.index1);
@@ -84,6 +87,7 @@ DDFF_NS_START
 
 FileWithSegments::Tag::Tag() :
   offset(),
+  inblock_offset(),
   cycle(0),
   index0(0),
   index1(0),
@@ -95,7 +99,7 @@ FileWithSegments::Tag::Tag() :
 FileWithSegments::FileWithSegments(const std::string &entity) :
   entity(entity),
   ts_switch(MAX_TIMETICK, MAX_TIMETICK),
-  my_recorders(NULL),
+  my_recorders(),
   tags(),
   next_tag(),
   tag_lookup(),
@@ -179,18 +183,30 @@ bool FileWithSegments::openFile(const std::string &filename,
   return true;
 }
 
+bool FileWithSegments::syncInventory()
+{
+  bool changes = FileWithInventory::syncInventory();
+  if (dirty) {
+    w_tags->closeOff(true);
+    dirty = false;
+    return true;
+  }
+  return changes;
+}
+
 FileStreamWrite::pointer
 FileWithSegments::createNamedWrite(const std::string &key,
                                    const std::string &label, size_t bufsize)
 {
   auto writer = this->FileWithInventory::createNamedWrite(key, label, bufsize);
   next_tag.offset.resize(writer->getStreamId() - 1U);
+  next_tag.inblock_offset.resize(writer->getStreamId() - 1U);
   return writer;
 }
 
 ddff::FileStreamRead::pointer
 FileWithSegments::recorderCheckIn(const std::string &key,
-                                  DDFFDataRecorder::pointer ptr)
+                                  boost::intrusive_ptr<SegmentedRecorderBase> ptr)
 {
   // use base class to get the read pointer
   ddff::FileStreamRead::pointer fsr = findNamedRead(key);
@@ -207,6 +223,8 @@ FileWithSegments::recorderCheckIn(const std::string &key,
           << next_tag.offset.size() << " with id " << fsr->getStreamId());
   }
   next_tag.offset.resize(fsr->getStreamId() - 1U);
+  next_tag.inblock_offset.resize(fsr->getStreamId() - 1U);
+  my_recorders.push_back(ptr);
 
   return fsr;
 }
@@ -218,10 +236,23 @@ ddff::FileHandler::pos_type FileWithSegments::findOffset(unsigned cycle,
   if (cycle < tags.size()) {
     assert(stream_id < tags[cycle].offset.size() + 2U);
     assert(stream_id >= 2U);
-    return tags[cycle].offset[stream_id - 2U];
+    return tags[cycle].offset[stream_id - 2U] + tags[cycle].inblock_offset[stream_id - 2U];
   }
   assert(cycle == tags.size());
   return std::numeric_limits<pos_type>::max();
+}
+
+ddff::FileHandler::pos_type FileWithSegments::findBlockStart(unsigned cycle,
+                                                             unsigned stream_id)
+{
+  // retrieve the offset for a specific cycle?
+  if (cycle < tags.size()) {
+    assert(stream_id < tags[cycle].offset.size() + 2U);
+    assert(stream_id >= 2U);
+    return tags[cycle].offset[stream_id - 2U];
+  }
+  throw cannot_find_segment(boost::str(boost::format("stream%d") % stream_id).c_str(), cycle);
+  return ddff::FileHandler::pos_type(-1);
 }
 
 void FileWithSegments::startStretch(
@@ -257,8 +288,8 @@ void FileWithSegments::bufferWriteInformation(
   // of data starts. Record it for indexed streams
   if (buffer->object_offset && buffer->stream_id >= 2 &&
       next_tag.offset[buffer->stream_id - 2U] == 0) {
-    next_tag.offset[buffer->stream_id - 2] =
-      offset + std::ios::pos_type(buffer->object_offset);
+    next_tag.offset[buffer->stream_id - 2] = offset;
+    next_tag.inblock_offset[buffer->stream_id - 2] = buffer->object_offset;
   }
 }
 
@@ -270,7 +301,7 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
 
   // first check that all data has been written
   bool complete = true;
-  for (const auto recorder : myRecorders()) {
+  for (const auto &recorder : myRecorders()) {
     complete = complete && recorder->checkWriteTick(tick);
   }
 
@@ -280,7 +311,7 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
 
   // when complete, initiate saving of all recorder/recorded data
   // will only save when actually data was written in the period
-  for (const auto recorder : myRecorders()) {
+  for (const auto &recorder : myRecorders()) {
     recorder->syncRecorder();
   }
 
@@ -292,7 +323,7 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
   // and check up whether the offsets are present, or whether no data
   // was writting in this stretch, and offsets remain 0
   unsigned idx = 0;
-  for (const auto recorder : myRecorders()) {
+  for (const auto &recorder : myRecorders()) {
     complete = complete &&
                (recorder->checkAndMakeClean() || (next_tag.offset[idx] != 0));
   }
@@ -318,7 +349,7 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
   tags.push_back(next_tag);
 
   // mark the tags for writing
-  w_tags->closeOff();
+  w_tags->closeOff(true);
 
   // process the tag writes
   processWrites();
@@ -414,12 +445,15 @@ FileWithSegments::findFiler(const std::string &entity,
 
 recorderlist_t &FileWithSegments::myRecorders()
 {
+  /** 
   auto my_recorders = DDFFDataRecorder::allRecorders().find(entity);
   if (my_recorders != DDFFDataRecorder::allRecorders().end()) {
     return my_recorders->second;
   }
   static recorderlist_t empty;
   return empty;
+  */
+  return my_recorders;
 }
 
 DDFF_NS_END

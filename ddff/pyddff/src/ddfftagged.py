@@ -7,8 +7,10 @@ Created on Fri Apr  8 17:16:10 2022
 """
 try:
     from .ddffinventoried import DDFFInventoried, DDFFInventoriedStream
+    from .ddffbase import vprint
 except ImportError:
     from ddffinventoried import DDFFInventoried, DDFFInventoriedStream
+    from ddfbase import vprint
 import itertools
 
 class DDFFTag:
@@ -18,6 +20,7 @@ class DDFFTag:
 
         Arguments:
             offset -- array with offset indices for all named streams
+            inblock_offset -- array with the in-block start offsets
             cycle -- integer cycle
             index0 -- start tick for data period
             index1 -- end tick for data period
@@ -25,12 +28,12 @@ class DDFFTag:
             name -- name of the period
             inco -- initial condition matching the period
         """
-        self.offset, self.cycle, self.index0, self.index1, \
+        self.offset, self.inblock_offset, self.cycle, self.index0, self.index1, \
             self.time, self.name, self.inco = args
 
     def __str__(self):
         return f"Period(n={self.name},cycle={self.cycle},at=\"{self.time}\"," \
-               f"span={self.index0}-{self.index1},off={self.offset},ic=\"{self.inco}\")"
+               f"span={self.index0}-{self.index1},offb={self.offset},offo={self.inblock_offset},ic=\"{self.inco}\")"
 
     def __repr__(self):
         return f"DDFFTag({self.offset},{self.cycle},{self.index0},{self.index1}," \
@@ -122,10 +125,20 @@ class DDFFTagged(DDFFInventoried):
 
         # replace/parse stream 1, to get a tagstream
         self.streams[1].readToList()
+
+        # compatibility with the one or two old datafiles lying around
+        # the conversion assumes all blocksized are default 4096-bytes
+        if len(self.streams[1][0]) == 7:
+            vprint("Converting old 7-index tags to new 8-index")
+            for tags in self.streams[1]:
+                tags.insert(1, [o % 4096 for o in tags[o]])
+                for i in len(tags[0]):
+                    tags[0][i] -= tags[1][i]
+
         self.streams[1] = DDFFTagStream(self.streams[1])
 
         # Scan initial blocks for the inventory streams
-        self._doInitialScan(map(lambda x: x-28, self.streams[1].offsets()))
+        self._doInitialScan(self.streams[1].offsets())
 
     def inventory(self):
         """Access the base DDFFInventory class
