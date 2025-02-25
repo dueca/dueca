@@ -103,12 +103,12 @@ void EntryWatcher::createFunctors(std::weak_ptr<FileWithSegments> nfile,
                                   const std::string &prefix)
 {
   checkChanges();
-  tpath = prefix + path;
+  // tpath = prefix + path;
 
   for (entrylist_type::iterator ee = entrylist.begin();
        ee != entrylist.end(); ee++) {
     (*ee)->createFunctor(nfile, master, always_logging,
-                         tpath);
+                         path);
   }
 }
 

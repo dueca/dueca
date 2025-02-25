@@ -283,10 +283,10 @@ void DDFFLogger::TargetedLog::createFunctor(
     DCOtypeJSON(doc, ei.data_class.c_str());
 
     // request a stream in the file
-    w_stream = nfile.lock()->createNamedWrite(prefix + logpath, doc.GetString());
+    w_stream = nfile.lock()->createNamedWrite(logpath, doc.GetString());
 
     // check in with the recorder, resulting read stream pointer ignored
-    nfile.lock()->recorderCheckIn(prefix + logpath, this);
+    nfile.lock()->recorderCheckIn(logpath, this);
   }
   catch (const std::exception &e) {
     /* DUECA ddff.
@@ -295,7 +295,7 @@ void DDFFLogger::TargetedLog::createFunctor(
        to the datatype not being known, or related to file access.
     */
     E_XTR("Failed to create a logging stream in the file named \""
-          << prefix + logpath << "\", datatype \"" << ei.data_class
+          << logpath << "\", datatype \"" << ei.data_class
           << "\" :" << e.what());
     throw(e);
   }
