@@ -15,7 +15,7 @@ import os
 # The crc function used to check the blocks
 crc16 = crcmod.predefined.mkPredefinedCrcFun("crc-ccitt-false")
 
-__verbose = False
+__verbose = 0
 
 
 def dprint(*args, **kwargs):
@@ -23,8 +23,8 @@ def dprint(*args, **kwargs):
 
     When activated, prints all kinds of debug messages
     """
-    print(*args, **kwargs)
-    pass
+    if __verbose >= 2:
+        print(*args, **kwargs)
 
 
 def vprint(*args, **kwargs):
@@ -32,7 +32,7 @@ def vprint(*args, **kwargs):
 
     When activated, prints all kinds of debug messages
     """
-    if __verbose:
+    if __verbose >= 1:
         print(*args, **kwargs)
 
 
@@ -130,7 +130,7 @@ class DDFFBlock:
         dprint(
             f"Block at {offset}, stream {self.stream_id}, fill {self.block_fill}"
             f", size {self.block_size}, first object at {self.object_offset}, "
-            f", next at {self.next_offset}, block #{self.block_num}"
+            f"next at {self.next_offset}, block #{self.block_num}"
         )
         if self.block_size:
             self.tail = f.read(self.block_size - 28)

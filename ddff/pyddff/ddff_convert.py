@@ -11,7 +11,7 @@
         license         : EUPL-1.2
 """
 try:
-    from pyddff import DDFFTagged, DDFFInventoried, ddffbase
+    from pyddff import DDFFTagged, DDFFInventoried, ddffbase, vprint
 
 except ModuleNotFoundError:
     # debug/test?
@@ -29,17 +29,11 @@ helptext = """
 Conversion script for ddff files
 """
 
-__verbose = False
-
-
-def vprint(*args, **kwargs):
-    if __verbose:
-        print(*args, **kwargs)
-
 
 parser = argparse.ArgumentParser(description="Convert or inspect DDFF data")
 parser.add_argument(
-    "--verbose", action="store_true", help="Verbose run with information output"
+    "-v", "--verbose", action="count", default=0,
+    help="Verbose run with information output"
 )
 subparsers = parser.add_subparsers(help="commands", title="commands")
 
@@ -67,14 +61,15 @@ class Info:
     def __call__(self, ns: argparse.Namespace):
 
         # open the file as tagged
-        try:
+        if True:
+        #try:
             if ns.inventory:
                 f = DDFFInventoried(ns.filename)
             else:
                 f = DDFFTagged(ns.filename)
-        except Exception as e:
-            print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
-            sys.exit(-1)
+        #except Exception as e:
+        #    print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
+        #    sys.exit(-1)
 
         if ns.inventory and ns.period:
             print(
@@ -166,14 +161,15 @@ class ToHdf5:
             compressargs = {}
 
         # open the file
-        try:
+        #try:
+        if True:
             if not ns.period:
                 f = DDFFInventoried(ns.filename)
             else:
                 f = DDFFTagged(ns.filename)
-        except Exception as e:
-            print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
-            sys.exit(-1)
+        #except Exception as e:
+        #    print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
+        #    sys.exit(-1)
         vprint("Opened file", ns.filename)
 
         # either all stream id's, or just the selected ones
@@ -214,8 +210,8 @@ if __name__ == "__main__":
 
     # verbose output, todo
     if pres.verbose:
-        __verbose = True
-        ddffbase.__verbose = True
+        __verbose = pres.verbose
+        ddffbase.__verbose = pres.verbose
 
     # extract the handler
     try:
