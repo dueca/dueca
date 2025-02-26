@@ -179,7 +179,7 @@ class DDFFStream(list):
             raise ValueError("Need block or stream id")
 
         self.file = file
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
         # if not for an existing stream, finished here
         if block is None:
@@ -367,6 +367,7 @@ class DDFF:
         """
 
         # reset file to zero position
+        vprint(f"_scanStreams searching {neededstreams} from {self.scanpoint}")
         self.file.seek(self.scanpoint)
         try:
             while self.file:
@@ -410,12 +411,14 @@ class DDFF:
         ValueError
             When not all required streams are found
         """
+        vprint(f"_initStreams searching {neededstreams} at {[o for o in offsets]}")
         for o in offsets:
             self.file.seek(o)
             hdr = DDFFBlock(self.file)
-            if hdr.stream_id in self.streams or hdr.block_num != 0:
-                raise ValueError(f"Init stream fails, no new block at {o}")
-            self.streams[hdr.stream_id] = DDFFStream(block=hdr, file=self.file)
+            if hdr.block_num != 0:
+                raise ValueError(f"_initStreams fails, no new block at {o}")
+            if hdr.stream_id not in self.streams:
+                self.streams[hdr.stream_id] = DDFFStream(block=hdr, file=self.file)
 
         if not neededstreams <= self.streams.keys():
             raise ValueError(
