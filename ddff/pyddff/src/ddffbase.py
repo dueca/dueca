@@ -19,7 +19,7 @@ __verbose = 0
 
 
 def dprint(*args, **kwargs):
-    """Debug print function
+    """ Debug print function
 
     When activated, prints all kinds of debug messages
     """
@@ -28,7 +28,7 @@ def dprint(*args, **kwargs):
 
 
 def vprint(*args, **kwargs):
-    """Debug print function
+    """ Debug print function
 
     When activated, prints all kinds of debug messages
     """
@@ -37,7 +37,7 @@ def vprint(*args, **kwargs):
 
 
 class DDFFBuffer(io.BytesIO):
-    """Buffer back-end, reading and writing a base DDFF structured file"""
+    """ Buffer back-end, reading and writing a base DDFF structured file"""
 
     def __init__(self, streamid, offset, blocksize, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -127,6 +127,9 @@ class DDFFBlock:
             self.object_offset,
             self.block_num,
         ) = struct.unpack(">qHHIIII", header)
+        if self.block_num == 0 and self.block_fill and self.object_offset == 0:
+            dprint("Correcting missing object offset first block")
+            self.object_offset = 28
         dprint(
             f"Block at {offset}, stream {self.stream_id}, fill {self.block_fill}"
             f", size {self.block_size}, first object at {self.object_offset}, "
@@ -136,7 +139,6 @@ class DDFFBlock:
             self.tail = f.read(self.block_size - 28)
         else:
             self.tail = b''
-        dprint("crc", crc, "from data", crc16(header[10:] + self.tail))
         if crc != crc16(header[10:] + self.tail):
             raise ValueError("CRC failure in reading ddff block")
         if self.block_size > self.block_fill:
@@ -145,8 +147,29 @@ class DDFFBlock:
 
 class DDFFStream(list):
 
-    def __init__(self, file, *args, block=None, stream_id=None, **kwargs):
-        """Single stream in a DDFF data file, kept as list in memory"""
+    """ Object representing the data in a DDFF data stream
+
+    """
+
+
+    def __init__(self, file, block: DDFFBlock=None, stream_id:int|None=None):
+        """ Single data stream in a DDFF data file
+
+        Parameters
+        ----------
+        file : Open file descriptor
+            The file descriptor
+        block : DDFFBlock, optional
+            If given, the stream exists, and the block is the starting block
+            of this stream in the current file
+        stream_id : int, optional
+            If given, the stream is new
+
+        Raises
+        ------
+        ValueError
+            Either block or stream id should be given
+        """
 
         if block is not None:
             self.block0 = block
@@ -176,6 +199,10 @@ class DDFFStream(list):
         return DDFFReadStream(self.block0, self.file)
 
     def readToList(self):
+        """ Load any data from the file into memory.
+
+            The stream object will function as a list with the loaded data
+        """
         for x in self.reader():
             self.append(x)
 
@@ -193,8 +220,6 @@ class DDFFStream(list):
         # create a buffer for writing the blocks
         buf = DDFFBuffer(self.stream_id, fd.tell(), blocksize)
 
-        # create a packer
-
         # run through all objects in the list
         for obj in self:
 
@@ -211,10 +236,32 @@ class DDFFStream(list):
 
 class DDFFReadStream:
 
+    """ Iterator to load data from a file stream
+
+    Returns
+    -------
+    Any type
+        Objects unpacked from msgpack data, 
+
+    Raises
+    ------
+    StopIteration
+        After all objects are read
+    """
+
     # buffer size for loading data.
     maxobjectsize = 1024 * 1024
 
     def __init__(self, block: DDFFBlock, file):
+        """ Create a stream reader
+
+        Parameters
+        ----------
+        block : DDFFBlock
+            Initial/starting block of the data in the file
+        file : BytesIO
+            File with further data
+        """
         self.block = block
         self.loaded = block.block_fill
         self.file = file
@@ -223,8 +270,10 @@ class DDFFReadStream:
         self.maxobjectsize = DDFFReadStream.maxobjectsize
 
     def topup(self):
-        """Feeds data blocks from the file until the unpacker buffer has reached
-            the given (1Mb fill size) or the file is exchausted
+        """ Feeds data blocks from the file.
+        
+            Get data blocks until the unpacker buffer has reached
+            the given (1Mb fill size) or the file is exchausted.
 
         Returns
         -------
@@ -244,10 +293,28 @@ class DDFFReadStream:
         return topped
 
     def __iter__(self):
+        """ Start an iteration
+
+        Returns
+        -------
+        DDFFReadStream
+            Iter object
+        """
         return self
 
     def __next__(self):
-        """Extract data objects from the stream"""
+        """ Obtain the next object from the file/block
+
+        Returns
+        -------
+        Any
+            Object read with msgpack from file 
+
+        Raises
+        ------
+        StopIteration
+            No more data
+        """
         if self.unpacked:
             return self.unpacked.pop(0)
 
@@ -273,7 +340,7 @@ class DDFFReadStream:
 class DDFF:
 
     def __init__(self, fname, mode="r", blocksize=128, nstreams=None):
-        """Access a DDFF encoded data file
+        """ Access a DDFF encoded data file
 
         Arguments:
             fname -- file name
@@ -294,8 +361,8 @@ class DDFF:
 
         Parameters
         ----------
-        nstreams : int|None
-            If given, stop scanning after the requested number of streams,
+        nstreams : set|None
+            If given, stop scanning after the requested streams are found,
             otherwise read full file to find all streams
         """
 
@@ -322,11 +389,32 @@ class DDFF:
         self.scanpoint = self.file.tell()
 
     def _initStreams(self, neededstreams: set, offsets):
+        """ Improved method to find data streams
+
+            If offset positions of streams are known (typically from ddfftagged file
+            and reading the tags), create streams by loading the initial blocks
+            at these offset positions.
+
+        Parameters
+        ----------
+        neededstreams : set
+            Stream id's required
+        offsets : iterable with file offsets
+            Offset locations where the streams start.
+
+        Raises
+        ------
+        ValueError
+            When an offset position is false, and there is no stream starting block 
+            there
+        ValueError
+            When not all required streams are found
+        """
         for o in offsets:
             self.file.seek(o)
             hdr = DDFFBlock(self.file)
             if hdr.stream_id in self.streams or hdr.block_num != 0:
-                raise ValueError(f"Init stream failse, no new block at {o}")
+                raise ValueError(f"Init stream fails, no new block at {o}")
             self.streams[hdr.stream_id] = DDFFStream(block=hdr, file=self.file)
 
         if not neededstreams <= self.streams.keys():
@@ -335,7 +423,7 @@ class DDFF:
             )
 
     def createStream(self):
-        """Create a new DDFF stream
+        """ Create a new DDFF stream
 
         Raises:
             ValueError: exception to indicate the previous/read file is not

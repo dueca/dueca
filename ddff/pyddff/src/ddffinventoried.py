@@ -117,35 +117,38 @@ def shapeTypeExclude(count: int, info: dict):
 
 
 class DDFFInventoriedStream:
-    """Datastream in an inventory
+    """ Datastream in an inventory
 
     Such a datastream is timed or tagged (usually with an integer),
     and has a series of data members all of the same type.
     """
 
     class TimeIt:
-        """Iterator for time or tag values."""
+        """ Iterator for time or tag values."""
 
         def __init__(self, ddffs: DDFFStream):
-            """Create an iterator for time values on an inventoried stream
+            """ Create an iterator for time values on an inventoried stream
 
             Parameters
             ----------
             ddffs : DDFFStream
                 Base data stream
             """
-            self.ddffs = ddffs
+            # self.ddffs = ddffs
+            self.reader = ddffs.reader()
 
         def __iter__(self):
-            self.it = iter(self.ddffs)
+            # self.it = iter(self.ddffs)
             return self
 
         def __next__(self):
-            tmp = next(self.it)
-            try:
-                return tmp[0]
-            except TypeError:
-                print("could not get time from", tmp, "stream", self.ddffs)
+
+            tmp = next(self.reader)
+            return tmp[0]
+            #try:
+            #    return tmp[0]
+            #except TypeError:
+            #    print("could not get time from", tmp, "stream", self.ddffs)
 
     class ValueIt:
         """Iterator for data values"""
@@ -161,22 +164,20 @@ class DDFFInventoriedStream:
                 Data member to return, or None for returning the complete
                 data structure
             """
-            self.ddffs = ddffs
+            self.reader = ddffs.reader()
             self.idx = idx
 
         def __iter__(self):
-            self.it = iter(self.ddffs)
             return self
 
         def __next__(self):
-            tmp = next(self.it)
-            try:
-                return tmp[-1][self.idx]
-            except IndexError as e:
-                print(f"error {e}")
+            tmp = next(self.reader)
+            if self.idx is None:
+                return tmp[-1]
+            return tmp[-1][self.idx]
 
     def __init__(self, ddffs: DDFFStream, tag: str, description: str):
-        """Create a parsed inventory of stream id's and contents
+        """ Create a parsed inventory of stream id's and contents
 
         Arguments:
             ddffs -- Raw stream
@@ -204,7 +205,7 @@ class DDFFInventoriedStream:
         return DDFFInventoriedStream.TimeIt(self.base)
 
     def __getitem__(self, key: int | str | None):
-        """Obtain an iterator on the data
+        """ Obtain an iterator on the data
 
         Parameters
         ----------
@@ -248,6 +249,12 @@ class DDFFInventoriedStream:
 
     def getData(self, icount=100):
         """ Return data from the stream as a dictionary of numpy arrays
+
+        For "numeric" data, this way of obtaining the data is often much more
+        efficient than iterating over the stream, which returns a sequence of objects with 
+        the data.
+        This returns a dictionary of objects with numpy arrays, which can then directly
+        be used in plotting, etc.
 
         Parameters
         ----------
@@ -323,6 +330,8 @@ class DDFFInventoriedStream:
 
         return time0, time1, result
 
+# support routines, extracting different types of objects from 
+# data structures
 def copyObjectFixedArrayExclude(obj, i, res, midx, excluded):
     # array of tuples
     res[i] = [(x for ix, x in enumerate(obj[midx]) if ix not in excluded)]
@@ -422,7 +431,7 @@ class DDFFInventoried(DDFF):
 
 
     def inventory(self):
-        """Return the inventory itself, for compatibility purposes
+        """ Return the inventory itself, for compatibility purposes
 
         Returns
         -------
@@ -432,7 +441,7 @@ class DDFFInventoried(DDFF):
         return self
 
     def time(self, key, period=None):
-        """Access time stamps for a specific named stream
+        """ Access time stamps for a specific named stream
 
         Arguments:
             period -- Optional, ignored
@@ -446,7 +455,7 @@ class DDFFInventoried(DDFF):
         return self.mapping[key].time()
 
     def __getitem__(self, keyname):
-        """Access data, from a specific named stream
+        """ Access data, from a specific named stream
 
         Arguments:
             keyname -- tuple(streamid,member), tuple(streamid,period,member) or only streamid
@@ -518,3 +527,6 @@ if __name__ == "__main__":
         print(x)
     for x in stuff["WriteUnified:first blip", "ry"]:
         print(x)
+
+    t0, t1, data = stuff.getData("WriteUnified:first blip")
+    print(t0, t1, data)
