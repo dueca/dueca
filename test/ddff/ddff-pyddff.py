@@ -27,19 +27,20 @@ f2 = DDFFTagged(fname)
 # only one tag
 assert(len(f2) == 1)
 
-periods = [ k for k in f2.keys() ]
-streamids = [ n for n in f2.inventory().keys() ]
+periods = [ k for k in f2.periods() ]
+streamids = [ n for n in f2.keys() ]
 for p in periods:
     for i in streamids:
         print("period", p, "stream", i)
         ticks = [t for t in f2.time(p, i)]
-        rx = [x for x in f2[p,i,'rx']]
-        ry = [y for y in f2[p,i,'ry']]
+        rx = [x for x in f2[i,p,'rx']]
+        ry = [y for y in f2[i,p,'ry']]
 
 # the same with int index for the streams
 for p in periods:
     for i in range(2):
         print("period", p, "stream", i)
         ticks = [t for t in f2.time(p, i)]
-        rx = [x for x in f2[p,i,'rx']]
-        ry = [y for y in f2[p,i,'ry']]
+        rx = [x for x in f2[i,p,'rx']]
+        ry = [y for y in f2[i,p,'ry']]
+

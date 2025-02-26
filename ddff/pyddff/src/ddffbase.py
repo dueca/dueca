@@ -188,7 +188,7 @@ class DDFFStream(list):
         # extract information on the existing stream
         self.stream_id = block.stream_id
 
-    def reader(self):
+    def reader(self, block0=None):
         """Create a stream reader, which can iterate over the stream's contents
 
         Returns
@@ -196,7 +196,9 @@ class DDFFStream(list):
         DDFFReadStream
             Iterable object, returning the decoded stream contents.
         """
-        return DDFFReadStream(self.block0, self.file)
+        if block0 is None:
+            return DDFFReadStream(self.block0, self.file)
+        return DDFFReadStream(block0, self.file)
 
     def readToList(self):
         """ Load any data from the file into memory.

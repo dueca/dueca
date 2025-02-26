@@ -7,10 +7,10 @@ Created on Fri Apr  8 17:16:10 2022
 """
 try:
     from .ddffinventoried import DDFFInventoried, DDFFInventoriedStream
-    from .ddffbase import vprint
+    from .ddffbase import vprint, DDFFStream, DDFFBlock
 except ImportError:
     from ddffinventoried import DDFFInventoried, DDFFInventoriedStream
-    from ddfbase import vprint
+    from ddffbase import vprint, DDFFStream, DDFFBlock
 import itertools
 
 class DDFFTag:
@@ -42,7 +42,7 @@ class DDFFTag:
 class DDFFTagStream(dict):
 
     def __init__(self, ddffs, *args, **kwargs):
-        """Convert stream to time period information dictionary
+        """ Converts stream 1 to time period information dictionary
 
         Arguments:
             ddffs -- raw base stream with DDFFTag objects
@@ -58,46 +58,84 @@ class DDFFTagStream(dict):
         elif isinstance(period, str):
             return self[period][0]
 
-    class TimeIt:
-        def __init__(self, ddffs, t0, t1):
-            self.iter0 = iter(ddffs.base)
-            if ddffs.base[0][0] < t0:
-                tmp = next(self.iter0)
-                while tmp[0] < t0:
-                    tmp = next(self.iter0)
-            self.t1 = t1
+    class BaseIt:
+        """ Base iterator for tagged streams """
+
+        def __init__(self, ddffs: DDFFStream, tag: DDFFTag):
+            ids = ddffs.stream_id
+            ddffs.file.seek(tag.offset[ids-2])
+            block = DDFFBlock(ddffs.file)
+            block.tail = block.tail[tag.inblock_offset[ids-2]-28:]
+            self.reader = ddffs.reader(block)
+            self.t0 = tag.index0
+            self.t1 = tag.index1
 
         def __iter__(self):
-            self.iter0, self.it = itertools.tee(self.iter0)
             return self
 
+    class TimeIt(BaseIt):
+
+        def __init__(self, ddffs: DDFFStream, tag: DDFFTag):
+            super().__init__(ddffs, tag)
+
         def __next__(self):
-            tmp = next(self.it)
+            tmp = next(self.reader)
+            while tmp[0] + tmp[1] < self.t0:
+                tmp = next(self.reader)
             if tmp[0] > self.t1:
                 raise StopIteration()
             return tmp[0]
 
-    class ValueIt:
-        def __init__(self, ddffs, idx, t0, t1):
-            self.idx = idx
-            self.iter0 = iter(ddffs.base)
-            if ddffs.base[0][0] < t0:
-                tmp = next(self.iter0)
-                while tmp[0] < t0:
-                    tmp = next(self.iter0)
-            self.t1 = t1
+    class ValueIt(BaseIt):
+        def __init__(self, ddffs: DDFFStream, tag: DDFFTag, member: int|None):
 
-        def __iter__(self):
-            self.iter0, self.it = itertools.tee(self.iter0)
-            return self
+            super().__init__(ddffs, tag)
+            self.idx = member
 
         def __next__(self):
-            tmp = next(self.it)
+            tmp = next(self.reader)
+            while tmp[0] + tmp[1] < self.t0:
+                tmp = next(self.reader)
             if tmp[0] > self.t1:
                 raise StopIteration()
             if self.idx is None:
                 return tmp[-1]
             return tmp[-1][self.idx]
+
+    def getData(self, period:int|str|None=None, icount:int=100):
+
+        if period is None:
+            return self.base.getData(icount)
+        
+        if isinstance(period, str):
+            tag = self[period]
+        else:
+            tag = [t for t in self.values() if t.cycle == period]
+        
+        mappers = self.base._getMappers(icount)
+        
+        i = -1
+        for i, d in enumerate(DDFFTagStream.ValueIt(self.base, tag)):
+            if i == icount:
+                icount = icount*2
+                time0.resize((icount, *time0.shape[1:]))
+                time1.resize((icount, *time1.shape[1:]))
+                for v in result.values():
+                    v.resize((icount, *v.shape[1:]), refcheck=False)
+            for m in mappers:
+                m(d[2], i)
+            time0[i] = d[0]
+            time1[i] = d[1]
+
+        if i != icount:
+            icount = i + 1
+            time0.resize((icount, *time0.shape[1:]))
+            time1.resize((icount, *time1.shape[1:]))
+            for v in result.values():
+                v.resize((icount, *v.shape[1:]), refcheck=False)
+
+        return time0, time1, result
+
 
 
 class DDFFTagged(DDFFInventoried):
@@ -214,13 +252,14 @@ class DDFFTagged(DDFFInventoried):
         # if no period given, treat as inventoried stream
         if period is None:
             return DDFFInventoriedStream.ValueIt(stream.base, member)
-
-        # get start and end time corresponding to the tag
-        it = self.streams[1][period]
-        idx0, idx1 = it.index0, it.index1
+        if isinstance(period, int):
+            it = [ itx for itx in self.streams[1].values() if itx.cycle == period][0]
+        else:
+            # get start and end time corresponding to the tag
+            it = self.streams[1][period]
 
         # use this to return an iterator
-        return DDFFTagStream.ValueIt(stream, member, idx0, idx1)
+        return DDFFTagStream.ValueIt(stream.base, it, member)
 
 
     def time(self, streamid, period):
@@ -234,9 +273,15 @@ class DDFFTagged(DDFFInventoried):
             Iterator for time ticks
         """
 
-        # get start and end time corresponding to the tag
-        it = self.streams[1][period]
-        idx0, idx1 = it.index0, it.index1
+        # if no period given, treat as inventoried stream
+        if period is None:
+            return DDFFInventoriedStream.TimeIt(stream.base)
+
+        # get data on the period
+        if isinstance(period, int):
+            it = [ itx for itx in self.streams[1].values() if itx.cycle == period][0]
+        else:
+            it = self.streams[1][period]
 
         # get stream number corresponding to the key (or int index)
         if isinstance(streamid, int):
@@ -245,7 +290,7 @@ class DDFFTagged(DDFFInventoried):
             stream = self.mapping[streamid]
 
         # return a time tick iterator
-        return DDFFTagStream.TimeIt(stream, idx0, idx1)
+        return DDFFTagStream.TimeIt(stream.base, it)
 
 
 if __name__ == '__main__':
@@ -254,7 +299,7 @@ if __name__ == '__main__':
     f2 = DDFFTagged(os.path.dirname(__file__) +
             '/../../../test/ddff/recordings-PHLAB-new.ddff')
     keys = [ k for k in f2.keys() ]
-    nameds = [ n for n in f2.inventory().keys() ]
+    nameds = [ n for n in f2.periods() ]
     for key in keys:
         for n in nameds:
             print("tag", key, "key", n)
@@ -262,11 +307,16 @@ if __name__ == '__main__':
             rx = [x for x in f2[key,n,'rx']]
             ry = [y for y in f2[key,n,'ry']]
 
-    for key in keys:
-        for n in range(2):
+    print(f2.index()['one'])
+
+    for key in range(len(keys)):
+        for n in range(len(nameds)):
             print("tag", key, "key", n)
             ticks = [t for t in f2.time(key, n)]
             rx = [x for x in f2[key,n,'rx']]
             ry = [y for y in f2[key,n,'ry']]
+            alld = [z for z in f2[key,n]]
+    print(alld)
 
-    print(f2.index()['one'])
+    t0, t1, data = f2.stream("WriteUnified:first blip").getData(0)
+    print(t0, t1, data)
