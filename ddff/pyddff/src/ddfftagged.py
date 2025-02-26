@@ -12,6 +12,7 @@ except ImportError:
     from ddffinventoried import DDFFInventoried, DDFFInventoriedStream
     from ddffbase import vprint, DDFFStream, DDFFBlock
 import itertools
+import numpy as np
 
 class DDFFTag:
 
@@ -28,44 +29,127 @@ class DDFFTag:
             name -- name of the period
             inco -- initial condition matching the period
         """
-        self.offset, self.inblock_offset, self.cycle, self.index0, self.index1, \
-            self.time, self.name, self.inco = args
+        (
+            self.offset,
+            self.inblock_offset,
+            self.cycle,
+            self.index0,
+            self.index1,
+            self.time,
+            self.name,
+            self.inco,
+        ) = args
 
     def __str__(self):
-        return f"Period(n={self.name},cycle={self.cycle},at=\"{self.time}\"," \
-               f"span={self.index0}-{self.index1},offb={self.offset},offo={self.inblock_offset},ic=\"{self.inco}\")"
+        return (
+            f'Period(n={self.name},cycle={self.cycle},at="{self.time}",'
+            f'span={self.index0}-{self.index1},offb={self.offset},offo={self.inblock_offset},ic="{self.inco}")'
+        )
 
     def __repr__(self):
-        return f"DDFFTag({self.offset},{self.cycle},{self.index0},{self.index1}," \
+        return (
+            f"DDFFTag({self.offset},{self.cycle},{self.index0},{self.index1},"
             f'"{self.time}","{self.name}","{self.inco}")'
+        )
 
-class DDFFTagStream(dict):
+
+class DDFFTagIndex:
+    """Index dictionary of the tags."""
 
     def __init__(self, ddffs, *args, **kwargs):
-        """ Converts stream 1 to time period information dictionary
+        """Converts stream 1 to time period information dictionary
 
         Arguments:
             ddffs -- raw base stream with DDFFTag objects
         """
         super(DDFFTagStream).__init__(*args, **kwargs)
         self.base = ddffs
+        self.taglist = list()
+        self.tagdict = dict()
         for st in self.base:
-            self[st[-2]] = DDFFTag(*st)
+            t = DDFFTag(*st)
+            self.tagdict[st[-2]] = t
+            self.taglist.append(t)
 
-    def offsets(self, period: int|str=0):
+    def offsets(self, period: int | str = 0):
+        """Offsets of the different starting blocks
+
+        Parameters
+        ----------
+        period : int | str, optional
+            Tag period, by default 0
+
+        Returns
+        -------
+        list of int
+            Offset positions in the file for the different streams
+        """
         if isinstance(period, int):
-            return self.base[period][0]
+            return self.taglist[period].offset
         elif isinstance(period, str):
-            return self[period][0]
+            return self.tagdict[period].offset
+
+    def __getitem__(self, period: int | str = 0):
+        """Return tag index item, either from string or int
+
+        Parameters
+        ----------
+        period : int | str, optional
+            Tag period, by default 0
+
+        Returns
+        -------
+        DDFFTag
+            Tag matching the period
+        """
+        if isinstance(period, int):
+            return self.taglist[period]
+        elif isinstance(period, str):
+            return self.tagdict[period]
+
+    def __len__(self):
+        """ Return number of tags
+
+        Returns
+        -------
+        int
+            Number of available tags
+        """
+        return len(self.taglist)
+
+    def keys(self):
+        """ Return available tag keys.
+
+        Returns
+        -------
+        keydict
+            Keys/periods available
+        """
+        return self.tagdict.keys()
+
+
+class DDFFTagStream:
+
+    """ Tagged data stream
+    """
+
+    def __init__(self, ddffs: DDFFInventoriedStream, tags: DDFFTagIndex):
+        """Converts stream 1 to time period information dictionary
+
+        Arguments:
+            ddffs -- raw base stream with DDFFTag objects
+        """
+        self.base = ddffs
+        self.tags = tags
 
     class BaseIt:
-        """ Base iterator for tagged streams """
+        """Base iterator for tagged streams"""
 
         def __init__(self, ddffs: DDFFStream, tag: DDFFTag):
             ids = ddffs.stream_id
-            ddffs.file.seek(tag.offset[ids-2])
+            ddffs.file.seek(tag.offset[ids - 2])
             block = DDFFBlock(ddffs.file)
-            block.tail = block.tail[tag.inblock_offset[ids-2]-28:]
+            block.tail = block.tail[tag.inblock_offset[ids - 2] - 28 :]
             self.reader = ddffs.reader(block)
             self.t0 = tag.index0
             self.t1 = tag.index1
@@ -79,6 +163,18 @@ class DDFFTagStream(dict):
             super().__init__(ddffs, tag)
 
         def __next__(self):
+            """ Return next time point
+
+            Returns
+            -------
+            int
+                Time/index value
+
+            Raises
+            ------
+            StopIteration
+                End of period
+            """
             tmp = next(self.reader)
             while tmp[0] + tmp[1] < self.t0:
                 tmp = next(self.reader)
@@ -87,12 +183,24 @@ class DDFFTagStream(dict):
             return tmp[0]
 
     class ValueIt(BaseIt):
-        def __init__(self, ddffs: DDFFStream, tag: DDFFTag, member: int|None):
+        def __init__(self, ddffs: DDFFStream, tag: DDFFTag, member: int | None):
 
             super().__init__(ddffs, tag)
             self.idx = member
 
         def __next__(self):
+            """ Return next data point
+
+            Returns
+            -------
+            list with data
+                Unpacked data from msgpack
+
+            Raises
+            ------
+            StopIteration
+                End of period
+            """
             tmp = next(self.reader)
             while tmp[0] + tmp[1] < self.t0:
                 tmp = next(self.reader)
@@ -102,22 +210,107 @@ class DDFFTagStream(dict):
                 return tmp[-1]
             return tmp[-1][self.idx]
 
-    def getData(self, period:int|str|None=None, icount:int=100):
+    class ObjectIt(BaseIt):
+        def __init__(self, ddffs: DDFFStream, tag: DDFFTag):
 
+            super().__init__(ddffs, tag)
+
+        def __next__(self):
+            """ Return complete time + data object
+
+            Returns
+            -------
+            list with time + data object
+                Time tag, span, data
+
+            Raises
+            ------
+            StopIteration
+                End of period
+            """
+            tmp = next(self.reader)
+            while tmp[0] + tmp[1] < self.t0:
+                tmp = next(self.reader)
+            if tmp[0] > self.t1:
+                raise StopIteration()
+            return tmp
+
+    def time(self, period: int | str | None = None):
+        """ Access time stamps, for a specific period and named stream
+
+        Arguments:
+            period -- Name or number of period
+
+        Returns:
+            Iterator for time ticks
+        """
+
+        # if no period given, treat as inventoried stream
+        if period is None:
+            return self.base.time()
+
+        # get data on the period
+        tag = self.tags[period]
+
+        # return a time tick iterator
+        return DDFFTagStream.TimeIt(self.base.base, tag)
+
+    def __getitem__(self, arg):
+        """ Access data, for a specific period in this stream
+
+        Parameters
+        ----------
+        arg : tuple(str|int, str|int) or str|int
+            Indicated period (None=total data) + data member (None=all)
+
+        Returns
+        -------
+        ValueIt
+            Data iterator
+        """
+        try:
+            period, key = arg
+        except TypeError:
+            period, key = arg, None
+        if period is None:
+            return self.base[key]
+
+        if isinstance(key, int) or key is None:
+            return DDFFTagStream.ValueIt(self.base.base, self.tags[period], key)
+        else:
+            return DDFFTagStream.ValueIt(
+                self.base.base, self.tags[period], self.base.members[key]
+            )
+
+    def getData(self, period: int | str | None = None, icount: int = 100):
+        """ Assemble stream data in numpy arrays
+
+        Parameters
+        ----------
+        period : int | str | None, optional
+            Chosen period, if None, return all data
+        icount : int, optional
+            Default length allocation numpy arrays, by default 100
+
+        Returns
+        -------
+        (np.array, np.array, dict(str,np.array))
+            Time arrays (start time, span), and dictionary with data arrays
+            for all object members.
+        """
         if period is None:
             return self.base.getData(icount)
-        
-        if isinstance(period, str):
-            tag = self[period]
-        else:
-            tag = [t for t in self.values() if t.cycle == period]
-        
-        mappers = self.base._getMappers(icount)
-        
+
+        tag = self.tags[period]
+
+        time0 = np.zeros(shape=(icount,), dtype=np.uint32)
+        time1 = np.zeros(shape=(icount,), dtype=np.uint32)
+        result, mappers = self.base._getMappers(icount)
+
         i = -1
-        for i, d in enumerate(DDFFTagStream.ValueIt(self.base, tag)):
+        for i, d in enumerate(DDFFTagStream.ObjectIt(self.base.base, tag)):
             if i == icount:
-                icount = icount*2
+                icount = icount * 2
                 time0.resize((icount, *time0.shape[1:]))
                 time1.resize((icount, *time1.shape[1:]))
                 for v in result.values():
@@ -137,7 +330,6 @@ class DDFFTagStream(dict):
         return time0, time1, result
 
 
-
 class DDFFTagged(DDFFInventoried):
     """DDFF file with inventory and stretch/time tags.
 
@@ -147,8 +339,9 @@ class DDFFTagged(DDFFInventoried):
     stream.
     """
 
-    def __init__(self, name: str, mode='r', nstreams=frozenset((0, 1)),
-                 *args, **kwargs):
+    def __init__(
+        self, name: str, mode="r", nstreams=frozenset((0, 1)), *args, **kwargs
+    ):
         """Open a tagged stream datafile
 
         Arguments:
@@ -161,7 +354,7 @@ class DDFFTagged(DDFFInventoried):
         # analyse with base DDFF read
         super().__init__(name, *args, mode=mode, nstreams=nstreams, **kwargs)
 
-        # replace/parse stream 1, to get a tagstream
+        # load all data from the tags stream
         self.streams[1].readToList()
 
         # compatibility with the one or two old datafiles lying around
@@ -172,21 +365,40 @@ class DDFFTagged(DDFFInventoried):
                 tags.insert(1, [o % 4096 for o in tags[0]])
                 for i, _ in enumerate(tags[0]):
                     tags[0][i] -= tags[1][i]
-        print(self.streams[1])
-        self.streams[1] = DDFFTagStream(self.streams[1])
+
+        # replace the tags stream with an index
+        self.streams[1] = DDFFTagIndex(self.streams[1])
 
         # Scan initial blocks for the inventory streams
         self._doInitialScan(self.streams[1].offsets())
 
-    def inventory(self):
-        """Access the base DDFFInventory class
+        # replace further streams
+        # Use the inventory to enhance the streams
+        self.tagmapping = dict()
+        for tag, streamid, description in self.streams[0]:
+            self.streams[streamid] = DDFFTagStream(
+                self.streams[streamid], self.streams[1]
+            )
+            self.tagmapping[tag] = self.streams[streamid]
 
-        Returns:
-            Same object, as DDFFInventory
+    def __getitem__(self, key):
+        """Access a specific data stream in the file
+
+        Parameters
+        ----------
+        key : str|int
+            Stream id or number to access
+
+        Returns
+        -------
+        DDFFInventoriedStream
+            Data access
         """
-        return super(DDFFTagged,self)
+        if isinstance(key, int):
+            return self.streams[self.streams[0][key][1]]
+        return self.tagmapping[key]
 
-    def index(self):
+    def tags(self):
         """Access the time period index
 
         Returns:
@@ -194,14 +406,6 @@ class DDFFTagged(DDFFInventoried):
             to details.
         """
         return self.streams[1]
-
-    def periods(self):
-        """List the keys of the available periods
-
-        Returns:
-            Iterable of key names
-        """
-        return self.streams[1].keys()
 
     def __len__(self):
         """Return number of available periods
@@ -211,112 +415,32 @@ class DDFFTagged(DDFFInventoried):
         """
         return len(self.streams[1])
 
-    def __getitem__(self, key):
-        """Access data, from a specific period and a specific named stream
 
-        Arguments:
-            key -- tuple(period,streamid,member) or tuple(period,streamid)
-            defining the requested period, and which data stream should
-            be returned. The member string indicates which data member to
-            return
-
-        Raises:
-            KeyError: key not found, either period, stream or member name
-            missing.
-
-        Returns:
-            Iterator for data, either for a single member, or the whole data
-            list/struct
-        """
-        if isinstance(key, str|int):
-            streamid = key
-            period = None
-            member = None
-        elif len(key) == 3:
-            streamid, period, member = key
-        elif len(key) == 2:
-            streamid, period = key
-            member = None
-        else:
-            raise KeyError("Supply 2 or 3 elements for key")
-
-        # get stream number corresponding to the key (or int index)
-        if isinstance(streamid, int):
-            stream = self.streams[streamid+2]
-        else:
-            stream = self.mapping[streamid]
-
-        if isinstance(member, str):
-            member = stream.members[member]
-
-        # if no period given, treat as inventoried stream
-        if period is None:
-            return DDFFInventoriedStream.ValueIt(stream.base, member)
-        if isinstance(period, int):
-            it = [ itx for itx in self.streams[1].values() if itx.cycle == period][0]
-        else:
-            # get start and end time corresponding to the tag
-            it = self.streams[1][period]
-
-        # use this to return an iterator
-        return DDFFTagStream.ValueIt(stream.base, it, member)
-
-
-    def time(self, streamid, period):
-        """Access time stamps, for a specific period and named stream
-
-        Arguments:
-            streamid -- Name or number of requested stream
-            period -- Name or number of period
-
-        Returns:
-            Iterator for time ticks
-        """
-
-        # if no period given, treat as inventoried stream
-        if period is None:
-            return DDFFInventoriedStream.TimeIt(stream.base)
-
-        # get data on the period
-        if isinstance(period, int):
-            it = [ itx for itx in self.streams[1].values() if itx.cycle == period][0]
-        else:
-            it = self.streams[1][period]
-
-        # get stream number corresponding to the key (or int index)
-        if isinstance(streamid, int):
-            stream = self.streams[streamid+2]
-        else:
-            stream = self.mapping[streamid]
-
-        # return a time tick iterator
-        return DDFFTagStream.TimeIt(stream.base, it)
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     import os
 
-    f2 = DDFFTagged(os.path.dirname(__file__) +
-            '/../../../test/ddff/recordings-PHLAB-new.ddff')
-    keys = [ k for k in f2.keys() ]
-    nameds = [ n for n in f2.periods() ]
+    f2 = DDFFTagged(
+        os.path.dirname(__file__) + "/../../../test/ddff/recordings-PHLAB-new.ddff"
+    )
+    keys = [k for k in f2.keys()]
+    nameds = [n for n in f2.tags().keys()]
     for key in keys:
         for n in nameds:
             print("tag", key, "key", n)
-            ticks = [t for t in f2.time(key, n)]
-            rx = [x for x in f2[key,n,'rx']]
-            ry = [y for y in f2[key,n,'ry']]
+            ticks = [t for t in f2[key].time(n)]
+            rx = [x for x in f2[key][n, "rx"]]
+            ry = [y for y in f2[key][n, "ry"]]
 
-    print(f2.index()['one'])
+    print(f2.tags()["one"])
 
     for key in range(len(keys)):
         for n in range(len(nameds)):
             print("tag", key, "key", n)
-            ticks = [t for t in f2.time(key, n)]
-            rx = [x for x in f2[key,n,'rx']]
-            ry = [y for y in f2[key,n,'ry']]
-            alld = [z for z in f2[key,n]]
+            ticks = [t for t in f2[key].time(n)]
+            rx = [x for x in f2[key][n, "rx"]]
+            ry = [y for y in f2[key][n, "ry"]]
+            alld = [z for z in f2[key][n]]
     print(alld)
 
-    t0, t1, data = f2.stream("WriteUnified:first blip").getData(0)
+    t0, t1, data = f2["WriteUnified:first blip"].getData(0)
     print(t0, t1, data)

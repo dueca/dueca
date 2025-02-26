@@ -243,7 +243,7 @@ class DDFFReadStream:
     Returns
     -------
     Any type
-        Objects unpacked from msgpack data, 
+        Objects unpacked from msgpack data,
 
     Raises
     ------
@@ -273,7 +273,7 @@ class DDFFReadStream:
 
     def topup(self):
         """ Feeds data blocks from the file.
-        
+
             Get data blocks until the unpacker buffer has reached
             the given (1Mb fill size) or the file is exchausted.
 
@@ -286,7 +286,7 @@ class DDFFReadStream:
         while self.block and self.loaded - self.unpacker.tell() < self.maxobjectsize:
             self.unpacker.feed(self.block.tail)
             topped = True
-            if self.block.next_offset != 0x7FFFFFFFFFFFFFFF:
+            if self.block.next_offset not in (0x7FFFFFFFFFFFFFFF, -1):
                 self.file.seek(self.block.next_offset)
                 self.block = DDFFBlock(self.file)
                 self.loaded += self.block.block_fill - 28
@@ -310,7 +310,7 @@ class DDFFReadStream:
         Returns
         -------
         Any
-            Object read with msgpack from file 
+            Object read with msgpack from file
 
         Raises
         ------
@@ -408,7 +408,7 @@ class DDFF:
         Raises
         ------
         ValueError
-            When an offset position is false, and there is no stream starting block 
+            When an offset position is false, and there is no stream starting block
             there
         ValueError
             When not all required streams are found
@@ -459,7 +459,8 @@ class DDFF:
 if __name__ == "__main__":
 
     prj = "DuecaTestCommunication"
-    recdata = DDFF("../recordings-PHLAB-new.ddff", mode="r")
+    recdata = DDFF(os.path.dirname(__file__) +
+            '/../../../test/ddff/recordings-PHLAB-new.ddff', mode="r")
     print(recdata.streams[0], recdata.streams[1])
 
     test = "123456789".encode("ascii")
@@ -474,6 +475,7 @@ if __name__ == "__main__":
     del stuff
 
     verif = DDFF("test.ddff", mode="r")
+    verif.streams[0].readToList()
     print(verif.streams)
 
     stuff2 = DDFF("test2.ddff", mode="w", blocksize=128)
@@ -487,5 +489,6 @@ if __name__ == "__main__":
     stuff2.write()
 
     verif2 = DDFF("test2.ddff", mode="r")
+    verif2.streams[0].readToList()
     print(st0 == verif2.streams[0])
     print(verif2.streams[0])

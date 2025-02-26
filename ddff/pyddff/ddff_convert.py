@@ -79,7 +79,7 @@ class Info:
 
         if ns.period:
             try:
-                print(f"Details for period {ns.period}:\n", str(f.index()[ns.period]))
+                print(f"Details for period {ns.period}:\n", str(f.tags()[ns.period]))
             except KeyError:
                 print(f"Cannot find period {ns.period}", file=sys.stderr)
             except Exception as e:
@@ -98,7 +98,7 @@ class Info:
         if not ns.streamid and not ns.period:
             try:
                 if not ns.inventory:
-                    print('Available periods:\n"', '", "'.join(f.periods()), '"', sep="")
+                    print('Available periods:\n"', '", "'.join(f.periods().keys()), '"', sep="")
                 print(
                     'Available streams:\n"',
                     '", "'.join(f.keys()),
@@ -165,8 +165,11 @@ class ToHdf5:
         if True:
             if not ns.period:
                 f = DDFFInventoried(ns.filename)
+                pargs = tuple()
             else:
                 f = DDFFTagged(ns.filename)
+                pargs = (ns.period,)
+
         #except Exception as e:
         #    print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
         #    sys.exit(-1)
@@ -192,7 +195,7 @@ class ToHdf5:
             gg = hf.create_group(streamid)
             dg = gg.create_group("data")
 
-            time, dtime, values = f.stream(streamid).getData(ns.expected_size)
+            time, dtime, values = f[streamid].getData(*pargs, ns.expected_size)
             vprint(f"number of data points {time.shape[0]}")
             gg.create_dataset("tick", data=time, **compressargs)
             for m, v in values.items():

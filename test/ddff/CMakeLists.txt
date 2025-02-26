@@ -10,7 +10,7 @@ if (Python3_Interpreter_FOUND)
 
   # for practicing with conversion
   set(DDFF_CONVERT
-    ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/ddff/pyddff/ddff-convert.py --verbose)
+    ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/ddff/pyddff/ddff_convert.py --verbose)
   set(DATAFILE ${CMAKE_CURRENT_SOURCE_DIR}/recordings-PHLAB-new.ddff)
 
   add_test(NAME DDFF_CONVERT_INFO1

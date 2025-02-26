@@ -132,8 +132,8 @@ class DDFFInventoriedStream:
 
         def __iter__(self):
             return self
-       
-   
+
+
 
     class TimeIt(BaseIt):
         """ Iterator for time or tag values."""
@@ -149,6 +149,18 @@ class DDFFInventoriedStream:
             super().__init__(ddffs)
 
         def __next__(self):
+            """ Return next time point
+
+            Returns
+            -------
+            int
+                Time/index value
+
+            Raises
+            ------
+            StopIteration
+                End of period
+            """
 
             tmp = next(self.reader)
             return tmp[0]
@@ -172,6 +184,18 @@ class DDFFInventoriedStream:
             self.idx = idx
 
         def __next__(self):
+            """ Return next data point
+
+            Returns
+            -------
+            list with data
+                Unpacked data from msgpack
+
+            Raises
+            ------
+            StopIteration
+                End of period
+            """
             tmp = next(self.reader)
             if self.idx is None:
                 return tmp[-1]
@@ -300,7 +324,7 @@ class DDFFInventoriedStream:
         """ Return data from the stream as a dictionary of numpy arrays
 
         For "numeric" data, this way of obtaining the data is often much more
-        efficient than iterating over the stream, which returns a sequence of objects with 
+        efficient than iterating over the stream, which returns a sequence of objects with
         the data.
         This returns a dictionary of objects with numpy arrays, which can then directly
         be used in plotting, etc.
@@ -342,7 +366,7 @@ class DDFFInventoriedStream:
 
         return time0, time1, result
 
-# support routines, extracting different types of objects from 
+# support routines, extracting different types of objects from
 # data structures
 def copyObjectFixedArrayExclude(obj, i, res, midx, excluded):
     # array of tuples
@@ -441,65 +465,7 @@ class DDFFInventoried(DDFF):
                 base = DDFFStream(self.file, stream_id=streamid)
                 self.streams[streamid] = DDFFInventoriedStream(base, tag, description)
 
-
-    def inventory(self):
-        """ Return the inventory itself, for compatibility purposes
-
-        Returns
-        -------
-        DDFFInventoried
-            Object itself.
-        """
-        return self
-
-    def time(self, key, period=None):
-        """ Access time stamps for a specific named stream
-
-        Arguments:
-            period -- Optional, ignored
-            key -- Name or number of requested stream
-
-        Returns:
-            Iterator for time ticks
-        """
-        if isinstance(key, int):
-            return self.streams[self.streams[0][key][1]]
-        return self.mapping[key].time()
-
-    def __getitem__(self, keyname):
-        """ Access data, from a specific named stream
-
-        Arguments:
-            keyname -- tuple(streamid,member), tuple(streamid,period,member) or only streamid
-            Defines which data stream should be returned. The member string
-            indicates which data member to return.
-
-        Returns:
-            Iterator for data, either for a single member, or the whole data
-            list/struct
-        """
-        try:
-            if isinstance(keyname, str | int):
-                key = keyname
-                varname = None
-            elif len(keyname) == 2:
-                key, varname = keyname
-            elif len(keyname) == 3:
-                key, _, varname = keyname
-        except ValueError:
-            key = keyname
-            varname = None
-
-        if isinstance(key, int):
-            stream = self.streams[self.streams[0][key][1]]
-        else:
-            stream = self.mapping[key]
-
-        # return an iterator on the data (or all), corresponding to
-        # this stream
-        return stream[varname]
-
-    def stream(self, key: str|int):
+    def __getitem__(self, key):
         """ Access a specific data stream in the file
 
         Parameters
@@ -524,6 +490,14 @@ class DDFFInventoried(DDFF):
         """
         return [k[0] for k in self.streams[0]]
 
+    def __len__(self):
+        """ Return number of data streams
+
+        Returns:
+            Integer
+        """
+        return len(self.streams[0])
+
 
 if __name__ == "__main__":
 
@@ -533,13 +507,13 @@ if __name__ == "__main__":
     # known entries
     print(stuff.keys())
 
-    for t in stuff.time("WriteUnified:first blip"):
+    for t in stuff["WriteUnified:first blip"].time():
         print(t)
 
-    for x in stuff["WriteUnified:first blip", "rx"]:
+    for x in stuff["WriteUnified:first blip"]["rx"]:
         print(x)
-    for x in stuff["WriteUnified:first blip", "ry"]:
+    for x in stuff["WriteUnified:first blip"]["ry"]:
         print(x)
 
-    t0, t1, data = stuff.stream("WriteUnified:first blip").getData()
+    t0, t1, data = stuff["WriteUnified:first blip"].getData()
     print(t0, t1, data)
