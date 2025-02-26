@@ -49,7 +49,7 @@ class DDFFTagStream(dict):
         """
         super(DDFFTagStream).__init__(*args, **kwargs)
         self.base = ddffs
-        for st in self.base.reader():
+        for st in self.base:
             self[st[-2]] = DDFFTag(*st)
 
     def offsets(self, period: int|str=0):
@@ -131,10 +131,10 @@ class DDFFTagged(DDFFInventoried):
         if len(self.streams[1][0]) == 7:
             vprint("Converting old 7-index tags to new 8-index")
             for tags in self.streams[1]:
-                tags.insert(1, [o % 4096 for o in tags[o]])
-                for i in len(tags[0]):
+                tags.insert(1, [o % 4096 for o in tags[0]])
+                for i, _ in enumerate(tags[0]):
                     tags[0][i] -= tags[1][i]
-
+        print(self.streams[1])
         self.streams[1] = DDFFTagStream(self.streams[1])
 
         # Scan initial blocks for the inventory streams

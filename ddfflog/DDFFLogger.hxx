@@ -89,6 +89,10 @@ private: // simulation data
 
   /** set of data for a targeted (read one entry) channel read&save */
   struct TargetedLog: SegmentedRecorderBase {
+
+    /** Pointer, shared? */
+    typedef std::shared_ptr<TargetedLog> pointer;
+
     /** path name for log */
     std::string logpath;
 
@@ -136,7 +140,7 @@ private: // simulation data
   };
 
   /** Type definition for the list */
-  typedef std::list<boost::intrusive_ptr<TargetedLog> > targeted_list_t;
+  typedef std::list<TargetedLog::pointer> targeted_list_t;
 
   /** List of targeted channel entries */
   targeted_list_t             targeted;

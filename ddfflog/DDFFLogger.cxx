@@ -384,11 +384,11 @@ bool DDFFLogger::logChannel(const vector<string> &i)
   }
   try {
     if (i.size() == 4) {
-      newtarget = boost::intrusive_ptr<TargetedLog>(new TargetedLog(
+      newtarget = targeted_list_t::value_type(new TargetedLog(
         i[0], i[1], i[2], i[3], getId(), always_logging, reduction));
     }
     else {
-      newtarget = boost::intrusive_ptr<TargetedLog>(
+      newtarget = targeted_list_t::value_type(
         new TargetedLog(i[0], i[1], i[2], getId(), always_logging, reduction));
     }
   }

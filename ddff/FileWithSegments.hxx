@@ -14,8 +14,6 @@
 #ifndef FileWithSegments_hxx
 #define FileWithSegments_hxx
 
-#include <boost/intrusive_ptr.hpp>
-#include <boost/smart_ptr/intrusive_ref_counter.hpp>
 #include "FileWithInventory.hxx"
 #include "FileStreamWrite.hxx"
 #include "SegmentedRecorderBase.hxx"
@@ -26,6 +24,7 @@
 #include <dueca/Callback.hxx>
 #include <dueca/Activity.hxx>
 #include <chrono>
+#include <list>
 
 #include <dueca_ns.h>
 #include <exception>
@@ -38,7 +37,7 @@ DUECA_NS_END;
 DDFF_NS_START
 // class DDFFDataRecorder;
 // typedef std::list<DDFFDataRecorder *> recorderlist_t;
-typedef std::list<boost::intrusive_ptr<SegmentedRecorderBase>> recorderlist_t;
+typedef std::list<SegmentedRecorderBase*> recorderlist_t;
 
 /** Filing and retrieving object for replay data from a specific entity.
 
@@ -197,11 +196,11 @@ public:
   /** check in */
   ddff::FileStreamRead::pointer
   recorderCheckIn(const std::string &key,
-                  boost::intrusive_ptr<SegmentedRecorderBase> ptr);
+                  SegmentedRecorderBase::pointer ptr);
 
   /** check out again */
   void recorderCheckOut(const std::string &key,
-                        boost::intrusive_ptr<SegmentedRecorderBase> ptr);
+                        SegmentedRecorderBase::pointer ptr);
 
   /** Switch for determining recording periods. */
   const DataTimeSpec *getRunTimeSpec() { return &ts_switch; }

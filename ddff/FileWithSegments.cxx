@@ -68,7 +68,7 @@ inline void msg_unpack(S &i0, const S &iend,
                        dueca::ddff::FileWithSegments::Tag &e)
 {
   uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  assert(len == 7);
+  assert(len == 8);
   msg_unpack(i0, iend, e.offset);
   msg_unpack(i0, iend, e.inblock_offset);
   msg_unpack(i0, iend, e.cycle);
@@ -103,6 +103,7 @@ FileWithSegments::FileWithSegments(const std::string &entity) :
   tags(),
   next_tag(),
   tag_lookup(),
+  dirty(true),
   w_tags()
 {
   DEB("New FileWithSegments");
@@ -206,7 +207,7 @@ FileWithSegments::createNamedWrite(const std::string &key,
 
 ddff::FileStreamRead::pointer
 FileWithSegments::recorderCheckIn(const std::string &key,
-                                  boost::intrusive_ptr<SegmentedRecorderBase> ptr)
+                                  SegmentedRecorderBase::pointer ptr)
 {
   // use base class to get the read pointer
   ddff::FileStreamRead::pointer fsr = findNamedRead(key);

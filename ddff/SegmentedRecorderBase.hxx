@@ -22,11 +22,9 @@
 DDFF_NS_START
 
 /** Base class for segmented recording. Handles marking of recording stretches,
-   and callback to the writing stream to inform on segment-data links */
-class SegmentedRecorderBase :
-  public boost::intrusive_ref_counter<SegmentedRecorderBase>
+    and callback to the writing stream to inform on segment-data links */
+class SegmentedRecorderBase
 {
-
 protected:
   /** Remember to where data was written/handled */
   TimeTickType marked_tick;
@@ -41,11 +39,14 @@ protected:
   ddff::FileStreamWrite::pointer w_stream;
 
 public:
+  /** Define pointer */
+  typedef SegmentedRecorderBase* pointer;
+
   /** Constructor */
   SegmentedRecorderBase();
 
   /** Destructor */
-  ~SegmentedRecorderBase();
+  virtual ~SegmentedRecorderBase();
 
   /** Starting a new stretch; will mark the first data written in this
   stretch (if any) for callback with the offset of that data */

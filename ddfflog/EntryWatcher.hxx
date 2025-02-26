@@ -91,7 +91,7 @@ class EntryWatcher: public dueca::ChannelWatcher
   };
 
   /** List type of above */
-  typedef std::list<boost::intrusive_ptr<EntryData> > entrylist_type;
+  typedef std::list<std::shared_ptr<EntryData>> entrylist_type;
 
   /** The resulting list */
   entrylist_type entrylist;

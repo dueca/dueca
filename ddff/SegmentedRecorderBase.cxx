@@ -16,7 +16,6 @@
 DDFF_NS_START
 
 SegmentedRecorderBase::SegmentedRecorderBase() :
-  boost::intrusive_ref_counter<SegmentedRecorderBase>(),
   marked_tick(0U),
   record_start_tick(MAX_TIMETICK),
   dirty(false),
