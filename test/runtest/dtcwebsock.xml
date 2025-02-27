@@ -11,7 +11,7 @@
     <platform>solo</platform>
     <node>websock</node>
   </execute>
-  <offset x="1" y="-15" />
+  <offset x="1" y="-10" />
   <actions>
     <check window="DUECA/DUSIME control panel" x="476" y="36" r="65" g="255" b="11" timeout="10.0"
       wait="0.5" />

@@ -43,7 +43,7 @@
     <platform>solo</platform>
     <node>recordreplay</node>
   </execute>
-  <offset x="1" y="-15" />
+  <offset x="1" y="-10" />
   <actions>
     <check window="DUECA/DUSIME control panel" x="473" y="37" r="65" g="255" b="11" timeout="20.0"
       wait="0.5" />

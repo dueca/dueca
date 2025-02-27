@@ -13,7 +13,7 @@
     <platform>udp-two</platform>
     <node>node1</node>
   </execute>
-  <offset x="1" y="-15"/>
+  <offset x="1" y="-10"/>
   <actions>
     <check window="DUECA/DUSIME control panel" x="476" y="35" r="65" g="255" b="11" timeout="40.0" wait="0.5"/>
     <check window="DUECA/DUSIME control panel" x="476" y="77" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>

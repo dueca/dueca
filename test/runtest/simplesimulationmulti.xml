@@ -24,7 +24,7 @@
     <platform>multi</platform>
     <node>team2</node>
   </execute>
-  <offset x="1" y="-15"/>
+  <offset x="1" y="-13"/>
   <actions>
     <check window="DUECA/DUSIME control panel" x="476" y="37" r="65" g="255" b="11" timeout="40.0" wait="0.5"/>
     <snap name="simplesimulationmulti-000.png"/>
