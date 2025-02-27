@@ -23,6 +23,7 @@
 #include <dueca/NamedObject.hxx>
 #include <dueca/Callback.hxx>
 #include <dueca/Activity.hxx>
+#include <dueca/StateGuard.hxx>
 #include <chrono>
 #include <list>
 
@@ -81,6 +82,9 @@ class FileWithSegments : public ddff::FileWithInventory
 
   /** For error messages, remember key/entity */
   std::string entity;
+
+  /** Guard state, for recorder addition and removal */
+  StateGuard g_recorders;
 
 public:
   /** Pointer type */

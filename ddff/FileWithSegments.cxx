@@ -98,6 +98,7 @@ FileWithSegments::Tag::Tag() :
 
 FileWithSegments::FileWithSegments(const std::string &entity) :
   entity(entity),
+  g_recorders("segmentedfile", false),
   ts_switch(MAX_TIMETICK, MAX_TIMETICK),
   my_recorders(),
   tags(),
@@ -223,8 +224,12 @@ FileWithSegments::recorderCheckIn(const std::string &key,
     E_XTR("Incompatible recorder check-in, already have "
           << next_tag.offset.size() << " with id " << fsr->getStreamId());
   }
+
+  ScopeLock r(g_recorders);
+
   next_tag.offset.resize(fsr->getStreamId() - 1U);
   next_tag.inblock_offset.resize(fsr->getStreamId() - 1U);
+
   my_recorders.push_back(ptr);
 
   return fsr;
@@ -237,7 +242,8 @@ ddff::FileHandler::pos_type FileWithSegments::findOffset(unsigned cycle,
   if (cycle < tags.size()) {
     assert(stream_id < tags[cycle].offset.size() + 2U);
     assert(stream_id >= 2U);
-    return tags[cycle].offset[stream_id - 2U] + tags[cycle].inblock_offset[stream_id - 2U];
+    return tags[cycle].offset[stream_id - 2U] +
+           tags[cycle].inblock_offset[stream_id - 2U];
   }
   assert(cycle == tags.size());
   return std::numeric_limits<pos_type>::max();
@@ -252,7 +258,8 @@ ddff::FileHandler::pos_type FileWithSegments::findBlockStart(unsigned cycle,
     assert(stream_id >= 2U);
     return tags[cycle].offset[stream_id - 2U];
   }
-  throw cannot_find_segment(boost::str(boost::format("stream%d") % stream_id).c_str(), cycle);
+  throw cannot_find_segment(
+    boost::str(boost::format("stream%d") % stream_id).c_str(), cycle);
   return ddff::FileHandler::pos_type(-1);
 }
 
@@ -268,8 +275,11 @@ void FileWithSegments::startStretch(
     next_tag.offset.resize(streams.size() - 2, 0U);
 
     // get all my recorders to mark the next (first) write of data
-    for (auto recorder : myRecorders()) {
-      recorder->startStretch(tick);
+    {
+      ScopeLock r(g_recorders);
+      for (auto recorder : myRecorders()) {
+        recorder->startStretch(tick);
+      }
     }
 
     // push the current inventory to file
@@ -302,20 +312,22 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
 
   // first check that all data has been written
   bool complete = true;
-  for (const auto &recorder : myRecorders()) {
-    complete = complete && recorder->checkWriteTick(tick);
+  {
+    ScopeLock r(g_recorders);
+    for (const auto &recorder : myRecorders()) {
+      complete = complete && recorder->checkWriteTick(tick);
+    }
+
+    // return for a next invocation if that is not the case
+    if (!complete)
+      return false;
+
+    // when complete, initiate saving of all recorder/recorded data
+    // will only save when actually data was written in the period
+    for (const auto &recorder : myRecorders()) {
+      recorder->syncRecorder();
+    }
   }
-
-  // return for a next invocation if that is not the case
-  if (!complete)
-    return false;
-
-  // when complete, initiate saving of all recorder/recorded data
-  // will only save when actually data was written in the period
-  for (const auto &recorder : myRecorders()) {
-    recorder->syncRecorder();
-  }
-
   // all data for this stretch has been received, if applicable
   // schedule all partial blocks and then schedules data saving, with
   // the parent class's method
@@ -324,9 +336,12 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
   // and check up whether the offsets are present, or whether no data
   // was writting in this stretch, and offsets remain 0
   unsigned idx = 0;
-  for (const auto &recorder : myRecorders()) {
-    complete = complete &&
-               (recorder->checkAndMakeClean() || (next_tag.offset[idx] != 0));
+  {
+    ScopeLock r(g_recorders);
+    for (const auto &recorder : myRecorders()) {
+      complete = complete &&
+                 (recorder->checkAndMakeClean() || (next_tag.offset[idx] != 0));
+    }
   }
 
   // this should return successfully
@@ -370,21 +385,25 @@ void FileWithSegments::spoolForReplay(unsigned cycle)
   Tag *tag0 = &tags[cycle];
   Tag *tag1 = (cycle + 1 < tags.size()) ? &tags[cycle + 1] : NULL;
 
-  // check that the tag offsets match the number of recorders
-  if ((tag0->offset.size() != myRecorders().size()) ||
-      (tag1 != NULL && (tag1->offset.size() != myRecorders().size()))) {
-    throw tag_information_not_matching_recorders(entity.c_str(), cycle);
-  }
+  {
+    ScopeLock r(g_recorders);
 
-  // reset all recorders to their respective offset
-  unsigned idx = 0;
-  for (auto &recorder : myRecorders()) {
-    recorder->spoolReplay(
-      tag0->offset[idx], (tag1 != NULL) ? tag1->offset[idx]
-                                        : std::numeric_limits<pos_type>::max());
-    idx++;
-  }
+    // check that the tag offsets match the number of recorders
+    if ((tag0->offset.size() != myRecorders().size()) ||
+        (tag1 != NULL && (tag1->offset.size() != myRecorders().size()))) {
+      throw tag_information_not_matching_recorders(entity.c_str(), cycle);
+    }
 
+    // reset all recorders to their respective offset
+    unsigned idx = 0;
+    for (auto &recorder : myRecorders()) {
+      recorder->spoolReplay(tag0->offset[idx],
+                            (tag1 != NULL)
+                              ? tag1->offset[idx]
+                              : std::numeric_limits<pos_type>::max());
+      idx++;
+    }
+  }
   // load the initial blocks of data
   runLoads();
 }
@@ -400,8 +419,11 @@ void FileWithSegments::replayLoad()
 
 void FileWithSegments::startTickReplay(TimeTickType tick)
 {
-  for (auto &recorder : myRecorders()) {
-    recorder->startReplay(tick);
+  {
+    ScopeLock r(g_recorders);
+    for (auto &recorder : myRecorders()) {
+      recorder->startReplay(tick);
+    }
   }
 }
 
@@ -446,7 +468,7 @@ FileWithSegments::findFiler(const std::string &entity,
 
 recorderlist_t &FileWithSegments::myRecorders()
 {
-  /** 
+  /**
   auto my_recorders = DDFFDataRecorder::allRecorders().find(entity);
   if (my_recorders != DDFFDataRecorder::allRecorders().end()) {
     return my_recorders->second;
@@ -454,6 +476,7 @@ recorderlist_t &FileWithSegments::myRecorders()
   static recorderlist_t empty;
   return empty;
   */
+
   return my_recorders;
 }
 
