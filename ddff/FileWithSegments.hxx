@@ -179,13 +179,6 @@ public:
   /** Destructor */
   ~FileWithSegments();
 
-  /** Return the file offset for the first data for a specific cycle
-
-      @param cycle       Recording cycle/dataset
-      @param stream_id   Stream to find the offset for
-   */
-  ddff::FileHandler::pos_type findOffset(unsigned cycle, unsigned stream_id);
-
   /** Return the file offset for block with the first data for a specific cycle
 
       @param cycle       Recording cycle/dataset

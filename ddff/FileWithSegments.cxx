@@ -200,6 +200,7 @@ FileStreamWrite::pointer
 FileWithSegments::createNamedWrite(const std::string &key,
                                    const std::string &label, size_t bufsize)
 {
+  DEB("Creating named write " << key << ":" << label << " #" << bufsize);
   auto writer = this->FileWithInventory::createNamedWrite(key, label, bufsize);
   next_tag.offset.resize(writer->getStreamId() - 1U);
   next_tag.inblock_offset.resize(writer->getStreamId() - 1U);
@@ -212,20 +213,20 @@ FileWithSegments::recorderCheckIn(const std::string &key,
 {
   // use base class to get the read pointer
   ddff::FileStreamRead::pointer fsr = findNamedRead(key);
-  DEB("DataRecorder checked-in, stream " << key << "/" << fsr->getStreamId());
+  DEB("DataRecorder checked-in, stream " << key << "@" << fsr->getStreamId());
 
   // check and resize the offset vector in the next_tag template
-  if (fsr->getStreamId() != next_tag.offset.size() + 2U) {
+  if (fsr->getStreamId() != next_tag.offset.size() + 1U) {
     /* DUSIME replay&initial
 
        The new stream_id for a recorder does not match the current
        configuration.
     */
-    E_XTR("Incompatible recorder check-in, already have "
+    E_XTR("Incompatible recorder check-in, key " << key << ", already have "
           << next_tag.offset.size() << " with id " << fsr->getStreamId());
   }
 
-  ScopeLock r(g_recorders);
+  //ScopeLock r(g_recorders);
 
   next_tag.offset.resize(fsr->getStreamId() - 1U);
   next_tag.inblock_offset.resize(fsr->getStreamId() - 1U);
@@ -233,20 +234,6 @@ FileWithSegments::recorderCheckIn(const std::string &key,
   my_recorders.push_back(ptr);
 
   return fsr;
-}
-
-ddff::FileHandler::pos_type FileWithSegments::findOffset(unsigned cycle,
-                                                         unsigned stream_id)
-{
-  // retrieve the offset for a specific cycle?
-  if (cycle < tags.size()) {
-    assert(stream_id < tags[cycle].offset.size() + 2U);
-    assert(stream_id >= 2U);
-    return tags[cycle].offset[stream_id - 2U] +
-           tags[cycle].inblock_offset[stream_id - 2U];
-  }
-  assert(cycle == tags.size());
-  return std::numeric_limits<pos_type>::max();
 }
 
 ddff::FileHandler::pos_type FileWithSegments::findBlockStart(unsigned cycle,

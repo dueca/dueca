@@ -98,7 +98,7 @@ class Info:
         if not ns.streamid and not ns.period:
             try:
                 if not ns.inventory:
-                    print('Available periods:\n"', '", "'.join(f.periods().keys()), '"', sep="")
+                    print('Available periods:\n"', '", "'.join(f.tags().keys()), '"', sep="")
                 print(
                     'Available streams:\n"',
                     '", "'.join(f.keys()),

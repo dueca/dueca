@@ -292,7 +292,7 @@ class KeyPress:
 
 
 def sanitize(s: str):
-    for ch in '":<>|*?\r\n':
+    for ch in '\\/":<>|*?\r\n':
         s = s.replace(ch, "_")
     return s
 
