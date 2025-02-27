@@ -291,6 +291,11 @@ class KeyPress:
         the_keyboard.release(self.key)
 
 
+def sanitize(s: str):
+    for ch in '":<>|*?\r\n':
+        s = s.replace(ch, "_")
+    return s
+
 class Check:
 
     errcnt = 0
@@ -411,17 +416,15 @@ class Check:
         img = ImageGrab.grab(xdisplay=x11display)
         if self.window and w is None:
             print(f"Failed to find window {self.window} after {cnt+1} checks")
-            img.save(
-                f"{scenario.name}-error{Check.errcnt:03d}-no-win-{self.window}.png".replace(
-                    "/", "_"
-                )
-            )
+            img.save(sanitize(
+                f"{scenario.name}-error{Check.errcnt:03d}-no-win-{self.window}.png"
+                ))
         elif self.color is not None:
             draw = ImageDraw.Draw(img)
             draw.rectangle(((x - 3, y - 3), (x, y)), outline=(255, 0, 0))
-            img.save(
+            img.save(sanitize(
                 f'{scenario.name}-error{Check.errcnt:03d}-no-col-{",".join(map(str, self.color))}-at{self.x},{self.y}.png'
-            )
+            ))
             print(
                 f"Failed to find color {self.color} at "
                 f"{self.x}, {self.y} after {cnt+1} checks, found {col}"
@@ -448,7 +451,7 @@ class Snap:
     async def execute(self):
         print(f"Snapshot to {self.name}")
         img = ImageGrab.grab(xdisplay=x11display)
-        img.save(self.name)
+        img.save(sanitize(self.name))
 
 
 class Scenario:
