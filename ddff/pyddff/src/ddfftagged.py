@@ -14,6 +14,7 @@ except ImportError:
 import itertools
 import numpy as np
 
+
 class DDFFTag:
 
     def __init__(self, *args):
@@ -108,7 +109,7 @@ class DDFFTagIndex:
             return self.tagdict[period]
 
     def __len__(self):
-        """ Return number of tags
+        """Return number of tags
 
         Returns
         -------
@@ -118,7 +119,7 @@ class DDFFTagIndex:
         return len(self.taglist)
 
     def keys(self):
-        """ Return available tag keys.
+        """Return available tag keys.
 
         Returns
         -------
@@ -129,9 +130,7 @@ class DDFFTagIndex:
 
 
 class DDFFTagStream:
-
-    """ Tagged data stream
-    """
+    """Tagged data stream"""
 
     def __init__(self, ddffs: DDFFInventoriedStream, tags: DDFFTagIndex):
         """Converts stream 1 to time period information dictionary
@@ -163,7 +162,7 @@ class DDFFTagStream:
             super().__init__(ddffs, tag)
 
         def __next__(self):
-            """ Return next time point
+            """Return next time point
 
             Returns
             -------
@@ -189,7 +188,7 @@ class DDFFTagStream:
             self.idx = member
 
         def __next__(self):
-            """ Return next data point
+            """Return next data point
 
             Returns
             -------
@@ -216,7 +215,7 @@ class DDFFTagStream:
             super().__init__(ddffs, tag)
 
         def __next__(self):
-            """ Return complete time + data object
+            """Return complete time + data object
 
             Returns
             -------
@@ -236,7 +235,7 @@ class DDFFTagStream:
             return tmp
 
     def time(self, period: int | str | None = None):
-        """ Access time stamps, for a specific period and named stream
+        """Access time stamps, for a specific period and named stream
 
         Arguments:
             period -- Name or number of period
@@ -256,7 +255,7 @@ class DDFFTagStream:
         return DDFFTagStream.TimeIt(self.base.base, tag)
 
     def __getitem__(self, arg):
-        """ Access data, for a specific period in this stream
+        """Access data, for a specific period in this stream
 
         Parameters
         ----------
@@ -283,7 +282,7 @@ class DDFFTagStream:
             )
 
     def getData(self, period: int | str | None = None, icount: int = 100):
-        """ Assemble stream data in numpy arrays
+        """Assemble stream data in numpy arrays
 
         Parameters
         ----------
@@ -358,8 +357,19 @@ class DDFFTagged(DDFFInventoried):
         self.streams[1].readToList()
 
         # compatibility with the one or two old datafiles lying around
+        if not len(self.streams[1]):
+            vprint("No tag data, creating default tag")
+
+            # to be sure, re-scan all streams
+            self._scanStreams()
+
+            # from the found offsets, create a default tag
+            offset = [self.streams[i].block0.offset for i in range(2, len(self.streams))]
+            inblock_offset = [28] * len(offset)
+            self.streams[1].append([offset, inblock_offset, 0, 0, 0xFFFFFF, "", "", ""])
+
         # the conversion assumes all blocksized are default 4096-bytes
-        if len(self.streams[1][0]) == 7:
+        elif len(self.streams[1][0]) == 7:
             vprint("Converting old 7-index tags to new 8-index")
             for tags in self.streams[1]:
                 tags.insert(1, [o % 4096 for o in tags[0]])

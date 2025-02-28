@@ -21,7 +21,7 @@ fname = f"{os.environ['HOME']}/tmp/varstab/feb17/simlog-20250217_151129.ddff"
 #df = DDFFTagged(fname)
 
 pres = parser.parse_args(
-    ("-v", "-v", "-v", "info", "--streamid", "/data/servodetails", fname))
+    ("-v", "-v", "-v", "info", fname))
 pres.handler()(pres)
 
 pres = parser.parse_args(

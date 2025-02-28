@@ -60,16 +60,10 @@ class Info:
 
     def __call__(self, ns: argparse.Namespace):
 
-        # open the file as tagged
-        if True:
-        #try:
-            if ns.inventory:
-                f = DDFFInventoried(ns.filename)
-            else:
-                f = DDFFTagged(ns.filename)
-        #except Exception as e:
-        #    print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
-        #    sys.exit(-1)
+        if ns.inventory:
+            f = DDFFInventoried(ns.filename)
+        else:
+            f = DDFFTagged(ns.filename)
 
         if ns.inventory and ns.period:
             print(
@@ -137,6 +131,11 @@ class ToHdf5:
             help="Specify a compression method",
         )
         parser.add_argument(
+            "--inventory",
+            action="store_true",
+            help="Inventory-only, no time period inspection",
+        )
+        parser.add_argument(
             "--streamids", nargs="+", default=[], help="Convert specific stream(s)"
         )
         parser.add_argument(
@@ -160,19 +159,16 @@ class ToHdf5:
         else:
             compressargs = {}
 
-        # open the file
-        #try:
-        if True:
-            if not ns.period:
-                f = DDFFInventoried(ns.filename)
-                pargs = tuple()
-            else:
-                f = DDFFTagged(ns.filename)
-                pargs = (ns.period,)
+        if ns.inventory:
+            f = DDFFInventoried(ns.filename)
+        else:
+            f = DDFFTagged(ns.filename)
 
-        #except Exception as e:
-        #    print(f"Cannot open file {ns.filename}, error {e}", file=sys.stderr)
-        #    sys.exit(-1)
+        if ns.period:
+            pargs = dict(period=ns.period)
+        else:
+            pargs = dict()
+
         vprint("Opened file", ns.filename)
 
         # either all stream id's, or just the selected ones
@@ -195,7 +191,7 @@ class ToHdf5:
             gg = hf.create_group(streamid)
             dg = gg.create_group("data")
 
-            time, dtime, values = f[streamid].getData(*pargs, ns.expected_size)
+            time, dtime, values = f[streamid].getData(**pargs, icount=ns.expected_size)
             vprint(f"number of data points {time.shape[0]}")
             gg.create_dataset("tick", data=time, **compressargs)
             for m, v in values.items():

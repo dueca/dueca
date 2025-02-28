@@ -114,7 +114,7 @@ class DDFFBlock:
         ValueError
             On a failure of the CRC
         """
-        offset = f.tell()
+        self.offset = f.tell()
         header = f.read(28)
         if not len(header):
             raise ValueError("File ended")
@@ -131,7 +131,7 @@ class DDFFBlock:
             dprint("Correcting missing object offset first block")
             self.object_offset = 28
         dprint(
-            f"Block at {offset}, stream {self.stream_id}, fill {self.block_fill}"
+            f"Block at {self.offset}, stream {self.stream_id}, fill {self.block_fill}"
             f", size {self.block_size}, first object at {self.object_offset}, "
             f"next at {self.next_offset}, block #{self.block_num}"
         )
@@ -358,7 +358,7 @@ class DDFF:
         self._scanStreams(nstreams)
         self.blocksize = blocksize
 
-    def _scanStreams(self, neededstreams: set | None):
+    def _scanStreams(self, neededstreams: set | None=None):
         """Internal method to parse data and create streams
 
         Parameters
@@ -386,6 +386,7 @@ class DDFF:
                         neededstreams is not None
                         and neededstreams <= self.streams.keys()
                     ):
+                        self.scanpoint = self.file.tell()
                         return
         except ValueError:
             pass
