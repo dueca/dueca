@@ -8,16 +8,22 @@ CWD=$(pwd)
 
 if [ "${PYTHON}" = "${CWD}/mypy/bin/python" ]; then
     echo "Using $PYTHON"
+
 elif [ -r ${CWD}/mypy/bin/python ]; then
     echo "Activating ${CWD}/mypy/"
     source ${CWD}/mypy/bin/activate
-else
 
+else
+    echo "Installing a local python venv in mypy"
     ${PYTHON} -m venv --system-site-packages mypy
-    pip install wmctrl
-    pip install pynput
     source ${CWD}/mypy/bin/activate
+
 fi
+
+# check and if not install
+python -c "import pynput" || pip install pynput
+python -c "import wmctrl" || pip install wmctrl
+
 
 OPTLEVEL=${OPTLEVEL:-0}
 

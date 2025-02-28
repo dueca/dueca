@@ -199,7 +199,7 @@ class ToHdf5:
             vprint(f"number of data points {time.shape[0]}")
             gg.create_dataset("tick", data=time, **compressargs)
             for m, v in values.items():
-                gg.create_dataset(m, data=v, **compressargs)
+                dg.create_dataset(m, data=v, **compressargs)
 
         hf.close()
 

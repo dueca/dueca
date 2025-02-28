@@ -125,6 +125,8 @@ if (PYTHON_HAVE_PIL EQUAL 0 AND
         PROPERTIES DEPENDS TEST_CONVERT_datalog)
     endforeach()
 
+  else()
+    message(WARNING "Midding h5dump from hdf5-tools, cannot check log output")
   endif()
 
 else()
