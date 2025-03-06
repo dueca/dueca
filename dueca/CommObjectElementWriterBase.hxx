@@ -216,15 +216,15 @@ public:
 
 private:
   inline CommObjectWriter _recurse(const dco_isnested&)
-  { return CommObjectWriter(par::elt_value_type::classname,
+  { return CommObjectWriter(getclassname<typename par::elt_value_type>(),
                             get_object(typename dco_traits<T>::wtype())); }
 
   inline CommObjectWriter _recurse(const dco_isnested&, const boost::any& key)
-  { return CommObjectWriter(par::elt_value_type::classname,
+  { return CommObjectWriter(getclassname<typename par::elt_value_type>(),
                             get_object(typename dco_traits<T>::wtype(), key)); }
 
   inline CommObjectWriter _recurse(const dco_isnested&, unsigned idx)
-  { return CommObjectWriter(par::elt_value_type::classname,
+  { return CommObjectWriter(getclassname<typename par::elt_value_type>(),
                             get_object(typename dco_traits<T>::wtype(), idx)); }
 
   inline CommObjectWriter _recurse(const dco_isdirect&)

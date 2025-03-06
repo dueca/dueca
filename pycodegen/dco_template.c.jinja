@@ -41,7 +41,7 @@ namespace dueca {
 
 {{ namespacecmd0 }}{{ arraydimsimp }}{{ extraincludebody }}
 
-#if !defined(__DCO_STANDALONE)
+#if !defined(__DCO_STANDALONE) && !defined(__CUSTOM_MEMBERACCESS_TABLE)
 // static CommObjectMemberAccess objects, that can provide flexible access
 // to the members of a {{ name }} object{{ accessstatics }}
 

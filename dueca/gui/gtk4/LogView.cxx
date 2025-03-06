@@ -95,8 +95,8 @@ LogView::LogView(Entity *e, const char *part, const PrioritySpec &ps) :
              Channel::OneOrMoreEntries, Channel::ReadReservation, 0.0,
              &token_valid),
   w_level(getId(), NameSet("dueca", LogLevelCommand::classname, ""),
-          LogLevelCommand::classname, "", Channel::Events,
-          Channel::OnlyOneEntry, Channel::OnlyFullPacking, Channel::Regular,
+          LogLevelCommand::classname, "from gui", Channel::Events,
+          Channel::OneOrMoreEntries, Channel::OnlyFullPacking, Channel::Regular,
           &token_valid),
 
   // activity initialization
@@ -243,7 +243,7 @@ void LogView::setLevel(const LogCategory &cat, int node, unsigned l)
     try {
       DataWriter<LogLevelCommand> c(w_level, SimTime::getTimeTick());
       c.data().node = node;
-      c.data().level = LogLevel::Type(l);
+      c.data().level = LogLevel(l);
       c.data().category = cat;
     }
     catch (const exception &e) {

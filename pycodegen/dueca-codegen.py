@@ -978,17 +978,17 @@ enum {name} {{
             return None
         res = [ """
 namespace dueca {
-  const char* const getString(const %(objprefix)s%(masterprefix)s%(name)s &o);
-  void readFromString(%(objprefix)s%(masterprefix)s%(name)s &o, const std::string& s);
-  void getFirst(%(objprefix)s%(masterprefix)s%(name)s &o);
-  bool getNext(%(objprefix)s%(masterprefix)s%(name)s &o);
+  const char* const getString(const %(objprefixnotd)s%(masterprefix)s%(name)s &o);
+  void readFromString(%(objprefixnotd)s%(masterprefix)s%(name)s &o, const std::string& s);
+  void getFirst(%(objprefixnotd)s%(masterprefix)s%(name)s &o);
+  bool getNext(%(objprefixnotd)s%(masterprefix)s%(name)s &o);
 
   /** This function retrieves the classname of an %(masterprefix)s%(name)s */
   template <>
-  const char* getclassname<%(objprefix)s%(masterprefix)s%(name)s>();
+  const char* getclassname<%(objprefixnotd)s%(masterprefix)s%(name)s>();
   /** This function retrieves a string with int rep %(masterprefix)s%(name)s */
   template <>
-  const char* getenumintrep<%(objprefix)s%(masterprefix)s%(name)s>();
+  const char* getenumintrep<%(objprefixnotd)s%(masterprefix)s%(name)s>();
 }; // end namespace dueca
 
 #if !defined(__DCO_NOPACK)
@@ -1013,6 +1013,7 @@ PRINT_NS_END;
                                 'masterprefix' :
                                 (master.name and f'{master.name}::') or '',
                                 'objprefix' : master.objprefix,
+                                'objprefixnotd': master.objprefixnotd,
                                 'namespacecmd0' : master.namespacecmd0,
                                 'namespacecmd1' : master.namespacecmd1 }) ]
         return ''.join(res)
@@ -1052,7 +1053,7 @@ namespace {{
 
 namespace dueca {{
 #ifndef __CUSTOM_GETSTRING_{name}
-const char* const getString(const {objprefix}{masterprefix}{name} &o)
+const char* const getString(const {objprefixnotd}{masterprefix}{name} &o)
 {{
   for (auto ii = __{name}_names; ii->mname; ii++) {{
     if (o == ii->enumval) {{
@@ -1064,7 +1065,7 @@ const char* const getString(const {objprefix}{masterprefix}{name} &o)
 #endif
 
 #ifndef __CUSTOM_READFROMSTRING_{name}
-void readFromString({objprefix}{masterprefix}{name} &o, const std::string& s)
+void readFromString({objprefixnotd}{masterprefix}{name} &o, const std::string& s)
 {{
   for (auto ii = __{name}_names; ii->mname; ii++) {{
     if (std::string(ii->mname) == s) {{
@@ -1077,12 +1078,12 @@ void readFromString({objprefix}{masterprefix}{name} &o, const std::string& s)
 #endif
 
 #ifndef __CUSTOM_ITERATE_{name}
-void getFirst({objprefix}{masterprefix}{name} &o)
+void getFirst({objprefixnotd}{masterprefix}{name} &o)
 {{
   o = __{name}_names[0].enumval;
 }}
 
-bool getNext({objprefix}{masterprefix}{name} &o)
+bool getNext({objprefixnotd}{masterprefix}{name} &o)
 {{
   bool next = false;
   for (const auto &pair: __{name}_names) {{
@@ -1111,13 +1112,14 @@ void unPackData(::dueca::AmorphReStore& s,
 
 namespace dueca {{
 template <>
-const char* getclassname<{objprefix}{masterprefix}{name}>()
+const char* getclassname<{objprefixnotd}{masterprefix}{name}>()
 {{ return "{masterprefix}{name}"; }}
 template <>
-const char* getenumintrep<{objprefix}{masterprefix}{name}>()
+const char* getenumintrep<{objprefixnotd}{masterprefix}{name}>()
 {{ return "{ctype}"; }}
 }};
 """.format(name=self.name, objprefix=master.objprefix,
+           objprefixnotd=master.objprefixnotd,
            masterprefix=(master.name and f'{master.name}::') or '',
            inclassprefix=master.inclassprefix,
            namespacecmd1=master.namespacecmd1,
@@ -1152,7 +1154,7 @@ namespace {{
 
 namespace dueca {{
 #ifndef __CUSTOM_GETSTRING_{name}
-const char* const getString(const {objprefix}{masterprefix}{name} &o)
+const char* const getString(const {objprefixnotd}{masterprefix}{name} &o)
 {{
   for (auto ii = __{name}_names; ii->mname; ii++) {{
     if (o == ii->enumval) {{
@@ -1164,7 +1166,7 @@ const char* const getString(const {objprefix}{masterprefix}{name} &o)
 #endif
 
 #ifndef __CUSTOM_READFROMSTRING_{name}
-void readFromString({objprefix}{masterprefix}{name} &o, const std::string& s)
+void readFromString({objprefixnotd}{masterprefix}{name} &o, const std::string& s)
 {{
   for (auto ii = __{name}_names; ii->mname; ii++) {{
     if (std::string(ii->mname) == s) {{
@@ -1177,12 +1179,12 @@ void readFromString({objprefix}{masterprefix}{name} &o, const std::string& s)
 #endif
 
 #ifndef __CUSTOM_ITERATE_{name}
-void getFirst({objprefix}{masterprefix}{name} &o)
+void getFirst({objprefixnotd}{masterprefix}{name} &o)
 {{
   o = __{name}_names[0].enumval;
 }}
 
-bool getNext({objprefix}{masterprefix}{name} &o)
+bool getNext({objprefixnotd}{masterprefix}{name} &o)
 {{
   bool next = false;
   for (const auto &pair: __{name}_names) {{
@@ -1211,16 +1213,17 @@ void unPackData(::dueca::AmorphReStore& s,
 
 namespace dueca {{
 template <>
-const char* getclassname<{objprefix}{masterprefix}{name}>()
+const char* getclassname<{objprefixnotd}{masterprefix}{name}>()
 {{ return "{masterprefix}{name}"; }}
 template <>
-const char* getenumintrep<{objprefix}{masterprefix}{name}>()
+const char* getenumintrep<{objprefixnotd}{masterprefix}{name}>()
 {{ return "{ctype}"; }}
 }};
 '''.format(name=self.name,
            mastername = master.name,
            masterprefix = (master.name and f'{master.name}::') or '',
            objprefix = master.objprefix,
+           objprefixnotd = master.objprefixnotd,
            namespacecmd0=master.namespacecmd0,
            namespacecmd1=master.namespacecmd1,
            inclassprefix=master.inclassprefix,
@@ -1937,6 +1940,7 @@ class Channel(BuildObject):
             self.namespacecmd1 = '\n' + '} '*len(objectnamespace) + '\n'
             # prefix references to generated class with namespace
             self.objprefix = self.namespace + "::"
+            self.objprefixnotd = self.namespace != 'dueca' and self.objprefix or ''
             # reference other dueca namespace classes with this prefix
             self.inclassprefix = "::dueca::"
         else:
@@ -1944,6 +1948,7 @@ class Channel(BuildObject):
             self.namespacecmd0 = ''
             self.namespacecmd1 = ''
             self.objprefix = ''
+            self.objprefixnotd = ''
             self.inclassprefix = "dueca::"
         pass
 
@@ -2439,12 +2444,14 @@ class StandaloneEnum(BuildObject):
                 [f'namespace {ns} {{\n' for ns in objectnamespace])
             self.namespacecmd1 = '\n' + '} '*len(objectnamespace) + '\n'
             self.objprefix = self.namespace + "::"
+            self.objprefixnotd = self.namespace != 'dueca' and self.objprefix or ''
             self.inclassprefix = "::dueca::"
         else:
             self.namespace = ''
             self.namespacecmd0 = ''
             self.namespacecmd1 = ''
             self.objprefix = ''
+            self.objprefixnotd = ''
             self.inclassprefix = "dueca::"
 
         self.options = []

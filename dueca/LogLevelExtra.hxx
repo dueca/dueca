@@ -11,9 +11,8 @@
         license         : EUPL-1.2
 */
 
-/** Interpret from a string. */
-  LogLevel(const char* s);
+namespace dueca {
+LogLevel LogLevel_from_text(const char* txt);
 
-  /** Is larger than? */
-  inline bool operator > (const LogLevel& o) const {return t > o.t;}
-
+char LogLevel_to_letter(LogLevel lvl);
+}

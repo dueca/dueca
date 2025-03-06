@@ -314,6 +314,7 @@ void writeAnyValue(WRITER& writer,
     wmap[TYPEID(double)] = avfunction(Fd);
     wmap[TYPEID(std::string)] = avfunction(writeAny<WRITER,std::string>);
     wmap[TYPEID(smartstring)] = avfunction(writeAny<WRITER,smartstring>);
+    wmap[TYPEID(Dstring<5>)] = avfunction(writeAnyDstring<WRITER,5>);
     wmap[TYPEID(Dstring<8>)] = avfunction(writeAnyDstring<WRITER,8>);
     wmap[TYPEID(Dstring<16>)] = avfunction(writeAnyDstring<WRITER,16>);
     wmap[TYPEID(Dstring<32>)] = avfunction(writeAnyDstring<WRITER,32>);
