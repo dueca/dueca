@@ -112,7 +112,16 @@ FileWithSegments::FileWithSegments(const std::string &entity) :
 
 FileWithSegments::FileWithSegments(const std::string &filename, Mode mode,
                                    unsigned blocksize) :
-  FileWithInventory(filename, mode, blocksize)
+  FileWithInventory(filename, mode, blocksize),
+  entity(),
+  g_recorders("segmentedfile", false),
+  ts_switch(MAX_TIMETICK, MAX_TIMETICK),
+  my_recorders(),
+  tags(), 
+  next_tag(),
+  tag_lookup(),
+  dirty(false),
+  w_tags()
 {
   // now create the tag writer, and read any existing tags
   w_tags = attachWrite(1, blocksize);
@@ -226,7 +235,7 @@ FileWithSegments::recorderCheckIn(const std::string &key,
           << next_tag.offset.size() << " with id " << fsr->getStreamId());
   }
 
-  //ScopeLock r(g_recorders);
+  ScopeLock r(g_recorders);
 
   next_tag.offset.resize(fsr->getStreamId() - 1U);
   next_tag.inblock_offset.resize(fsr->getStreamId() - 1U);

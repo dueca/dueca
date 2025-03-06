@@ -482,7 +482,11 @@ bool DDFFLogger::internalIsPrepared()
 
   for (targeted_list_t::iterator ii = targeted.begin(); ii != targeted.end();
        ii++) {
-    std::cout << "checking " << (*ii)->channelname << std::endl;
+    /* DUECA ddff.
+
+       Checking the validity of a configured channel entry for logging.
+     */
+    I_XTR("Checking " << (*ii)->channelname << " res=" << (*ii)->r_token.isValid());
     CHECK_TOKEN((*ii)->r_token);
 
     // for valid tokens, and file opened, create the functor
@@ -494,7 +498,7 @@ bool DDFFLogger::internalIsPrepared()
          Information on the creation of a DDFF read functor for a
          specific channel.
        */
-      I_XTR("created functor for " << (*ii)->channelname);
+      D_XTR("created functor for " << (*ii)->channelname);
     }
   }
 
@@ -613,8 +617,8 @@ void DDFFLogger::doCalculation(const TimeSpec &ts)
       catch (const std::exception &e) {
       /* DUECA ddff.
 
-               Unforeseen error in creating a functor.
-             */
+                 Unforeseen error in creating a functor.
+               */
         E_XTR("DDFF exception creating functors, " << e.what());
         sendStatus(std::string("DDFF creating functors, ") + e.what(), true,
                    ts.getValidityStart());
