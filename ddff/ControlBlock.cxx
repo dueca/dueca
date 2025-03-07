@@ -11,6 +11,8 @@
         license         : EUPL-1.2
 */
 
+#include <cstdint>
+#include <limits>
 #define ControlBlock_cxx
 #include "ControlBlock.hxx"
 #include <udpcom/CRCcheck.hxx>

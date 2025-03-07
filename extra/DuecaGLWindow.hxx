@@ -18,8 +18,10 @@
 #include <dueca_ns.h>
 
 
-// this define will be present using dueca-config with the --gtk3 flag
-#ifdef DUECA_CONFIG_GTK3
+#if defined(DUECA_CONFIG_GTK4)
+
+
+#elif DUECA_CONFIG_GTK3
 
 #include <gtk/gtk.h>
 

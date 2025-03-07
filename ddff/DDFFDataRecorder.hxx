@@ -16,15 +16,16 @@
 #define DDFFDataRecorder_hxx
 
 #include <dueca_ns.h>
-#include <ddff/FileStreamWrite.hxx>
-#include <ddff/FileStreamRead.hxx>
-#include <ddff/FileWithInventory.hxx>
+#include "FileStreamWrite.hxx"
+#include "FileStreamRead.hxx"
+#include "FileWithInventory.hxx"
+#include "SegmentedRecorderBase.hxx"
 #include <dueca/CommObjectWriter.hxx>
 #include <boost/scoped_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/smart_ptr/intrusive_ref_counter.hpp>
-#include <ddff/DDFFDCOWriteFunctor.hxx>
-#include <ddff/DDFFDCOReadFunctor.hxx>
+#include "DDFFDCOWriteFunctor.hxx"
+#include "DDFFDCOReadFunctor.hxx"
 #include <dueca/msgpack.hxx>
 #include <dueca/msgpack-unstream-iter.hxx>
 #include <dueca/NameSet.hxx>
@@ -94,7 +95,7 @@ DDFF_NS_START
     the data of the DCO object you are about to write:
 
     @code
-      my_recorder.record(ts, dco_object);
+      my_recorder.record(ts, my_dco);
     @endcode
 
     or directly when writing (note, do not record in HoldCurrent:
@@ -102,14 +103,30 @@ DDFF_NS_START
       DataWriter<MyObject> dw(w_mytoken, ts);
       // write the data to dw.data() ...
       if (getCurrentState() == SimulationState::Advance) {
-        my_recorder.record(dw.data(), ts);
+        my_recorder.record(ts, dw.data());
       }
+    @endcode
+
+    If you need to record the data from an event (and you only now and then write),
+    use the markRecord() function to indicate that you passed the given time:
+
+    @code
+    if (writing_my_event) {
+      DataWriter<MyObject> dw(w_mytoken, ts);
+      // write the data to dw.data() ...
+      if (getCurrentState() == SimulationState::Advance) {
+        my_recorder.record(ts, dw.data());
+      }
+    } 
+    else if getCurrentState() == SimulationState::Advance) {
+      my_recorder.markRecord(ts);
+    }
     @endcode
 
     When in the "Replay" mode, the recorder's "replay" method can be used to
     retrieve the previously stored data.
 */
-class DDFFDataRecorder //: public boost::intrusive_ref_counter<DataRecorder>
+class DDFFDataRecorder: public SegmentedRecorderBase //: public boost::intrusive_ref_counter<DataRecorder>
 {
 public:
   /** Pointer type */
@@ -124,9 +141,6 @@ private:
 
   /** class of the data */
   std::string                                   data_class;
-
-  /** file stream for writing */
-  ddff::FileStreamWrite::pointer                w_stream;
 
   /** Offset location for a stretch of data in the file stream */
   ddff::FileHandler::pos_type                   stretch_offset;
@@ -146,9 +160,6 @@ private:
   /** Pointer to the replay filer. */
   FileWithSegments::pointer                     filer;
 
-  /** Flag to remember data written during a stretch of recording */
-  bool                                          dirty;
-
   /** Value used for replay  timing */
   TimeTickType                                  replay_tick;
 
@@ -166,11 +177,6 @@ public:
   typedef std::map<std::string, std::list<pointer> > recordermap_t;
 
 private:
-  /** Remember to where data was written/handled */
-  TimeTickType                                  marked_tick;
-
-  /** Control indicating the start of a recording stretch */
-  TimeTickType                                  record_start_tick;
 
   /** Add to the map with recorders */
   static void checkIn(pointer rec, const std::string& entity);
@@ -397,15 +403,11 @@ public:
   /** Is connected, valid, etc */
   bool isValid();
 
-  /** Starting a new stretch; will mark the first data written in this
-      stretch (if any) for callback with the offset of that data */
-  void startStretch(TimeTickType tick);
-
   /** Get the associated stream id */
   inline unsigned getStreamId() const { return r_stream->getStreamId(); }
 
   /** Starting a new replay; provide offset for the replayed data */
-  void startReplay(TimeTickType tick);
+  void startReplay(TimeTickType tick) final;
 
 private:
   friend class ddff::FileWithSegments;
@@ -423,24 +425,8 @@ public:
       @param end_offset Location in file where data ends.
    */
   void spoolReplay(ddff::FileHandler::pos_type offset,
-                   ddff::FileHandler::pos_type end_offset);
+                   ddff::FileHandler::pos_type end_offset) final;
 
-  /** Check write status, before forcing a flush of the file.
-
-      @param  tick   End time for which writing should be complete.
-      @returns       "true", if written until tick.
-   */
-  bool checkWriteTick(TimeTickType tick);
-
-  /** Initiate syncing of the data to disk */
-  void syncRecorder();
-
-  /** Check and possibly reset the dirty flag.
-
-      @returns true if already clean (meaning that tag offset can stay
-                    0), otherwise returns false, and tag offset should
-                    have a value. */
-  bool checkAndMakeClean();
 
 private:
   /** Prevent copying */

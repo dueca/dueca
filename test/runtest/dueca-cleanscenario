@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+xmlstarlet edit --delete "scenario/actions/*" $1 >$(basename $1 .xml)-clean.xml

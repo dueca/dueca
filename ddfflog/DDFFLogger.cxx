@@ -16,7 +16,6 @@
         license         : EUPL-1.2
 */
 
-
 #include "FileHandler.hxx"
 #include <ddff/FileWithSegments.hxx>
 #include <ddff/ddff_ns.h>
@@ -29,7 +28,7 @@
 
 // include the debug writing header, by default, write warning and
 // error messages
-//#define I_XTR
+// #define I_XTR
 #define W_XTR
 #define E_XTR
 #include <debug.h>
@@ -45,57 +44,54 @@
 DDFF_NS_START;
 
 // class/module name
-const char* const DDFFLogger::classname = "ddff-logger";
+const char *const DDFFLogger::classname = "ddff-logger";
 
 // Parameters to be inserted
-const ParameterTable* DDFFLogger::getMyParameterTable()
+const ParameterTable *DDFFLogger::getMyParameterTable()
 {
   static const ParameterTable parameter_table[] = {
     { "set-timing",
-      new MemberCall<_ThisModule_,TimeSpec>
-        (&_ThisModule_::setTimeSpec), set_timing_description },
+      new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setTimeSpec),
+      set_timing_description },
 
     { "check-timing",
-      new MemberCall<_ThisModule_,vector<int> >
-      (&_ThisModule_::checkTiming), check_timing_description },
+      new MemberCall<_ThisModule_, vector<int>>(&_ThisModule_::checkTiming),
+      check_timing_description },
 
     { "log-entry",
-      new MemberCall<_ThisModule_,vector<string> >
-      (&_ThisModule_::logChannel),
+      new MemberCall<_ThisModule_, vector<string>>(&_ThisModule_::logChannel),
       "log a specific channel entry; enter channel name, dataclass type, if\n"
       "applicable entry label and as last the path where the data should be\n"
       "stored in the file. Without label, only the first entry is logged,\n"
-      "with, only the first entry matching the label"},
+      "with, only the first entry matching the label" },
 
     { "watch-channel",
-      new MemberCall<_ThisModule_,vector<string> >
-        (&_ThisModule_::watchChannel),
+      new MemberCall<_ThisModule_, vector<string>>(&_ThisModule_::watchChannel),
       "log all entries in a specific channel; enter channel name and path\n"
       "where entries should be stored" },
 
     { "filename-template",
-      new VarProbe<_ThisModule_,std::string>
-      (&_ThisModule_::lftemplate),
+      new VarProbe<_ThisModule_, std::string>(&_ThisModule_::lftemplate),
       "Template for file name; check boost time_facet for format strings\n"
       "Default name: datalog-%Y%m%d_%H%M%S.ddff" },
 
     { "log-always",
-      new VarProbe<_ThisModule_,bool>(&_ThisModule_::always_logging),
+      new VarProbe<_ThisModule_, bool>(&_ThisModule_::always_logging),
       "For watched channels or channel entries created with always_logging,\n"
       "logging also is done in HoldCurrent mode. Default off, toggles\n"
-      "this capability for logging defined hereafter."},
+      "this capability for logging defined hereafter." },
 
     { "immediate-start",
-      new VarProbe<_ThisModule_,bool>(&_ThisModule_::immediate_start),
+      new VarProbe<_ThisModule_, bool>(&_ThisModule_::immediate_start),
       "Immediately start the logging module, do not wait for DUECA control\n" },
 
     { "reduction",
-      new MemberCall<_ThisModule_,TimeSpec>(&_ThisModule_::setReduction),
+      new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setReduction),
       "Reduce the logging data rate according to the given time\n"
       "specification. Applies to all following logged values" },
 
     { "config-channel",
-      new MemberCall<_ThisModule_,vstring>(&_ThisModule_::setConfigChannel),
+      new MemberCall<_ThisModule_, vstring>(&_ThisModule_::setConfigChannel),
       "Specify a channel with configuration events, to control logging\n"
       "check DUECALogConfig doc for options" },
 
@@ -124,8 +120,7 @@ const ParameterTable* DDFFLogger::getMyParameterTable()
 }
 
 // constructor
-DDFFLogger::DDFFLogger(Entity* e, const char* part, const
-                       PrioritySpec& ps) :
+DDFFLogger::DDFFLogger(Entity *e, const char *part, const PrioritySpec &ps) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
      part arguments. */
@@ -146,8 +141,8 @@ DDFFLogger::DDFFLogger(Entity* e, const char* part, const
   reduction(NULL),
   w_status(getId(), NameSet(getEntity(), DUECALogStatus::classname, part),
            DUECALogStatus::classname, getEntity() + std::string("/") + part,
-           Channel::Events, Channel::OneOrMoreEntries,
-           Channel::OnlyFullPacking, Channel::Bulk),
+           Channel::Events, Channel::OneOrMoreEntries, Channel::OnlyFullPacking,
+           Channel::Bulk),
   myclock(),
   // a callback object, pointing to the main calculation function
   cb1(this, &_ThisModule_::doCalculation),
@@ -163,7 +158,7 @@ bool DDFFLogger::complete()
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
   // file name
-  
+
   if (r_config) {
     // wait for hdf file name or start command
     /* DUECA ddff.
@@ -176,8 +171,8 @@ bool DDFFLogger::complete()
   else {
     current_filename =
       FormatTime(boost::posix_time::second_clock::universal_time());
-    hfile = std::shared_ptr<FileWithSegments>
-      (new FileWithSegments(current_filename, FileHandler::Mode::New));
+    hfile = std::shared_ptr<FileWithSegments>(
+      new FileWithSegments(current_filename, FileHandler::Mode::New));
 
     sendStatus(string("opened log file ") + current_filename, false,
                SimTime::getTimeTick());
@@ -211,10 +206,11 @@ DDFFLogger::~DDFFLogger()
 }
 
 // as an example, the setTimeSpec function
-bool DDFFLogger::setTimeSpec(const TimeSpec& ts)
+bool DDFFLogger::setTimeSpec(const TimeSpec &ts)
 {
   // a time span of 0 is not acceptable
-  if (ts.getValiditySpan() == 0) return false;
+  if (ts.getValiditySpan() == 0)
+    return false;
 
   // adjust the clock
   myclock.changePeriodAndOffset(ts);
@@ -228,7 +224,7 @@ bool DDFFLogger::setTimeSpec(const TimeSpec& ts)
 
 // the checkTiming function installs a check on the activity/activities
 // of the module
-bool DDFFLogger::checkTiming(const vector<int>& i)
+bool DDFFLogger::checkTiming(const vector<int> &i)
 {
   if (i.size() == 3) {
     new TimingCheck(do_calc, i[0], i[1], i[2]);
@@ -242,100 +238,104 @@ bool DDFFLogger::checkTiming(const vector<int>& i)
   return true;
 }
 
-DDFFLogger::TargetedLog::
-TargetedLog(const std::string& channelname, const std::string& dataclass,
-            const std::string& label, const std::string& logpath,
-            const GlobalId &masterid, bool always_logging,
-            const DataTimeSpec *reduction) :
+DDFFLogger::TargetedLog::TargetedLog(const std::string &channelname,
+                                     const std::string &dataclass,
+                                     const std::string &label,
+                                     const std::string &logpath,
+                                     const GlobalId &masterid,
+                                     bool always_logging,
+                                     const DataTimeSpec *reduction) :
   logpath(logpath),
   channelname(channelname),
   always_logging(always_logging),
   reduction(reduction ? new PeriodicTimeSpec(*reduction) : NULL),
   r_token(masterid, NameSet(channelname), dataclass, label,
-          Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
-          Channel::ReadAllData)
+          Channel::AnyTimeAspect, Channel::OnlyOneEntry, Channel::ReadAllData)
 {
   //
 }
 
-DDFFLogger::TargetedLog::
-TargetedLog(const std::string& channelname, const std::string& dataclass,
-            const std::string& logpath, const GlobalId &masterid,
-            bool always_logging,
-            const DataTimeSpec *reduction) :
+DDFFLogger::TargetedLog::TargetedLog(const std::string &channelname,
+                                     const std::string &dataclass,
+                                     const std::string &logpath,
+                                     const GlobalId &masterid,
+                                     bool always_logging,
+                                     const DataTimeSpec *reduction) :
   logpath(logpath),
   channelname(channelname),
   always_logging(always_logging),
   reduction(reduction ? new PeriodicTimeSpec(*reduction) : NULL),
-  r_token(masterid, NameSet(channelname), dataclass, 0,
-          Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
-          Channel::ReadAllData)
+  r_token(masterid, NameSet(channelname), dataclass, 0, Channel::AnyTimeAspect,
+          Channel::OnlyOneEntry, Channel::ReadAllData)
 {
   //
 }
 
-void DDFFLogger::TargetedLog::createFunctor(std::weak_ptr<FileWithSegments> nfile,
-                                            const DDFFLogger *master,
-                                            const std::string &prefix)
+void DDFFLogger::TargetedLog::createFunctor(
+  std::weak_ptr<FileWithSegments> nfile, const DDFFLogger *master,
+  const std::string &prefix)
 {
   // find the meta information
   ChannelEntryInfo ei = r_token.getChannelEntryInfo();
-  FileStreamWrite::pointer wstream;
   try {
     // get a description of the data for the stream label
     rapidjson::StringBuffer doc;
     DCOtypeJSON(doc, ei.data_class.c_str());
-   
+
     // request a stream in the file
-    wstream = nfile.lock()->createNamedWrite
-      (prefix+logpath, doc.GetString());
-  } catch (const std::exception& e) {
+    w_stream = nfile.lock()->createNamedWrite(logpath, doc.GetString());
+
+    // check in with the recorder, resulting read stream pointer ignored
+    nfile.lock()->recorderCheckIn(logpath, this);
+  }
+  catch (const std::exception &e) {
     /* DUECA ddff.
-    
+
        Could not create an entry in the ddff file for logging, may be related
        to the datatype not being known, or related to file access.
     */
-    E_XTR("Failed to create a logging stream in the file named \"" <<
-          prefix + logpath << "\", datatype \"" << ei.data_class <<
-          "\" :" << e.what());
+    E_XTR("Failed to create a logging stream in the file named \""
+          << logpath << "\", datatype \"" << ei.data_class
+          << "\" :" << e.what());
     throw(e);
   }
-
 
   try {
 
     // metafunctor can create the logging functor
-    std::weak_ptr<DDFFDCOMetaFunctor> metafunctor
-      (r_token.getMetaFunctor<DDFFDCOMetaFunctor>("msgpack"));
+    std::weak_ptr<DDFFDCOMetaFunctor> metafunctor(
+      r_token.getMetaFunctor<DDFFDCOMetaFunctor>("msgpack"));
 
-    functor.reset(metafunctor.lock()->getReadFunctor
-                  (wstream, master->getOpTime(always_logging)));
+    functor.reset(metafunctor.lock()->getReadFunctor(
+      w_stream, master->getOpTime(always_logging)));
   }
-  catch (const std::exception& e) {
+  catch (const std::exception &e) {
     /* DUECA ddff.
 
        Failure creating a functor for writing channel data in DDFF log.
        Check the DDFF option on the datatype. */
-    W_XTR("Failing to create msgpack functor for logging channel " <<
-          r_token.getName() << " entry " << ei.entry_id <<
-          " datatype " << ei.data_class << ": " << e.what());
+    W_XTR("Failing to create msgpack functor for logging channel "
+          << r_token.getName() << " entry " << ei.entry_id << " datatype "
+          << ei.data_class << ": " << e.what());
     throw(e);
   }
 }
 
-void DDFFLogger::TargetedLog::accessAndLog(const TimeSpec& ts)
+void DDFFLogger::TargetedLog::accessAndLog(const TimeSpec &ts)
 {
   if (reduction) {
     DataTimeSpec tsc0 = r_token.getOldestDataTime();
     DataTimeSpec tsc1 = r_token.getLatestDataTime();
 
     while (tsc0.getValidityStart() < tsc1.getValidityStart()) {
-      if (tsc0.getValidityStart() > reduction->getValidityEnd() +
-          reduction->getValiditySpan()) {
+      if (tsc0.getValidityStart() >
+          reduction->getValidityEnd() + reduction->getValiditySpan()) {
         reduction->forceAdvance(tsc0.getValidityStart());
       }
       if (reduction->greedyAdvance(tsc0) && functor) {
+        w_stream->markItemStart();
         r_token.applyFunctor(functor.get());
+        dirty = true;
       }
       else {
         r_token.flushOne();
@@ -345,19 +345,24 @@ void DDFFLogger::TargetedLog::accessAndLog(const TimeSpec& ts)
   }
   else {
     if (functor) {
-      while (r_token.applyFunctor(functor.get())) {
-        // nothing to be done, could put message here
+      do {
+        w_stream->markItemStart();
       }
+      while (r_token.applyFunctor(functor.get()));
+      dirty = true;
     }
     else {
       r_token.flushOlderSets(ts.getValidityStart());
     }
   }
+
+  // confirm we got here
+  marked_tick = ts.getValidityEnd();
 }
 
-void DDFFLogger::TargetedLog::spool(const TimeSpec& ts)
+void DDFFLogger::TargetedLog::spool(const TimeSpec &ts)
 {
-  //unsigned idx = 0;
+  // unsigned idx = 0;
   r_token.flushOlderSets(ts.getValidityStart());
 }
 
@@ -366,7 +371,7 @@ DDFFLogger::TargetedLog::~TargetedLog()
   //
 }
 
-bool DDFFLogger::logChannel(const vector<string>& i)
+bool DDFFLogger::logChannel(const vector<string> &i)
 {
   targeted_list_t::value_type newtarget;
 
@@ -379,17 +384,15 @@ bool DDFFLogger::logChannel(const vector<string>& i)
   }
   try {
     if (i.size() == 4) {
-      newtarget = std::shared_ptr<TargetedLog>
-        (new TargetedLog(i[0], i[1], i[2], i[3], getId(),
-                         always_logging, reduction));
+      newtarget = targeted_list_t::value_type(new TargetedLog(
+        i[0], i[1], i[2], i[3], getId(), always_logging, reduction));
     }
     else {
-      newtarget = std::shared_ptr<TargetedLog>
-        (new TargetedLog(i[0], i[1], i[2], getId(),
-                         always_logging, reduction));
+      newtarget = targeted_list_t::value_type(
+        new TargetedLog(i[0], i[1], i[2], getId(), always_logging, reduction));
     }
   }
-  catch (const std::exception& e) {
+  catch (const std::exception &e) {
     /* DUECA ddff.
 
        Configuration error opening a log channel. Check dueca.mod */
@@ -402,7 +405,7 @@ bool DDFFLogger::logChannel(const vector<string>& i)
   return true;
 }
 
-bool DDFFLogger::watchChannel(const vector<string>& i)
+bool DDFFLogger::watchChannel(const vector<string> &i)
 {
   if (i.size() != 2) {
     /* DUECA ddff.
@@ -412,12 +415,10 @@ bool DDFFLogger::watchChannel(const vector<string>& i)
     return false;
   }
   try {
-    watched.push_back
-      (std::shared_ptr<EntryWatcher>
-       (new EntryWatcher(i[0], i[1], this, always_logging,
-                         reduction)));
+    watched.push_back(std::shared_ptr<EntryWatcher>(
+      new EntryWatcher(i[0], i[1], this, always_logging, reduction)));
   }
-  catch (const std::exception& e) {
+  catch (const std::exception &e) {
     /* DUECA ddff.
 
        Configuration error monitoring a watch channel. Check dueca.mod */
@@ -428,15 +429,14 @@ bool DDFFLogger::watchChannel(const vector<string>& i)
   return true;
 }
 
-
-bool DDFFLogger::setReduction(const TimeSpec& red)
+bool DDFFLogger::setReduction(const TimeSpec &red)
 {
   delete reduction;
   reduction = new DataTimeSpec(red);
   return true;
 }
 
-bool DDFFLogger::setConfigChannel(const std::string& cname)
+bool DDFFLogger::setConfigChannel(const std::string &cname)
 {
   if (r_config) {
     /* DUECA ddff.
@@ -447,20 +447,19 @@ bool DDFFLogger::setConfigChannel(const std::string& cname)
     E_CNF("Configuration channel already configured");
     return false;
   }
-  r_config.reset(new ChannelReadToken
-                 (getId(), NameSet(cname), DUECALogConfig::classname, 0,
-                  Channel::Events, Channel::OnlyOneEntry,
-                  Channel::ReadAllData));
+  r_config.reset(new ChannelReadToken(
+    getId(), NameSet(cname), DUECALogConfig::classname, 0, Channel::Events,
+    Channel::OnlyOneEntry, Channel::ReadAllData));
   return true;
 }
 
-std::string DDFFLogger::FormatTime(const boost::posix_time::ptime& now,
-                                   const std::string& lft)
+std::string DDFFLogger::FormatTime(const boost::posix_time::ptime &now,
+                                   const std::string &lft)
 {
   using namespace boost::posix_time;
-  std::locale loc(std::cout.getloc(),
-                  new time_facet(lft.size() ?
-                                 lft.c_str() : lftemplate.c_str()));
+  std::locale loc(
+    std::cout.getloc(),
+    new time_facet(lft.size() ? lft.c_str() : lftemplate.c_str()));
 
   std::basic_stringstream<char> wss;
   wss.imbue(loc);
@@ -471,7 +470,8 @@ std::string DDFFLogger::FormatTime(const boost::posix_time::ptime& now,
 // tell DUECA you are prepared
 bool DDFFLogger::isPrepared()
 {
-  if (immediate_start) return true;
+  if (immediate_start)
+    return true;
   prepared = internalIsPrepared();
   return prepared;
 }
@@ -480,9 +480,13 @@ bool DDFFLogger::internalIsPrepared()
 {
   bool res = true;
 
-  for (targeted_list_t::iterator ii = targeted.begin();
-       ii != targeted.end(); ii++) {
-    std::cout << "checking " << (*ii)->channelname << std::endl;
+  for (targeted_list_t::iterator ii = targeted.begin(); ii != targeted.end();
+       ii++) {
+    /* DUECA ddff.
+
+       Checking the validity of a configured channel entry for logging.
+     */
+    I_XTR("Checking " << (*ii)->channelname << " res=" << (*ii)->r_token.isValid());
     CHECK_TOKEN((*ii)->r_token);
 
     // for valid tokens, and file opened, create the functor
@@ -494,7 +498,7 @@ bool DDFFLogger::internalIsPrepared()
          Information on the creation of a DDFF read functor for a
          specific channel.
        */
-      I_XTR("created functor for " << (*ii)->channelname);
+      D_XTR("created functor for " << (*ii)->channelname);
     }
   }
 
@@ -525,37 +529,13 @@ void DDFFLogger::stopModule(const TimeSpec &time)
 // this routine contains the main simulation process of your module. You
 // should read the input channels here, and calculate and write the
 // appropriate output
-void DDFFLogger::doCalculation(const TimeSpec& ts)
+void DDFFLogger::doCalculation(const TimeSpec &ts)
 {
   if (!prepared) {
     prepared = internalIsPrepared();
-    if (!prepared) { return; }
-  }
-
-  // check operation time status
-  switch(getAndCheckState(ts)) {
-  case SimulationState::HoldCurrent:
-
-    optime.validity_start = ts.getValidityStart();
-    // if (inholdcurrent) break;
-    // optime.validity_end = 0;
-    inholdcurrent = true;
-    break;
-  case SimulationState::Replay:
-  case SimulationState::Advance:
-    if (loggingactive) {
-      optime.validity_end = ts.getValidityEnd();
-      if (inholdcurrent) {
-        optime.validity_start = ts.getValidityStart();
-        inholdcurrent = false;
-      }
+    if (!prepared) {
+      return;
     }
-    else {
-      optime.validity_start = ts.getValidityStart();
-    }
-    break;
-  default:
-    throw CannotHandleState(getId(),GlobalId(), "state unhandled");
   }
 
   // events with new instructions
@@ -563,9 +543,8 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
 
     DataReader<DUECALogConfig> cnf(*r_config, ts);
     std::shared_ptr<FileWithSegments> nfile;
-    std::string filename = FormatTime
-      (boost::posix_time::second_clock::universal_time(),
-       cnf.data().filename);
+    std::string filename = FormatTime(
+      boost::posix_time::second_clock::universal_time(), cnf.data().filename);
 
     // open a file if appropriate
     if (!hfile || cnf.data().filename.size() != 0 ||
@@ -574,16 +553,20 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
       try {
         // create the file
         nfile.reset(new FileWithSegments(filename, FileHandler::Mode::New));
+
+        // if there is no prefix, create a default epoch
+        if (cnf.data().prefix.size() == 0) {
+          nfile->nameRecording("", cnf.data().attribute);
+        }
       }
       catch (const std::exception &e) {
         /* DUECA ddff.
 
            Unforeseen error in opening an DDFF log file.
         */
-        E_XTR("DDFF exception opening file '" << filename <<
-              "', " << e.what());
-        sendStatus(std::string("DDFF File open failure, ") + e.what(),
-                   true, ts.getValidityStart());
+        E_XTR("DDFF exception opening file '" << filename << "', " << e.what());
+        sendStatus(std::string("DDFF File open failure, ") + e.what(), true,
+                   ts.getValidityStart());
         setLoggingActive(false);
         return;
       }
@@ -593,13 +576,30 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
 
     else {
 
+      // keep the current file
       nfile = hfile;
       filename = current_filename;
     }
 
+    // add a new epoch if requested
+    if (cnf.data().prefix.size()) {
 
+      if (loggingactive) {
+        // close off the current recording
+        hfile->completeStretch(ts.getValidityStart());
+      }
+
+      // set this name for the upcoming recording
+      nfile->nameRecording(cnf.data().prefix, cnf.data().attribute);
+
+      // and start it
+      nfile->startStretch(ts.getValidityStart());
+    }
+
+    // only when using a new file, re-create
+    if (nfile != hfile) {
 #ifndef DDFF_NOCATCH
-    try
+      try
 #endif
       {
         // create or re-create all functors
@@ -608,24 +608,29 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
           (*ii)->createFunctor(nfile, this, cnf.data().prefix);
         }
 
-        for (watcher_list_t::iterator ww = watched.begin();
-             ww != watched.end(); ww++) {
+        for (watcher_list_t::iterator ww = watched.begin(); ww != watched.end();
+             ww++) {
           (*ww)->createFunctors(nfile, cnf.data().prefix);
         }
       }
 #ifndef DDFF_NOCATCH
-    catch(const std::exception &e) {
+      catch (const std::exception &e) {
       /* DUECA ddff.
 
-         Unforeseen error in creating a functor.
-       */
-      E_XTR("DDFF exception creating functors, " << e.what());
-      sendStatus(std::string("DDFF creating functors, ") + e.what(),
-                 true, ts.getValidityStart());
-      setLoggingActive(false);
-      return;
-    }
+                 Unforeseen error in creating a functor.
+               */
+        E_XTR("DDFF exception creating functors, " << e.what());
+        sendStatus(std::string("DDFF creating functors, ") + e.what(), true,
+                   ts.getValidityStart());
+        setLoggingActive(false);
+        return;
+      }
 #endif
+
+      // flush streams 0 and 1, to ensure they are early in the file
+      nfile->syncInventory();
+      nfile->syncToFile(true);
+    }
 
     // set the new file current, this may also call destructor &
     // closing of any previous file
@@ -636,30 +641,61 @@ void DDFFLogger::doCalculation(const TimeSpec& ts)
     setLoggingActive(true);
   }
 
+  // check operation time status
+  switch (getAndCheckState(ts)) {
+  case SimulationState::HoldCurrent:
+
+    optime.validity_start = ts.getValidityStart();
+      // if (inholdcurrent) break;
+      // optime.validity_end = 0;
+    inholdcurrent = true;
+    // if (loggingactive) {
+    //   hfile->completeStretch(ts.getValidityStart());
+    // }
+    break;
+  case SimulationState::Replay:
+  case SimulationState::Advance:
+    if (loggingactive) {
+      optime.validity_end = ts.getValidityEnd();
+      if (inholdcurrent) {
+        optime.validity_start = ts.getValidityStart();
+        inholdcurrent = false;
+        // hfile->startStretch(ts.getValidityStart());
+      }
+    }
+    else {
+      optime.validity_start = ts.getValidityStart();
+    }
+    break;
+  default:
+    throw CannotHandleState(getId(), GlobalId(), "state unhandled");
+  }
+
+  // do the actual logging
   try {
-    for (targeted_list_t::iterator ll = targeted.begin();
-         ll != targeted.end(); ll++) {
+    for (targeted_list_t::iterator ll = targeted.begin(); ll != targeted.end();
+         ll++) {
       (*ll)->accessAndLog(ts);
     }
-    for (watcher_list_t::iterator ww = watched.begin();
-         ww != watched.end(); ww++) {
+    for (watcher_list_t::iterator ww = watched.begin(); ww != watched.end();
+         ww++) {
       (*ww)->accessAndLog(ts);
     }
   }
-  catch (const std::exception& e) {
+  catch (const std::exception &e) {
     /* DUECA ddff.
 
        Unforeseen Input/Output error when interacting with an DDFF log
        file. Check your disk sanity. Are you trying to log over NFS?
      */
     W_XTR("DDFF File IO failure, " << e.what());
-    sendStatus(std::string("DDFF File IO failure, ") + e.what(),
-               true, ts.getValidityStart());
+    sendStatus(std::string("DDFF File IO failure, ") + e.what(), true,
+               ts.getValidityStart());
     setLoggingActive(false);
   }
 }
 
-void DDFFLogger::sendStatus(const std::string& msg, bool error,
+void DDFFLogger::sendStatus(const std::string &msg, bool error,
                             TimeTickType moment)
 {
   if (w_status.isValid()) {
@@ -677,9 +713,8 @@ void DDFFLogger::sendStatus(const std::string& msg, bool error,
   }
 }
 
-
 // Make a TypeCreator object for this module, the TypeCreator
 // will check in with the script code, and enable the
 // creation of modules of this type
-//static TypeCreator<DDFFLogger> a(DDFFLogger::getMyParameterTable());
+// static TypeCreator<DDFFLogger> a(DDFFLogger::getMyParameterTable());
 DDFF_NS_END;

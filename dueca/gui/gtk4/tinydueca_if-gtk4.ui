@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkWindow" id="dueca_if">
+    <property name="title">DUECA</property>
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">1</property>
+        <child>
+          <object class="GtkToggleButton" id="button_stop">
+            <property name="valign">center</property>
+            <property name="focusable">1</property>
+            <property name="label" translatable="1">stop</property>
+            <property name="active">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="button_safe">
+            <property name="valign">center</property>
+            <property name="focusable">1</property>
+            <property name="label" translatable="1">safe</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="button_run">
+            <property name="valign">center</property>
+            <property name="focusable">1</property>
+            <property name="label" translatable="1">run</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_quit">
+            <property name="valign">center</property>
+            <property name="focusable">1</property>
+            <property name="label" translatable="1">quit</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_shutdown">
+            <property name="valign">center</property>
+            <property name="focusable">1</property>
+            <property name="label" translatable="1">shutdown</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_confirm">
+            <property name="valign">center</property>
+            <property name="focusable">1</property>
+            <property name="label" translatable="1">confirm</property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>

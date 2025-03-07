@@ -63,6 +63,9 @@ Summary<LI,S,V>::getOrCalculateStatus()
            ii != branches.end(); ii++) {
         *status &= (*ii)->getOrCalculateStatus();
       }
+
+      // updated status, reflect
+      DuecaView::single()->syncNode(cnode);
     }
   }
 
@@ -86,6 +89,7 @@ Summary<LI,S,V>::updateStatus(const LI& id, const S& newstatus)
     DEB1(*this << " new status" << newstatus);
     if (!(*status == newstatus)) {
       *status = newstatus;
+      DuecaView::single()->syncNode(cnode);
       setDirty();
       if (parent == NULL) {
         /* DUECA UI.

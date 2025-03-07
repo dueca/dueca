@@ -168,6 +168,7 @@ void writeAnyValue(pugi::xml_node& writer,
     wmap[TYPEID(float)] = avfunction(writeAny<float>);
     wmap[TYPEID(double)] = avfunction(writeAny<double>);
     wmap[TYPEID(std::string)] = avfunction(writeAny<std::string>);
+    wmap[TYPEID(Dstring<5>)] = avfunction(writeAnyDstring<5>);
     wmap[TYPEID(Dstring<8>)] = avfunction(writeAnyDstring<8>);
     wmap[TYPEID(Dstring<16>)] = avfunction(writeAnyDstring<16>);
     wmap[TYPEID(Dstring<32>)] = avfunction(writeAnyDstring<32>);

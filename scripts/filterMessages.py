@@ -299,9 +299,10 @@ def make_logmessage(s: str, loc: int, toks: ParseResults):
 
 def make_logmiss(s: str, loc: int, toks: ParseResults):
     global currentline, fname
-    print(f"In file {fname}, at line {currentline+1}\n"
-          f"Log message without comment:\n{''.join(toks)}",
-          file=sys.stderr)
+    if not toks[0].endswith('MOD'):
+        print(f"In file {fname}, at line {currentline+1}\n"
+              f"Log message without comment:\n{''.join(toks)}",
+              file=sys.stderr)
     currentline += toks[1].count('\n') + 1
     return None
 

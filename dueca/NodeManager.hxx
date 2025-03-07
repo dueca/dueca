@@ -51,6 +51,9 @@ class NodeManager: public NamedObject
   /** Flag to indicate that we have slowed down the interrogation. */
   bool slow_query;
 
+  /** Counter to once-in-a-while force node status display */
+  unsigned once_in_a_while;
+
   /** Read token for the channel with node control messages. */
   ChannelReadToken                      t_control;
 

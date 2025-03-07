@@ -2,6 +2,43 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.2.1] - 2025-03-07
+
+- Still issues with run tests, ci environment is slightly different
+  from the check environment
+- Correction on the locking mechanism for the ddff logger
+- Improve pyddff module and ddff-convert, speeding up conversion while keeping compatibility with a few old failed log files.
+- Add option to control log level from xml file, including doc
+
+## [4.2.0] - 2025-01-26
+
+- Add manual triggerpuller
+- Noble (24.4) is now ci platform, adapt github config
+- gtk4 added as interface option
+- gtk4 versions of the DUECA/DUSIME interfaces
+- New documentation page on gtk4 interfaces with Workbench
+- Correction on channel entry linking to token; selecting by label
+  would link to multiple entries, while one was expected.
+- Corrected how hdf and ddff loggers select entry by label, limit
+  to one entry
+- Add gtk4/python concept test example
+- Add ci test scenario with gtk4
+- Option to switch branch of checked out test platform in testing code
+- Switch to Xephyr as nested X server for creating test scenarios
+- Use xmlstarlet to dumb down some gtkt ui files for older platforms
+- Add svg files for button images gtk4
+- Better status feedback on recording interface
+- default name for recording; to circumvent character input in gtk4
+  pynput test code
+- fixes for runtest; fixing the GTK theme to default
+- correct msgpack templating issues for nested DCO/Enum with header includes
+- speedup, testing and extension of ddff-convert script
+- improve type information from DCOtypeJSON, add enum info, enum int class,
+  correct primitive/object confusion for containered (vector, map, list)
+  types.
+- Correct gtk4 net use overview
+- Modify ddfflogger to emit period/epoch markers
+
 ## [4.1.3] - 2024-11-12
 
 - Fixes gtkgladewindow DCO reading and writing
@@ -23,7 +60,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Add a convenience function to load a gtk3 combo box with values
 - Fixes to DCO path interpretation for home dco
 - Major work on the websocket server; offering a json and a msgpack
-  variant for that now, unified the set-up messages; the server alway
+  variant for that now, unified the set-up messages; the server always
   responds with communication set-up information now, and added a test
   case for websocket communication.
 - Related to the previous, offer an option for a token validity
@@ -54,7 +91,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [4.0.7] - 2024-02-15
 
 - extensions for dueca-gproject; prepareplatform with scriptlets,
-  speudo module creation, vscode tweaks
+  pseudo module creation, vscode tweaks
 
 ## [4.0.6] - 2024-01-31
 

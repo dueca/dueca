@@ -82,13 +82,15 @@ class AddOn(object):
         """
         return """
 #include <dueca/msgpack.hxx>
-#include <dueca/msgpack-unstream-iter.hxx>"""
+#include <dueca/msgpack-unstream-iter.hxx>
+#ifndef NESTED_DCO
+#include <dueca/msgpack-unstream-iter.ixx>
+#endif"""
 
     def printBodyInclude(self):
         """ print the lines that will be added to the body's include area
         """
-        return """
-#include <dueca/msgpack-unstream-iter.ixx>"""
+        return """"""
 
     def printBodyCheck(self):
         """print the lines *after* a possible include of custom body code to

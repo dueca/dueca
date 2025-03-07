@@ -1,4 +1,4 @@
-# -*-bash-*-
+# -*-sh-*-
 # this file creates all links to files in the data directory needed for
 # running the application on a specific machine.
 
@@ -20,8 +20,9 @@ else
    ln -sf ../../../dueca_run.x .
 fi
 
-# run script, if desired
+# create a run script, if desired set to 1
 RUNSCRIPT=0
+
 # files you want kept with the run results, e.g. logs
 MOVEFILES=""
 # files you want copies with the run results, e.g. config file
@@ -30,7 +31,7 @@ if [ \! -x runscript -a ${RUNSCRIPT} = "1" ]; then
     cat >runscript <<EOF
 #!/usr/bin/bash
 dueca-archivelogfiles "$MOVEFILES" "$COPYFILES"
-./dueca_run.x
+./dueca_run.x  > >(tee normal.log) 2> >(tee error.log >&2)
 EOF
     chmod +x runscript
 fi

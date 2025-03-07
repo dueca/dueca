@@ -45,7 +45,7 @@ default, policies can be installed in several locations:
     For users at Control and Simulation, the common policies are available
     through setting:
 
-        DUECA_POLICIES=https://gitlab.tudelft.nl/dueca-ae-cs-policies/common/-/raw/master/index.xml
+        DUECA_POLICIES=https://gitlab.tudelft.nl/dueca-ae-cs-policies/common/-/raw/main/index.xml
 
 
 ## Background

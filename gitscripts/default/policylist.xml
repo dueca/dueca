@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<policies xmlns="https://dueca.tudelft.nl"
+<policies xmlns="https://dueca.tudelft.nl/policylist"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/policylist.xsd">
+    xsi:schemaLocation="https://dueca.tudelft.nl/policylist https://dueca.tudelft.nl/schemas/policylist.xsd">
 </policies>

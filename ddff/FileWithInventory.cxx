@@ -72,7 +72,10 @@ FileWithInventory::FileWithInventory(const std::string& fname, Mode mode,
 }
 
 FileWithInventory::FileWithInventory() :
-  FileHandler()
+  FileHandler(),
+  entries(),
+  dirty(true),
+  w_inventory(NULL)
 {
   //
 }

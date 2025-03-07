@@ -24,30 +24,33 @@ jobs:
 
     - name: Install dependencies
       run: |
-        wget -qO - https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_22.04/Release.key | gpg --dearmor | sudo sed -n 'w /etc/apt/trusted.gpg.d/repabuild.gpg'
-        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild:/xenial-universe/xUbuntu_22.04/ ./"
+        wget -qO - https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_24.04/Release.key | gpg --dearmor | sudo sed -n 'w /etc/apt/trusted.gpg.d/repabuild.gpg'
+        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild:/xenial-universe/xUbuntu_24.04/ ./"
         sudo apt --assume-yes update
-        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_22.04/ ./"
+        sudo add-apt-repository "deb https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_24.04/ ./"
         sudo apt --assume-yes update
         sudo apt --assume-yes upgrade
-        sudo apt --assume-yes install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev libglade2-dev graphviz libgtkmm-2.4-dev freeglut3-dev libgtkglext1-dev libglui2c2 libglui-dev python3-pyparsing libboost-dev inkscape cmake libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu hdf5-tools python3-msgpack python3-h5py python3-jinja2 xnest python3-crcmod libopenscenegraph-dev libsdl2-dev
+        sudo apt --assume-yes install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev libglade2-dev graphviz libgtkmm-2.4-dev freeglut3-dev libgtkglext1-dev libglui2c2 libglui-dev python3-pyparsing libboost-dev librsvg2-bin cmake libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu hdf5-tools python3-msgpack python3-h5py python3-jinja2 xnest python3-crcmod libopenscenegraph-dev libtirpc-dev libepoxy-dev libsdl2-dev xmlstarlet dbus-x11 libgtk-4-dev libgtkmm-4.0-dev python3-venv adwaita-icon-theme libglm-dev
 
     - name: Install Python packages
       run: |
-        pip3 install wmctrl --user
-        pip3 install pynput --user
-        pip3 install attrs --user
-        pip3 install pillow --user
-        pip3 install build --user
+        python3 -m venv --system-site-packages dpyenv
+        source ./dpyenv/bin/activate
+        pip3 install wmctrl
+        pip3 install pynput
+        pip3 install attrs
+        pip3 install pillow
+        pip3 install build
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build
+      run: source ./dpyenv/bin/activate &&
+         cmake -B ${{github.workspace}}/build
         -DCMAKE_CXX_FLAGS="-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_30"
         -DCMAKE_INSTALL_PREFIX=${{env.PREFIX}}
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-        -DBUILD_DOC=ON
+        -DBUILD_DOC=ON \
         -DDUECA_BUILD_SHARED=ON
         -DDUECA_BUILD_STATIC=OFF
         -DBUILD_UDP=ON
@@ -55,6 +58,7 @@ jobs:
         -DSCRIPT_PYTHON=ON
         -DBUILD_GTK2=ON -DBUILD_GTKMM=ON
         -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON
+        -DBUILD_GTK4=ON
         -DBUILD_GLUT=ON -DBUILD_GLUTGUI=ON
         -DBUILD_X11GL=ON -DRTC_RATE=1024
         -DNEW_LOGGING=ON -DBUILD_MOREWARN=ON
@@ -75,17 +79,22 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: |
+        source ./dpyenv/bin/activate
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Install
       # Installs to a local prefix, needed for running some of the tests
-      run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: |
+        source ./dpyenv/bin/activate
+        cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: |
+        source ${{github.workspace}}/dpyenv/bin/activate
         git config --global user.email "ghtest@example.com"
         git config --global user.name  "example runner"
         source ${{env.PREFIX}}/dueca-env.sh && USER=example ctest -C ${{env.BUILD_TYPE}}

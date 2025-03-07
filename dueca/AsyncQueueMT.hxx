@@ -371,7 +371,7 @@ get_list_spare(AsyncQueueMT<T,Alloc>& list)
 */
 template <class T, class Alloc>
 inline void write_list_back(AsyncQueueMT<T,Alloc>& list,
-                     typename Alloc::element_ptr elt)
+                            typename Alloc::element_ptr elt)
 {
   list.writeTail(elt);
 }

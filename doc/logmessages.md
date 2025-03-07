@@ -1,10 +1,8 @@
-// -*-c++-*-
-/**
-\page log Log message generation and control
+# Log message generation and control log {#log}
 
 An overview of the facilities for creating log messages.
 
-\section log_macros Logging macros, logging classes
+## Logging macros, logging classes {#log_macros}
 
 In order to display and record log messages on significant events in
 DUECA programs, a set of log macros is defined. To the programmer,
@@ -70,22 +68,24 @@ DUECA module. DUECA itself distinguishes the following:
   connecting different DUECA processes in distributed simulation
   exercises.
 
-- `XTR`, for messages from extra support code in dueca-extra.
+- `XTR`, for messages from extra support code, mainly in dueca-extra, but also in hdf5 and ddff logging modules.
 
 A log command would look like a normal function call, as an example,
 here a message from the ChannelReplicator in the `dueca-inter` library:
 
-@code
-      /* DUECA interconnect.
+~~~~{.cxx}
+  /* DUECA interconnect.
 
-         There is a difference in definition of a DCO data class
-         between the current node and a remote node. Fix the code,
-         probably by running an update and recompile, ensure the DCO
-         definitions are identical. */
-      E_INT("data class magic for " << *ci << " differs with node " << node); 
-@endcode
+     There is a difference in definition of a DCO data class
+     between the current node and a remote node. Fix the code,
+     probably by running an update and recompile, ensure the DCO
+     definitions are identical. */
+  E_INT("data class magic for " << *ci << " differs with node " << node);
+~~~~
 
-\section log_control Switching logging on and off
+## Switching logging on and off {#log_control}
+
+### For development, C macros
 
 Logging macros are accessible by including DUECA's `debug.h` header:
 
@@ -93,17 +93,44 @@ Logging macros are accessible by including DUECA's `debug.h` header:
 #include <debug.h>
 @endcode
 
-By default, warning and error level messages are switched on, but debug and information level messages are suppressed. This means that the code to generate the message is inserted in a DUECA program, but by default "hitting" a logpoint will not generate a message. When developing, it is often useful to have more log information. You can select the default state of logging by providing C defines for the logging macros, which will be replaced by the `debug.h` header, for example:
+By default, warning and error level messages are switched on, but debug and information level messages are suppressed. This means that the code to generate the message is inserted in a DUECA program, but by default "hitting" a logpoint will not generate a message. When developing, it is often useful to have more log information. You can select the default state of logging in a particular C++ file by providing C defines for the logging macros, which will be replaced by the `debug.h` header, for example:
 
-@code
+~~~~{.cxx}
 #define D_MOD
 #define I_MOD
 #include <debug.h>
-@endcode
+~~~~
 
 Now the `D_MOD` and `I_MOD` macros are defined to produce logging (as before), but they will by default be "active" for this source file, i.e., produce logging messages rather than be silent. Using the logging interface (see next section), the logging levels of the different log categories can be overridden during runtime.
 
-\section log_output Logging output.
+### From the log window
+
+The second tab on the log messages window (Access this from the DUECA interface `view` menu), enables you to change the log level, per category and per node. In this way you can enable more detailed logging, or suppress messages. Once you do this, you will also override any initial log level settings you modified with the macros.
+
+### With an initial log level file
+
+If DUECA finds a file `dueca-initlog.xml` in its startup folder, it will read that file and modify log levels according to the instructions in there. The file is XML-based, and has contents like:
+
+~~~~{.xml}
+<?xml version="1.0"?>
+<loglevels>
+  <object class="LogLevelCommand">
+    <member name="node">
+      <value>0</value>
+    </member>
+    <member name="level">
+      <value>Debug</value>
+    </member>
+    <member name="category">
+      <value>MOD</value>
+    </member>
+  </object>
+</loglevels>
+~~~~
+
+It can contain any number of LogLevelCommand objects, which modify the log level for logging a specific category in a specific node. The level can be `Debug`, `Info`, `Warning` or `Error`.
+
+## Logging output {#log_output}
 
 The log output is available in a number of different places:
 
@@ -113,6 +140,4 @@ The log output is available in a number of different places:
 
   - Through the interface window that can be opened by selecting "View", "Error Log View" from DUECA's standard interface. This shows the same information as the dueca.messages file. The second tab in this interface allows the selection of the log level for each of the log classes, adjusting the generation of log messages for a running program.
 
-Here is a @ref loglist "list of all log messages" in DUECA's libraries.
-
-*/
+Here is a [list of all log messages](@ref loglist) in DUECA's libraries.

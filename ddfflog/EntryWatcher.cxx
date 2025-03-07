@@ -103,12 +103,12 @@ void EntryWatcher::createFunctors(std::weak_ptr<FileWithSegments> nfile,
                                   const std::string &prefix)
 {
   checkChanges();
-  tpath = prefix + path;
+  // tpath = prefix + path;
 
   for (entrylist_type::iterator ee = entrylist.begin();
        ee != entrylist.end(); ee++) {
     (*ee)->createFunctor(nfile, master, always_logging,
-                         tpath);
+                         path);
   }
 }
 
@@ -153,7 +153,9 @@ void EntryWatcher::EntryData::accessAndLog(const dueca::TimeSpec& ts)
         reduction->forceAdvance(tsc0.getValidityStart() - 1);
       }
       if (reduction->greedyAdvance(tsc0) && functor) {
+        w_stream->markItemStart();
         r_token.applyFunctor(functor.get());
+        dirty = true;
       }
       else {
         r_token.flushOne();
@@ -163,14 +165,19 @@ void EntryWatcher::EntryData::accessAndLog(const dueca::TimeSpec& ts)
   }
   else {
     if (functor) {
-      while (r_token.applyFunctor(functor.get())) {
-        // nothing to be done, could put message here
+      do {
+        w_stream->markItemStart();
       }
+      while (r_token.applyFunctor(functor.get()));
+      dirty = true;
     }
     else {
       r_token.flushOlderSets(ts.getValidityStart());
     }
   }
+
+  // confirm we got here
+  marked_tick = ts.getValidityEnd();
 }
 
 void EntryWatcher::EntryData::createFunctor(std::weak_ptr<FileWithSegments> nfile,
@@ -194,12 +201,15 @@ void EntryWatcher::EntryData::createFunctor(std::weak_ptr<FileWithSegments> nfil
   DCOtypeJSON(doc, ei.data_class.c_str());
 
   // request a stream in the file
-  FileStreamWrite::pointer wstream = nfile.lock()->createNamedWrite
+  w_stream = nfile.lock()->createNamedWrite
     (dpath.str(), doc.GetString());
+
+  // check in with the recorder,
+  nfile.lock()->recorderCheckIn(dpath.str(), this);
 
   // use the stream for the functor
   functor.reset(metafunctor.lock()->getReadFunctor
-                (wstream, master->getOpTime(always_logging)));
+                (w_stream, master->getOpTime(always_logging)));
 }
 
 

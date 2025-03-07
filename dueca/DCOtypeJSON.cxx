@@ -17,6 +17,7 @@
 #include "DCOTypeIndex.hxx"
 #include "DataClassRegistry.hxx"
 #include "CommObjectMemberAccess.hxx"
+#include <dueca/DataSetConverter.hxx>
 
 DUECA_NS_START;
 
@@ -25,6 +26,32 @@ void DCOtypeJSON(rapidjson::StringBuffer &doc,
 {
   rapidjson::Writer<rapidjson::StringBuffer> writer(doc);
   DCOtypeJSON(writer, dcoclass);
+}
+
+static void DCOEnumOptions(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+			   const CommObjectReaderWriter &dco, unsigned im)
+{
+  auto converter = DataClassRegistry::single().getConverter(dco.getClassname());
+  void *object = converter->clone(NULL);
+
+  // reader and writer are used to find enum names
+  auto eltreader = dco.getMemberAccessor(im).getReader(object);
+  auto eltwriter = dco.getMemberAccessor(im).getWriter(object);
+
+  writer.Key("enumvalues");
+  writer.StartObject();
+
+  eltwriter.setFirstValue();
+  do {
+    std::string value;
+    long ivalue;
+    eltreader.peek(value);
+    eltreader.peek(ivalue);
+    writer.Key(value.c_str());
+    writer.Int(ivalue);
+  }
+  while (eltwriter.setNextValue());
+  writer.EndObject();
 }
 
 static void DCOlistMembers(rapidjson::Writer<rapidjson::StringBuffer> &writer,
@@ -52,6 +79,9 @@ static void DCOlistMembers(rapidjson::Writer<rapidjson::StringBuffer> &writer,
     }
     else if (dcoi->isEnum()) {
       writer.String("enum");
+      writer.Key("enumint");
+      writer.String(dcoi->getEnumIntName());
+      DCOEnumOptions(writer, dcoinfo, im);
     }
     else {
       writer.String("primitive");
@@ -60,6 +90,7 @@ static void DCOlistMembers(rapidjson::Writer<rapidjson::StringBuffer> &writer,
     case FixedIterable:
       writer.Key("size");
       writer.Uint(dcoi->getSize());
+      // no break!
     case Iterable:
       writer.Key("container");
       writer.String("array");

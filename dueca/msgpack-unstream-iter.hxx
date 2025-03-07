@@ -24,7 +24,7 @@
 #include <exception>
 #include <boost/endian/conversion.hpp>
 
-//#define DEBPRINTLEVEL 1
+//#define DEBPRINTLEVEL -1
 //#include <debprint.h>
 
 
@@ -554,9 +554,27 @@ struct unstream {
   static float unpack_float(S& i0, const S& iend)
   {
     check_iterator_notend(i0, iend);
-    uint8_t flag = uint8_t(*i0); ++i0;
+    uint8_t flag = uint8_t(*i0);
     if (flag == 0xca) {
+      ++i0;
       return process_float<endian::native,S,float>::get(i0, iend);
+    }
+
+    // was converted to int
+    try {
+      if (flag == 0xcf) {
+        uint64_t i;
+        unpack_int(i0, iend, i);
+        return float(i);
+      }
+      else {
+        int64_t i;
+        unpack_int(i0, iend, i);
+        return float(i);
+      }
+    }
+    catch (const msgpack_unpack_mismatch& e) {
+        // no int either
     }
     throw  msgpack_unpack_mismatch("wrong type, cannot convert to float");
   }
@@ -570,9 +588,27 @@ struct unstream {
   static double unpack_double(S& i0, const S& iend)
   {
     check_iterator_notend(i0, iend);
-    uint8_t flag = uint8_t(*i0); ++i0;
+    uint8_t flag = uint8_t(*i0);
     if (flag == 0xcb) {
+      ++i0;
       return process_float<endian::native,S,double>::get(i0, iend);
+    }
+
+    // was converted to int
+    try {
+      if (flag == 0xcf) {
+        uint64_t i;
+        unpack_int(i0, iend, i);
+        return double(i);
+      }
+      else {
+        int64_t i;
+        unpack_int(i0, iend, i);
+        return double(i);
+      }
+    }
+    catch (const msgpack_unpack_mismatch& e) {
+        // no int either
     }
     throw  msgpack_unpack_mismatch("wrong type, cannot convert to double");
   }
@@ -601,7 +637,7 @@ inline bool msg_isnil(S& i0, const S& iend)
 template<typename S>
 inline void msg_unpack(S& i0, const S& iend)
 { return unstream<S>::unpack_nil(i0, iend); }
-  
+
 template<typename S>
 inline void msg_unpack(S& i0, const S& iend, uint8_t& i)
 { unstream<S>::unpack_int(i0, iend, i); }
@@ -701,81 +737,3 @@ MSGPACKUS_NS_END;
 
 #endif
 
-#if defined(fixvector_hxx) && !defined(msgpack_unstream_iter_fixvector)
-#define msgpack_unstream_iter_fixvector
-MSGPACKUS_NS_START;
-template <typename S, size_t N, typename T>
-void msg_unpack(S &i0, const S &iend, dueca::fixvector<N, T> &i)
-{
-  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  i.resize(len);
-  for (size_t ii = 0; ii < len; ii++) {
-    msg_unpack(i0, iend, i[ii]);
-  }
-}
-MSGPACKUS_NS_END;
-#endif
-
-#if defined(fixvector_withdefault_hxx) && !defined(msgpack_unstream_iter_fixvector_withdefault)
-#define msgpack_unstream_iter_fixvector_withdefault
-MSGPACKUS_NS_START;
-
-template <typename S, size_t N, typename T, int DEFLT, unsigned BASE>
-void msg_unpack(S &i0, const S &iend,
-                       dueca::fixvector_withdefault<N, T, DEFLT, BASE> &i)
-{
-  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  i.resize(len);
-  for (size_t ii = 0; ii < len; ii++) {
-    msg_unpack(i0, iend, i[ii]);
-  }
-}
-
-MSGPACKUS_NS_END;
-#endif
-
-#if defined(varvector_hxx) && !defined(msgpack_unstream_iter_varvector)
-#define msgpack_unstream_iter_varvector
-
-MSGPACKUS_NS_START;
-template <typename S, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::varvector<T> & i)
-{
-  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  i.resize(len);
-  for (unsigned ii = 0; ii < len; ii++)
-    msg_unpack(i0, iend, i[ii]);
-}
-MSGPACKUS_NS_END;
-#endif
-
-#if defined(limvector_hxx) && !defined(msgpack_unstream_iter_limvector)
-#define msgpack_unstream_iter_limvector
-
-MSGPACKUS_NS_START;
-template <typename S, size_t N, typename T>
-void msg_unpack(S& i0, const S& iend, dueca::limvector<N,T> & i)
-{
-  uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  i.resize(len);
-  for (unsigned ii = 0; ii < len; ii++)
-    msg_unpack(i0, iend, i[ii]);
-}
-MSGPACKUS_NS_END;
-#endif
-
-#if defined(Dstring_hxx) && !defined(msgpack_unstream_iter_Dstring)
-#define msgpack_unstream_iter_Dstring
-MSGPACKUS_NS_START;
-template <typename S, unsigned mxsize>
-void msg_unpack(S& i0, const S& iend, dueca::Dstring<mxsize>& s)
-{
-  uint32_t len = unstream<S>::unpack_strsize(i0, iend);
-  s.resize(len);
-  for (size_t ii = 0; ii < len; ii++) {
-    check_iterator_notend(i0, iend);
-    s.data()[ii] = *i0++;
-  }
-}
-MSGPACKUS_NS_END;
-#endif

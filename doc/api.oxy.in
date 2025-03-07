@@ -36,7 +36,7 @@ INPUT = mainpage-api.md \
         @CMAKE_CURRENT_SOURCE_DIR@/plotting.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/time-trigger-schedule.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/websock.doc \
-        @CMAKE_CURRENT_SOURCE_DIR@/logmessages.doc \
+        @CMAKE_CURRENT_SOURCE_DIR@/logmessages.md \
         @CMAKE_CURRENT_BINARY_DIR@/dueca-messagelist.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/other-software.doc \
         @CMAKE_CURRENT_SOURCE_DIR@/cmake_hints.md \
@@ -47,6 +47,7 @@ INPUT = mainpage-api.md \
         @CMAKE_CURRENT_SOURCE_DIR@/simplesimulation.md \
         @CMAKE_CURRENT_SOURCE_DIR@/simplesimulationb.md \
         @CMAKE_CURRENT_SOURCE_DIR@/vscode.md \
+        @CMAKE_CURRENT_SOURCE_DIR@/gtk4interface.md \
         @apifiles@
 
 INCLUDE_PATH=@CMAKE_SOURCE_DIR@/dueca \

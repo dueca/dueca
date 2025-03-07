@@ -25,7 +25,7 @@
 #include <netinet/ip.h>
 #include <dueca-udp-config.h>
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 DUECA_NS_START;
@@ -45,12 +45,11 @@ static bool isBroadcastAddress(in_addr_t s_host, in_addr_t s_mask,
   uint32_t address = ntohl(s_addr);
   uint32_t mask = ntohl(s_mask);
 
-  return ((address & ~mask) == ~mask) &&
-    ((host & mask) == (address & mask));
+  return ((address & ~mask) == ~mask) && ((host & mask) == (address & mask));
 }
 
-UDPSocketCommunicator::
-UDPSocketCommunicator(const PacketCommunicatorSpecification& spec) :
+UDPSocketCommunicator::UDPSocketCommunicator(
+  const PacketCommunicatorSpecification &spec) :
   PacketCommunicator(spec),
   if_address(spec.interface_address),
   port_re_use(spec.port_re_use),
@@ -77,9 +76,9 @@ UDPSocketCommunicator(const PacketCommunicatorSpecification& spec) :
     size_t port = spec.url.find(":", 6);
     if (port != string::npos) {
       // assuming that this can be interpreted as a port number
-      dataport = boost::lexical_cast<uint16_t>(spec.url.substr(port+1));
+      dataport = boost::lexical_cast<uint16_t>(spec.url.substr(port + 1));
       // what remains is the peer address
-      peer_address = spec.url.substr(6, port-6);
+      peer_address = spec.url.substr(6, port - 6);
     }
     else {
       // no port given, rest is peer address or name
@@ -87,10 +86,9 @@ UDPSocketCommunicator(const PacketCommunicatorSpecification& spec) :
     }
     /* DUECA network.
 
-       Information message on the peer's address and network port. 
+       Information message on the peer's address and network port.
     */
-    I_NET("Decoded peer address " << peer_address <<
-          " dataport " <<  dataport);
+    I_NET("Decoded peer address " << peer_address << " dataport " << dataport);
 
     // set the timeout
     struct timeval to = { int(round(spec.timeout * 1e6)) / 1000000,
@@ -114,10 +112,7 @@ UDPSocketCommunicator(const PacketCommunicatorSpecification& spec) :
   }
 }
 
-UDPSocketCommunicator::~UDPSocketCommunicator()
-{
-  undoUDPConnection();
-}
+UDPSocketCommunicator::~UDPSocketCommunicator() { undoUDPConnection(); }
 
 void UDPSocketCommunicator::configureHostAddress()
 {
@@ -155,19 +150,23 @@ void UDPSocketCommunicator::configureHostAddress()
     for (struct ifaddrs *p = interfaces; p != NULL; p = p->ifa_next) {
 
       // IPV4 for now, also skip when not filled
-      if (p->ifa_addr == NULL ||
-          p->ifa_addr->sa_family != AF_INET) continue;
+      if (p->ifa_addr == NULL || p->ifa_addr->sa_family != AF_INET)
+        continue;
 
       // extract, and compare
-      union {struct sockaddr_in in; struct sockaddr gen; } ifa, ifb;
-      ifa.gen = *(p->ifa_addr); ifb.gen = *(ha->ai_addr);
+      union {
+        struct sockaddr_in in;
+        struct sockaddr gen;
+      } ifa, ifb;
+      ifa.gen = *(p->ifa_addr);
+      ifb.gen = *(ha->ai_addr);
       if (ifa.in.sin_addr.s_addr == ifb.in.sin_addr.s_addr) {
         host_address.s_addr = ifa.in.sin_addr.s_addr;
-	/* DUECA network.
+        /* DUECA network.
 
-	   Information on which interface is used for UDP communication.
-	 */
-	I_MOD("Selected own interface " << if_address);
+           Information on which interface is used for UDP communication.
+         */
+        I_NET("Selected own interface " << if_address);
         break;
       }
     }
@@ -202,18 +201,18 @@ void UDPSocketCommunicator::configureHostAddress()
 
     // IPV4 for now, also skip when not filled and skip local
     // interfaces when the if_address was not specified
-    if (p->ifa_addr == NULL ||
-        p->ifa_netmask == NULL ||
+    if (p->ifa_addr == NULL || p->ifa_netmask == NULL ||
         p->ifa_addr->sa_family != AF_INET ||
         ((p->ifa_flags & IFF_LOOPBACK) != 0 && if_address.size() == 0) ||
-        (p->ifa_flags & IFF_UP) == 0) continue;
+        (p->ifa_flags & IFF_UP) == 0)
+      continue;
 
     // compare to host address
     if (host_address.s_addr == 0 ||
         host_address.s_addr ==
-        reinterpret_cast<sockaddr_in*>(p->ifa_addr)->sin_addr.s_addr) {
+          reinterpret_cast<sockaddr_in *>(p->ifa_addr)->sin_addr.s_addr) {
       memcpy(&host_netmask, p->ifa_netmask, sizeof(sockaddr));
-      //host_netmask = *reinterpret_cast<sockaddr_in*>(p->ifa_netmask);
+      // host_netmask = *reinterpret_cast<sockaddr_in*>(p->ifa_netmask);
 
       // when automatically selected, warn about used interface
       if (host_address.s_addr == 0) {
@@ -221,7 +220,7 @@ void UDPSocketCommunicator::configureHostAddress()
 
            Using an automatically selected interface address. */
         W_NET("Automatically selected interface " << p->ifa_name);
-        host_address = reinterpret_cast<sockaddr_in*>(p->ifa_addr)->sin_addr;
+        host_address = reinterpret_cast<sockaddr_in *>(p->ifa_addr)->sin_addr;
       }
 
       // done checking interfaces
@@ -237,16 +236,16 @@ void UDPSocketCommunicator::configureHostAddress()
        automatically selected host interface. Connection will fail.
     */
     E_NET("Could not find netmask for host interface");
-    throw (connectionfails());
+    throw(connectionfails());
   }
 }
-
 
 void UDPSocketCommunicator::configureUDPConnection(bool is_master)
 {
   // configure the UDP address for sending
   struct addrinfo *ta;
-  struct addrinfo hints; memset(&hints, 0, sizeof(hints));
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
   hints.ai_flags = AI_CANONNAME;
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM;
@@ -254,12 +253,11 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
   int aires = getaddrinfo(peer_address.c_str(),
                           boost::lexical_cast<std::string>(dataport).c_str(),
                           &hints, &ta);
-  DEB("Address info for peer/target address " << peer_address <<
-      " check " <<
-      inet_ntoa(reinterpret_cast<sockaddr_in*>(ta->ai_addr)->sin_addr) <<
-      " port " <<
-      htons(reinterpret_cast<sockaddr_in*>(ta->ai_addr)->sin_port));
-
+  DEB("Address info for peer/target address "
+      << peer_address << " check "
+      << inet_ntoa(reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_addr)
+      << " port "
+      << htons(reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_port));
 
   // this should result in one address!
   if (aires || ta->ai_next != NULL) {
@@ -267,22 +265,20 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
 
        Failed to get the address information on a given UDP
        peer. Check that the address is correct. */
-    E_NET("Cannot get address info on UDP peer " << peer_address << ":" <<
-          dataport << ", error " << gai_strerror(aires));
+    E_NET("Cannot get address info on UDP peer " << peer_address << ":"
+                                                 << dataport << ", error "
+                                                 << gai_strerror(aires));
     throw(connectionfails());
   }
 
   // check the address type
-  if (isMulticastAddress
-      (reinterpret_cast<sockaddr_in*>(ta->ai_addr)
-       ->sin_addr.s_addr)) {
+  if (isMulticastAddress(
+        reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_addr.s_addr)) {
     connection_mode = MultiCast;
   }
-  else if (isBroadcastAddress
-           (host_address.s_addr,
-            host_netmask.sin_addr.s_addr,
-            reinterpret_cast<sockaddr_in*>(ta->ai_addr)
-            ->sin_addr.s_addr)) {
+  else if (isBroadcastAddress(
+             host_address.s_addr, host_netmask.sin_addr.s_addr,
+             reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_addr.s_addr)) {
     connection_mode = BroadCast;
   }
   else {
@@ -297,43 +293,39 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
 
     // run again, now we know comm type, we know socket number; for
     // peer-to-peer using 2 different port numbers
-    aires = getaddrinfo
-      (peer_address.c_str(),
-       boost::lexical_cast<std::string>(dataport + 1).c_str(),
-       &hints, &ta);
+    aires = getaddrinfo(peer_address.c_str(),
+                        boost::lexical_cast<std::string>(dataport + 1).c_str(),
+                        &hints, &ta);
     assert(aires == 0);
 
-    DEB("Increased port number for master " <<
-        htons(reinterpret_cast<sockaddr_in*>(ta->ai_addr)->sin_port));
+    DEB("Increased port number for master "
+        << htons(reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_port));
   }
 
   // create send socket
-  comm_send = socket(ta->ai_family,
-                     ta->ai_socktype,
-                     ta->ai_protocol);
+  comm_send = socket(ta->ai_family, ta->ai_socktype, ta->ai_protocol);
   if (comm_send == -1) {
     /* DUECA network.
 
        Unexpected failure to open an UDP socket. Check permissions and
        network.
     */
-    W_NET("Could not open UDP socket, tried " << ta->ai_canonname
-          << ": " << strerror(errno));
-    throw (connectionfails());
+    W_NET("Could not open UDP socket, tried " << ta->ai_canonname << ": "
+                                              << strerror(errno));
+    throw(connectionfails());
   }
 
   // if applicable, add broadcast capability to send socket
   if (connection_mode == BroadCast) {
     int on = 1;
-    if (setsockopt(comm_send, SOL_SOCKET, SO_BROADCAST,
-                   &on, sizeof(on)) != 0) {
+    if (setsockopt(comm_send, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) != 0) {
       /* DUECA network.
 
          It was not possible to add broadcast capability to the
          sending socket. Check permissions and interface capabilities.
       */
       W_NET("Could not add broadcast to socket: " << strerror(errno));
-      throw (connectionfails());
+      throw(connectionfails());
     }
   }
 
@@ -341,34 +333,34 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
   if (connection_mode == MultiCast) {
 
     // request to join multicast group for this host address
-    struct ip_mreq mreq; memset(&mreq, 0, sizeof(mreq));
-    mreq.imr_multiaddr =
-      reinterpret_cast<sockaddr_in*>(ta->ai_addr)->sin_addr;
+    struct ip_mreq mreq;
+    memset(&mreq, 0, sizeof(mreq));
+    mreq.imr_multiaddr = reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_addr;
     mreq.imr_interface = host_address;
 
-    if (setsockopt(comm_send, IPPROTO_IP, IP_MULTICAST_IF,
-                   &mreq.imr_interface, sizeof(in_addr))) {
+    if (setsockopt(comm_send, IPPROTO_IP, IP_MULTICAST_IF, &mreq.imr_interface,
+                   sizeof(in_addr))) {
       /* DUECA network.
 
          It was not possible to add multicast capability to the
          sending socket. Check permissions and interface capabilities.
       */
       W_NET("Could not enable multicast for send socket: " << strerror(errno));
-      throw (connectionfails());
+      throw(connectionfails());
     }
   }
 
   // priority setting
 #if defined(SYMBOL_SO_PRIORITY)
   if (socket_priority > 0 && socket_priority < 15) {
-    if (setsockopt(comm_send, IPPROTO_IP, SO_PRIORITY,
-                   &socket_priority, sizeof(socket_priority))) {
+    if (setsockopt(comm_send, IPPROTO_IP, SO_PRIORITY, &socket_priority,
+                   sizeof(socket_priority))) {
       /* DUECA network.
 
          Cannot set the socket priority. Non-fatal.
       */
-      W_NET("Could not set priority " << socket_priority <<
-            " on send socket: " << strerror(errno));
+      W_NET("Could not set priority "
+            << socket_priority << " on send socket: " << strerror(errno));
     }
   }
 #else
@@ -378,8 +370,7 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
   // ip tos setting
   if (lowdelay) {
     uint8_t tos_val = IPTOS_LOWDELAY;
-    if (setsockopt(comm_send, IPPROTO_IP, IP_TOS,
-                   &tos_val, sizeof(tos_val))) {
+    if (setsockopt(comm_send, IPPROTO_IP, IP_TOS, &tos_val, sizeof(tos_val))) {
       /* DUECA network.
 
          Cannot set the TOS (Type/Quality of Service) for the socket to
@@ -390,7 +381,10 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
   }
 
   // bind this socket to a source address
-  union {struct sockaddr_in in; struct sockaddr gen; } source_address;
+  union {
+    struct sockaddr_in in;
+    struct sockaddr gen;
+  } source_address;
   memset(&source_address, 0, sizeof(source_address));
   source_address.in.sin_addr = host_address;
   source_address.in.sin_family = AF_INET;
@@ -415,7 +409,7 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
          networking and permissions.
       */
       E_NET("Could not bind sending UDP socket: " << strerror(errno));
-      throw (connectionfails());
+      throw(connectionfails());
     }
   }
 
@@ -429,18 +423,16 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
     dataport2++;
   }
 
-  aires = getaddrinfo
-    (peer_address.c_str(),
-     boost::lexical_cast<std::string>(dataport2).c_str(),
-     &hints, &ra);
+  aires = getaddrinfo(peer_address.c_str(),
+                      boost::lexical_cast<std::string>(dataport2).c_str(),
+                      &hints, &ra);
   assert(aires == 0);
   comm_recv = socket(ra->ai_family, ra->ai_socktype, ra->ai_protocol);
-  DEB("Receive address configured as " <<
-      inet_ntoa(reinterpret_cast<sockaddr_in*>(ra->ai_addr)->sin_addr) <<
-      " port " <<
-      htons(reinterpret_cast<sockaddr_in*>(ra->ai_addr)->sin_port) <<
-      " family " <<
-      reinterpret_cast<sockaddr_in*>(ra->ai_addr)->sin_family);
+  DEB(
+    "Receive address configured as "
+    << inet_ntoa(reinterpret_cast<sockaddr_in *>(ra->ai_addr)->sin_addr)
+    << " port " << htons(reinterpret_cast<sockaddr_in *>(ra->ai_addr)->sin_port)
+    << " family " << reinterpret_cast<sockaddr_in *>(ra->ai_addr)->sin_family);
 
   // if applicable, set re-use
   if (port_re_use) {
@@ -453,28 +445,28 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
        single computer, otherwise do not enable re-use. */
     I_CNF("selecting re-use on the receive socket");
     int on = 1;
-    if (setsockopt(comm_recv, SOL_SOCKET, SO_REUSEADDR,
-                   (char*) &on, sizeof(on)) != 0) {
+    if (setsockopt(comm_recv, SOL_SOCKET, SO_REUSEADDR, (char *)&on,
+                   sizeof(on)) != 0) {
       /* DUECA network.
 
          It was not possible to configure re-use on the receive
          socket. Will continue attempting to communicate, note that
          this will fail if multiple DUECA processes on the same
          computer need to read from this same socket. */
-       W_NET("Cannot set re-use: " << strerror(errno));
+      W_NET("Cannot set re-use: " << strerror(errno));
     }
   }
-
 
   if (connection_mode == MultiCast) {
 
     // request to join multicast group for this host address
-    struct ip_mreq mreq; memset(&mreq, 0, sizeof(mreq));
+    struct ip_mreq mreq;
+    memset(&mreq, 0, sizeof(mreq));
     inet_aton(peer_address.c_str(), &mreq.imr_multiaddr);
     mreq.imr_interface = host_address;
 
     if (setsockopt(comm_recv, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-                   reinterpret_cast<char*>(&mreq), sizeof(mreq)) != 0) {
+                   reinterpret_cast<char *>(&mreq), sizeof(mreq)) != 0) {
       /* DUECA network.
 
          Failed to join the multicast group for the reading
@@ -482,7 +474,7 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
          configuration. Connection will fail.
       */
       W_NET("Could not join multicast group: " << strerror(errno));
-      throw (connectionfails());
+      throw(connectionfails());
     }
   }
 
@@ -494,25 +486,22 @@ void UDPSocketCommunicator::configureUDPConnection(bool is_master)
     */
     W_NET("Could not bind UDP reception socket: " << strerror(errno));
 
-    throw (connectionfails());
+    throw(connectionfails());
   }
 
-  static const char* conmode[] =
-    { "PointToPoint", "MultiCast", "BroadCast", "Undetermined" };
+  static const char *conmode[] = { "PointToPoint", "MultiCast", "BroadCast",
+                                   "Undetermined" };
   /* DUECA network.
 
      Information on the opened UDP socket connection. */
-  I_NET("Opened UDP socket pair as " << conmode[int(connection_mode)] <<
-        " send: " <<
-        inet_ntoa(reinterpret_cast<sockaddr_in*>
-                  (ta->ai_addr)->sin_addr) <<
-        ":" << ntohs(reinterpret_cast<sockaddr_in*>
-                     (ta->ai_addr)->sin_port) <<
-        " receive: " <<
-        inet_ntoa(reinterpret_cast<sockaddr_in*>
-                  (ra->ai_addr)->sin_addr) <<
-        ":" << ntohs(reinterpret_cast<sockaddr_in*>
-                     (ra->ai_addr)->sin_port));
+  I_NET("Opened UDP socket pair as "
+        << conmode[int(connection_mode)] << " send: "
+        << inet_ntoa(reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_addr)
+        << ":" << ntohs(reinterpret_cast<sockaddr_in *>(ta->ai_addr)->sin_port)
+        << " receive: "
+        << inet_ntoa(reinterpret_cast<sockaddr_in *>(ra->ai_addr)->sin_addr)
+        << ":"
+        << ntohs(reinterpret_cast<sockaddr_in *>(ra->ai_addr)->sin_port));
 
   // free the memory
   freeaddrinfo(ta);
@@ -523,63 +512,63 @@ void UDPSocketCommunicator::undoUDPConnection()
 {
   switch (connection_mode) {
   case MultiCast: {
-    struct in_addr ifaddr; memset(&ifaddr, 0, sizeof(ifaddr));
+    struct in_addr ifaddr;
+    memset(&ifaddr, 0, sizeof(ifaddr));
     ifaddr.s_addr = INADDR_ANY;
-    if (setsockopt(comm_send, IPPROTO_IP, IP_MULTICAST_IF,
-                   &ifaddr, sizeof(ifaddr))) {
+    if (setsockopt(comm_send, IPPROTO_IP, IP_MULTICAST_IF, &ifaddr,
+                   sizeof(ifaddr))) {
       /* DUECA network.
 
          Failed to unset the multicast capability from the socket. */
       W_NET("Could not unset multicast interface");
     }
 
-    struct ip_mreq mreq; memset(&mreq, 0, sizeof(mreq));
+    struct ip_mreq mreq;
+    memset(&mreq, 0, sizeof(mreq));
     inet_aton(peer_address.c_str(), &mreq.imr_multiaddr);
     mreq.imr_interface = host_address;
     if (setsockopt(comm_recv, IPPROTO_IP, IP_DROP_MEMBERSHIP,
-                   reinterpret_cast<char*>(&mreq), sizeof(mreq)) != 0) {
+                   reinterpret_cast<char *>(&mreq), sizeof(mreq)) != 0) {
 
       /* DUECA network.
 
          Failed to leave the multicast group. */
       W_NET("Could not leave multicast group: " << strerror(errno));
     }
-  }
-    break;
+  } break;
 
   case BroadCast: {
     int on = 0;
-    if (setsockopt(comm_send, SOL_SOCKET, SO_BROADCAST,
-                   &on, sizeof(on)) != 0) {
+    if (setsockopt(comm_send, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) != 0) {
       /* DUECA network.
 
          Failed to unset the broadcast capability from the socket. */
       W_NET("Could not remove broadcast from socket: " << strerror(errno));
     }
-  }
-    break;
+  } break;
   case Undetermined:
   case PointToPoint:
     break;
   }
-  close(comm_send); close(comm_recv);
+  close(comm_send);
+  close(comm_recv);
   comm_recv = comm_send = -1;
 }
 
 void UDPSocketCommunicator::send(MessageBuffer::ptr_type buffer)
 {
-  DEB1("Node " << peer_id << " sending size " << buffer->fill
-      << " cycle " << buffer->message_cycle);
-  sendto(comm_send, buffer->buffer, buffer->fill, 0,
-         &target_address, sizeof(target_address));
+  DEB1("Node " << peer_id << " sending size " << buffer->fill << " cycle "
+               << buffer->message_cycle);
+  sendto(comm_send, buffer->buffer, buffer->fill, 0, &target_address,
+         sizeof(target_address));
 }
 
-UDPSocketCommunicator::SenderINET::
-SenderINET(uint32_t address, uint16_t port) :
-  address(address), port(port)
-{ }
+UDPSocketCommunicator::SenderINET::SenderINET(uint32_t address, uint16_t port) :
+  address(address),
+  port(port)
+{}
 
-std::ostream& UDPSocketCommunicator::SenderINET::print (std::ostream& os) const
+std::ostream &UDPSocketCommunicator::SenderINET::print(std::ostream &os) const
 {
   in_addr inaddr;
   inaddr.s_addr = address;
@@ -587,40 +576,45 @@ std::ostream& UDPSocketCommunicator::SenderINET::print (std::ostream& os) const
   return os;
 }
 
-
-bool UDPSocketCommunicator::SenderINET::operator < (const SenderINET& o) const
+bool UDPSocketCommunicator::SenderINET::operator<(const SenderINET &o) const
 {
-  if (address < o.address) { return true; }
-  else if (address > o.address) { return false; }
+  if (address < o.address) {
+    return true;
+  }
+  else if (address > o.address) {
+    return false;
+  }
   return (port < o.port);
 }
 
-bool UDPSocketCommunicator::SenderINET::operator == (const SenderINET& o) const
+bool UDPSocketCommunicator::SenderINET::operator==(const SenderINET &o) const
 {
   return address == o.address && port == o.port;
 }
 
-void  UDPSocketCommunicator::flush()
+void UDPSocketCommunicator::flush()
 {
   // set-up for select
-  fd_set socks; FD_ZERO(&socks); FD_SET(comm_recv, &socks);
+  fd_set socks;
+  FD_ZERO(&socks);
+  FD_SET(comm_recv, &socks);
   struct timeval timeout = { .tv_sec = 0, .tv_usec = 0 };
 
   // dummy spaces for receive
   MessageBuffer::ptr_type buffer = getBuffer();
   union {
     struct sockaddr_in in;
-    struct sockaddr    gen;
+    struct sockaddr gen;
   } peer_ip;
   socklen_t peer_ip_len = sizeof(peer_ip.in);
 
   // use select to check for data
-  int sres = select(comm_recv+1, &socks, NULL, NULL, &timeout);
+  int sres = select(comm_recv + 1, &socks, NULL, NULL, &timeout);
 
   // read (a fraction of the data) while no timeout
   while (sres) {
-    ssize_t nbytes = recvfrom
-      (comm_recv, buffer->buffer, buffer->capacity, 0, &peer_ip.gen, &peer_ip_len);
+    ssize_t nbytes = recvfrom(comm_recv, buffer->buffer, buffer->capacity, 0,
+                              &peer_ip.gen, &peer_ip_len);
 
     if (nbytes == -1) {
       /* DUECA network.
@@ -634,23 +628,25 @@ void  UDPSocketCommunicator::flush()
     if (nbytes) {
       int i_peer_id = NetCommunicator::ControlBlockReader::decodePeerId(buffer);
       SenderINET id(peer_ip.in.sin_addr.s_addr, htons(peer_ip.in.sin_port));
-      DEB("Initial flushing UDP message from host/port: " << id <<
-          " claiming id: " << i_peer_id);
+      DEB("Initial flushing UDP message from host/port: "
+          << id << " claiming id: " << i_peer_id);
     }
 
-    sres = select(comm_recv+1, &socks, NULL, NULL, &timeout);
+    sres = select(comm_recv + 1, &socks, NULL, NULL, &timeout);
   }
   returnBuffer(buffer);
 }
 
-std::pair<int,ssize_t> UDPSocketCommunicator::receive()
+std::pair<int, ssize_t> UDPSocketCommunicator::receive()
 {
   // set-up for select
-  fd_set socks; FD_ZERO(&socks); FD_SET(comm_recv, &socks);
+  fd_set socks;
+  FD_ZERO(&socks);
+  FD_SET(comm_recv, &socks);
   struct timeval timeout = default_timeout;
 
   // use select to check for data
-  int sres = select(comm_recv+1, &socks, NULL, NULL, &timeout);
+  int sres = select(comm_recv + 1, &socks, NULL, NULL, &timeout);
 
   // timeout, no data
   if (sres == 0) {
@@ -663,14 +659,13 @@ std::pair<int,ssize_t> UDPSocketCommunicator::receive()
   // preparation for getting the sender's address
   union {
     struct sockaddr_in in;
-    struct sockaddr    gen;
+    struct sockaddr gen;
   } peer_ip;
   socklen_t peer_ip_len = sizeof(peer_ip.in);
 
   // get the actual data
-  ssize_t nbytes = recvfrom
-    (comm_recv, buffer->buffer, buffer->capacity, 0,
-     &peer_ip.gen, &peer_ip_len);
+  ssize_t nbytes = recvfrom(comm_recv, buffer->buffer, buffer->capacity, 0,
+                            &peer_ip.gen, &peer_ip_len);
 
   // check on OK?
   if (nbytes == -1) {
@@ -695,7 +690,7 @@ std::pair<int,ssize_t> UDPSocketCommunicator::receive()
     int i_peer_id = NetCommunicator::ControlBlockReader::decodePeerId(buffer);
 
     // check for trouble
-    for (auto const &p: peers) {
+    for (auto const &p : peers) {
       if (p.second == i_peer_id) {
         /* DUECA network.
 
@@ -705,8 +700,8 @@ std::pair<int,ssize_t> UDPSocketCommunicator::receive()
            send. Check the network traffic, clear old nodes, or change
            to another UDP network address.
         */
-        E_NET("UDP receive multiple senders with ID " << i_peer_id <<
-              " existing " << p.first << " new: " << id);
+        E_NET("UDP receive multiple senders with ID "
+              << i_peer_id << " existing " << p.first << " new: " << id);
         throw(packetcommunicationfailure("Multiple senders with same ID"));
       }
     }
@@ -717,8 +712,8 @@ std::pair<int,ssize_t> UDPSocketCommunicator::receive()
        received. */
     I_NET("First message from peer " << i_peer_id << " at " << id);
 
-    DEB("Found new peer " << inet_ntoa(peer_ip.in.sin_addr)
-        << ":" << id.port << " node ID=" << i_peer_id);
+    DEB("Found new peer " << inet_ntoa(peer_ip.in.sin_addr) << ":" << id.port
+                          << " node ID=" << i_peer_id);
 
     // remember this network address and peer ID
     pp = peers.insert(std::make_pair(id, i_peer_id)).first;
@@ -729,8 +724,8 @@ std::pair<int,ssize_t> UDPSocketCommunicator::receive()
 
   // callback with the buffer
   if (pass_data && nbytes) {
-    DEB1("Node " << peer_id << " receiving size " << buffer->fill <<
-        " from " << pp->second);
+    DEB1("Node " << peer_id << " receiving size " << buffer->fill << " from "
+                 << pp->second);
     (*callback)(buffer);
   }
   else if (pass_data) {
@@ -747,9 +742,8 @@ std::pair<int,ssize_t> UDPSocketCommunicator::receive()
   return std::make_pair(pp->second, nbytes);
 }
 
-
-UDPSocketCommunicatorMaster::
-UDPSocketCommunicatorMaster(const PacketCommunicatorSpecification& spec) :
+UDPSocketCommunicatorMaster::UDPSocketCommunicatorMaster(
+  const PacketCommunicatorSpecification &spec) :
   UDPSocketCommunicator(spec)
 {
   configureHostAddress();
@@ -761,8 +755,8 @@ UDPSocketCommunicatorMaster::~UDPSocketCommunicatorMaster()
   // all performed by parent
 }
 
-UDPSocketCommunicatorPeer::
-UDPSocketCommunicatorPeer(const PacketCommunicatorSpecification& spec) :
+UDPSocketCommunicatorPeer::UDPSocketCommunicatorPeer(
+  const PacketCommunicatorSpecification &spec) :
   UDPSocketCommunicator(spec)
 {
   configureHostAddress();
@@ -773,7 +767,5 @@ UDPSocketCommunicatorPeer::~UDPSocketCommunicatorPeer()
 {
   // all performed by parent
 }
-
-
 
 DUECA_NS_END;

@@ -116,7 +116,7 @@ else()
     )
 endif()
 
-configure_file(ddff-convert.py ddff-convert @ONLY)
+configure_file(ddff_convert.py ddff-convert @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/ddff-convert
   DESTINATION ${CMAKE_INSTALL_BINDIR})
 

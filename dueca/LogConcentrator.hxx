@@ -24,6 +24,7 @@
 #include <LogLevelCommand.hxx>
 #include <EasyId.hxx>
 #include <InformationStash.hxx>
+#include <boost/scoped_ptr.hpp>
 
 
 DUECA_NS_START
@@ -67,8 +68,18 @@ class LogConcentrator: private StateGuard
       off. */
   ChannelReadToken               *r_level;
 
+  /** Write token, only used in node 0, for possible initial log level
+      changes. */
+  boost::scoped_ptr<ChannelWriteToken> w_level;
+
+  /** Callback object, to load initial log levels upon token validity */
+  Callback<LogConcentrator>           cb_initial;
+
   /** Stream to print to. */
   std::ostream& logfile;
+
+  /** Initial load function */
+  void cbLoadInitial(const TimeSpec& ts);
 
 public:
   /** Constructor. */

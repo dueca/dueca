@@ -41,7 +41,7 @@ namespace dueca {
 
 {{ namespacecmd0 }}{{ arraydimsimp }}{{ extraincludebody }}
 
-#if !defined(__DCO_STANDALONE)
+#if !defined(__DCO_STANDALONE) && !defined(__CUSTOM_MEMBERACCESS_TABLE)
 // static CommObjectMemberAccess objects, that can provide flexible access
 // to the members of a {{ name }} object{{ accessstatics }}
 
@@ -119,6 +119,7 @@ static ::dueca::DataClassRegistrar registrar
 #endif
 
 #if !defined(__DCO_STANDALONE)
+// Arena-supported operator new
 void* {{ name }}::operator new(size_t size)
 {
   DOBS("operator new {{ name }}");
@@ -127,6 +128,14 @@ void* {{ name }}::operator new(size_t size)
   return my_arena->alloc(size);
 }
 
+// For special cases, the placement operator new
+void* {{ name }}::operator new(size_t size, void* mem)
+{
+  DOBS("placement operator new {{ name }}");
+  return mem;
+}
+
+// With arena-supported delete
 void {{ name }}::operator delete(void* v)
 {
   DOBS("operator delete {{ name }}");

@@ -13,48 +13,28 @@
 
 // code originally written for this codegen version
 #define __CUSTOM_COMPATLEVEL_110
+#define __CUSTOM_COMPATLEVEL_111
 
-#define __CUSTOM_GETSTRING_Type
-const char* const getString(const DUECA_NS ::LogLevel::Type &o)
+LogLevel LogLevel_from_text(const char* text)
 {
-  static const char* Type_names[] = {
-    "d",
-    "i",
-    "w",
-    "e",
-    "-"};
-
-  return Type_names[int(o)];
-}
-
-#define __CUSTOM_READFROMSTRING_Type
-void readFromString(DUECA_NS ::LogLevel::Type &o, const std::string& s)
-{
-  for (int ii = 5; ii--; ) {
-    if (std::string(getString(DUECA_NS ::LogLevel::Type(ii))) == s) {
-      o = DUECA_NS ::LogLevel::Type(ii);
-      return;
-    }
-  }
-  o = DUECA_NS ::LogLevel::Invalid;
-}
-
-
-LogLevel::LogLevel(const char* s) :
-  t(Invalid)
-{
-  if (s != NULL) {
-    for (int ii = int(Invalid); ii--; ) {
-      if (s[0] == getString(Type(ii))[0]) {
-        t = Type(ii); return ;
-      }
-    }
+  switch(text[0]) {
+    case 'd': return LogLevel::Debug;
+    case 'i': return LogLevel::Info;
+    case 'w': return LogLevel::Warning;
+    case 'e': return LogLevel::Error;
+    default:
+    return LogLevel::Invalid;
   }
 }
 
-#define __CUSTOM_FUNCTION_PRINT
-std::ostream& LogLevel::print(std::ostream& os) const
+char LogLevel_to_letter(LogLevel lvl)
 {
-  return os << getString(t);
+  switch(lvl) {
+    case LogLevel::Debug: return 'd';
+    case LogLevel::Info: return 'i';
+    case LogLevel::Warning: return 'w';
+    case LogLevel::Error: return 'e';
+    default:
+    return 'x';
+  }
 }
-

@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0" />
+  <menu id="app-menubar">
+    <submenu id="file">
+      <attribute name="label" translatable="1">_File</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="1">_Open additional</attribute>
+          <attribute name="action">app.openadditional</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="1">_Quit</attribute>
+          <attribute name="action">app.quit</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu id="view_menu">
+      <attribute name="label" translatable="1">_View</attribute>
+      <!--  <section id="view_section">
+      </section>-->
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="1">_Help</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="1">_About</attribute>
+          <attribute name="action">app.about</attribute>
+        </item>
+      </section>
+    </submenu>
+  </menu>
+  <object class="GtkFileDialog" id="additional_def">
+    <property name="accept-label">Load Additional</property>
+    <property name="default-filter">
+      <object class="GtkFileFilter">
+        <mime-types>
+          <mime-type>text/plain</mime-type>
+          <mime-type>application/x-python-code</mime-type>
+          <mime-type>text/x-python</mime-type>
+        </mime-types>
+        <patterns>
+          <pattern>*.py</pattern>
+        </patterns>
+      </object>
+    </property>
+    <property name="title">Load additional initialization</property>
+  </object>
+  <object class="GtkApplicationWindow" id="dueca_if">
+    <property name="name">dueca_if</property>
+    <property name="title" translatable="1">DUECA/DUSIME control panel</property>
+    <property name="icon_name">applications-utilities</property>
+    <child>
+      <object class="GtkGrid">
+        <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="GtkPopoverMenuBar">
+            <property name="menu-model">app-menubar</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+              <property name="column-span">3</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="1">DUECA nodes</property>
+            <property name="vexpand">false</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="1">Entities</property>
+            <property name="vexpand">false</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkGrid">
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">Hardware</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">Model</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">0</property>
+                  <property name="column-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">stop</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">safe</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="1">work</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label7">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">stop</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label8">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">work</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_off">
+                <child>
+                  <object class="GtkPicture" id="hw_off_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_safe">
+                <child>
+                  <object class="GtkPicture" id="hw_safe_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_on">
+                <child>
+                  <object class="GtkPicture" id="hw_on_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="emergency">
+                <child>
+                  <object class="GtkPicture" id="emergency_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                  <property name="row-span">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="snap">
+                <property name="label" translatable="1">snap</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="1">calibrate</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="1">replay</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">inactive</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">hold</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">start</property>
+                <property name="label" translatable="1">advance</property>
+                <layout>
+                  <property name="column">3</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="inactive">
+                <child>
+                  <object class="GtkPicture" id="inactive_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="holdcurrent">
+                <child>
+                  <object class="GtkPicture" id="holdcurrent_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="advance">
+                <child>
+                  <object class="GtkPicture" id="advance_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="replay">
+                <child>
+                  <object class="GtkPicture" id="replay_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">6</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="hw_calibrate">
+                <child>
+                  <object class="GtkPicture" id="hw_calibrate_img">
+                    <property name="content-fit">GTK_CONTENT_FIT_CONTAIN</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">5</property>
+                </layout>
+              </object>
+            </child>
+            <layout>
+              <property name="column">3</property>
+              <property name="row">1</property>
+              <property name="row-span">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="propagate-natural-width">True</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkColumnView" id="entity_status">
+                <property name="width-request">240</property>
+                <property name="hexpand">1</property>
+                <child>
+                  <object class="GtkColumnViewColumn" id="entity_module_col">
+                    <property name="title" translatable="1">module</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="entity_module_fact" />
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="entity_mstatus_col">
+                    <property name="title" translatable="1">m stat</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="entity_mstatus_fact" />
+                    </property>
+
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="entity_sstatus_col">
+                    <property name="title" translatable="1">s stat</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="entity_sstatus_fact" />
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="entity_node_col">
+                    <property name="title" translatable="1">n#</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="entity_node_fact" />
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="propagate-natural-width">True</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkColumnView" id="nodes_list">
+                <property name="width-request">140</property>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title" translatable="1">#</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="nodes_number_fact" />
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title" translatable="1">status</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="nodes_state_fact" />
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

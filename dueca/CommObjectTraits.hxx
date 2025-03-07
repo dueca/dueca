@@ -143,6 +143,23 @@ template<> inline const char* getclassname<const smartstring>()
 { return getclassname<smartstring>(); }
 ///@}
 
+/** @name Trait defining struct for nested/primitive/enum distinction
+
+    @brief Defines different treatments of member for packing/unpacking
+           and information */
+///@{
+/** Object is nested (itself a DCO) */
+struct dco_isnested {};
+/** Object is a primitive or based on primitive data types */
+struct dco_isdirect {};
+/** Object is a primitive enum */
+struct dco_isenum : public dco_isdirect {};
+///@}
+
+/* By default, assume objects are direct. */
+template <typename T>
+struct dco_nested: public dco_isdirect { };
+
 /** @name Trait defining struct for read access to DCO members
 
     @brief Defines different treatments of members for reading */
@@ -280,7 +297,7 @@ struct dco_traits_iterablefix {
   constexpr const static MemberArity arity = FixedIterable;
 };
 
-/* standards for the some common stl containers. */
+/* standards for some common stl containers. */
 /* list is iterable, has a variable length */
 template <typename D>
 struct dco_traits<std::list<D> > : public dco_traits_iterable,
@@ -290,7 +307,7 @@ struct dco_traits<std::list<D> > : public dco_traits_iterable,
   {
     static const char* cname = NULL;
     if (!cname) {
-      PrintToChars _n; 
+      PrintToChars _n;
       _n << "std::list<" << dco_traits<D>::_getclassname() << ">";
       cname = _n.getNewCString();
     }
@@ -303,6 +320,9 @@ struct dco_traits<std::list<D> > : public dco_traits_iterable,
   typedef void key_type;
 };
 
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <typename D>
+struct dco_nested<std::list<D>> : public dco_nested<D> {};
 
 /* vector is iterable, has a variable length */
 template <typename D>
@@ -313,7 +333,7 @@ struct dco_traits<std::vector<D> > : public dco_traits_iterable,
   {
     static const char* cname = NULL;
     if (!cname) {
-      PrintToChars _n; 
+      PrintToChars _n;
       _n << "std::vector<" << dco_traits<D>::_getclassname() << ">";
       cname = _n.getNewCString();
     }
@@ -323,6 +343,10 @@ struct dco_traits<std::vector<D> > : public dco_traits_iterable,
   /** No key */
   typedef void key_type;
 };
+
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <typename D>
+struct dco_nested<std::vector<D>> : public dco_nested<D> {};
 
 struct dco_traits_mapped {
   typedef dco_read_map rtype;
@@ -341,7 +365,7 @@ struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
   {
     static const char* cname = NULL;
     if (!cname) {
-      PrintToChars _n; 
+      PrintToChars _n;
       _n << "std::map<" << dco_traits<K>::_getclassname() << ","
          << dco_traits<D>::_getclassname() << ">";
       cname = _n.getNewCString();
@@ -352,6 +376,10 @@ struct dco_traits<std::map<K,D> > : public dco_traits_mapped,
   /**  */
   typedef typename std::map<K,D>::key_type key_type;
   };
+
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <typename K, typename D>
+struct dco_nested<std::map<K,D>> : public dco_nested<D> {};
 
 struct dco_traits_pair {
   typedef dco_read_pair rtype;
@@ -368,7 +396,7 @@ struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single {
   {
     static const char* cname = NULL;
     if (!cname) {
-      PrintToChars _n; 
+      PrintToChars _n;
       _n << "std::pair<" << dco_traits<K>::_getclassname() << ","
          << dco_traits<D>::_getclassname() << ">";
       cname = _n.getNewCString();
@@ -379,14 +407,10 @@ struct dco_traits<std::pair<K,D> > : public dco_traits_pair, pack_single {
   typedef std::pair<K,D> value_type;
 };
 
-/* Information on nested objects (themselves DCO) or not */
-struct dco_isnested {};
-struct dco_isdirect {};
-struct dco_isenum : public dco_isdirect {};
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <typename K, typename D>
+struct dco_nested<std::pair<K,D>> : public dco_nested<D> {};
 
-/* By default, assume objects are direct. */
-template <typename T>
-struct dco_nested: public dco_isdirect { };
 
 /* Old function, classname when called with an object */
 template<typename T>
@@ -394,6 +418,10 @@ inline const char* getclassname(const T& a)
 {
   return dco_traits<T>::_getclassname();
 }
+
+/* Specifically for enum */
+template <typename T>
+const char* getenumintrep() { return "int64_t"; };
 
 DUECA_NS_END;
 

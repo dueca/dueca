@@ -31,7 +31,15 @@ struct CommObjectDataTable;
 #endif
 #include <iostream>
 {{ extraheader }}
+#ifndef NESTED_DCO
+#define NESTED_DCO
+#define MASTER_DCO_{{ name }}
+#endif
 {{ typeincludes }}
+#ifdef MASTER_DCO_{{ name }}
+#undef MASTER_DCO_{{ name }}
+#undef NESTED_DCO
+#endif
 {{ plug_header_include }}
 {{ namespacecmd0 }} {{ packpragma }}
 {{ classcomment }}
@@ -70,6 +78,9 @@ public:
       heap, but in one of the memory arenas. This to speed up
       memory management. */
   static void* operator new(size_t size);
+
+  /** accompanying placement operator "new" */
+  static void* operator new(size_t size, void* mem);
 
   /** new operator "delete", to go with the new version
       of operator new. */

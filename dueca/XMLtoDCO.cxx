@@ -22,16 +22,14 @@
 #include "smartstring.hxx"
 #include <algorithm>
 #include <cctype>
+
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
-
 
 DUECA_NS_START;
 
 xmldecodeexception::xmldecodeexception(const char* re) : reason(re) {}
 const char* xmldecodeexception::what() const noexcept { return reason; }
-
-
 
 template<class T>
 void readAny(const pugi::xml_node &doc, boost::any& val);
@@ -184,6 +182,7 @@ static void convertValue(pugi::xml_node& doc, boost::any& val,
     wmap[TYPEID(double)] = avfunction(readAny<double>);
     wmap[TYPEID(std::string)] = avfunction(readAny<std::string>);
     wmap[TYPEID(smartstring)] = avfunction(readAny<smartstring>);
+    wmap[TYPEID(Dstring<5>)] = avfunction(readAnyDstring<5>);
     wmap[TYPEID(Dstring<8>)] = avfunction(readAnyDstring<8>);
     wmap[TYPEID(Dstring<16>)] = avfunction(readAnyDstring<16>);
     wmap[TYPEID(Dstring<32>)] = avfunction(readAnyDstring<32>);

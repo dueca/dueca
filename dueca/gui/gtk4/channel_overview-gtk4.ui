@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Partly created with Cambalache 0.94.0 -->
+<interface>
+  <!-- interface-name channel_overview_gtk4.ui -->
+  <requires lib="gtk" version="4.10" />
+  <object class="GtkWindow" id="channel_view">
+    <property name="title">Channel Overview</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkFlowBox">
+            <child>
+              <object class="GtkButton" id="close">
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">window-close</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label">Close</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="refresh_times">
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">media-playlist-repeat</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label">Access #</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="propagate-natural-width">True</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkColumnView" id="channel_col_view">
+                <child>
+                  <object class="GtkColumnViewColumn" id="channel_col_num">
+                    <property name="title">chan #</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_channelnum">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="channel_col_name">
+                    <property name="title">chan name</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_channelname">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">entry #</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_entrynum">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">writer id</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_writerid">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">E/S</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_es">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="col_nwrites">
+                    <property name="title"># writes</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_nwrites">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">reader id</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_readerid">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="col_nreads">
+                    <property name="title"># reads</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_nreads">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">sel</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_sel">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">seq</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_seq">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">view</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="fact_view">
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

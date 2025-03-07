@@ -273,8 +273,10 @@ unsigned ChannelOverview::_processReadInfo(const ChannelReadInfo& data)
 }
 
 ChannelOverview::ChannelInfoSet::ChannelInfoSet(const std::string& name,
+                          unsigned chanid,
                                                 bool accesszero) :
   name(name),
+  chanid(chanid),
   accessfromzero(false)
 { }
 
@@ -285,6 +287,13 @@ ChannelOverview::ChannelInfoSet::EntryInfoSet::EntryInfoSet
   seq_id(0),
   monitor(NULL)
 { }
+
+ChannelOverview::ChannelInfoSet::EntryInfoSet::readerlist_t::const_iterator ChannelOverview::ChannelInfoSet::EntryInfoSet::getReader(unsigned creationid) const
+{
+  readerlist_t::const_iterator ii = rdata.begin();
+  for (; ii != rdata.end() && (*ii)->rdata.creationid != creationid; ii++);
+  return ii;
+}
 
 ChannelOverview::ChannelInfoSet::EntryInfoSet::ReadInfoSet::ReadInfoSet
 (unsigned readerid, const ChannelReadInfo& rdata) :
@@ -313,6 +322,7 @@ void ChannelOverview::processWriteInfo(const TimeSpec& ts, ChannelReadToken*& r)
         infolist[chanid].reset
           (new ChannelInfoSet
            (ChannelManager::single()->getGlobalNameSet(chanid).name,
+            wi.data().channelid.getObjectId(),
             wi.data().channelid.getLocationId() == 0));
 
         // creates the channel with entries
@@ -374,6 +384,7 @@ void ChannelOverview::processWriteInfo(const TimeSpec& ts, ChannelReadToken*& r)
 
           // just in case, remove the monitor
           delete infolist[chanid]->entries[entryid]->monitor;
+          infolist[chanid]->entries[entryid]->monitor = NULL;
           infolist[chanid]->entries[entryid].reset();
 
           // delete, add, replace the entry
@@ -474,12 +485,17 @@ void ChannelOverview::reflectChanges(unsigned chanid, unsigned entryid)
 }
 
 void ChannelOverview::reflectChanges(unsigned chanid, unsigned entryid,
-                                     uint32_t readid)
+                                     unsigned creationid)
 {
-  DEB("updated channel " << chanid << " entry " << entryid);
+  DEB("updated channel " << chanid << " entry " << entryid << " reader " << creationid);
 }
 
 void ChannelOverview::reflectCounts()
+{
+  DEB("new count");
+}
+
+void ChannelOverview::reflectCounts(unsigned chanid)
 {
   DEB("new count");
 }
@@ -568,6 +584,7 @@ void ChannelOverview::_processCount(const ChannelCountResult& cnt,
       }
     }
   }
+  reflectCounts(chanid);
 }
 
 void ChannelOverview::refreshMonitor(unsigned channelno, unsigned entryno)
@@ -643,6 +660,14 @@ void ChannelOverview::processMonitorData(const TimeSpec& ts)
 void ChannelOverview::closeMonitor(unsigned channelno, unsigned entryno)
 {
   DEB("should close " << channelno << " e:" << entryno);
+}
+
+const std::string& ChannelOverview::getChannelName(unsigned channelno) const
+{
+  static const std::string noname("noname");
+  if (channelno >= infolist.size() || !infolist[channelno])
+    return noname;
+  return infolist[channelno]->name;
 }
 
 // Make a TypeCreator object for this module, the TypeCreator

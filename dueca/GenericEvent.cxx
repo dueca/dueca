@@ -55,7 +55,7 @@ std::ostream& GenericEvent::print(std::ostream& os) const
 void GenericEvent::assumeDataOwnership(const GlobalId& new_owner) const
 {
   if (!own_event_data) {
-    /* DUECA channels.
+    /* DUECA channel.
 
        A really obsolete problem, with an old-style generic event passing
        data ownership.

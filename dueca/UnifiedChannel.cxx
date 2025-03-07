@@ -803,7 +803,9 @@ void UnifiedChannel::updateConfiguration(const UChannelCommRequest &msg)
             UCClientHandlePtr c = l->entry();
 
             // check for a match to this entry
-            if (c->requested_entry == entry_any ||
+            if ((c->requested_entry == entry_any  &&
+                (c->entrylabel.size() == 0 ||
+                  c->entrylabel == msg.entrylabel)) ||
                 c->requested_entry == entry ||
                 (c->requested_entry == entry_bylabel &&
                  c->entrylabel == msg.entrylabel)) {
@@ -1459,7 +1461,9 @@ UCClientHandlePtr UnifiedChannel::addReadToken(
     while (l != NULL) {
       UChannelEntryPtr e = l->entry();
       bool entrymatch =
-        (attach_entry == entry_any) || // writing entry and any match
+        (attach_entry == entry_any && (
+          entrylabel.size() == 0 ||
+          e->getLabel() == entrylabel)) || // writing entry and any match
         (attach_entry == entry_bylabel &&
          e->getLabel() == entrylabel) || // label match
         (attach_entry == e->getId()); // id match

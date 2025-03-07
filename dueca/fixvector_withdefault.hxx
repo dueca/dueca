@@ -24,7 +24,7 @@
 #include <type_traits>
 #include <vectorexceptions.hxx>
 #include <fixvector.hxx>
-#include <sstream>
+#include <boost/format.hpp>
 
 DUECA_NS_START;
 
@@ -40,23 +40,23 @@ DUECA_NS_START;
     @tparam BASE  Default base, default=1, initial and default values are
                   T(DEFLT)/T(BASE)
 */
-template <size_t N, typename T, int DEFLT, unsigned BASE=1>
+template <size_t N, typename T, int DEFLT, unsigned BASE = 1>
 class fixvector_withdefault : public fixvector<N, T>
 {
 public:
-  static constexpr const char* classname = "fixvector_default";
-  using typename fixvector<N,T>::value_type;
-  using typename fixvector<N,T>::pointer;
-  using typename fixvector<N,T>::reference;
-  using typename fixvector<N,T>::const_reference;
-  using typename fixvector<N,T>::const_pointer;
-  using typename fixvector<N,T>::iterator;
-  using typename fixvector<N,T>::const_iterator;
-  using typename fixvector<N,T>::const_reverse_iterator;
-  using typename fixvector<N,T>::reverse_iterator;
-  using typename fixvector<N,T>::iterator_category;
-  using typename fixvector<N,T>::size_type;
-  using typename fixvector<N,T>::difference_type;
+  static constexpr const char *classname = "fixvector_default";
+  using typename fixvector<N, T>::value_type;
+  using typename fixvector<N, T>::pointer;
+  using typename fixvector<N, T>::reference;
+  using typename fixvector<N, T>::const_reference;
+  using typename fixvector<N, T>::const_pointer;
+  using typename fixvector<N, T>::iterator;
+  using typename fixvector<N, T>::const_iterator;
+  using typename fixvector<N, T>::const_reverse_iterator;
+  using typename fixvector<N, T>::reverse_iterator;
+  using typename fixvector<N, T>::iterator_category;
+  using typename fixvector<N, T>::size_type;
+  using typename fixvector<N, T>::difference_type;
 
   /** constructor with default value for the data
       @param defval default fill value
@@ -69,23 +69,28 @@ public:
 
   /** constructor without default value for the data
    */
-  fixvector_withdefault() {
-    for (auto& v: fixvector<N,T>::d) { 
-      v = typename dco_traits<T>::value_type(DEFLT)/
-        typename dco_traits<T>::value_type(BASE); }
+  fixvector_withdefault()
+  {
+    for (auto &v : fixvector<N, T>::d) {
+      v = typename dco_traits<T>::value_type(DEFLT) /
+          typename dco_traits<T>::value_type(BASE);
+    }
   }
 
   /** copy constructor; copies the data */
   fixvector_withdefault(const fixvector<N, T> &other) :
-    fixvector<N,T>(other) {  }
+    fixvector<N, T>(other)
+  {}
 
   /** construct from iterators */
-  template <class InputIt> fixvector_withdefault(InputIt first, InputIt last) :
-    fixvector<N,T>(first, last) { }
+  template <class InputIt>
+  fixvector_withdefault(InputIt first, InputIt last) :
+    fixvector<N, T>(first, last)
+  {}
 
   /** assignment operator */
-  inline fixvector_withdefault<N,T,DEFLT,BASE> &operator=
-    (const fixvector_withdefault<N, T, DEFLT, BASE> &other)
+  inline fixvector_withdefault<N, T, DEFLT, BASE> &
+  operator=(const fixvector_withdefault<N, T, DEFLT, BASE> &other)
   {
     if (this == &other)
       return *this;
@@ -96,14 +101,20 @@ public:
 
   /** assignment operator, to value type */
   inline fixvector_withdefault<N, T, DEFLT, BASE> &operator=(const T &val)
-  { fixvector<N,T>::operator=(val); }
+  {
+    fixvector<N, T>::operator=(val);
+  }
 
   /** equality test */
-  inline bool operator==(const fixvector_withdefault<N, T, DEFLT, BASE> &other) const
-  { return fixvector<N,T>::operator==(other); }
+  inline bool
+  operator==(const fixvector_withdefault<N, T, DEFLT, BASE> &other) const
+  {
+    return fixvector<N, T>::operator==(other);
+  }
 
   /** inequality test */
-  inline bool operator!=(const fixvector_withdefault<N, T, DEFLT, BASE> &other) const
+  inline bool
+  operator!=(const fixvector_withdefault<N, T, DEFLT, BASE> &other) const
   {
     return !(*this == other);
   }
@@ -111,36 +122,46 @@ public:
   /** Set all elements to the default value. */
   void setDefault()
   {
-    for (auto &v : this->d) { 
-      v = typename dco_traits<T>::value_type(DEFLT)/
-        typename dco_traits<T>::value_type(BASE); }
+    for (auto &v : this->d) {
+      v = typename dco_traits<T>::value_type(DEFLT) /
+          typename dco_traits<T>::value_type(BASE);
+    }
   }
 };
 
 /** Template specialization, indicates how data in members of DCO
     objects should accessed through the CommObjects interfaces. */
 template <size_t N, typename D, int DEFLT, unsigned BASE>
-struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE> > :
+struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE>> :
   public dco_traits_iterablefix,
-  pack_constant_size, diffpack_fixedsize
+  pack_constant_size,
+  diffpack_fixedsize
 {
   /** Number of elements in the object */
   constexpr const static size_t nelts = N;
   /** Representative name */
-  static const char* _getclassname()
+  static const char *_getclassname()
   {
-    static std::stringstream cname;
-    if (cname.str().size() == 0) {
-      cname << "fixvector_withdefault<" << N << "," 
-            << dco_traits<D>::_getclassname() << "," 
-            << DEFLT << "," << BASE << ">";
+    static const char *cname = NULL;
+    if (!cname) {
+      PrintToChars _n;
+      _n << "fixvector_withdefault<" << N << ","
+         << dco_traits<D>::_getclassname() << "," << DEFLT << "," << BASE
+         << ">";
+      cname = _n.getNewCString();
     }
-    return cname.str().c_str();
+    return cname;
   }
   /** Value type for the elements of a trait's target */
   typedef D value_type;
   typedef void key_type;
 };
+
+/** Borrow nesting property (object, enum, primitive), from data type */
+template <size_t N, typename D, int DEFLT, unsigned BASE>
+struct dco_nested<fixvector_withdefault<N, D, DEFLT, BASE>> :
+  public dco_nested<D>
+{};
 
 DUECA_NS_END;
 
@@ -148,8 +169,8 @@ PRINT_NS_START;
 
 /** Print a fixvector */
 template <size_t N, typename T, int DEFLT, unsigned BASE>
-ostream &operator<< (ostream &os,
-                     const dueca::fixvector_withdefault<N, T, DEFLT, BASE> &v)
+ostream &operator<<(ostream &os,
+                    const dueca::fixvector_withdefault<N, T, DEFLT, BASE> &v)
 {
   os << "{";
   for (const auto x : v)
@@ -159,13 +180,11 @@ ostream &operator<< (ostream &os,
 
 PRINT_NS_END;
 
-#include "msgpack-unstream-iter.hxx"
-
 MSGPACKUS_NS_START;
 
 /** unstream/unpack a fixvector_default */
 template <typename S, size_t N, typename T, int DEFLT, unsigned BASE>
-inline void msg_unpack(S &i0, const S &iend,
-                       dueca::fixvector_withdefault<N, T, DEFLT, BASE> &i);
+void msg_unpack(S &i0, const S &iend,
+                dueca::fixvector_withdefault<N, T, DEFLT, BASE> &i);
 
 MSGPACKUS_NS_END;

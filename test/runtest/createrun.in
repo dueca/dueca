@@ -6,26 +6,37 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-@XVNCSERVER@ @DISPLAY@ -geometry @DISPLAYSIZE@ -noxstartup -SecurityTypes None
-XVNCSERVERPID=$!
-export DISPLAY=@DISPLAY@
-export GDK_BACKEND=x11
-export -n WAYLAND_DISPLAY
-echo "You should now create a VNC connection to localhost:5988"
+@NESTSERVER@ @DISPLAY@ @NESTEXTRAARGS@ &
+NESTSERVERPID=$!
+xauth extract @CMAKE_BINARY_DIR@/.Xauthority @DISPLAY@ 
+
 echo "Operate the DUECA process with mouse clicks and keypresses"
 echo "- F1 button to insert a color check at the cursor"
 echo "- F2 button to inserts a snapshot in the sequence"
+echo "- F3 button calibrates the "0,0" in the display windows"
 echo "- Esc to end the recording"
 sleep 1
-@WINDOWMANAGER@ &
+
+env -i DISPLAY=@DISPLAY@ \
+    GDK_BACKEND=x11 \
+    USER=${USER} HOME=${HOME} LC_ALL=en_US.UTF-8 PATH=${PATH} \
+    XAUTHORITY=@CMAKE_BINARY_DIR@/.Xauthority \
+    dbus-launch --exit-with-session @WINDOWMANAGER@ &
 sleep 1
-@Python_EXECUTABLE@ @CMAKE_CURRENT_SOURCE_DIR@/testrunner.py \
+env -i DISPLAY=@DISPLAY@ \
+    GDK_BACKEND=x11 DUECA_GTK4_AVOID_SVG=1 GTK_A11Y=none \
+    XDG_CONFIG_HOME=@CMAKE_CURRENT_SOURCE_DIR@ \
+    USER=${USER} HOME=${HOME} LC_ALL=en_US.UTF-8 PATH=${PATH} \
+    PYTHONPATH=${PYTHONPATH} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+    PKG_CONFIG_PATH=${PKG_CONFIG_PATH} \
+    XAUTHORITY=@CMAKE_BINARY_DIR@/.Xauthority \
+    @Python_EXECUTABLE@ @CMAKE_CURRENT_SOURCE_DIR@/testrunner.py \
        --base @TESTRUN_BASE@ \
        --control $1 --learn
 RESULT=$?
 sleep 1
 
-@XVNCSERVER@ -kill @DISPLAY@
+@NESTSERVER_CLEAN@
 exit ${RESULT}
 
 

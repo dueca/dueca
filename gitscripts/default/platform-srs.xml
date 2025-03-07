@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <configuration
-  xmlns="https://dueca.tudelft.nl"
+  xmlns="https://dueca.tudelft.nl/platform"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/platform.xsd">
+  xsi:schemaLocation="https://dueca.tudelft.nl/platform https://dueca.tudelft.nl/schemas/platform.xsd">
   <machineclasses>
     <machineclass name="srs-ecs" gui="gtk3" />
     <machineclass name="srs-io" gui="none">

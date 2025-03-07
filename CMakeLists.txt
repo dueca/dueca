@@ -4,20 +4,27 @@
 #       date            : 1610xx
 #       category        : cmake definition
 #       copyright       : (c) 2016 TUDelft-AE-C&S
+#       copyright       : (c) 2022- DUECA authors
 
 cmake_minimum_required(VERSION 3.0)
 
-cmake_policy(SET CMP0057 NEW)
-cmake_policy(SET CMP0075 NEW)
-cmake_policy(SET CMP0167 NEW)
+# set preferred policies
+foreach(P CMP0057 CMP0075 CMP0167)
+  if (POLICY ${P})
+    message(STATUS "Selecting NEW for policy ${P}")
+    cmake_policy(SET ${P} NEW)
+  else()
+    message(STATUS "Policy ${P} not known in this CMake")
+  endif()
+endforeach()
 
 # version information, please update accordingly
 set(VERMAJOR 4)
-set(VERMINOR 1)
-set(REVISION 3)
+set(VERMINOR 2)
+set(REVISION 1)
 set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "13 Nov 2024")
+set(VERSION_DATE "07 Mar 2025")
 string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
 set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 
@@ -52,10 +59,12 @@ option(BUILD_WEBSOCK       "Build a websocket external server" OFF)
 set(MAX_NODES    254 CACHE STRING "Maximum number of nodes")
 set(MAX_MANAGERS  32 CACHE STRING "Maximum number of priorities/managers")
 option(GREEDY_PERIODIC     "Optimistic triggering on activities made periodic" ON)
-option(BUILD_GTK2          "Build GTK2 interface" ON)
+option(BUILD_GTK2          "Build GTK2 interface" OFF)
 option(BUILD_GTKMM         "Build GTKMM interface" OFF)
-option(BUILD_GTK3          "Build GTK3 interface" OFF)
-option(BUILD_GTKMM3        "Build GTKMM interface" OFF)
+option(BUILD_GTK3          "Build GTK3 interface" ON)
+option(BUILD_GTKMM3        "Build GTKMM interface" ON)
+option(BUILD_GTK4          "Build GTK4 interface" ON)
+option(BUILD_GTKMM4        "Build GTKMM4 interface" OFF)
 option(BUILD_GTKGLEXT      "Use gtkglext for gtk2" ON)
 option(ALSO_INIT_GLUT      "Initialize glut for the utilities" OFF)
 option(BUILD_GLUT          "Build GLUT interface" ON)
@@ -99,6 +108,8 @@ option(BUILD_DDFF          "Build Delft Direct File Format logging" ON)
 option(TRY_INSTALL_PYTHON_BUILD "If needed, use pip to install python build" OFF)
 set(UNREAD_DATAPOINTS_THRESHOLD 1000 CACHE STRING
   "Threshold for warning about unread data in channels")
+set(RUNTEST_SERVER "Xephyr" CACHE STRING
+                           "Nested X server to use for runtest")
 
 if (APPLE)
   set(CMAKE_FIND_FRAMEWORK LAST)
@@ -120,11 +131,11 @@ if (DUECA_BUILD_STATIC AND (NOT DUECA_BUILD_DYNAMIC))
 endif()
 
 # c++11 option compiler flag for newer gcc
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.6)
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
-  endif()
-endif()
+#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+#  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.6)
+#    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
+#  endif()
+#endif()
 
 # RTC check
 if (RTC_RATE)
@@ -236,11 +247,21 @@ endif()
 # check c++-11 compat, and prefer
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-std=c++11" ELEVEN)
-if (ELEVEN)
-  message(STATUS "standard c++11")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+check_cxx_compiler_flag("-std=c++17" SEVENTEEN)
+if (SEVENTEEN)
+  message(STATUS "standard c++17")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 else()
-  message(STATUS "no c++11")
+  if (ELEVEN)
+    message(STATUS "standard c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  else()
+    message(STATUS "no c++11")
+  endif()
+  if (BUILD_GTKMM4)
+    message(WARNING "Unsetting GTKMM4, need c++17 for that")
+    set(BUILD_GTKMM4 OFF)
+  endif()
 endif()
 
 # hack, should test the flags, but simply check for compiler
@@ -356,16 +377,18 @@ pkg_check_modules(GTKMM24 gtkmm-2.4)
 pkg_check_modules(GTKGLEXT gtkglext-1.0)
 pkg_check_modules(GTK3 gtk+-3.0)
 pkg_check_modules(GTKMM30 gtkmm-3.0)
+pkg_check_modules(GTKMM40 gtkmm-4.0)
+pkg_check_modules(GTK4 gtk4)
 
 # rapidjson for channel data coding
 pkg_check_modules(RAPIDJSON RapidJSON)
 
 # msgpack should be there for storage and packing
-find_package(msgpack)
+find_package(msgpack-cxx)
 
-# opensuse variants have that in msgpack-cxx!
-if (NOT msgpack_FOUND)
-  find_package(msgpack-cxx REQUIRED)
+# opensuse variants and have that in msgpack-cxx!
+if (NOT msgpack_cxx_FOUND)
+  find_package(msgpack)
 endif()
 
 message(STATUS "msgpack ${MSGPACK_VERSION}")
@@ -663,6 +686,7 @@ if (NOT RSVGCONVERT STREQUAL "RSVGCONVERT-NOTFOUND")
     set(SVG_CONVERSION_COMMAND ${RSVGCONVERT})
     set(SVG_PNGFILE_ARG "--output")
     set(SVG_ICON_SIZE_ARG --width=18 --height=18 --keep-aspect-ratio)
+    set(SVG_ICON_SIZE2_ARG --width=24 --keep-aspect-ratio)
   else()
     message(WARNING "Test failed: ${RSVGCONVERT} --output=/dev/null ${CMAKE_SOURCE_DIR}/doc/images/threads.svg")
   endif()
@@ -681,6 +705,9 @@ if (NOT SVG_PNGFILE_ARG)
     set(SVG_CONVERSION_COMMAND ${INKSCAPE})
     set(SVG_ICON_SIZE_ARG
       --export-area-page --export-width=18 --export-height=18)
+      set(SVG_ICON_SIZE2_ARG
+      --export-area-page --export-width=24)
+
 
     # figure out the required argument for png export
     EXECUTE_PROCESS(COMMAND ${INKSCAPE} --export-filename="test.png"

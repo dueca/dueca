@@ -27,10 +27,19 @@ class AmorphReStore;
 #endif
 #include <dueca/CommObjectTraits.hxx>
 #endif
-
 #include <iostream>
+
 {{ extraheader }}
-{{ typeincludes }}{{ plug_header_include }}
+#ifndef NESTED_DCO
+#define NESTED_DCO
+#define MASTER_DCO_{{ name }}
+#endif
+{{ typeincludes }}
+#ifdef MASTER_DCO_{{ name }}
+#undef MASTER_DCO_{{ name }}
+#undef NESTED_DCO
+#endif
+{{ plug_header_include }}
 
 {{ namespacecmd0 }}
 {{ enumdec }}
@@ -64,6 +73,8 @@ PRINT_NS_END;
 /** This function retrieves the classname of {{ name }} */
 template <>
 const char* dueca::getclassname<{{objprefix}}{{name}}>();
+template <>
+const char* dueca::getenumintrep<{{objprefix}}{{name}}>();
 template <>
 inline const char* dueca::getclassname<const {{objprefix}}{{name}}>()
 { return dueca::getclassname<{{objprefix}}{{name}}>(); }

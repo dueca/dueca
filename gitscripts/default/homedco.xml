@@ -3,9 +3,9 @@
     Re-write the dco lines for dco objects that are from the same project as
     the module in which it is used; omit the module part.
 -->
-<policies xmlns="https://dueca.tudelft.nl"
+<policies xmlns="https://dueca.tudelft.nl/policies"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/policies.xsd">
+          xsi:schemaLocation="https://dueca.tudelft.nl/policies https://dueca.tudelft.nl/schemas/policies.xsd">
   <policy name="home-dco" id="24-001">
     <description>
       From dueca 4.0.9, comm-objects.lst files interpretation is more flexible

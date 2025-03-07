@@ -1289,7 +1289,7 @@ void Environment::quit()
 void Environment::setExitCode(int ecode)
 {
   if (exitcode != 0 && ecode == 0) {
-    /* DUECA System
+    /* DUECA system.
 
        A previous call to Environment::setExitCode set the exit code to
        nonzero, indicating an issue. Now the exitcode is reset to zero.

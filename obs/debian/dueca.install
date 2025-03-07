@@ -12,9 +12,7 @@ usr/lib/*/libdueca.*
 usr/lib/*/libdueca-start*.*
 usr/lib/*/libdueca-fltk*.*
 usr/lib/*/libdueca-glut*.*
-usr/lib/*/libdueca-gtk2*.*
-usr/lib/*/libdueca-gtk3*.*
-usr/lib/*/libdueca-gtkmm*.*
+usr/lib/*/libdueca-gtk*.*
 
 usr/lib/*/libdueca-ip*.*
 usr/lib/*/libdueca-shm*.*
@@ -23,17 +21,13 @@ usr/lib/*/libdueca-extra.*
 usr/lib/*/libdueca-extra-??.*
 usr/lib/*/libdueca-extra-fltk.*
 usr/lib/*/libdueca-extra-glut*.*
-usr/lib/*/libdueca-extra-gtk2*.*
-usr/lib/*/libdueca-extra-gtk3*.*
+usr/lib/*/libdueca-extra-gtk*.*
 usr/lib/*/libdueca-extra-X11*.*
-usr/lib/*/libdueca-extra-gtkmm*.*
 
 usr/lib/*/pkgconfig/dueca-extra*.pc
 usr/lib/*/pkgconfig/dueca-fltk*.pc
 usr/lib/*/pkgconfig/dueca-glut*.pc
-usr/lib/*/pkgconfig/dueca-gtk2*.pc
-usr/lib/*/pkgconfig/dueca-gtk3*.pc
-usr/lib/*/pkgconfig/dueca-gtkmm*.pc
+usr/lib/*/pkgconfig/dueca-gtk*.pc
 usr/lib/*/pkgconfig/dueca-ip*.pc
 usr/lib/*/pkgconfig/dueca-shm*.pc
 usr/lib/*/pkgconfig/dueca-start*.pc

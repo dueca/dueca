@@ -70,6 +70,9 @@ public:
   /** Determine the number of members in the object */
   size_t getNumMembers() const;
 
+  /** Directly reach the MemberAccess object */
+  const CommObjectMemberAccessBase &getMemberAccessor(unsigned i) const;
+
   /** assignment, needed for temporary copy MSGPACKtoDCO */
   CommObjectReaderWriter& operator = (const CommObjectReaderWriter& o);
 };

@@ -33,7 +33,7 @@ public:
 
   /** Value objects type */
   typedef T value_type;
-  
+
   /** Object is valid, filled, non-null */
   bool valid;
 
@@ -161,27 +161,8 @@ ostream &operator<< (ostream &os,
 
 PRINT_NS_END;
 
-
-
-#include "msgpack-unstream-iter.hxx"
-
-
-
 MSGPACKUS_NS_START;
+/** function to "stream" unpack from msgpack */
 template <typename S, size_t N, typename T>
 inline void msg_unpack(S &i0, const S &iend, dueca::fixvector<N, T> &i);
-
-/** unstream/unpack a fixvector_default */
-template <typename S, typename T>
-inline void msg_unpack(S &i0, const S &iend,
-                       dueca::fix_optional<T> &i)
-{
-  if (msg_isnil(i0, iend)) {
-    i.valid = false;
-    msg_unpack(i0, iend); // remove the nil
-  }
-  else {
-    msg_unpack(i0, iend, i.value);
-  }
-}
 MSGPACKUS_NS_END;

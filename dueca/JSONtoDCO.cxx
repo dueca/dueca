@@ -21,6 +21,9 @@
 #include <dueca/LogString.hxx>
 #include <smartstring.hxx>
 
+#define DEBPRINTLEVEL -1
+#include <debprint.h>
+
 DUECA_NS_START;
 
 
@@ -149,6 +152,7 @@ static void readValue(const JValue &doc, boost::any& val,
     wmap[TYPEID(double)] = avfunction(readAny<double>);
     wmap[TYPEID(std::string)] = avfunction(readAny<std::string>);
     wmap[TYPEID(smartstring)] = avfunction(readAny<smartstring>);
+    wmap[TYPEID(Dstring<5>)] = avfunction(readAnyDstring<5>);
     wmap[TYPEID(Dstring<8>)] = avfunction(readAnyDstring<8>);
     wmap[TYPEID(Dstring<16>)] = avfunction(readAnyDstring<16>);
     wmap[TYPEID(Dstring<32>)] = avfunction(readAnyDstring<32>);

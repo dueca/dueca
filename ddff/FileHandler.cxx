@@ -11,6 +11,7 @@
         license         : EUPL-1.2
 */
 
+#include <limits>
 #define FileHandler_cxx
 #include "FileHandler.hxx"
 #include "DDFFExceptions.hxx"
@@ -499,6 +500,8 @@ void FileHandler::StreamSetInfo::checkBlock(pos_type offset,
     }
   }
 
+  // if this block has no block following it, and lastblock not set
+  // then this block must be 
   if (hdata.next_offset == std::numeric_limits<pos_type>::max() &&
       lastblock_location == pos_type(-1)) {
     if (writer.get() != NULL && !writer->linkedToFile()) {

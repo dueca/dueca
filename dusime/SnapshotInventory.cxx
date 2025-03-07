@@ -374,6 +374,30 @@ bool SnapshotInventory::sendSelected()
   return true;
 }
 
+bool SnapshotInventory::sendNamed(const std::string& snapset)
+{
+  auto mapit = snapmap.find(snapset);
+  if (mapit == snapmap.end()) {
+    /* DUSIME replay&initial
+
+       Cannot find the given selected initials to send */
+    W_XTR("Entity " << entity << ", cannot send initial states \"" <<
+          snapset << "\"");
+    return false;
+  }
+
+  for (const auto &snap: mapit->second.snaps) {
+    DataWriter<Snapshot> ds(w_snapshots);
+    ds.data() = snap;
+  }
+
+  // new inco loaded
+  setMode(IncoLoaded);
+  loaded = snapset;
+
+  return true;
+}
+
 
 void SnapshotInventory::setMode(IncoInventoryMode mode)
 {

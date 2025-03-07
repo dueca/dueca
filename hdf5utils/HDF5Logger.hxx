@@ -49,23 +49,44 @@ USING_DUECA_NS;
 
 /** Generic HDF5 file format logging.
 
+    This provide a configurable interface to logging with HDF5 format.
+
+    HDF5 is hierarchical, you can specify where in the hierarchy the
+    data from a channel (or all entries in a channel) need to be logged.
+    The logger will for single values (floats, doubles, etc.) log hdf5
+    arrays in /your-path-in-hierarchy/data/variablename. Fixed size
+    (dueca::fixvector) values will be logged in a 2d array.
+
+    DUECA timing (tick) will belogged under /your-path-in-hierarchy/tick
+
+    There is a warning, however. Not all data type logging is equally easy
+    with hdf5, it works well for fixed-size stuff, but for variable-length
+    arrays, strings, etc., and high data rates, hfd5 logging is 
+    computationally intensive.
+
+    If you find that the hdf5 logging is taking up too much time, which
+    may manifest itself by complaints about activities not running on time
+    (ActivityManager qsize) and data build-up in the channels (entry # has
+     ..... data points), consider ddff logging, which is ridiculously
+    efficient for real-time logging. Afterwards you can convert the ddff
+    log to a hdf5 file, and use that in your data processing.
+
     The instructions to create an module of this class from the Scheme
     script are:
 
     \verbinclude hdf5-logger.scm
  */
-class HDF5Logger: public SimulationModule
+class HDF5Logger : public SimulationModule
 {
   /** self-define the module type, to ease writing parameter table */
   typedef HDF5Logger _ThisModule_;
 
 private: // simulation data
-
   // file for logging
   std::shared_ptr<H5::H5File> hfile;
 
   // file access properties
-  H5::FileAccPropList         access_proplist;
+  H5::FileAccPropList access_proplist;
 
   // chunk size
   unsigned chunksize;
@@ -95,7 +116,8 @@ private: // simulation data
   bool loggingactive;
 
   /** set of data for a targeted (read one entry) channel read&save */
-  struct TargetedLog {
+  struct TargetedLog
+  {
     /** path name for log */
     std::string logpath;
 
@@ -124,65 +146,64 @@ private: // simulation data
     boost::scoped_ptr<HDF5DCOWriteFunctor> functor;
 
     /** Constructor 1 */
-    TargetedLog(const std::string& channelname, const std::string& dataclass,
-                const std::string& label, const std::string& logpath,
+    TargetedLog(const std::string &channelname, const std::string &dataclass,
+                const std::string &label, const std::string &logpath,
                 const GlobalId &masterid, bool always_logging,
                 const DataTimeSpec *reduction, unsigned chunksize,
                 bool compress);
     /** Constructor 2 */
-    TargetedLog(const std::string& channelname, const std::string& dataclass,
-                const std::string& logpath, const GlobalId &masterid,
+    TargetedLog(const std::string &channelname, const std::string &dataclass,
+                const std::string &logpath, const GlobalId &masterid,
                 bool always_logging, const DataTimeSpec *reduction,
                 unsigned chunksize, bool compress);
 
     /** create the functor, e.g. when logging new file or new location */
     void createFunctor(std::weak_ptr<H5::H5File> nfile,
-                       const HDF5Logger *master,
-                       const std::string &prefix);
+                       const HDF5Logger *master, const std::string &prefix);
 
     /** Access channel and log */
-    void accessAndLog(const TimeSpec& ts);
+    void accessAndLog(const TimeSpec &ts);
 
     /** spool away old data */
-    void spool(const TimeSpec& ts);
+    void spool(const TimeSpec &ts);
 
     /** Destructor */
     ~TargetedLog();
   };
 
   /** Type definition for the list */
-  typedef std::list<std::shared_ptr<TargetedLog> > targeted_list_t;
+  typedef std::list<std::shared_ptr<TargetedLog>> targeted_list_t;
 
   /** List of targeted channel entries */
-  targeted_list_t             targeted;
+  targeted_list_t targeted;
 
   /** List of channel watchers */
-  typedef std::list<std::shared_ptr<EntryWatcher> > watcher_list_t;
+  typedef std::list<std::shared_ptr<EntryWatcher>> watcher_list_t;
 
   /** List of globally watched channels. */
-  watcher_list_t              watched;
+  watcher_list_t watched;
 
   /** Operation time */
-  DataTimeSpec                optime;
+  DataTimeSpec optime;
 
   /** Always on */
-  DataTimeSpec                alltime;
+  DataTimeSpec alltime;
 
   /** Reducing time specification? */
-  DataTimeSpec               *reduction;
+  DataTimeSpec *reduction;
 
 private: // channel reading
   /// Optionally taking config commands from user control
-  boost::scoped_ptr<ChannelReadToken>  r_config;
+  boost::scoped_ptr<ChannelReadToken> r_config;
 
   /// Feedback on logging status
-  ChannelWriteToken                    w_status;
+  ChannelWriteToken w_status;
 
   /// Send some status message
-  void sendStatus(const std::string& msg, bool error, TimeTickType moment);
+  void sendStatus(const std::string &msg, bool error, TimeTickType moment);
 
   /// list of stacked status messages
-  typedef std::list<std::pair<TimeTickType,DUECALogStatus> > statusstack_t;
+  typedef std::list<std::pair<TimeTickType, DUECALogStatus>> statusstack_t;
 
   /// list of stacked status messages
   statusstack_t statusstack;
@@ -190,24 +211,24 @@ private: // channel reading
 private: // activity allocation
   /** You might also need a clock. Don't mis-use this, because it is
       generally better to trigger on the incoming channels */
-  PeriodicAlarm         myclock;
+  PeriodicAlarm myclock;
 
   /** Callback object for simulation calculation. */
-  Callback<HDF5Logger>  cb1;
+  Callback<HDF5Logger> cb1;
 
   /** Activity for simulation calculation. */
-  ActivityCallback      do_calc;
+  ActivityCallback do_calc;
 
 public: // class name and trim/parameter tables
   /** Name of the module. */
-  static const char* const           classname;
+  static const char *const classname;
 
   /** Return the parameter table. */
-  static const ParameterTable*       getMyParameterTable();
+  static const ParameterTable *getMyParameterTable();
 
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
-  HDF5Logger(Entity* e, const char* part, const PrioritySpec& ts);
+  HDF5Logger(Entity *e, const char *part, const PrioritySpec &ts);
 
   /** Continued construction. This is called after all script
       parameters have been read and filled in, according to the
@@ -227,22 +248,22 @@ public: // construction and further specification
   // Delete if not needed!
 private:
   /** Specify a time specification for the simulation activity. */
-  bool setTimeSpec(const TimeSpec& ts);
+  bool setTimeSpec(const TimeSpec &ts);
 
   /** Request check on the timing. */
-  bool checkTiming(const vector<int>& i);
+  bool checkTiming(const vector<int> &i);
 
   /** Log a specific targeted entry in a channel */
-  bool logChannel(const vector<string>& i);
+  bool logChannel(const vector<string> &i);
 
   /** Watch all entries in a channel */
-  bool watchChannel(const vector<string>& i);
+  bool watchChannel(const vector<string> &i);
 
   /** Set reduction on the log rate */
-  bool setReduction(const TimeSpec& red);
+  bool setReduction(const TimeSpec &red);
 
   /** Listen to a channel with configuration commands */
-  bool setConfigChannel(const std::string& cname);
+  bool setConfigChannel(const std::string &cname);
 
 private: // member functions for cooperation with DUECA
   /** indicate that everything is ready. */
@@ -259,7 +280,7 @@ private: // member functions for cooperation with DUECA
 
 private: // the member functions that are called for activities
   /** the method that implements the main calculation. */
-  void doCalculation(const TimeSpec& ts);
+  void doCalculation(const TimeSpec &ts);
 
   friend class EntryWatcher;
 
@@ -270,12 +291,19 @@ private: // the member functions that are called for activities
   inline unsigned getChunkSize() const { return chunksize; }
 
   /** get a pointer to the operation time, for limiting logging */
-  inline const DataTimeSpec* getOpTime(bool always=true) const
-  { if (always) {return &alltime;} else {return &optime;} }
+  inline const DataTimeSpec *getOpTime(bool always = true) const
+  {
+    if (always) {
+      return &alltime;
+    }
+    else {
+      return &optime;
+    }
+  }
 
   /** Create filename based on time template */
-  std::string FormatTime(const boost::posix_time::ptime& now,
-                         const std::string& lft = "");
+  std::string FormatTime(const boost::posix_time::ptime &now,
+                         const std::string &lft = "");
 
   /** Logging toggle switch */
   void setLoggingActive(bool act);

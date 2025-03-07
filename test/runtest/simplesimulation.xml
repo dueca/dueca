@@ -1,7 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<scenario xmlns="https://dueca.tudelft.nl"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
+<scenario xmlns="https://dueca.tudelft.nl/testscenario" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl/testscenario https://dueca.tudelft.nl/schemas/testscenario.xsd">
   <project name="SimpleSimulation">
     <window>DUECA/DUSIME control panel</window>
     <window>Are you serious?</window>
@@ -17,53 +15,65 @@
     <platform>simlab</platform>
     <node>igtest</node>
   </execute>
+  <offset x="1" y="-13"/>
   <actions>
-    <check window="DUECA/DUSIME control panel" x="479" y="65" r="65" g="255" b="11" timeout="10.0" wait="10.5"/>
-    <snap name="simplesimulation-start.png"/>
-    <check window="DUECA/DUSIME control panel" x="479" y="111" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="111" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="111" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="477" y="108" r="65" g="255" b="11" timeout="15.0" wait="0.5"/>
-    <check window="DUECA/DUSIME control panel" x="477" y="150" r="104" g="104" b="104" timeout="15.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="477" y="150" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="477" y="150" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="478" y="190" r="65" g="255" b="11" timeout="15.0" wait="0.5"/>
     <!-- hold -->
-    <check window="DUECA/DUSIME control panel" x="478" y="237" r="104" g="104" b="104" timeout="15.0" wait="2.5"/>
-    <click window="DUECA/DUSIME control panel" x="478" y="237" button="Button.left" pressed="true" wait="2.2"/>
-    <click window="DUECA/DUSIME control panel" x="478" y="238" button="Button.left" pressed="false" wait="0.2"/>
     <!-- calibrate -->
-    <check window="DUECA/DUSIME control panel" x="428" y="235" r="104" g="104" b="104" timeout="15.0" wait="2.5"/>
-    <click window="DUECA/DUSIME control panel" x="428" y="235" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="428" y="235" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="476" y="277" r="104" g="104" b="104" timeout="15.0" wait="2.5"/>
-    <click window="DUECA/DUSIME control panel" x="476" y="277" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="476" y="277" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="HID GUI" x="29" y="99" r="246" g="245" b="244" timeout="10.0" wait="0.5"/>
-    <click window="HID GUI" x="29" y="99" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="HID GUI" x="29" y="99" button="Button.left" pressed="false" wait="0.5"/>
-    <snap name="simplesimulation-run.png"/>
-    <check window="DUECA/DUSIME control panel" x="479" y="236" r="104" g="104" b="104" timeout="10.0" wait="10.5"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="236" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="236" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="479" y="191" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="191" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="479" y="191" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="480" y="106" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="480" y="106" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="480" y="106" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="478" y="66" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="478" y="66" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="478" y="66" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="478" y="62" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="19" y="16" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="19" y="16" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="DUECA/DUSIME control panel" x="80" y="67" r="53" g="132" b="228" timeout="10.0" wait="0.5"/>
-    <click window="DUECA/DUSIME control panel" x="81" y="66" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="81" y="66" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="Are you serious?" x="109" y="63" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
-    <click window="Are you serious?" x="109" y="63" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="Are you serious?" x="109" y="63" button="Button.left" pressed="false" wait="0.2"/>
-    <snap name="simplesimulation-end.png"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="37" r="65" g="255" b="11" timeout="40.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="76" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="76" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="76" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="76" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <snap name="simplesimulation-000.png"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="118" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="118" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="118" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="119" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="161" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="415" y="153" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="415" y="153" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="474" y="202" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="202" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="474" y="202" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="204" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="423" y="205" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="423" y="205" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="423" y="205" button="Button.left" pressed="false" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="423" y="205" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="423" y="205" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="423" y="205" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="473" y="243" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="473" y="243" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="473" y="243" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="245" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="HID GUI" x="141" y="67" r="246" g="245" b="244" timeout="10.0" wait="0.5"/>
+    <click window="HID GUI" x="141" y="67" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="HID GUI" x="141" y="67" button="Button.left" pressed="false" wait="0.2"/>
+    <click window="HID GUI" x="61" y="69" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="HID GUI" x="61" y="69" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="203" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="203" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="203" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="161" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="161" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="161" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="161" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="77" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="77" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="475" y="77" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="475" y="77" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <check window="DUECA/DUSIME control panel" x="476" y="34" r="104" g="104" b="104" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="34" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="476" y="34" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="476" y="34" r="65" g="255" b="11" timeout="10.0" wait="0.5"/>
+    <click x="401" y="81" button="Button.left" pressed="true" wait="0.2"/>
+    <click x="401" y="81" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="DUECA/DUSIME control panel" x="60" y="35" r="53" g="132" b="228" timeout="10.0" wait="0.5"/>
+    <click window="DUECA/DUSIME control panel" x="60" y="35" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="60" y="35" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="Are you serious?" x="98" y="36" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
+    <click window="Are you serious?" x="98" y="36" button="Button.left" pressed="true" wait="0.2"/>
+    <click x="142" y="187" button="Button.left" pressed="false" wait="0.2"/>
+    <click x="142" y="187" button="Button.left" pressed="true" wait="0.2"/>
   </actions>
 </scenario>

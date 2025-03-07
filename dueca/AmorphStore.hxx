@@ -16,7 +16,7 @@
 
 #ifndef AmorphStore_hh
 #define AmorphStore_hh
-#include "GlobalId.hxx"
+#include <GlobalId.hxx>
 #define HAVE_NUMERIC_LIMITS
 #include <stringoptions.h>
 // HACK

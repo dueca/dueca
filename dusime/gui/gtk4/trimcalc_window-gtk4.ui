@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <column type="gchar"/>
+      <column type="gfloat"/>
+    </columns>
+  </object>
+  <object class="GtkWindow" id="trimcalc_window">
+    <property name="title" translatable="1">Trim calculation</property>
+    <property name="child">
+      <object class="GtkBox" id="hbox2">
+        <property name="can_focus">0</property>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolledwindow3">
+            <property name="halign">center</property>
+            <property name="visible">0</property>
+            <property name="width_request">420</property>
+            <property name="hscrollbar_policy">always</property>
+            <property name="vscrollbar_policy">always</property>
+            <property name="shadow_type">in</property>
+            <property name="child">
+              <object class="GtkTreeView" id="trim_tree">
+                <property name="visible">0</property>
+                <property name="width_request">170</property>
+                <property name="height_request">150</property>
+                <property name="model">liststore1</property>
+                <property name="search_column">2</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="treeview-selection1"/>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="vbox5">
+            <property name="halign">center</property>
+            <property name="orientation">vertical</property>
+            <property name="can_focus">0</property>
+            <child>
+              <object class="GtkLabel" id="label33">
+                <property name="valign">center</property>
+                <property name="visible">0</property>
+                <property name="label" translatable="1">mode</property>
+                <property name="justify">center</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkComboBoxText" id="trim_mode">
+                <property name="vexpand">1</property>
+                <property name="active">0</property>
+                <items>
+                  <item id="0" translatable="yes">FlightPath</item>
+                  <item id="1" translatable="yes">Speed</item>
+                  <item id="2" translatable="yes">Ground</item>
+                </items>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="trim_calculate">
+                <property name="valign">center</property>
+                <property name="visible">0</property>
+                <property name="label" translatable="1">calculate</property>
+                <signal name="clicked" handler="on_trim_calculate_clicked" swapped="no"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="trim_cancel">
+                <property name="valign">center</property>
+                <property name="visible">0</property>
+                <property name="label" translatable="1">cancel</property>
+                <signal name="clicked" handler="on_trim_cancel_clicked" swapped="no"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="trim_status">
+                <property name="valign">center</property>
+                <property name="visible">0</property>
+                <property name="label" translatable="1">status</property>
+                <property name="justify">center</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="trim_entry_field">
+                <property name="valign">center</property>
+                <property name="visible">0</property>
+                <property name="climb_rate">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button1">
+                <property name="valign">center</property>
+                <property name="visible">0</property>
+                <property name="label" translatable="1">close</property>
+                <signal name="clicked" handler="on_trim_closewindow_clicked" swapped="no"/>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>

@@ -47,6 +47,7 @@ public:
                     std::string& key) = 0;
   virtual void peek(boost::any& res,
                     boost::any& key) = 0;
+  virtual void peek(long& res) = 0;
 
   virtual CommObjectReader recurse(std::string& key) = 0;
   virtual CommObjectReader recurse(boost::any& key) = 0;
@@ -187,7 +188,7 @@ public:
 private:
   inline CommObjectReader recurse(std::string& key, const dco_isnested&)
   { get_key(key,typename dco_traits<T>::rtype());
-    return CommObjectReader(par::elt_value_type::classname,
+    return CommObjectReader(getclassname<typename par::elt_value_type>(),
                             &get_object(typename dco_traits<T>::rtype())); }
 
   inline CommObjectReader recurse(std::string& key, const dco_isdirect&)
@@ -195,7 +196,7 @@ private:
 
   inline CommObjectReader recurse(boost::any& key, const dco_isnested&)
   { get_key(key, typename dco_traits<T>::rtype());
-    return CommObjectReader(par::elt_value_type::classname,
+    return CommObjectReader(getclassname<typename par::elt_value_type>(),
                             &get_object(typename dco_traits<T>::rtype())); }
   inline CommObjectReader recurse(boost::any& key, const dco_isdirect&)
   { throw TypeIsNotNested(); }
@@ -241,9 +242,9 @@ private:
   { key = par::object->value; } 
 
 public:
-  void read(std::string& res, std::string& key)
+  void read(std::string& res, std::string& key) final
   { read_as(res, key, dco_nested<typename par::elt_value_type>()); }
-  void read(boost::any& res, boost::any& key)
+  void read(boost::any& res, boost::any& key) final
   { read_any(res, key, dco_nested<typename par::elt_value_type>()); }
 
 private:
@@ -264,11 +265,13 @@ private:
       (std::string(getString(get_object(typename dco_traits<T>::rtype()))));}
 
 public:
-  void peek(std::string& res, std::string& key)
+  void peek(std::string& res, std::string& key) final
   { peek_as(res, key, dco_nested<typename par::elt_value_type>()); }
-  void peek(boost::any& res, boost::any& key)
+  void peek(boost::any& res, boost::any& key) final
   { peek_any(res, key, dco_nested<typename par::elt_value_type>()); }
-
+  void peek(long& res) final
+  { peek_long(res, dco_nested<typename par::elt_value_type>()); }
+  
 private:
   void peek_as(std::string& val, std::string& key, const dco_isnested&)
   { throw ConversionNotDefined() ;}
@@ -285,6 +288,12 @@ private:
   { get_key(key, typename dco_traits<T>::rtype());
     val = boost::any
       (std::string(getString(peek_object(typename dco_traits<T>::rtype()))));}
+  void peek_long(long& val, const dco_isnested&)
+  { throw ConversionNotDefined();}   
+  void peek_long(long& val, const dco_isdirect&)
+  { throw ConversionNotDefined();}
+  void peek_long(long& val, const dco_isenum&)
+  { val = long(peek_object(typename dco_traits<T>::rtype())); }
 };
 
 DUECA_NS_END;

@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	   targetNamespace="https://dueca.tudelft.nl"
-	   xmlns="https://dueca.tudelft.nl"
+	   targetNamespace="https://dueca.tudelft.nl/policylist"
+	   xmlns="https://dueca.tudelft.nl/policylist"
 	   elementFormDefault="qualified">
   <!-- schema for a file in a DUECA project that lists applied policies -->
-  
+
   <xs:element name="policies">
     <xs:complexType>
       <xs:sequence>

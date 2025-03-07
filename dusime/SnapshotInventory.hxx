@@ -245,6 +245,9 @@ public:
   /** Send initial states for the selected snapshot set */
   bool sendSelected();
 
+  /** Send initial states for a named snapshot set */
+  bool sendNamed(const std::string& snapset);
+
   /** change selection */
   inline bool changeSelection(const char* newsel)
   { if (snapmap.count(newsel)) { selected = newsel; return true; }

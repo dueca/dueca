@@ -15,7 +15,6 @@
 
 #include "DuecaGLCanvas.hxx"
 #include "OpenGLHelper.hxx"
-#include "Environment.hxx"
 
 // The dueca version tries to read the config, and uses the environment
 // to find out which graphic interface is used (and thus how to start

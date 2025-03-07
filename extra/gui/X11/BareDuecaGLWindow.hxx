@@ -245,6 +245,16 @@ public:
       before opening the window with openWindow. */
   void setWindow(int posx, int poxy, int width, int height);
 
+  /** Set the graphics content as current. 
+
+      Note that this is normally not needed, in the initGL, display and 
+      reshape callbacks, the GC will be current. You can use this in your
+      destructor, when GL objects are deleted, and you need a correct GC
+      for that.
+
+      @param do_select  When false, resets the GC */
+  void selectGraphicsContext(bool do_select=true);
+
   /** Destructor */
   virtual ~BareDuecaGLWindow();
 

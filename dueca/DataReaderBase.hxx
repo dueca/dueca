@@ -76,11 +76,11 @@ protected:
   { return b.token.getAccess(t, ts_data, b.data_origin, magic); }
 
   /** Access the DataReaderBase request time */
-  inline const DataTimeSpec &t_request(DataReaderBase& b) {return b.t_request;}
+  inline const DataTimeSpec &t_request(DataReaderBase& b) const {return b.t_request;}
   /** Access the DataReaderBase data time */
-  inline DataTimeSpec &ts_data(DataReaderBase& b) { return b.ts_data; }
+  inline DataTimeSpec &ts_data(DataReaderBase& b) const { return b.ts_data; }
   /** Access the DataReaderBase access boolean */
-  inline bool &firstaccess(DataReaderBase& b) { return b.firstaccess; }
+  inline bool &firstaccess(DataReaderBase& b) const { return b.firstaccess; }
   /** Release the read access again */
   inline void releaseAccess(ChannelReadToken& token, const void* data_ptr)
   { if (data_ptr) token.releaseAccess(data_ptr); }

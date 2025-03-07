@@ -9,7 +9,7 @@
         license         : EUPL-1.2")
 
 ;; Different log levels
-(Enum Type uint8_t
+(Enum LogLevel uint8_t
       ;; A lot of information, on regular activities
       Debug
       ;; Some information, on state changes etc.
@@ -22,8 +22,6 @@
       Invalid)
 
 ;; Defines different possible levels for logging data
-(EventAndStream LogLevel
-                (IncludeFile LogLevelExtra)
-                ;; The actual error level
-                (Type t (Default LogLevel::Debug))
-                )
+(Enumerator LogLevel
+           (IncludeFile LogLevelExtra)
+      )

@@ -48,12 +48,14 @@ public:
   /** New data from the handler */
   virtual void refreshData(const ChannelMonitorResult& rdata);
 
-    /** close the window */
+  /** close the window */
   virtual void close();
 
   /** open the window */
   virtual void open();
 
+  /** check open */
+  virtual bool isOpen() const;
 };
 
 DUECA_NS_END

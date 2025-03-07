@@ -27,8 +27,7 @@
 
 DDFF_NS_START
 
-FileStreamWrite::FileStreamWrite(FileHandler* fh, unsigned id,
-                                 size_t bufsize) :
+FileStreamWrite::FileStreamWrite(FileHandler *fh, unsigned id, size_t bufsize) :
   buffers(0, "FileStreamWrite"),
   current_buffer(NULL),
   stream_id(id),
@@ -43,15 +42,18 @@ FileStreamWrite::FileStreamWrite(FileHandler* fh, unsigned id,
   // are intiated straight away. If a stream is created for extending
   // a stream in an existing file, the bufsize is set to zero, and
   // initBuffers is called later.
-  if (bufsize) { initBuffers(bufsize); }
+  if (bufsize) {
+    initBuffers(bufsize);
+  }
 }
 
 void FileStreamWrite::initBuffers(size_t bufsize)
 {
-  if (buffers.allocator.bufsize) { throw incorrect_init(); }
+  if (buffers.allocator.bufsize) {
+    throw incorrect_init();
+  }
 
-  DEB("FileStreamWrite, allocating " << 3 <<
-      " buffers, sz=" << bufsize);
+  DEB("FileStreamWrite, allocating " << 3 << " buffers, sz=" << bufsize);
 
   // ensure allocation with proper buffer size
   buffers.allocator.bufsize = bufsize;
@@ -64,13 +66,13 @@ void FileStreamWrite::initBuffers(size_t bufsize)
   // data, and reset to the proper state
 }
 
-void FileStreamWrite::blockWritten(pos_type offset, std::fstream& file)
+void FileStreamWrite::blockWritten(pos_type offset, std::fstream &file)
 {
   linked_to_file = true;
   if (previousblock_offset != -1L) {
-    DEB("FileStreamWrite stream=" << getStreamId() <<
-        " linking block at 0x" << std::hex << previousblock_offset <<
-        " to 0x" << offset << std::dec);
+    DEB("FileStreamWrite stream=" << getStreamId() << " linking block at 0x"
+                                  << std::hex << previousblock_offset
+                                  << " to 0x" << offset << std::dec);
     pos_type tmpoffset = file.tellg();
     file.seekg(previousblock_offset, std::ios::beg);
     char data[8];
@@ -91,8 +93,8 @@ void FileStreamWrite::closeOff(bool intermediate)
 {
   if (intermediate) {
     // copy the back-end current buffer
-    typename AQMTMessageBufferAlloc::element_ptr
-      tmp_buffer {get_list_spare(buffers)};
+    typename AQMTMessageBufferAlloc::element_ptr tmp_buffer{ get_list_spare(
+      buffers) };
     tmp_buffer->data = current_buffer->data;
 
     // and zero any remaining data, so the file stays clean
@@ -100,9 +102,9 @@ void FileStreamWrite::closeOff(bool intermediate)
 
     // adjust the offset on the current buffer to indicate where the new data is
     // current_buffer->data.offset = current_buffer->data.fill;
-    DEB("FileStreamWrite, intermediate close-off stream " << stream_id
-        << " at " << current_buffer->data.fill
-        << " buffer id " << current_buffer->data.creation_id);
+    DEB("FileStreamWrite, intermediate close-off stream "
+        << stream_id << " at " << current_buffer->data.fill << " buffer id "
+        << current_buffer->data.creation_id);
     DEB("Transferred data to buffer id " << tmp_buffer->data.creation_id);
     // append to the list of buffers to write to file
     write_list_back(buffers, tmp_buffer);
@@ -115,9 +117,9 @@ void FileStreamWrite::closeOff(bool intermediate)
 
     // take the current buffer and append to list of buffers to write
     write_list_back(buffers, current_buffer);
-    DEB("FileStreamWrite, final close-off stream " << stream_id
-	<< " at " << current_buffer->data.fill
-        << " buffer id " << current_buffer->data.creation_id);
+    DEB("FileStreamWrite, final close-off stream "
+        << stream_id << " at " << current_buffer->data.fill << " buffer id "
+        << current_buffer->data.creation_id);
 
     // stop further loading
     current_buffer = NULL;
@@ -143,8 +145,8 @@ FileStreamWrite::increment(FileStreamWrite::Iterator::pointer m_ptr)
 
   // normal case, writing within buffer
   if (++current_buffer->data.fill < current_buffer->data.capacity) {
-    DEB3("FileStreamWrite, increment below capacity to " <<
-         current_buffer->data.fill);
+    DEB3("FileStreamWrite, increment below capacity to "
+         << current_buffer->data.fill);
     return ++m_ptr;
   }
 
@@ -169,40 +171,38 @@ FileStreamWrite::Iterator FileStreamWrite::iterator()
   return Iterator(this);
 }
 
-const FileStreamWrite::Iterator& FileStreamWrite::end() const
+const FileStreamWrite::Iterator &FileStreamWrite::end() const
 {
   static const Iterator end_it(NULL);
   return end_it;
 }
 
-FileStreamWrite::Iterator::Iterator
-(FileStreamWrite *stream) :
+FileStreamWrite::Iterator::Iterator(FileStreamWrite *stream) :
   stream(stream),
   m_ptr(stream ? stream->current() : NULL)
 {
   //
 }
 
-void FileStreamWrite::write(const char* data, std::size_t nbytes)
+void FileStreamWrite::write(const char *data, std::size_t nbytes)
 {
   if (current_buffer->data.fill + nbytes < current_buffer->data.capacity) {
 
     // object fits in the buffer, simply write
-    DEB3("FileStreamWrite, stream=" << stream_id << " write " <<
-         nbytes << " bytes");
+    DEB3("FileStreamWrite, stream=" << stream_id << " write " << nbytes
+                                    << " bytes");
     current_buffer->data.write(data, nbytes);
-
   }
   else {
 
     // object does not fit or it completely fills the buffer, write what
     // fits, switch buffers, and try again
-    unsigned excess = current_buffer->data.fill + nbytes -
-      current_buffer->data.capacity;
-    current_buffer->data.write
-      (data, current_buffer->data.capacity - current_buffer->data.fill);
-    DEB1("FileStreamWrite, stream=" << stream_id << " write " <<
-         nbytes << " bytes, excess=" << excess);
+    unsigned excess =
+      current_buffer->data.fill + nbytes - current_buffer->data.capacity;
+    current_buffer->data.write(data, current_buffer->data.capacity -
+                                       current_buffer->data.fill);
+    DEB1("FileStreamWrite, stream=" << stream_id << " write " << nbytes
+                                    << " bytes, excess=" << excess);
 
     // process the full buffer
     write_list_back(buffers, current_buffer);
@@ -229,13 +229,15 @@ const DDFFMessageBuffer::ptr_type FileStreamWrite::getBufferToWrite()
   buffer->stream_id = stream_id;
 
   // only increase buffer_num, when not doing an incomplete buffer
-  DEB1("FileStreamWrite, stream " << stream_id <<
-       " buffer to write, fill=" << buffer->fill <<
-       " num " << buffer_num << " id " << buffer->creation_id <<
-       " partial " << buffer->partial());
+  DEB1("FileStreamWrite, stream "
+       << stream_id << " buffer to write, fill=" << buffer->fill << " num "
+       << buffer_num << " id " << buffer->creation_id << " partial "
+       << buffer->partial());
 
   // increment for next round
-  if (!buffer->partial()) { ++buffer_num; }
+  if (!buffer->partial()) {
+    ++buffer_num;
+  }
 
   // pass the result
   return buffer;
@@ -247,21 +249,22 @@ void FileStreamWrite::writingComplete()
   buffers.pop();
 }
 
-bool FileStreamWrite::shiftOffset(std::fstream& file)
+bool FileStreamWrite::shiftOffset(std::fstream &file)
 {
   if (partialblock_offset == pos_type(-1)) {
     return false;
   }
 
-  DEB1("FileStreamWrite, shiftoffset to 0x" << std::hex <<partialblock_offset <<
-       std::dec << " stream " << stream_id);
+  DEB1("FileStreamWrite, shiftoffset to 0x" << std::hex << partialblock_offset
+                                            << std::dec << " stream "
+                                            << stream_id);
   file.seekg(partialblock_offset, std::ios::beg);
   partialblock_offset = pos_type(-1);
   return true;
 }
 
-bool FileStreamWrite::markItemStart(TimeTickType& start_stretch,
-                                    const DataTimeSpec& ts)
+bool FileStreamWrite::markItemStart(TimeTickType &start_stretch,
+                                    const DataTimeSpec &ts)
 {
   if (ts.getValidityStart() >= start_stretch ||
       ts.getValidityEnd() > start_stretch) {
@@ -274,12 +277,12 @@ bool FileStreamWrite::markItemStart(TimeTickType& start_stretch,
 bool FileStreamWrite::markItemStart()
 {
   if (current_buffer->data.object_offset) {
-    DEB3("FileStreamWrite, object mark stream=" << stream_id <<
-         " already marked");
+    DEB3("FileStreamWrite, object mark stream=" << stream_id
+                                                << " already marked");
     return false;
   }
-  DEB1("FileStreamWrite, marking start of an object, stream=" << stream_id
-       << " at " << current_buffer->data.fill);
+  DEB1("FileStreamWrite, marking start of an object, stream="
+       << stream_id << " at " << current_buffer->data.fill);
   current_buffer->data.object_offset = current_buffer->data.fill;
   return true;
 }
@@ -290,8 +293,8 @@ void FileStreamWrite::recordOffsetForRewrite(uint64_t offset)
   partialblock_offset = offset;
 }
 
-DDFFMessageBuffer::value_type*
-FileStreamWrite::accessBuffer(pos_type offset, const ControlBlockRead& info)
+DDFFMessageBuffer::value_type *
+FileStreamWrite::accessBuffer(pos_type offset, const ControlBlockRead &info)
 {
   assert(info.stream_id == getStreamId());
 

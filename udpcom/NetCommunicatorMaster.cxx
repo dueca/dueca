@@ -776,7 +776,7 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
          Rogue message came through! Old DUECA's interfering? Second
          DUECA process running?
       */
-      W_MOD("Network message likely from another DUECA group");
+      W_NET("Network message likely from another DUECA group");
       data_comm->returnBuffer(buffer);
       return;
     }

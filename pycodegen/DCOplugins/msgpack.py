@@ -189,6 +189,11 @@ struct UnpackVisitor<msgpack_container_dco,{{ nsprefix }}{{ name }}>:
 } // namespace messagepack
 } // namespace dueca
 
+namespace msgunpack {
+template<typename S>
+void msg_unpack(S& i0, const S& iend, {{ nsprefix }}{{ name }}&i);
+} // namespace msgunpack
+
 # ifndef __CUSTOM_MSGPACK_UNPACK_{{ name }}
 namespace msgunpack {
 template<typename S>
@@ -289,7 +294,7 @@ struct DDFFDCOReadFunctor: public dueca::ddff::DDFFDCOReadFunctor {
 
     // when completely in the recording range, as it should be
     if (ts.getValidityStart() >= startend->getValidityStart()) {
-      pk.pack(ts.getValidityStart() - startend->getValidityStart());
+      pk.pack(ts.getValidityStart());
       pk.pack(ts.getValiditySpan());
     }
 
@@ -405,16 +410,18 @@ class AddOn(object):
         """ print the lines that will be added to the header's include area
         """
         return """
-# include <dueca/msgpack.hxx>
-# include <dueca/msgpack-unstream-iter.hxx>"""
+#include <dueca/msgpack.hxx>
+#include <dueca/msgpack-unstream-iter.hxx>
+#ifndef NESTED_DCO
+#include <dueca/msgpack-unstream-iter.ixx>
+#endif"""
 
     def printBodyInclude(self):
         """ print the lines that will be added to the body's include area
         """
         return """
 # include <algorithm>
-# include <ddff/DDFFDCOMetaFunctor.hxx>
-# include <dueca/msgpack-unstream-iter.ixx>"""
+# include <ddff/DDFFDCOMetaFunctor.hxx>"""
 
     def printBodyCheck(self):
         """print the lines *after* a possible include of custom body code to

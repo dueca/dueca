@@ -72,6 +72,10 @@ void DuecaView::refreshNodesView()
   // only action in derived class
 }
 
+void DuecaView::syncNode(void* nid)
+{
+  // action in derived class
+}
 
 void DuecaView::refreshEntitiesView()
 {

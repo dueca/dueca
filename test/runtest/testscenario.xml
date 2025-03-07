@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<scenario xmlns="https://dueca.tudelft.nl"
+<scenario xmlns="https://dueca.tudelft.nl/testscenario"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/testscenario.xsd">
+xsi:schemaLocation="https://dueca.tudelft.nl/testscenario https://dueca.tudelft.nl/schemas/testscenario.xsd">
   <project name="FlexiStick">
     <window>DUECA/DUSIME control panel</window>
     <window>HID feedback</window>
@@ -12,6 +12,7 @@ xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/te
     <platform>solo</platform>
     <node>solo</node>
   </execute>
+  <offset x="1" y="-10"/>
   <actions>
     <check window="HID feedback" x="13" y="14" r="0" g="0" b="0" timeout="5.0"/>
     <click window="HID feedback" x="13" y="14" button="Button.left" pressed="true"/>

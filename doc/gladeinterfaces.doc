@@ -3,7 +3,7 @@
 For many experiments and simulations, it would be nice if the
 experiment controller (usually you) can operate the simulation with a
 graphical interface. The DUECA interfaces are based on GTK (GTK 3.x,
-currently, and GTK 3.x is also still supported, but not recommended
+currently, and GTK 2.x is also still supported, but not recommended
 for new projects), and things are kept as simple as possible if you
 create the interface for your experiment with that same toolkit.
 
@@ -21,7 +21,7 @@ supplied by DUECA.
 The dueca::GtkGladeWindow class builds the interface directly from
 your glade file. It only needs to be able to read the interface
 file. So add the glade file to the repository with \ref appdevel
-"dueca-gproject".  Then create a dueca::GtkGladeWindow object in your
+"dueca-gproject". Then create a dueca::GtkGladeWindow object in your
 interface class and supply it with the name of your glade file:
 
 \code
@@ -35,6 +35,9 @@ class MyInterface: public Module
 private: // simulation data
   // declare the data you need in your simulation
   GtkGladeWindow window;
+
+  // and more ...
+}
 \endcode
 
 And in the cxx file, open the window (e.g. in complete())
@@ -66,16 +69,18 @@ example, consider a button to load a file. In your class definition
   void cbLoad(GtkButton* button, gpointer gp);
 \endcode
 
-(It is customary to react to a release event before running
-actions). To figure what the arguments to such a call must be, add the
-signal to the button and ask glade to generate C source code from your
-interface file. By adding a reference to this, and any other,
+To figure what the arguments to such a call must be, check the appropriate
+documentation on https://docs.gtk.org/gtk3/.
+Fill in the widget that you are looking for in the search bar (GtkButton 
+in this case), and check the "Signals" secion to see what signals the 
+button widget provides. The declaration shows you what form your callback 
+should have.  By adding a reference to this, and any other,
 callbacks to a table, you can let the GtkGladeWindow know how actions
 in the interface should be connected to your code:
 
 \code
 static GladeCallbackTable callbacks_table[] = {
-  { "button_load", "released", gtk_callback(&MyInterface::cbLoad),
+  { "button_load", "clicked", gtk_callback(&MyInterface::cbLoad),
     gpointer(0) },
   { NULL, NULL, NULL, NULL}
 }

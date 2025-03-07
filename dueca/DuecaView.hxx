@@ -48,7 +48,6 @@ public:
   /** Obtain the single possible instance of this class. */
   static DuecaView* single();
 
-public:
   /** return a pointer to the list of entity entries. \todo Can this
       go out? */
   virtual void* getEntitiesList() { return NULL; }
@@ -68,6 +67,9 @@ public:
 
   /** Something has changed in the state of nodes, do a refresh. */
   virtual void refreshNodesView();
+
+  /** Change in the state of a single node */
+  virtual void syncNode(void* nid);
 
   /** update buttons entity control */
   virtual void updateEntityButtons(const ModuleState& confirmed_state,

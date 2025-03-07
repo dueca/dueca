@@ -1,20 +1,18 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
             "name": "Python: Current file",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": false,
+            "cwd": "${fileDirname}"
         },
         { 
             "name": "Python: ddff-convert",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/ddff/pyddff/ddff-convert.py",
             "args": ["hdf5", "/home/repa/gdapps/DuecaTestCommunication/DuecaTestCommunication/run/solo/solo/datalog.ddff"],

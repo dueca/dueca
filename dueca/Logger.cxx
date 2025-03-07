@@ -60,13 +60,13 @@ void Logger::transmit()
 
 void Logger::show(std::ostream& os) const
 {
-  os << this->level << this->category << ' '
+  os << LogLevel_to_letter(this->level) << this->category << ' '
      << this->fname << ':' << this->line;
 }
 
 void Logger::showType(std::ostream& os) const
 {
-  os << this->level << this->category;
+  os << LogLevel_to_letter(this->level) << this->category;
 }
 
 

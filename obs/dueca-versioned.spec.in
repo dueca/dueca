@@ -2,6 +2,7 @@
 %define ver  @dueca_VERSION@
 
 %define gtkthree_config 1
+%define gtkfour_config 1
 %define glui_config 1
 %define gtkmm_config 1
 %define hdf5_config 1
@@ -87,6 +88,11 @@ BuildRequires: glui-devel
 %define GTKTHREE_CONFIG -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON
 BuildRequires:  gtkmm3-devel
 BuildRequires:  gtk3-devel
+%endif
+%if 0%{?gtkfour_config}
+%define GTKFOUR_CONFIG -DBUILD_GTK4=ON -DBUILD_GTKMM4=ON
+BuildRequires:  gtkmm4-devel
+BuildRequires:  gtk4-devel
 %endif
 BuildRequires: fdupes
 BuildRequires: fltk-devel

@@ -48,9 +48,9 @@
 
 #ifdef BUILD_DEBPRINT
 
-// by default, enable only DEB(A)
+// by default disabled
 #ifndef DEBPRINTLEVEL
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #endif
 
 // remember debug header is defined, and use as flag in code
