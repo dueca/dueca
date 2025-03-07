@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.2.1] - 2025-03-07
+
+- Still issues with run tests, ci environment is slightly different
+  from the check environment
+- Correction on the locking mechanism for the ddff logger
+- Improve pyddff module and ddff-convert, speeding up conversion while keeping compatibility with a few old failed log files.
+
 ## [4.2.0] - 2025-01-26
 
 - Add manual triggerpuller
