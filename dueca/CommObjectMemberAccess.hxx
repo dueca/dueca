@@ -21,6 +21,39 @@
 
 DUECA_NS_START;
 
+/** Helper template to fudge look into members of members.
+    Not a standard implementation, only used for LogLevelCommand for now.
+
+    From
+    https://stackoverflow.com/questions/1929887/is-pointer-to-inner-struct-member-forbidden
+  */
+template <typename C, typename T, /*auto*/ size_t P>
+union MemberPointerImpl final {
+  template <typename U> struct Helper
+  {
+    using Type = U C::*;
+  };
+  template <typename U> struct Helper<U &>
+  {
+    using Type = U C::*;
+  };
+
+  using MemberPointer = typename Helper<T>::Type;
+
+  MemberPointer o;
+  size_t i = P; // we can't do "auto i" - argh!
+  static_assert(sizeof(i) == sizeof(o));
+};
+
+/** Associated macro for calculating pointer offset; use like:
+
+    MEMBER_POINTER(MyDcoClass, nested.member)
+*/
+#define MEMBER_POINTER(C, M)                                                   \
+  ((MemberPointerImpl<__typeof__(C), decltype(((__typeof__(C) *)nullptr)->M),  \
+                      __builtin_offsetof(__typeof__(C), M)>{})                 \
+     .o)
+
 /** Base class for CommObjectMemberAccess
 
     The CommObjectMemberAccess class is a templated class that

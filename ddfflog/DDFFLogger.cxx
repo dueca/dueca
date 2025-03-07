@@ -277,14 +277,16 @@ void DDFFLogger::TargetedLog::createFunctor(
 {
   // find the meta information
   ChannelEntryInfo ei = r_token.getChannelEntryInfo();
-  FileStreamWrite::pointer wstream;
   try {
     // get a description of the data for the stream label
     rapidjson::StringBuffer doc;
     DCOtypeJSON(doc, ei.data_class.c_str());
 
     // request a stream in the file
-    wstream = nfile.lock()->createNamedWrite(prefix + logpath, doc.GetString());
+    w_stream = nfile.lock()->createNamedWrite(logpath, doc.GetString());
+
+    // check in with the recorder, resulting read stream pointer ignored
+    nfile.lock()->recorderCheckIn(logpath, this);
   }
   catch (const std::exception &e) {
     /* DUECA ddff.
@@ -293,7 +295,7 @@ void DDFFLogger::TargetedLog::createFunctor(
        to the datatype not being known, or related to file access.
     */
     E_XTR("Failed to create a logging stream in the file named \""
-          << prefix + logpath << "\", datatype \"" << ei.data_class
+          << logpath << "\", datatype \"" << ei.data_class
           << "\" :" << e.what());
     throw(e);
   }
@@ -305,7 +307,7 @@ void DDFFLogger::TargetedLog::createFunctor(
       r_token.getMetaFunctor<DDFFDCOMetaFunctor>("msgpack"));
 
     functor.reset(metafunctor.lock()->getReadFunctor(
-      wstream, master->getOpTime(always_logging)));
+      w_stream, master->getOpTime(always_logging)));
   }
   catch (const std::exception &e) {
     /* DUECA ddff.
@@ -331,7 +333,9 @@ void DDFFLogger::TargetedLog::accessAndLog(const TimeSpec &ts)
         reduction->forceAdvance(tsc0.getValidityStart());
       }
       if (reduction->greedyAdvance(tsc0) && functor) {
+        w_stream->markItemStart();
         r_token.applyFunctor(functor.get());
+        dirty = true;
       }
       else {
         r_token.flushOne();
@@ -341,14 +345,19 @@ void DDFFLogger::TargetedLog::accessAndLog(const TimeSpec &ts)
   }
   else {
     if (functor) {
-      while (r_token.applyFunctor(functor.get())) {
-        // nothing to be done, could put message here
+      do {
+        w_stream->markItemStart();
       }
+      while (r_token.applyFunctor(functor.get()));
+      dirty = true;
     }
     else {
       r_token.flushOlderSets(ts.getValidityStart());
     }
   }
+
+  // confirm we got here
+  marked_tick = ts.getValidityEnd();
 }
 
 void DDFFLogger::TargetedLog::spool(const TimeSpec &ts)
@@ -375,11 +384,11 @@ bool DDFFLogger::logChannel(const vector<string> &i)
   }
   try {
     if (i.size() == 4) {
-      newtarget = std::shared_ptr<TargetedLog>(new TargetedLog(
+      newtarget = targeted_list_t::value_type(new TargetedLog(
         i[0], i[1], i[2], i[3], getId(), always_logging, reduction));
     }
     else {
-      newtarget = std::shared_ptr<TargetedLog>(
+      newtarget = targeted_list_t::value_type(
         new TargetedLog(i[0], i[1], i[2], getId(), always_logging, reduction));
     }
   }
@@ -473,7 +482,11 @@ bool DDFFLogger::internalIsPrepared()
 
   for (targeted_list_t::iterator ii = targeted.begin(); ii != targeted.end();
        ii++) {
-    std::cout << "checking " << (*ii)->channelname << std::endl;
+    /* DUECA ddff.
+
+       Checking the validity of a configured channel entry for logging.
+     */
+    I_XTR("Checking " << (*ii)->channelname << " res=" << (*ii)->r_token.isValid());
     CHECK_TOKEN((*ii)->r_token);
 
     // for valid tokens, and file opened, create the functor
@@ -485,7 +498,7 @@ bool DDFFLogger::internalIsPrepared()
          Information on the creation of a DDFF read functor for a
          specific channel.
        */
-      I_XTR("created functor for " << (*ii)->channelname);
+      D_XTR("created functor for " << (*ii)->channelname);
     }
   }
 
@@ -604,8 +617,8 @@ void DDFFLogger::doCalculation(const TimeSpec &ts)
       catch (const std::exception &e) {
       /* DUECA ddff.
 
-           Unforeseen error in creating a functor.
-         */
+                 Unforeseen error in creating a functor.
+               */
         E_XTR("DDFF exception creating functors, " << e.what());
         sendStatus(std::string("DDFF creating functors, ") + e.what(), true,
                    ts.getValidityStart());
@@ -613,6 +626,10 @@ void DDFFLogger::doCalculation(const TimeSpec &ts)
         return;
       }
 #endif
+
+      // flush streams 0 and 1, to ensure they are early in the file
+      nfile->syncInventory();
+      nfile->syncToFile(true);
     }
 
     // set the new file current, this may also call destructor &

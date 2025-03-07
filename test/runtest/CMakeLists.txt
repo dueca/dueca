@@ -125,6 +125,8 @@ if (PYTHON_HAVE_PIL EQUAL 0 AND
         PROPERTIES DEPENDS TEST_CONVERT_datalog)
     endforeach()
 
+  else()
+    message(WARNING "Midding h5dump from hdf5-tools, cannot check log output")
   endif()
 
 else()
@@ -184,7 +186,7 @@ if(NOT XMLSTARLET MATCHES ".*-NOTFOUND")
   foreach(SCN ${CONTROLFILES})
     add_custom_command(
       OUTPUT ${CMAKE_BINARY_DIR}/${SCN}-clean.xml
-      COMMAND ${XMLSTARLET} edit -N x="https://dueca.tudelft.nl"
+      COMMAND ${XMLSTARLET} edit -N x="https://dueca.tudelft.nl/testscenario"
       --delete 'x:scenario/x:actions/x:snap'
       --delete 'x:scenario/x:actions/x:click'
       --delete 'x:scenario/x:actions/x:check'

@@ -13,6 +13,8 @@
 (Type LogCategory "#include <LogCategory.hxx>")
 
 (Event LogLevelCommand
+       (IncludeFile LogLevelCommandExtra)
+
        ;; Node in which the command is to be changed
        (int32_t node)
        ;; New level

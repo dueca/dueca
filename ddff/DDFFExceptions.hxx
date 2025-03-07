@@ -240,6 +240,16 @@ public:
   tag_information_not_matching_recorders(const char* entity, unsigned idx);
 };
 
+/** Tag information does not match recorders */
+class replay_not_implemented: public std::exception
+{
+public:
+  /** Re-implementation of std:exception what. */
+  const char* what() const throw() {return "Only record possible"; }
+};
+
+
+
 DDFF_NS_END
 
 #endif

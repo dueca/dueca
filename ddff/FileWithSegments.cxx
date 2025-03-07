@@ -13,6 +13,7 @@
 
 #define FileWithSegments_cxx
 #include "FileWithSegments.hxx"
+#include "DDFFExceptions.hxx"
 #include <limits>
 #include <sstream>
 #include <iomanip>
@@ -24,8 +25,8 @@
 #include <dueca/ObjectManager.hxx>
 #include <dueca/ChronoTimePoint.hxx>
 #include <dassert.h>
-#include "DDFFDataRecorder.hxx"
 #include <dueca/debug.h>
+#include <boost/format.hpp>
 
 #define DEBPRINTLEVEL -1
 #include <debprint.h>
@@ -44,8 +45,9 @@ MSGPACK_API_VERSION_NAMESPACE(v1)
     operator()(msgpack::packer<Stream> &o,
                const dueca::ddff::FileWithSegments::Tag &t) const
     {
-      o.pack_array(7);
+      o.pack_array(8);
       o.pack(t.offset); // 1, offset vector
+      o.pack(t.inblock_offset); // in-block offset vector
       o.pack(t.cycle);  // 2, cycle for the stretch
       o.pack(t.index0); // 3, start index time
       o.pack(t.index1); // 4, end index time
@@ -66,8 +68,9 @@ inline void msg_unpack(S &i0, const S &iend,
                        dueca::ddff::FileWithSegments::Tag &e)
 {
   uint32_t len = unstream<S>::unpack_arraysize(i0, iend);
-  assert(len == 7);
+  assert(len == 8);
   msg_unpack(i0, iend, e.offset);
+  msg_unpack(i0, iend, e.inblock_offset);
   msg_unpack(i0, iend, e.cycle);
   msg_unpack(i0, iend, e.index0);
   msg_unpack(i0, iend, e.index1);
@@ -84,6 +87,7 @@ DDFF_NS_START
 
 FileWithSegments::Tag::Tag() :
   offset(),
+  inblock_offset(),
   cycle(0),
   index0(0),
   index1(0),
@@ -94,11 +98,13 @@ FileWithSegments::Tag::Tag() :
 
 FileWithSegments::FileWithSegments(const std::string &entity) :
   entity(entity),
+  g_recorders("segmentedfile", false),
   ts_switch(MAX_TIMETICK, MAX_TIMETICK),
-  my_recorders(NULL),
+  my_recorders(),
   tags(),
   next_tag(),
   tag_lookup(),
+  dirty(true),
   w_tags()
 {
   DEB("New FileWithSegments");
@@ -106,7 +112,16 @@ FileWithSegments::FileWithSegments(const std::string &entity) :
 
 FileWithSegments::FileWithSegments(const std::string &filename, Mode mode,
                                    unsigned blocksize) :
-  FileWithInventory(filename, mode, blocksize)
+  FileWithInventory(filename, mode, blocksize),
+  entity(),
+  g_recorders("segmentedfile", false),
+  ts_switch(MAX_TIMETICK, MAX_TIMETICK),
+  my_recorders(),
+  tags(), 
+  next_tag(),
+  tag_lookup(),
+  dirty(false),
+  w_tags()
 {
   // now create the tag writer, and read any existing tags
   w_tags = attachWrite(1, blocksize);
@@ -179,40 +194,59 @@ bool FileWithSegments::openFile(const std::string &filename,
   return true;
 }
 
+bool FileWithSegments::syncInventory()
+{
+  bool changes = FileWithInventory::syncInventory();
+  if (dirty) {
+    w_tags->closeOff(true);
+    dirty = false;
+    return true;
+  }
+  return changes;
+}
+
 FileStreamWrite::pointer
 FileWithSegments::createNamedWrite(const std::string &key,
                                    const std::string &label, size_t bufsize)
 {
+  DEB("Creating named write " << key << ":" << label << " #" << bufsize);
   auto writer = this->FileWithInventory::createNamedWrite(key, label, bufsize);
   next_tag.offset.resize(writer->getStreamId() - 1U);
+  next_tag.inblock_offset.resize(writer->getStreamId() - 1U);
   return writer;
 }
 
 ddff::FileStreamRead::pointer
 FileWithSegments::recorderCheckIn(const std::string &key,
-                                  DDFFDataRecorder::pointer ptr)
+                                  SegmentedRecorderBase::pointer ptr)
 {
   // use base class to get the read pointer
   ddff::FileStreamRead::pointer fsr = findNamedRead(key);
-  DEB("DataRecorder checked-in, stream " << key << "/" << fsr->getStreamId());
+  DEB("DataRecorder checked-in, stream " << key << "@" << fsr->getStreamId());
 
   // check and resize the offset vector in the next_tag template
-  if (fsr->getStreamId() != next_tag.offset.size() + 2U) {
+  if (fsr->getStreamId() != next_tag.offset.size() + 1U) {
     /* DUSIME replay&initial
 
        The new stream_id for a recorder does not match the current
        configuration.
     */
-    E_XTR("Incompatible recorder check-in, already have "
+    E_XTR("Incompatible recorder check-in, key " << key << ", already have "
           << next_tag.offset.size() << " with id " << fsr->getStreamId());
   }
+
+  ScopeLock r(g_recorders);
+
   next_tag.offset.resize(fsr->getStreamId() - 1U);
+  next_tag.inblock_offset.resize(fsr->getStreamId() - 1U);
+
+  my_recorders.push_back(ptr);
 
   return fsr;
 }
 
-ddff::FileHandler::pos_type FileWithSegments::findOffset(unsigned cycle,
-                                                         unsigned stream_id)
+ddff::FileHandler::pos_type FileWithSegments::findBlockStart(unsigned cycle,
+                                                             unsigned stream_id)
 {
   // retrieve the offset for a specific cycle?
   if (cycle < tags.size()) {
@@ -220,8 +254,9 @@ ddff::FileHandler::pos_type FileWithSegments::findOffset(unsigned cycle,
     assert(stream_id >= 2U);
     return tags[cycle].offset[stream_id - 2U];
   }
-  assert(cycle == tags.size());
-  return std::numeric_limits<pos_type>::max();
+  throw cannot_find_segment(
+    boost::str(boost::format("stream%d") % stream_id).c_str(), cycle);
+  return ddff::FileHandler::pos_type(-1);
 }
 
 void FileWithSegments::startStretch(
@@ -236,8 +271,11 @@ void FileWithSegments::startStretch(
     next_tag.offset.resize(streams.size() - 2, 0U);
 
     // get all my recorders to mark the next (first) write of data
-    for (auto recorder : myRecorders()) {
-      recorder->startStretch(tick);
+    {
+      ScopeLock r(g_recorders);
+      for (auto recorder : myRecorders()) {
+        recorder->startStretch(tick);
+      }
     }
 
     // push the current inventory to file
@@ -257,8 +295,8 @@ void FileWithSegments::bufferWriteInformation(
   // of data starts. Record it for indexed streams
   if (buffer->object_offset && buffer->stream_id >= 2 &&
       next_tag.offset[buffer->stream_id - 2U] == 0) {
-    next_tag.offset[buffer->stream_id - 2] =
-      offset + std::ios::pos_type(buffer->object_offset);
+    next_tag.offset[buffer->stream_id - 2] = offset;
+    next_tag.inblock_offset[buffer->stream_id - 2] = buffer->object_offset;
   }
 }
 
@@ -270,20 +308,22 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
 
   // first check that all data has been written
   bool complete = true;
-  for (const auto recorder : myRecorders()) {
-    complete = complete && recorder->checkWriteTick(tick);
+  {
+    ScopeLock r(g_recorders);
+    for (const auto &recorder : myRecorders()) {
+      complete = complete && recorder->checkWriteTick(tick);
+    }
+
+    // return for a next invocation if that is not the case
+    if (!complete)
+      return false;
+
+    // when complete, initiate saving of all recorder/recorded data
+    // will only save when actually data was written in the period
+    for (const auto &recorder : myRecorders()) {
+      recorder->syncRecorder();
+    }
   }
-
-  // return for a next invocation if that is not the case
-  if (!complete)
-    return false;
-
-  // when complete, initiate saving of all recorder/recorded data
-  // will only save when actually data was written in the period
-  for (const auto recorder : myRecorders()) {
-    recorder->syncRecorder();
-  }
-
   // all data for this stretch has been received, if applicable
   // schedule all partial blocks and then schedules data saving, with
   // the parent class's method
@@ -292,9 +332,12 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
   // and check up whether the offsets are present, or whether no data
   // was writting in this stretch, and offsets remain 0
   unsigned idx = 0;
-  for (const auto recorder : myRecorders()) {
-    complete = complete &&
-               (recorder->checkAndMakeClean() || (next_tag.offset[idx] != 0));
+  {
+    ScopeLock r(g_recorders);
+    for (const auto &recorder : myRecorders()) {
+      complete = complete &&
+                 (recorder->checkAndMakeClean() || (next_tag.offset[idx] != 0));
+    }
   }
 
   // this should return successfully
@@ -318,7 +361,7 @@ bool FileWithSegments::completeStretch(TimeTickType tick)
   tags.push_back(next_tag);
 
   // mark the tags for writing
-  w_tags->closeOff();
+  w_tags->closeOff(true);
 
   // process the tag writes
   processWrites();
@@ -338,21 +381,25 @@ void FileWithSegments::spoolForReplay(unsigned cycle)
   Tag *tag0 = &tags[cycle];
   Tag *tag1 = (cycle + 1 < tags.size()) ? &tags[cycle + 1] : NULL;
 
-  // check that the tag offsets match the number of recorders
-  if ((tag0->offset.size() != myRecorders().size()) ||
-      (tag1 != NULL && (tag1->offset.size() != myRecorders().size()))) {
-    throw tag_information_not_matching_recorders(entity.c_str(), cycle);
-  }
+  {
+    ScopeLock r(g_recorders);
 
-  // reset all recorders to their respective offset
-  unsigned idx = 0;
-  for (auto &recorder : myRecorders()) {
-    recorder->spoolReplay(
-      tag0->offset[idx], (tag1 != NULL) ? tag1->offset[idx]
-                                        : std::numeric_limits<pos_type>::max());
-    idx++;
-  }
+    // check that the tag offsets match the number of recorders
+    if ((tag0->offset.size() != myRecorders().size()) ||
+        (tag1 != NULL && (tag1->offset.size() != myRecorders().size()))) {
+      throw tag_information_not_matching_recorders(entity.c_str(), cycle);
+    }
 
+    // reset all recorders to their respective offset
+    unsigned idx = 0;
+    for (auto &recorder : myRecorders()) {
+      recorder->spoolReplay(tag0->offset[idx],
+                            (tag1 != NULL)
+                              ? tag1->offset[idx]
+                              : std::numeric_limits<pos_type>::max());
+      idx++;
+    }
+  }
   // load the initial blocks of data
   runLoads();
 }
@@ -368,8 +415,11 @@ void FileWithSegments::replayLoad()
 
 void FileWithSegments::startTickReplay(TimeTickType tick)
 {
-  for (auto &recorder : myRecorders()) {
-    recorder->startReplay(tick);
+  {
+    ScopeLock r(g_recorders);
+    for (auto &recorder : myRecorders()) {
+      recorder->startReplay(tick);
+    }
   }
 }
 
@@ -414,12 +464,16 @@ FileWithSegments::findFiler(const std::string &entity,
 
 recorderlist_t &FileWithSegments::myRecorders()
 {
+  /**
   auto my_recorders = DDFFDataRecorder::allRecorders().find(entity);
   if (my_recorders != DDFFDataRecorder::allRecorders().end()) {
     return my_recorders->second;
   }
   static recorderlist_t empty;
   return empty;
+  */
+
+  return my_recorders;
 }
 
 DDFF_NS_END

@@ -12,6 +12,7 @@ except:
 import json
 import numpy as np
 import h5py
+import os
 from functools import partial
 
 # map with common conversions
@@ -117,37 +118,55 @@ def shapeTypeExclude(count: int, info: dict):
 
 
 class DDFFInventoriedStream:
-    """Datastream in an inventory
+    """ Datastream in an inventory
 
     Such a datastream is timed or tagged (usually with an integer),
     and has a series of data members all of the same type.
     """
 
-    class TimeIt:
-        """Iterator for time or tag values."""
+    class BaseIt:
+        """ Base iterator """
 
         def __init__(self, ddffs: DDFFStream):
-            """Create an iterator for time values on an inventoried stream
+            self.reader = ddffs.reader()
+
+        def __iter__(self):
+            return self
+
+
+
+    class TimeIt(BaseIt):
+        """ Iterator for time or tag values."""
+
+        def __init__(self, ddffs: DDFFStream):
+            """ Create an iterator for time values on an inventoried stream
 
             Parameters
             ----------
             ddffs : DDFFStream
                 Base data stream
             """
-            self.ddffs = ddffs
-
-        def __iter__(self):
-            self.it = iter(self.ddffs)
-            return self
+            super().__init__(ddffs)
 
         def __next__(self):
-            tmp = next(self.it)
-            try:
-                return tmp[0]
-            except TypeError:
-                print("could not get time from", tmp, "stream", self.ddffs)
+            """ Return next time point
 
-    class ValueIt:
+            Returns
+            -------
+            int
+                Time/index value
+
+            Raises
+            ------
+            StopIteration
+                End of period
+            """
+
+            tmp = next(self.reader)
+            return tmp[0]
+
+
+    class ValueIt(BaseIt):
         """Iterator for data values"""
 
         def __init__(self, ddffs: DDFFStream, idx: int | None):
@@ -161,22 +180,30 @@ class DDFFInventoriedStream:
                 Data member to return, or None for returning the complete
                 data structure
             """
-            self.ddffs = ddffs
+            super().__init__(ddffs)
             self.idx = idx
 
-        def __iter__(self):
-            self.it = iter(self.ddffs)
-            return self
-
         def __next__(self):
-            tmp = next(self.it)
-            try:
-                return tmp[-1][self.idx]
-            except IndexError as e:
-                print(f"error {e}")
+            """ Return next data point
+
+            Returns
+            -------
+            list with data
+                Unpacked data from msgpack
+
+            Raises
+            ------
+            StopIteration
+                End of period
+            """
+            tmp = next(self.reader)
+            if self.idx is None:
+                return tmp[-1]
+            return tmp[-1][self.idx]
+
 
     def __init__(self, ddffs: DDFFStream, tag: str, description: str):
-        """Create a parsed inventory of stream id's and contents
+        """ Create a parsed inventory of stream id's and contents
 
         Arguments:
             ddffs -- Raw stream
@@ -204,7 +231,7 @@ class DDFFInventoriedStream:
         return DDFFInventoriedStream.TimeIt(self.base)
 
     def __getitem__(self, key: int | str | None):
-        """Obtain an iterator on the data
+        """ Obtain an iterator on the data
 
         Parameters
         ----------
@@ -246,22 +273,14 @@ class DDFFInventoriedStream:
             return self.structure["members"]
         return self.structure["members"][key]
 
-    def getData(self, icount=100):
-        """ Return data from the stream as a dictionary of numpy arrays
-
-        Parameters
-        ----------
-        icount : int, optional
-            size to initially reserve for the data, by default 100
+    def _getMappers(self, icount):
+        """ Helper to obtain mapping functions from msgpack object to numpy arrays
 
         Returns
         -------
-        (np.array, np.array, dict())
-            Time points, time spans, and a dictionary with all object member data in arrays
+        tuple(list, mappers)
+            Result struct and list of mapping functions
         """
-
-        time0 = np.zeros(shape=(icount,), dtype=np.uint32)
-        time1 = np.zeros(shape=(icount,), dtype=np.uint32)
         result = dict()
         mappers = list()
 
@@ -299,7 +318,31 @@ class DDFFInventoriedStream:
                 mappers.append(partial(copyFixedArray, res=result[m], midx=midx))
             else:
                 mappers.append(partial(copyDefault, res=result[m], midx=midx))
+        return result, mappers
 
+    def getData(self, icount=100):
+        """ Return data from the stream as a dictionary of numpy arrays
+
+        For "numeric" data, this way of obtaining the data is often much more
+        efficient than iterating over the stream, which returns a sequence of objects with
+        the data.
+        This returns a dictionary of objects with numpy arrays, which can then directly
+        be used in plotting, etc.
+
+        Parameters
+        ----------
+        icount : int, optional
+            size to initially reserve for the data, by default 100
+
+        Returns
+        -------
+        (np.array, np.array, dict())
+            Time points, time spans, and a dictionary with all object member data in arrays
+        """
+
+        time0 = np.zeros(shape=(icount,), dtype=np.uint32)
+        time1 = np.zeros(shape=(icount,), dtype=np.uint32)
+        result, mappers = self._getMappers(icount)
 
         i = -1
         for i, d in enumerate(self.base.reader()):
@@ -323,6 +366,8 @@ class DDFFInventoriedStream:
 
         return time0, time1, result
 
+# support routines, extracting different types of objects from
+# data structures
 def copyObjectFixedArrayExclude(obj, i, res, midx, excluded):
     # array of tuples
     res[i] = [(x for ix, x in enumerate(obj[midx]) if ix not in excluded)]
@@ -391,12 +436,20 @@ class DDFFInventoried(DDFF):
         # read the inventory into the stream as list
         self.streams[0].readToList()
 
+        if len(nstreams) == 1:
+            self._doInitialScan()
+
+    def _doInitialScan(self, offsets=None):
+
         # Read how many data streams are there
         descriptions = self.streams[0]
         neededstreams = frozenset((d[1] for d in descriptions))
 
-        # also scan these streams
-        self._scanStreams(neededstreams)
+        # find the initial blocks for streams with data
+        if offsets:
+            self._initStreams(neededstreams, offsets)
+        else:
+            self._scanStreams(neededstreams)
 
         # Use the inventory to enhance the streams
         for tag, streamid, description in descriptions:
@@ -412,64 +465,7 @@ class DDFFInventoried(DDFF):
                 base = DDFFStream(self.file, stream_id=streamid)
                 self.streams[streamid] = DDFFInventoriedStream(base, tag, description)
 
-    def inventory(self):
-        """Return the inventory itself, for compatibility purposes
-
-        Returns
-        -------
-        DDFFInventoried
-            Object itself.
-        """
-        return self
-
-    def time(self, key, period=None):
-        """Access time stamps for a specific named stream
-
-        Arguments:
-            period -- Optional, ignored
-            key -- Name or number of requested stream
-
-        Returns:
-            Iterator for time ticks
-        """
-        if isinstance(key, int):
-            return self.streams[self.streams[0][key][1]]
-        return self.mapping[key].time()
-
-    def __getitem__(self, keyname):
-        """Access data, from a specific named stream
-
-        Arguments:
-            keyname -- tuple(streamid,member), tuple(streamid,period,member) or only streamid
-            Defines which data stream should be returned. The member string
-            indicates which data member to return.
-
-        Returns:
-            Iterator for data, either for a single member, or the whole data
-            list/struct
-        """
-        try:
-            if isinstance(keyname, str | int):
-                key = keyname
-                varname = None
-            elif len(keyname) == 2:
-                key, varname = keyname
-            elif len(keyname) == 3:
-                key, _, varname = keyname
-        except ValueError:
-            key = keyname
-            varname = None
-
-        if isinstance(key, int):
-            stream = self.streams[self.streams[0][key][1]]
-        else:
-            stream = self.mapping[key]
-
-        # return an iterator on the data (or all), corresponding to
-        # this stream
-        return stream[varname]
-
-    def stream(self, key: str|int):
+    def __getitem__(self, key):
         """ Access a specific data stream in the file
 
         Parameters
@@ -494,18 +490,30 @@ class DDFFInventoried(DDFF):
         """
         return [k[0] for k in self.streams[0]]
 
+    def __len__(self):
+        """ Return number of data streams
+
+        Returns:
+            Integer
+        """
+        return len(self.streams[0])
+
 
 if __name__ == "__main__":
 
-    stuff = DDFFInventoried("../recordings-PHLAB-new.ddff")
+    stuff = DDFFInventoried(os.path.dirname(__file__) +
+            '/../../../test/ddff/recordings-PHLAB-new.ddff')
 
     # known entries
     print(stuff.keys())
 
-    for t in stuff.time("WriteUnified:first blip"):
+    for t in stuff["WriteUnified:first blip"].time():
         print(t)
 
-    for x in stuff["WriteUnified:first blip", "rx"]:
+    for x in stuff["WriteUnified:first blip"]["rx"]:
         print(x)
-    for x in stuff["WriteUnified:first blip", "ry"]:
+    for x in stuff["WriteUnified:first blip"]["ry"]:
         print(x)
+
+    t0, t1, data = stuff["WriteUnified:first blip"].getData()
+    print(t0, t1, data)

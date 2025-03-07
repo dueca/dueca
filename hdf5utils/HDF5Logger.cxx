@@ -492,7 +492,11 @@ bool HDF5Logger::internalIsPrepared()
 
   for (targeted_list_t::iterator ii = targeted.begin();
        ii != targeted.end(); ii++) {
-    std::cout << "checking " << (*ii)->channelname << std::endl;
+    /* DUECA hdf5.
+
+       Checking the validity of a configured channel entry for logging.
+     */
+    I_XTR("Checking " << (*ii)->channelname << " res=" << (*ii)->r_token.isValid());
     CHECK_TOKEN((*ii)->r_token);
 
     // for valid tokens, and file opened, create the functor
@@ -504,7 +508,7 @@ bool HDF5Logger::internalIsPrepared()
          Information on the creation of a hdf5 read functor for a
          specific channel.
        */
-      I_XTR("created functor for " << (*ii)->channelname);
+      D_XTR("created functor for " << (*ii)->channelname);
     }
   }
 

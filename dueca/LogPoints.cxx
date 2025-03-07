@@ -28,7 +28,7 @@ DUECA_NS_START
 
 LogPoints::LogPoints() :
   id(NULL),
-  deflt(0, 0, 0, 0, "not initialised"),
+  deflt(0, 0, LogLevel::Debug, 0, "not initialised"),
   r_description(),
   cb(this, &LogPoints::acceptNewDescription),
   accept(NULL)

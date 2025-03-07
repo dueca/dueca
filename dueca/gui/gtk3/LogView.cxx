@@ -105,8 +105,8 @@ LogView::LogView(Entity* e, const char* part, const
              Channel::Events, Channel::OneOrMoreEntries,
              Channel::ReadReservation, 0.0, &token_valid),
   w_level(getId(), NameSet("dueca", LogLevelCommand::classname, ""),
-          LogLevelCommand::classname, "", Channel::Events,
-          Channel::OnlyOneEntry, Channel::OnlyFullPacking, Channel::Regular,
+          LogLevelCommand::classname, "from gui", Channel::Events,
+          Channel::OneOrMoreEntries, Channel::OnlyFullPacking, Channel::Regular,
           &token_valid),
 
   // activity initialization
@@ -255,9 +255,9 @@ void LogView::setLevel(const LogCategory* cat, int node,
                        const char* level_as_text)
 {
   // interpret the level
-  LogLevel l(level_as_text);
+  LogLevel l = LogLevel_from_text(level_as_text);
 
-  if (l.t == LogLevel::Invalid) {
+  if (l == LogLevel::Invalid) {
     cerr << "Cannot interpret log level " << level_as_text << endl;
     return;
   }

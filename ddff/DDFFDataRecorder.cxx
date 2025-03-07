@@ -35,20 +35,16 @@ DDFFDataRecorder::DDFFDataRecorder() :
   entity(),
   key(),
   data_class(),
-  w_stream(),
   stretch_offset(ddff::FileHandler::pos_type(0)),
   r_stream(),
   record_functor(),
   replay_functor(),
   w_token_ptr(NULL),
   filer(NULL),
-  dirty(false),
   replay_tick(MAX_TIMETICK),
   replay_span(0),
   replay_start_tick(MAX_TIMETICK),
-  rit0(),
-  marked_tick(0U),
-  record_start_tick(MAX_TIMETICK)
+  rit0()
 {
   //
 }
@@ -322,18 +318,6 @@ void DDFFDataRecorder::spoolReplay(ddff::FileHandler::pos_type offset,
       << " - 0x" << end_offset << std::dec);
 }
 
-void DDFFDataRecorder::syncRecorder()
-{
-  if (dirty) {
-    w_stream->closeOff();
-  }
-}
-
-void DDFFDataRecorder::startStretch(TimeTickType tick)
-{
-  record_start_tick = tick;
-}
-
 void DDFFDataRecorder::startReplay(TimeTickType tick)
 {
   replay_start_tick = tick;
@@ -342,18 +326,6 @@ void DDFFDataRecorder::startReplay(TimeTickType tick)
   DEB("Replay start planned for time " << tick);
 }
 
-bool DDFFDataRecorder::checkWriteTick(TimeTickType tick)
-{
-  return tick <= marked_tick;
-}
 
-bool DDFFDataRecorder::checkAndMakeClean()
-{
-  if (dirty) {
-    dirty = false;
-    return false;
-  }
-  return true;
-}
 
 DDFF_NS_END

@@ -171,7 +171,7 @@ template<class T> size_t DataSetSubsidiary<T>::size() const
 template<class T> const char* DataSetSubsidiary<T>::
 getClassname() const
 {
-  return T::classname;
+  return getclassname<T>();
 }
 
 DUECA_NS_END

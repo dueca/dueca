@@ -17,6 +17,7 @@
 #include "ClockTime.hxx"
 #include <Activity.hxx>
 #include <ActivityManager.hxx>
+#include "Callback.hxx"
 #include <iostream>
 #include <iomanip>
 #include <NodeManager.hxx>
@@ -27,6 +28,9 @@
 #include <Ticker.hxx>
 #include <algorithm>
 #include <DataReader.hxx>
+#include "CommObjectWriter.hxx"
+#include <unistd.h>
+#include "XMLtoDCO.hxx"
 
 #define DO_INSTANTIATE
 //#include <AsyncList.hxx>
@@ -75,6 +79,8 @@ LogConcentrator::LogConcentrator() :
   configure(NULL),
   w_logmessage("LogMessage"),
   r_level(NULL),
+  w_level(),
+  cb_initial(this, &LogConcentrator::cbLoadInitial),
   logfile(std::cerr)
 {
   assert(sizeof(LogMessage) == 256);
@@ -103,14 +109,45 @@ void LogConcentrator::initialise(const TimeSpec& ts)
 
   // create token for reading level commands
   r_level = new ChannelReadToken
-    (id->getId(), NameSet("dueca", "LogLevelCommand", ""),
-     getclassname<LogLevelCommand>(), 0, Channel::Events);
+    (id->getId(), NameSet("dueca", getclassname<LogLevelCommand>(), ""),
+     getclassname<LogLevelCommand>(), entry_any, Channel::Events, Channel::OneOrMoreEntries);
 
   // activity for processing these
   configure = new ActivityCallback(id->getId(), "configure logging",
                                    &cb2, PrioritySpec(0,0));
   configure->setTrigger(*r_level);
   configure->switchOn(TimeSpec::start_of_time);
+
+  // for node 0, check whether there is a file with loglevels defined
+  if (id->getId().getLocationId() == 0 && access("dueca-initlog.xml", R_OK) == 0) {
+    w_level.reset(new ChannelWriteToken
+		  (id->getId(), NameSet("dueca", getclassname<LogLevelCommand>(), ""),
+		   getclassname<LogLevelCommand>(), std::string("initial config"), Channel::Events, Channel::OneOrMoreEntries,
+		   Channel::OnlyFullPacking, Channel::Regular, &cb_initial));
+  }
+}
+
+void LogConcentrator::cbLoadInitial(const TimeSpec& ts)
+{
+  pugi::xml_document doc;
+  pugi::xml_parse_result result = doc.load_file("dueca-initlog.xml");
+
+  if (!result) {
+    std::cerr << "Cannot parse file dueca-initlog.xml" << std::endl;
+    return;
+  }
+  // get the container
+  try {
+    pugi::xml_node initlevels = doc.child("loglevels");
+    for (pugi::xml_node loglevel = initlevels.child("object"); loglevel;
+	 loglevel = loglevel.next_sibling("object")) {
+      DCOWriter lvl(*w_level); // data writer on the channel
+      XMLtoDCO(loglevel, lvl); // get the data from the xml node & write
+    }
+  }
+  catch (const dueca::xmldecodeexception &e) {
+    std::cerr << "Error interpreting initial log levels " << e.what() << std::endl;
+  }
 }
 
 void LogConcentrator::configureLevel(const TimeSpec& ts)
@@ -120,7 +157,7 @@ void LogConcentrator::configureLevel(const TimeSpec& ts)
   while (r_level->isValid() &&
          r_level->haveVisibleSets()) {
     try {
-      DataReader<LogLevelCommand> c(*r_level);
+      DataReader<LogLevelCommand,VirtualJoin> c(*r_level);
       newl = c.data();
     }
     catch (const exception& e) {
@@ -178,7 +215,6 @@ void LogConcentrator::accept(Logger* logger)
   // reset the logged string
   logger->str("");
 }
-
 
 const GlobalId& LogConcentrator::getId() const
 {

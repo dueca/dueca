@@ -188,7 +188,7 @@ public:
 private:
   inline CommObjectReader recurse(std::string& key, const dco_isnested&)
   { get_key(key,typename dco_traits<T>::rtype());
-    return CommObjectReader(par::elt_value_type::classname,
+    return CommObjectReader(getclassname<typename par::elt_value_type>(),
                             &get_object(typename dco_traits<T>::rtype())); }
 
   inline CommObjectReader recurse(std::string& key, const dco_isdirect&)
@@ -196,7 +196,7 @@ private:
 
   inline CommObjectReader recurse(boost::any& key, const dco_isnested&)
   { get_key(key, typename dco_traits<T>::rtype());
-    return CommObjectReader(par::elt_value_type::classname,
+    return CommObjectReader(getclassname<typename par::elt_value_type>(),
                             &get_object(typename dco_traits<T>::rtype())); }
   inline CommObjectReader recurse(boost::any& key, const dco_isdirect&)
   { throw TypeIsNotNested(); }

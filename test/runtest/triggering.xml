@@ -11,7 +11,7 @@
     <platform>solo</platform>
     <node>triggering</node>
   </execute>
-  <offset x="1" y="-15" />
+  <offset x="1" y="-10" />
   <actions>
     <snap name="triggering-clean-run1.png" />
     <check window="DUECA/DUSIME control panel" x="477" y="35" r="65" g="255" b="11" timeout="10.0"
@@ -51,19 +51,19 @@
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="476" y="33" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="33" y="-18" r="250" g="250" b="250" timeout="10.0"
+    <check window="DUECA/DUSIME control panel" x="33" y="-18" r="246" g="245" b="244" timeout="10.0"
       wait="0.5" />
     <click window="DUECA/DUSIME control panel" x="33" y="-18" button="Button.left" pressed="true"
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="33" y="-18" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="DUECA/DUSIME control panel" x="63" y="36" r="222" g="222" b="222" timeout="10.0"
+    <check window="DUECA/DUSIME control panel" x="63" y="36" r="53" g="132" b="228" timeout="10.0"
       wait="0.5" />
     <click window="DUECA/DUSIME control panel" x="63" y="36" button="Button.left" pressed="true"
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="63" y="36" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="Are you serious?" x="13" y="33" r="245" g="245" b="245" timeout="10.0" wait="0.5" />
+    <check window="Are you serious?" x="13" y="33" r="248" g="248" b="247" timeout="10.0" wait="0.5" />
     <click window="Are you serious?" x="13" y="33" button="Button.left" pressed="true" wait="0.2" />
     <click x="508" y="709" button="Button.left" pressed="false" wait="0.2" />
   </actions>

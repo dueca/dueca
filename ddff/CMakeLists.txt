@@ -17,7 +17,7 @@ set(HEADERS DDFFExceptions.hxx FileHandler.hxx FileStreamRead.hxx
   FileStreamWrite.hxx ControlBlock.hxx AQMTMessageBufferAlloc.hxx
   FileWithInventory.hxx DDFFDCOWriteFunctor.hxx DDFFDCOReadFunctor.hxx
   DDFFDCOMetaFunctor.hxx ddff_ns.h DDFFMessageBuffer.hxx
-  FileWithSegments.hxx DDFFDataRecorder.hxx
+  FileWithSegments.hxx DDFFDataRecorder.hxx SegmentedRecorderBase.hxx
 )
 
 set(SOURCES
@@ -35,6 +35,7 @@ set(SOURCES
   DDFFDCOMetaFunctor.hxx DDFFDCOMetaFunctor.cxx
   FileWithSegments.hxx FileWithSegments.cxx
   DDFFDataRecorder.hxx DDFFDataRecorder.cxx
+  SegmentedRecorderBase.hxx SegmentedRecorderBase.cxx
   )
 
 DUECACODEGEN_TARGET(OUTPUT DCO INDUECA NAMESPACE "ddff" DCOSOURCE ${DCOSOURCES})
