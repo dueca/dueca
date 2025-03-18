@@ -16,6 +16,7 @@
 #define Integrator_hxx
 #include "LimitedLinearSystem.hxx"
 
+namespace dueca {
 /** This class creates a single integrator, if requested with limits on its state.
   *
   */
@@ -57,5 +58,7 @@ public:
       \param u      Input variable. Only valid for SI systems. */
   const Vector& step(double u);
 };
+
+} // namespace dueca
 
 #endif
