@@ -141,6 +141,14 @@ bool ChannelReadToken::isSequential() const
   return handle->entry->isSequential();
 }
 
+Channel::EntryTimeAspect ChannelReadToken::getTimeAspect() const
+{
+  if (handle->entry && handle->entry->entry) {
+    return handle->entry->entry->eventtype ? Channel::Events : Channel::Continuous;
+  }
+  return time_aspect;
+}
+
 bool ChannelReadToken::haveEntry() const { return handle->entry != NULL; }
 
 const entryid_type ChannelReadToken::getEntryId() const

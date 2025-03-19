@@ -88,6 +88,8 @@ typedef UCClientHandle *UCClientHandlePtr;
     management. The interface is drastically different from HLA
     implementation, in the sense that data is internally kept and
     managed by the channel, and easy reading and writing is provided.
+    Also note that by default DUECA channels use time tagging, and
+    DUECA processes distributed over different nodes are synchronized.
 
     When creating a dueca::ChannelReadToken or a
     dueca::ChannelWriteToken, a local copy of the channel (a "channel
@@ -419,13 +421,26 @@ public:
       @returns     Id given to the channel. */
   const GlobalId &getChannelId() const;
 
-  /** Data access type, sequential?
+  /** Test if the data access type, is sequential
+
+      Sequential access implicates that all data needs to be read one-by-one,
+      or alternatively flushed with one of the flush calls.
+
       @returns     true if the data is read sequentially, oldest first, with
                    ChannelDef::ReadAllData or ChannelDef::ReadReservation. */
   bool isSequential() const;
 
-  /** Time aspect of read data */
-  inline Channel::EntryTimeAspect getTimeAspect() const { return time_aspect; }
+  /** Inspect the time aspect of read data.
+
+      If the token was created with AnyTimeAspect, and the token is not yet
+      attached to a channel entry or entries, AnyTimeAspect may be returned.
+      Otherwise the time aspect of the (currently selected, if applicable)
+      entry is given.
+
+      @returns     The time aspect (Continuous, Events, or AnyTimeAspec for
+                   "I don't care")
+  */
+  Channel::EntryTimeAspect getTimeAspect() const;
 
   /** Return the span of the oldest data in the current entry.
       Note that you cannot count on this if reading mode is JumpToMatchTime,
@@ -486,9 +501,8 @@ public:
       @returns    The label of the entry. */
   const std::string &getEntryLabel() const;
 
-  /** Returns the number of data points older than the given
-      time. Note that this number may differ per entry, and thus
-      change after a call to getNextEntry().
+  /** Returns the number of data points older than the given,
+      for any of the entries read by this token.
 
       The returned number of sets may be imprecise, i.e. sets may be
       may be added while reading or between calls.
@@ -595,7 +609,7 @@ public:
       This works well with sequential reading. It might still result in
       a NoDataAvailable exception if you try non-sequential read after
       testing this, or you try to read for a specific time that has no
-      data present. 
+      data present.
 
       This is more efficient than getNumVisibleSetsInEntry.
 
@@ -642,7 +656,10 @@ public:
       @returns      Number of data sets flushed */
   unsigned int flushOne() const;
 
-  /** Retrieve creation/entry information */
+  /** Retrieve creation/entry information
+
+      Returns a ChannelEntryInfo object for the currently selected entry.
+  */
   ChannelEntryInfo getChannelEntryInfo() const;
 
   /** Different type of access result. */
@@ -666,7 +683,7 @@ exhausted). */
       @param s      Amorphous storage object.
       @param tsprev Time for which previous data set packed, is updated
                     keep this value for the next read.
-      @returns      AccessResult
+      @returns      ChannelReadToken::AccessResult
       @throws       AmorphStoreBoundary If there is no room in the
                     store. The @ref ChannelReadToken state is reset.
   */
