@@ -2,6 +2,16 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.2.2] - future?
+
+- Fix the problem where single-thread DUECA (generally used in debugging) 
+  does not properly close off.
+- Move LinearSystem and its defined Matrix/Vector types into dueca namespace, 
+  prevents issues with including other eigen3-based libraries
+- Add argcomplete to python-based scripts (dueca-gproject, new-dco, 
+  dueca-channeldot)
+- Various documentation fixes
+
 ## [4.2.1] - 2025-03-07
 
 - Still issues with run tests, ci environment is slightly different
