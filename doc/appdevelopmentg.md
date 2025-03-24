@@ -947,3 +947,26 @@ You might want to add a node to a platform later. You can simply add
 the node using the `new-node` command. When you have done that, verify
 that the node numbers do not conflict, and that the new total number of
 nodes is correct in all `dueca_cnf.py`/`dueca.cnf` files.
+
+### Compiling and linking your code
+
+You can configure, compile and link your code "manually", by running from
+the build folder:
+
+    cmake ..
+    make
+
+In this step, you can provide `cmake` with the appropriate parameters. However,
+since configuring and compiling is such a common step, the `dueca-gproject` 
+script can support you there too:
+
+    dueca-gproject build
+
+From any folder in your project, will if necessary configure and build your
+code. Common additional options are:
+
+- `--debug`, to get a debug build
+- `--clean`, to clean your build
+- `--rebuild`, to clean and build in one go. 
+
+In addition, you can add `-D` flags to define cmake variables.

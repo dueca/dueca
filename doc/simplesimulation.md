@@ -415,6 +415,15 @@ libraries, and you might need to install these on your computer. The
 `cmake` step will warn you when it is missing software, use your
 package manager to install that software.
 
+To simplify these steps a bit, you can also ask the `dueca-gproject` script
+to configure and build your code for you. When using this, you do not need
+to enter the `build` folder first, simply call this from any folder in your
+project. To get, as in the above example, 
+support for the debugger in your executable, just add a `--debug` flag:
+
+    # alternative for cmake and make calls:
+    dueca-gproject build --debug
+
 As far as I can tell (things may change in the future), apart from the
 DUECA packages and their dependencies, you will need the following
 packages for a Debian-based Linux:
@@ -848,8 +857,7 @@ run. The simulation is not yet in there, but there is input,
 triggering, and output. Let's try a compilation:
 
 ~~~~{.bash}
-cd build
-make
+dueca-gproject build --debug
 ~~~~
 
 You will see that the build now automatically includes the
@@ -1963,10 +1971,8 @@ project:
 [enter]$ # check out the project, note we are on the initial-development branch
 [enter]$ dueca-gproject clone --remote ${PROJECTURL} --node host --version initial-development
 Cloned project to /tmp/host/SimpleSimulation/SimpleSimulation for machine class solo
-[enter]$ cd SimpleSimulation/SimpleSimulation/build
-[enter]$ cmake ..
+[enter]$ dueca-gproject build --debug
 ... lots of output! ...
-[enter]$ make -j 8
 ... more output! ...
 [100%] Built target dueca_run.x
 [enter]$ cd /tmp/igtest
