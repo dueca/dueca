@@ -90,7 +90,7 @@ public:
   Dstring& operator= (const char* s);
 
   /** Assignment operator with string. */
-  inline Dstring& operator= (const string& o)
+  inline Dstring& operator= (const std::string& o)
   {return *this = o.c_str();}
 
   /** Assignment operator with a Dstring of the same or some other size. */

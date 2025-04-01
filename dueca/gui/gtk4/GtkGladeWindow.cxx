@@ -84,6 +84,14 @@ void GtkGladeWindow::placeWindow(GtkWidget *win, gpointer user_data)
        position
     */
     W_XTR("Cannot influence window position on wayland");
+#if 0
+    // some ideas. Apparently only sub-window (of a fullscreen window) movement
+    // might be possible? But how to do this?
+    auto gdk_display_id = gdk_display_get_default();
+    auto gdksurf = GDK_SURFACE(gtk_native_get_surface(GTK_NATIVE(win)));
+    auto wlsurf = gdk_wayland_surface_get_wl_surface(gdksurf);
+    auto cmp = gdk_wayland_display_get_wl_compositor(gdk_display_id);
+#endif
   }
 }
 
@@ -118,8 +126,8 @@ bool GtkGladeWindow::readGladeFile(const char *file, const char *mainwidget,
     }
     else if (mainwidget) {
       /* DUECA graphics.
-      
-         You are trying to load a second ui file, and select a main widget, 
+
+         You are trying to load a second ui file, and select a main widget,
          but the main window/widget is already set. Ignoring this mainwidget
          name.
       */
@@ -486,6 +494,17 @@ bool GtkGladeWindow::_setValue(const char *wname, const char *value, bool warn)
     }
   }
 
+  if (GTK_IS_FILE_CHOOSER(o)) {
+    auto *e = GTK_FILE_CHOOSER(o);
+    if (e != NULL) {
+      auto *fl = g_file_new_for_path(value);
+      // GError
+      gtk_file_chooser_set_file(e, fl, NULL);
+      g_object_unref(fl);
+      return true;
+    }
+  }
+
   if (warn) {
     /* DUECA graphics.
 
@@ -760,11 +779,38 @@ bool GtkGladeWindow::__getValue<std::string>(const char *wname, boost::any &b,
     return true;
   }
 
+  if (GTK_IS_FILE_CHOOSER(o)) {
+    GtkFileChooser *e = GTK_FILE_CHOOSER(o);
+
+    auto gfile = gtk_file_chooser_get_file(e);
+    if (gfile != NULL) {
+      auto parent = g_file_new_for_path(".");
+      auto *fn = g_file_get_relative_path(parent, gfile);
+      if (fn == NULL) {
+        fn = g_file_get_path(gfile);
+      }
+      g_object_unref(gfile);
+      g_object_unref(parent);
+      if (fn) {
+        b = std::string(fn);
+        g_free(fn);
+        return true;
+      }
+    }
+
+    // when here, no file object or empty, return empty string
+    b = std::string();
+    return true;
+  }
+
+  // apparently file chooser button is replaced by normal button + file dialog
+  // still to decide what to do with that.
+
   if (warn) {
     /* DUECA graphics.
 
-         Getting a text value from this widget type is not supported.
-       */
+       Getting a text value from this widget type is not supported.
+     */
     W_XTR("GtkGladeWindow::getValue: Getting text for gtk object \""
           << wname << "\" not implemented");
   }
@@ -1006,12 +1052,12 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         }
       }
       else {
-          /* DUECA graphics.
+        /* DUECA graphics.
 
-       You have an array member in the DCO object you try to
-       connect to a gtk window, but have not supplied an array
-       format string.
-    */
+You have an array member in the DCO object you try to
+connect to a gtk window, but have not supplied an array
+format string.
+*/
         W_XTR("GtkGladeWindow::getValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
@@ -1032,22 +1078,22 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         }
       }
       else {
-          /* DUECA graphics.
+        /* DUECA graphics.
 
-       You have an array member in the DCO object you try to
-       connect to a gtk window, but have not supplied an array
-       format string.
-    */
+You have an array member in the DCO object you try to
+connect to a gtk window, but have not supplied an array
+format string.
+*/
         W_XTR("GtkGladeWindow::getValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
     }
     else {
-        /* DUECA graphics.
+      /* DUECA graphics.
 
-     This member class (mapping, variable size array or nested) cannot
-     be used in connecting to a gtk interface.
-  */
+This member class (mapping, variable size array or nested) cannot
+be used in connecting to a gtk interface.
+*/
       W_XTR("GtkGladeWindow::getValues: Could not interpret organisation of "
             "member "
             << dco.getMemberName(ii));
@@ -1069,12 +1115,12 @@ _searchMapping(const GtkGladeWindow::OptionMappings *mappings, const char *key,
     }
   }
   if (warn) {
-      /* DUECA graphics.
+    /* DUECA graphics.
 
-     In the given key is missing from the option string mapping for
-     selecting an Enum with a ComboBox. Check the mapping against
-     the DCO definition for the enum.
-  */
+In the given key is missing from the option string mapping for
+selecting an Enum with a ComboBox. Check the mapping against
+the DCO definition for the enum.
+*/
     W_XTR("GtkGladeWindow::fillOptions: Mapping for member \""
           << key << "\" not given in options mapping");
   }
@@ -1087,65 +1133,65 @@ bool GtkGladeWindow::fillOptions(const char *dcoclass, const char *format,
 {
   auto eclass = DataClassRegistry::single().getEntryShared(dcoclass);
   if (!eclass.get()) {
-      /* DUECA graphics.
+    /* DUECA graphics.
 
-     When trying to fill selections for combobox entries in a GUI,
-     (GtkGladeWindow::fillOptions), the specified dco data class is
-     not available. Check spelling, or add the class to the
-     executable.
-  */
+When trying to fill selections for combobox entries in a GUI,
+(GtkGladeWindow::fillOptions), the specified dco data class is
+not available. Check spelling, or add the class to the
+executable.
+*/
     E_XTR("GtkGladeWindow cannot access data class " << dcoclass);
     return false;
   }
 
-    // work variable
+  // work variable
   char gtkid[128];
   auto converter = DataClassRegistry::single().getConverter(dcoclass);
   void *object = converter->clone(NULL);
 
-    /** Run through all members. */
+  /** Run through all members. */
   for (size_t im = 0;
        im < DataClassRegistry::single().getNumMembers(eclass.get()); im++) {
     auto access =
       DataClassRegistry::single().getMemberAccessor(eclass.get(), im);
 
-      // only the enums
+    // only the enums
     if (access->isEnum()) {
-        // reader and writer are used to find enum names
+      // reader and writer are used to find enum names
       auto eltreader = access->getReader(object);
       auto eltwriter = access->getWriter(object);
 
-        // iterable, run through the
+      // iterable, run through the
       if (access->getArity() == FixedIterable) {
         if (arrformat != NULL) {
           for (unsigned idx = access->getSize(); idx--;) {
             snprintf(gtkid, sizeof(gtkid), arrformat, access->getName(), idx);
-              // now need to get the enum values?
+            // now need to get the enum values?
             _fillOptions(gtkid, eltwriter, eltreader,
                          _searchMapping(mappings, access->getName(), warn),
                          warn);
           }
         }
         else {
-            /* DUECA graphics.
+          /* DUECA graphics.
 
-           There is an enum array specified, but no array format
-           available for finding it in the interface.
-        */
+   There is an enum array specified, but no array format
+   available for finding it in the interface.
+*/
           W_XTR("GtkGladeWindow::fillOptions missing array format");
         }
       }
       else if (access->getArity() == Single) {
 
         snprintf(gtkid, sizeof(gtkid), format, access->getName());
-          // again, enum values
+        // again, enum values
         _fillOptions(gtkid, eltwriter, eltreader,
                      _searchMapping(mappings, access->getName(), warn), warn);
       }
     }
   }
 
-    // return the memory
+  // return the memory
   converter->delData(object);
 
   return true;
