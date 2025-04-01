@@ -330,8 +330,8 @@ void JSONtoDCO(const JValue &doc, CommObjectWriter& writer)
              Missing an object in the JSON representation needed to
              write a nested object in a DCO.
           */
-          W_XTR("JSON key " << it->name.GetString() <<
-                " needs object, when writing member of class " <<
+          W_XTR("JSON key \"" << it->name.GetString() <<
+                "\" needs object, when writing member of class " <<
                 writer.getClassname() << ", ignoring");
         }
       }
@@ -350,8 +350,8 @@ void JSONtoDCO(const JValue &doc, CommObjectWriter& writer)
              The JSON representation holds an array, but need a single
              object for the DCO element.
            */
-          W_XTR("JSON key " << it->name.GetString() <<
-                " has array, but element in object of class " <<
+          W_XTR("JSON key \"" << it->name.GetString() <<
+                "\" has array, but element in object of class " <<
                 writer.getClassname() << " is single, ignoring" );
           break;
         case Iterable:
@@ -373,8 +373,8 @@ void JSONtoDCO(const JValue &doc, CommObjectWriter& writer)
 
              The JSON key given needs to have a single value.
           */
-          W_XTR("JSON key " << it->name.GetString() <<
-                " needs single type value, when writing member of class " <<
+          W_XTR("JSON key \"" << it->name.GetString() <<
+                "\" needs single type value, when writing member of class " <<
                 writer.getClassname() << ", ignoring");
         }
         else {
@@ -388,8 +388,8 @@ void JSONtoDCO(const JValue &doc, CommObjectWriter& writer)
          Missing a key in the JSON representation for a data member in
          the DCO object.
        */
-      W_XTR("JSON key " << it->name.GetString() <<
-            " not found in class " <<
+      W_XTR("JSON key \"" << it->name.GetString() <<
+            "\" not found in class " <<
             writer.getClassname() << ", ignoring");
     }
   }

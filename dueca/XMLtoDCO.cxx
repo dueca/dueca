@@ -385,8 +385,9 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
 	     zero or multiple "<pair>" tags with keys and data are
 	     expected. Found an <object> tag instead.
 	  */
-          W_XTR("XML data mismatch, member " << member.attribute("name")
-                << " expects value pairs");
+          W_XTR("XML data mismatch, member \""
+		<< member.attribute("name").value()
+                << "\" expects value pairs");
           break;
         case FixedIterable:
           convertFixedArrayObject(child, eobject);
@@ -408,8 +409,9 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
 	     zero or multiple `pair` tags with keys and data are
 	     expected. Found a `value` tag instead.
 	  */
-          W_XTR("XML data mismatch, member " << member.attribute("name")
-                << " expects object pairs");
+          W_XTR("XML data mismatch, member \""
+		<< member.attribute("name").value()
+                << "\" expects object pairs");
           break;
         case FixedIterable:
           convertFixedArray(child, eobject);
@@ -437,7 +439,8 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
 	     mapped objects are coded with `pair` tags, with key and
 	     value or object pairs.
 	  */
-        W_XTR("XML data mismatch, member " << member.attribute("name"));
+        W_XTR("XML data type mismatch, member \""
+	      << member.attribute("name").value() << "\"");
       }
     }
     catch(const DataClassMemberNotFound& e) {
@@ -446,8 +449,8 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
          Missing a key in the XML representation for a data member in
          the DCO object.
        */
-      W_XTR("XML key " << member.attribute("name") <<
-            " not found in class " <<
+      W_XTR("XML member \"" << member.attribute("name").value() <<
+            "\" not found in class " <<
             writer.getClassname() << ", ignoring");
     }
   }
