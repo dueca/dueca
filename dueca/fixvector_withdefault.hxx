@@ -67,6 +67,13 @@ public:
       this->d[ii] = defval;
   }
 
+  /** constructor with initializer list */
+  fixvector_withdefault(const std::initializer_list<T>& e)
+  {
+    if (e.size() != N) throw indexexception();
+    std::copy(e.begin(), e.end(), this->d);
+  }
+
   /** constructor without default value for the data
    */
   fixvector_withdefault()

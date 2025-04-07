@@ -106,6 +106,14 @@ public:
     d(N == 0 ? NULL : new T[N])
   {}
 
+  /** constructor with initializer list */
+  varvector(const std::initializer_list<T>& e) :
+    N(e.size()),
+    d(N == 0 ? NULL : new T[N])
+  {
+    std::copy(e.begin(), e.end(), this->d);
+  }
+
   /** copy constructor; copies the data */
   varvector(const varvector<T> &other) :
     N(other.size()),
