@@ -717,7 +717,7 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         auto ewriter = dco[ii];
         unsigned idx = 0;
         while (!ewriter.isEnd()) {
-          snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
+          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii), idx++);
           boost::any b;
           if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii), b,
                         warn)) {
@@ -745,7 +745,7 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         auto ewriter = dco[ii];
         unsigned idx = 0;
         while (true) {
-          snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
+          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii), idx++);
           boost::any b;
           if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii), b,
                         warn)) {
@@ -816,7 +816,7 @@ bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
     if (warn) {
       /* DUECA graphics.
 
-               Cannot find the given object; check whether it is in the
+         Cannot find the given object; check whether it is in the
          interface, or check for spelling errors.
       */
       W_XTR("GtkGladeWindow::fillOptions: Could not find gtk object with id \""
@@ -852,7 +852,7 @@ bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
     if (warn) {
       /* DUECA graphics.
 
-               The store object attached to this combobox is not compatible.
+         The store object attached to this combobox is not compatible.
       */
       W_XTR("GtkGladeWindow::fillOptions: ComboBox object \""
             << wname << "\", store is not compatible");
