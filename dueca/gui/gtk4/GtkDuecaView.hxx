@@ -226,6 +226,9 @@ public:
   /** Quit dueca. */
   void cbQuit2(GtkWidget *widget, gpointer user_data);
 
+  /** Close quit window, continue */
+  void cbCloseQuit(GtkWidget *widget, gpointer user_data);
+
   /** Switch entities off. */
   void cbOff2(GtkWidget *widget, gpointer user_data);
 

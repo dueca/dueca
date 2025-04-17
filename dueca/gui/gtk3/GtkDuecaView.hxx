@@ -28,13 +28,12 @@
 #include <dueca_ns.h>
 #include <gtk/gtk.h>
 
-
 DUECA_NS_START
 struct ParameterTable;
 
 /** Handles -- at least part of -- the communication with the
     experiment leader via the user interface. */
-class GtkDuecaView: public Module, public DuecaView
+class GtkDuecaView : public Module, public DuecaView
 {
   /** Singleton pointer. */
   static GtkDuecaView *singleton;
@@ -68,16 +67,16 @@ class GtkDuecaView: public Module, public DuecaView
   GtkWidget *hw_off, *hw_safe, *hw_on, *emergency;
 
   /** List view of entities */
-  GtkWidget* entities_list;
+  GtkWidget *entities_list;
 
   /** Model for the entities list widget. */
-  GtkTreeStore* entities_store;
+  GtkTreeStore *entities_store;
 
   /** List view of nodes */
-  GtkWidget* nodes_list;
+  GtkWidget *nodes_list;
 
   /** Model for the nodes list */
-  GtkListStore* nodes_store;
+  GtkListStore *nodes_store;
 
   /** remember arming. */
   bool safe_armed;
@@ -101,27 +100,27 @@ class GtkDuecaView: public Module, public DuecaView
   Callback<GtkDuecaView> cb;
 
   /** Activity, update interface. */
-  ActivityCallback    update_interface;
+  ActivityCallback update_interface;
 
   /** Aperiodic triggering. */
-  AperiodicAlarm      waker;
+  AperiodicAlarm waker;
 
   /** Not a root class. */
   bool isRootClass();
 
 public:
   /// Name of the module class.
-  static const char* const       classname;
+  static const char *const classname;
 
   /** Table with parameters. */
-  static const ParameterTable* getParameterTable();
-public:
+  static const ParameterTable *getParameterTable();
 
+public:
   /** Constructor. Follows normal module construction conventions. */
-  GtkDuecaView(Entity* e, const char* part, const PrioritySpec& ps);
+  GtkDuecaView(Entity *e, const char *part, const PrioritySpec &ps);
 
   /** Access the singleton pointer. */
-  inline static GtkDuecaView* single() { return singleton; }
+  inline static GtkDuecaView *single() { return singleton; }
 
   /** Is called after the constructor and after insertion of parameter
       values; completes construction. */
@@ -131,62 +130,61 @@ public:
   ~GtkDuecaView();
 
   /** Specification of window size. */
-  bool setPositionAndSize(const vector<int>& p);
+  bool setPositionAndSize(const vector<int> &p);
 
   /** Start the GtkDuecaView module. Is not really used, GtkDuecaView is
       intrinsically started. */
-  void startModule(const TimeSpec& time);
+  void startModule(const TimeSpec &time);
 
   /** Stop the GtkDuecaView module. As for startModule, not really used. */
-  void stopModule(const TimeSpec& time);
+  void stopModule(const TimeSpec &time);
 
   /** Will always be prepared. */
   bool isPrepared();
 
   /** Update interface. */
-  void updateInterface(const TimeSpec& time);
+  void updateInterface(const TimeSpec &time);
 
 public:
   /** This call allows accessories in DUECA to get entries in the view
       menu. */
-  void* requestViewEntry(const char* name,
-                         void* object);
+  void *requestViewEntry(const char *name, void *object);
 
   /** Access the main window. */
-  inline GtkGladeWindow& accessMainView() { return window; }
+  inline GtkGladeWindow &accessMainView() { return window; }
 
 public:
   /** Callback functions for interface actions. */
 
   /** Quit DUECA, this will need a confirmation! */
-  void cbQuit(GtkButton* button, gpointer gp);
+  void cbQuit(GtkButton *button, gpointer gp);
 
   /** Stop running. */
-  void cbStop(GtkButton* button, gpointer gp);
+  void cbStop(GtkButton *button, gpointer gp);
 
   /** Go to safe mode. */
-  void cbSafe(GtkButton* button, gpointer gp);
+  void cbSafe(GtkButton *button, gpointer gp);
 
   /** Go to run mode. */
-  void cbRun(GtkButton* button, gpointer gp);
+  void cbRun(GtkButton *button, gpointer gp);
 
   /** Stop Dueca and shutdown systems, this will need confirmation! */
-  void cbShutDown(GtkButton* button, gpointer gp);
+  void cbShutDown(GtkButton *button, gpointer gp);
 
   /** Confirm drastic actions such as stop or quit. */
-  void cbConfirm(GtkButton* button, gpointer gp);
+  void cbConfirm(GtkButton *button, gpointer gp);
 
   /** Callback functions for interface, alternative, more complex
       interface. */
+
+  /** Close quit window, continue */
+  void cbCloseQuit(GtkWidget *widget, gpointer user_data);
 
   /** Bring up "about" dialog" */
   void cbShowAbout(GtkMenuItem *menuitem, gpointer user_data);
 
   /** close the about dialog */
   void cbCloseAbout(GtkDialog *dialog, gpointer user_data);
-
-  /** Bring up quit dialog. */
-  void cbShowQuit(GtkMenuItem *menuitem, gpointer user_data);
 
   /** File chooser for extra files. */
   void cbExtraModDialog(GtkMenuItem *menuitem, gpointer user_data);
@@ -204,27 +202,25 @@ public:
   void cbQuit2(GtkWidget *widget, gpointer user_data);
 
   /** Switch entities off. */
-  gboolean cbOff2(GtkWidget *widget, GdkEventButton *event,
-                  gpointer user_data);
+  gboolean cbOff2(GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 
   /** Switch entities to safe running. */
   gboolean cbSafe2(GtkWidget *widget, GdkEventButton *event,
                    gpointer user_data);
 
   /** Switch entities on. */
-  gboolean cbOn2(GtkWidget *widget, GdkEventButton *event,
-                 gpointer user_data);
+  gboolean cbOn2(GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 
   /** Emergency stop. */
   gboolean cbEmerg2(GtkWidget *widget, GdkEventButton *event,
                     gpointer user_data);
 
   /** Auxiliary, clean styles from buttons */
-  void clean_style(GtkWidget* w);
+  void clean_style(GtkWidget *w);
 
   /** update buttons entity control */
-  void updateEntityButtons(const ModuleState& confirmed_state,
-                           const ModuleState& command_state,
+  void updateEntityButtons(const ModuleState &confirmed_state,
+                           const ModuleState &command_state,
                            bool emergency_flag);
 
   /** Insert a new entity node.
@@ -233,8 +229,8 @@ public:
                         the toolkit's objects that represent a parent
       \param  obj       pointer to the object on the Dueca side.
       \returns          A pointer to the node on the toolkit side. */
-  virtual void* insertEntityNode(const char* name, void* parent,
-                                 int dueca_node, StatusT1* obj);
+  virtual void *insertEntityNode(const char *name, void *parent, int dueca_node,
+                                 StatusT1 *obj);
 
   /** Refresh the entity list view. */
   void refreshEntitiesView();
