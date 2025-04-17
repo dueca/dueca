@@ -269,6 +269,9 @@ bool GtkDuecaView::complete()
       E_CNF(" failed to create quit dialog");
       return false;
     }
+    gtk_window_set_transient_for(GTK_WINDOW(gw_common["really_quit"]),
+                                 GTK_WINDOW(window["dueca_if"]));
+
     if (!gw_common["dont_stop_warning"]) {
       /* DUECA UI.
 
@@ -278,6 +281,9 @@ bool GtkDuecaView::complete()
       E_CNF(" failed to create stop warning dialog");
       return false;
     }
+    gtk_window_set_transient_for(GTK_WINDOW(gw_common["dont_stop_warning"]),
+                                 GTK_WINDOW(window["dueca_if"]));
+
     if (!gw_common["dont_change_a_running"]) {
       /* DUECA UI.
 
@@ -287,6 +293,10 @@ bool GtkDuecaView::complete()
       E_CNF(" failed to create change warning dialog");
       return false;
     }
+    gtk_window_set_transient_for(GTK_WINDOW(gw_common["dont_change_a_running"]),
+                                 GTK_WINDOW(window["dueca_if"]));
+
+
     if (!gw_common["select_md2"]) {
       /* DUECA UI.
 
@@ -296,6 +306,11 @@ bool GtkDuecaView::complete()
       E_CNF(" failed to create addition model dialog");
       return false;
     }
+    gtk_window_set_transient_for(GTK_WINDOW(gw_common["select_md2"]),
+                                 GTK_WINDOW(window["dueca_if"]));
+
+
+
   }
 
   return res;
