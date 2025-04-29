@@ -253,7 +253,7 @@ public:
   ChannelReadToken(
     const GlobalId &owner, const NameSet &channelname,
     const std::string &dataclassname, entryid_type entryhandle = 0,
-    Channel::EntryTimeAspect time_aspect = Channel::Continuous,
+    Channel::EntryTimeAspect time_aspect = Channel::AnyTimeAspect,
     Channel::EntryArity arity = Channel::OnlyOneEntry,
     Channel::ReadingMode rmode = Channel::AdaptEventStream,
     double requested_span = 0.2,
@@ -348,7 +348,7 @@ public:
   ChannelReadToken(
     const GlobalId &owner, const NameSet &channelname,
     const std::string &dataclassname, const std::string &entrylabel,
-    Channel::EntryTimeAspect time_aspect = Channel::Continuous,
+    Channel::EntryTimeAspect time_aspect = Channel::AnyTimeAspect,
     Channel::EntryArity arity = Channel::OnlyOneEntry,
     Channel::ReadingMode rmode = Channel::AdaptEventStream,
     double requested_span = 0.2,
