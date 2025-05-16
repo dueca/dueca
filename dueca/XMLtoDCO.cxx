@@ -28,121 +28,110 @@
 
 DUECA_NS_START;
 
-xmldecodeexception::xmldecodeexception(const char* re) : reason(re) {}
-const char* xmldecodeexception::what() const noexcept { return reason; }
+xmldecodeexception::xmldecodeexception(const char *re) :
+  reason(re)
+{}
+const char *xmldecodeexception::what() const noexcept { return reason; }
 
-template<class T>
-void readAny(const pugi::xml_node &doc, boost::any& val);
+template <class T> void readAny(const pugi::xml_node &doc, boost::any &val);
 
-template<unsigned mxsize>
-void readAnyDstring(const pugi::xml_node &doc, boost::any& val)
+template <unsigned mxsize>
+void readAnyDstring(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting dstring from " << doc.child_value());
   val = Dstring<mxsize>(doc.text().as_string());
 }
 
-template<>
-void readAny<char>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<char>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting char from " << doc.child_value());
   val = char(doc.text().as_string()[0]);
 }
 
-template<>
-void readAny<uint8_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<uint8_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting uint8 from " << doc.child_value());
-  //val = boost::lexical_cast<uint8_t>(doc.child_value());
+  // val = boost::lexical_cast<uint8_t>(doc.child_value());
   val = uint8_t(doc.text().as_uint());
 }
 
-template<>
-void readAny<uint16_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<uint16_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting uint16 from " << doc.child_value());
   // val = boost::lexical_cast<uint16_t>(doc.child_value());
   val = uint16_t(doc.text().as_uint());
 }
 
-template<>
-void readAny<uint32_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<uint32_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting uint32 from " << doc.child_value());
   // val = boost::lexical_cast<uint32_t>(doc.child_value());
   val = doc.text().as_uint();
 }
 
-template<>
-void readAny<uint64_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<uint64_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting uint64 from " << doc.child_value());
   // val = boost::lexical_cast<uint64_t>(doc.child_value());
   val = doc.text().as_ullong();
 }
-template<>
-void readAny<int8_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<int8_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting int8 from " << doc.child_value());
   // val = boost::lexical_cast<int8_t>(doc.child_value());
   val = int8_t(doc.text().as_int());
 }
 
-template<>
-void readAny<int16_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<int16_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting int16 from " << doc.child_value());
   // val = boost::lexical_cast<int16_t>(doc.child_value());
   val = int16_t(doc.text().as_int());
 }
 
-template<>
-void readAny<int32_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<int32_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting int32 from " << doc.child_value());
   // val = boost::lexical_cast<int32_t>(doc.child_value());
   val = doc.text().as_int();
 }
 
-template<>
-void readAny<int64_t>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<int64_t>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting int64 from " << doc.child_value());
   // val = boost::lexical_cast<int64_t>(doc.child_value());
   val = doc.text().as_llong();
 }
 
-template<>
-void readAny<float>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<float>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting float from " << doc.child_value());
-  //val = boost::lexical_cast<float>(doc.child_value());
+  // val = boost::lexical_cast<float>(doc.child_value());
   val = doc.text().as_float();
 }
 
-template<>
-void readAny<double>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<double>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting double from " << doc.child_value());
-  //val = boost::lexical_cast<double>(doc.child_value());
+  // val = boost::lexical_cast<double>(doc.child_value());
   val = doc.text().as_double();
 }
 
-template<>
-void readAny<std::string>(const pugi::xml_node &doc, boost::any& val)
+template <>
+void readAny<std::string>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting string from " << doc.child_value());
   val = std::string(doc.text().as_string());
 }
 
-template<>
-void readAny<smartstring>(const pugi::xml_node &doc, boost::any& val)
+template <>
+void readAny<smartstring>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting string from " << doc.child_value());
   val = smartstring(doc.text().as_string());
 }
 
-template<>
-void readAny<bool>(const pugi::xml_node &doc, boost::any& val)
+template <> void readAny<bool>(const pugi::xml_node &doc, boost::any &val)
 {
   DEB("Getting bool from " << doc.child_value());
   val = doc.text().as_bool();
@@ -159,12 +148,10 @@ void readAny<bool>(const pugi::xml_node &doc, boost::any& val)
     }*/
 }
 
-static void convertValue(pugi::xml_node& doc, boost::any& val,
-                         typeindex_t tix)
+static void convertValue(pugi::xml_node &doc, boost::any &val, typeindex_t tix)
 {
-  typedef std::function<void(const pugi::xml_node&,boost::any&)> avfunction;
-  typedef std::map<typeindex_t,avfunction>
-    writermap_t;
+  typedef std::function<void(const pugi::xml_node &, boost::any &)> avfunction;
+  typedef std::map<typeindex_t, avfunction> writermap_t;
 
   static writermap_t wmap;
   if (wmap.size() == 0) {
@@ -222,14 +209,14 @@ static void convertValue(pugi::xml_node& doc, boost::any& val,
   }
 }
 
-static void convertValue(pugi::xml_node &value, ElementWriter& writer)
+static void convertValue(pugi::xml_node &value, ElementWriter &writer)
 {
   boost::any val;
   convertValue(value, val, writer.getTypeIndex());
   writer.write(val);
 }
 
-static void convertArrayObject(pugi::xml_node &object, ElementWriter& eobject)
+static void convertArrayObject(pugi::xml_node &object, ElementWriter &eobject)
 {
   for (; object; object = object.next_sibling("object")) {
     DEB("Object from array");
@@ -238,15 +225,15 @@ static void convertArrayObject(pugi::xml_node &object, ElementWriter& eobject)
   }
 }
 
-static void convertArray(pugi::xml_node &value, ElementWriter& eobject)
+static void convertArray(pugi::xml_node &value, ElementWriter &eobject)
 {
-  for (; value; value = value.next_sibling("object")) {
+  for (; value; value = value.next_sibling("value")) {
     DEB("Value from array");
     convertValue(value, eobject);
   }
 }
 
-static void convertFixedArray(pugi::xml_node &value, ElementWriter& eobject)
+static void convertFixedArray(pugi::xml_node &value, ElementWriter &eobject)
 {
   try {
     convertArray(value, eobject);
@@ -256,21 +243,23 @@ static void convertFixedArray(pugi::xml_node &value, ElementWriter& eobject)
          There is not enough data in a XML representation to
          completely fill a fixed-length array in the DCO.
       */
-      W_XTR("Array not completely filled in " << value.child_value());
+      W_XTR("Array " << value.parent().attribute("name").value()
+                     << " not completely filled in");
     }
   }
-  catch (const IndexExceeded& e) {
+  catch (const IndexExceeded &e) {
     /* DUECA XML.
 
        There was too much array data in a XML representation for a
        fixed-length array in the DCO.
     */
-    W_XTR("array length exceeded, ignoring remaining elements in " <<
-          value.parent().name());
+    W_XTR("array length exceeded, ignoring remaining elements in "
+          << value.parent().name());
   }
 }
 
-static void convertFixedArrayObject(pugi::xml_node &value, ElementWriter& eobject)
+static void convertFixedArrayObject(pugi::xml_node &value,
+                                    ElementWriter &eobject)
 {
   try {
     convertArrayObject(value, eobject);
@@ -280,24 +269,24 @@ static void convertFixedArrayObject(pugi::xml_node &value, ElementWriter& eobjec
          There is not enough data in a XML representation to
          completely fill a fixed-length array in the DCO.
       */
-      W_XTR("Array not completely filled in " << value.parent().name());
+      W_XTR("Array " << value.parent().attribute("name").value()
+                     << " not completely filled in");
     }
   }
-  catch (const IndexExceeded& e) {
+  catch (const IndexExceeded &e) {
     /* DUECA XML.
 
        There was too much array data in a XML representation for a
        fixed-length array in the DCO.
     */
-    W_XTR("array length exceeded, ignoring remaining elements in " <<
-          value.parent().name());
+    W_XTR("array length exceeded, ignoring remaining elements in "
+          << value.parent().name());
   }
 }
 
-static void convertMapObjects(pugi::xml_node &pair,
-                              ElementWriter& eobject)
+static void convertMapObjects(pugi::xml_node &pair, ElementWriter &eobject)
 {
-  for ( ; pair; pair = pair.next_sibling("pair")) {
+  for (; pair; pair = pair.next_sibling("pair")) {
     pugi::xml_node object = pair.child("object");
     pugi::xml_node key = pair.child("key");
     if (key && object) {
@@ -310,19 +299,18 @@ static void convertMapObjects(pugi::xml_node &pair,
     else {
       /* DUECA XML.
 
-	 When trying to decode a "std::map" of objects, or simular
-	 member, either the "key" or "object" tag is missing. Please
-	 inspect/correct your XML.
+         When trying to decode a "std::map" of objects, or simular
+         member, either the "key" or "object" tag is missing. Please
+         inspect/correct your XML.
       */
       W_XTR("Missing key or object in pair");
     }
   }
 }
 
-static void convertMap(pugi::xml_node &pair,
-                     ElementWriter& eobject)
+static void convertMap(pugi::xml_node &pair, ElementWriter &eobject)
 {
-  for ( ; pair; pair = pair.next_sibling("pair")) {
+  for (; pair; pair = pair.next_sibling("pair")) {
     pugi::xml_node value = pair.child("value");
     pugi::xml_node key = pair.child("key");
     if (key && value) {
@@ -335,21 +323,20 @@ static void convertMap(pugi::xml_node &pair,
     else {
       /* DUECA XML.
 
-	 When trying to decode a "std::map" of values, or simular
-	 member, either the "key" or "value" tag is missing. Please
-	 inspect/correct your XML.
+         When trying to decode a "std::map" of values, or simular
+         member, either the "key" or "value" tag is missing. Please
+         inspect/correct your XML.
       */
-       W_XTR("Missing key or value in pair");
+      W_XTR("Missing key or value in pair");
     }
   }
 }
 
-
-void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
+void XMLtoDCO(const pugi::xml_node &object, CommObjectWriter &writer)
 {
   /* Check this is the correct node type */
   pugi::xml_attribute classname = object.attribute("class");
-  if (strcmp(classname.value(),writer.getClassname())) {
+  if (strcmp(classname.value(), writer.getClassname())) {
     throw xmldecodeexception("dataclass mismatch");
   }
   if (strcmp(object.name(), "object")) {
@@ -369,24 +356,23 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
       pugi::xml_node child = member.child("object");
       if (child && eobject.isNested()) {
 
-        switch(eobject.getArity()) {
+        switch (eobject.getArity()) {
         case Single: {
           CommObjectWriter wobject = eobject.recurse();
           XMLtoDCO(child, wobject);
-        }
-          break;
+        } break;
         case Iterable:
           convertArrayObject(child, eobject);
           break;
         case Mapped:
-	  /* DUECA XML.
+          /* DUECA XML.
 
-	     When trying to decode a "std::map" or simular member,
-	     zero or multiple "<pair>" tags with keys and data are
-	     expected. Found an <object> tag instead.
-	  */
+             When trying to decode a "std::map" or simular member,
+             zero or multiple "<pair>" tags with keys and data are
+             expected. Found an <object> tag instead.
+          */
           W_XTR("XML data mismatch, member \""
-		<< member.attribute("name").value()
+                << member.attribute("name").value()
                 << "\" expects value pairs");
           break;
         case FixedIterable:
@@ -395,7 +381,7 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
         }
       }
       else if ((child = member.child("value")) && !eobject.isNested()) {
-        switch(eobject.getArity()) {
+        switch (eobject.getArity()) {
         case Single:
           convertValue(child, eobject);
           break;
@@ -403,14 +389,14 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
           convertArray(child, eobject);
           break;
         case Mapped:
-	  /* DUECA XML.
+                /* DUECA XML.
 
-	     When trying to decode a `std::map` or simular member,
-	     zero or multiple `pair` tags with keys and data are
-	     expected. Found a `value` tag instead.
-	  */
+            When trying to decode a `std::map` or simular member,
+            zero or multiple `pair` tags with keys and data are
+            expected. Found a `value` tag instead.
+          */
           W_XTR("XML data mismatch, member \""
-		<< member.attribute("name").value()
+                << member.attribute("name").value()
                 << "\" expects object pairs");
           break;
         case FixedIterable:
@@ -426,32 +412,31 @@ void XMLtoDCO(const pugi::xml_node& object, CommObjectWriter& writer)
                !eobject.isNested()) {
         convertMap(child, eobject);
       }
-      else if (eobject.getArity() == Iterable ||
-               eobject.getArity() == Mapped) {
+      else if (eobject.getArity() == Iterable || eobject.getArity() == Mapped) {
         // empty object, also OK
       }
       else {
-	  /* DUECA XML.
+          /* DUECA XML.
 
-	     The XML data for a specific member is not coded in the
-	     right format. Note that nested DCO objects are coded with
-	     `object` tags, values are coded with `value` tags, and
-	     mapped objects are coded with `pair` tags, with key and
-	     value or object pairs.
-	  */
+           The XML data for a specific member is not coded in the
+           right format. Note that nested DCO objects are coded with
+           `object` tags, values are coded with `value` tags, and
+           mapped objects are coded with `pair` tags, with key and
+           value or object pairs.
+        */
         W_XTR("XML data type mismatch, member \""
-	      << member.attribute("name").value() << "\"");
+              << member.attribute("name").value() << "\"");
       }
     }
-    catch(const DataClassMemberNotFound& e) {
+    catch (const DataClassMemberNotFound &e) {
       /* DUECA XML.
 
          Missing a key in the XML representation for a data member in
          the DCO object.
        */
-      W_XTR("XML member \"" << member.attribute("name").value() <<
-            "\" not found in class " <<
-            writer.getClassname() << ", ignoring");
+      W_XTR("XML member \"" << member.attribute("name").value()
+                            << "\" not found in class " << writer.getClassname()
+                            << ", ignoring");
     }
   }
 }
