@@ -16,11 +16,9 @@
 #include <DCOTypeIndex.hxx>
 #include "CommObjectElementWriter.hxx"
 #include <debug.h>
-#include <unordered_map>
 #include <dueca/Dstring.hxx>
 #include <dueca/LogString.hxx>
 #include "smartstring.hxx"
-#include <algorithm>
 #include <cctype>
 
 #define DEBPRINTLEVEL -1
