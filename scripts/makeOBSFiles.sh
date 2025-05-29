@@ -21,7 +21,7 @@ NAME=dueca
 PKGDIR=`mktemp -d /tmp/${NAME}.XXXXXXXX`
 KEEPTMP=
 OSCDIR="${HOME}/rpmbuild/home:repabuild/${NAME}"
-OSCDIRV="${HOME}/rpmbuild/home:repabuild/dueca-versioned"
+OSCDIRV="${HOME}/rpmbuild/tu/home:repabuild/dueca-versioned"
 
 # root of the repository with source
 GITSERVER=git@github.com:dueca/dueca.git
@@ -176,7 +176,7 @@ function create_debfiles()
     popd
 
     # and for xUbuntu 20.04
-    for VER in 20.04 22.04; do
+    for VER in 18.04 20.04 22.04; do
 
         # base version debian folder
         pushd obs
@@ -257,7 +257,7 @@ function create_debfiles()
         mv -f debian-versioned.tar ${OSCDIRV}/debian.tar
         mv -f dueca-versioned.dsc ${OSCDIRV}
         mv -f dueca-versioned.spec ${OSCDIRV}
-        for VER in 20.04 22.04; do
+        for VER in 18.04 20.04 22.04; do
             mv -f dueca-versioned-xUbuntu_${VER}.dsc ${OSCDIRV}
             mv -f debian-versioned-xUbuntu_${VER}.tar \
                ${OSCDIRV}/debian-xUbuntu_${VER}.tar
@@ -282,7 +282,7 @@ function create_debfiles()
         mv -f debian.tar ${OSCDIR}/debian.tar
         mv -f dueca.dsc ${OSCDIR}
         mv -f dueca.spec ${OSCDIR}
-        for VER in 20.04 22.04; do
+        for VER in 18.04 20.04 22.04; do
             mv -f dueca-xUbuntu_${VER}.dsc ${OSCDIR}
             mv -f debian-xUbuntu_${VER}.tar \
                ${OSCDIR}/debian-xUbuntu_${VER}.tar
