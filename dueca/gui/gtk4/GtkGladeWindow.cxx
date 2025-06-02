@@ -324,65 +324,114 @@ bool GtkGladeWindow::_setValue(const char *wname, double value, bool warn)
   return false;
 }
 
-static const char *
-_representationInMap(const GtkGladeWindow::OptionMapping *mapping,
-                     const char *key, bool warn)
+// When options are mapped:
+// - the mapping table options are mapped in order, options with NULL
+//   description  are nixed, remaining options are added. Runs through the
+//   mapping table, and then through all options again
+//
+// When options are set:
+// - value is looked up in mapping table, and index is set, otherwise value
+//   looked up from remaining values directly inserted in string list
+//
+// When options are retrieved from index:
+// - index is checked to be in mapping table, if not, index is looked up from
+//   remaining values in string list.
+
+bool _notInMapping(const GtkGladeWindow::OptionMapping *mapping,
+                   const char *ename)
 {
-  for (auto m = mapping; m->ename != NULL; m++) {
-    if (!strcmp(m->ename, key)) {
-      if (m->representation != NULL) {
-        return m->representation;
-      }
-      else {
-        return key;
-      }
+  for (auto m = mapping; m && m->ename; m++) {
+    if (!strcmp(m->ename, ename)) {
+      return false;
     }
   }
-  if (warn) {
-    /* DUECA graphics.
-
-       In the given key is missing from the option string mapping for
-       selecting an Enum with a ComboBox or DropDown. Check the mapping
-       against the DCO definition for the enum.
-    */
-    W_XTR("GtkGladeWindow::fillOptions: Key \""
-          << key << "\" not given in options mapping");
-  }
-  return key;
+  return true;
 }
 
-static const char *_keyFromMap(const GtkGladeWindow::OptionMapping *mapping,
-                               unsigned idx)
+// the OptionMapping table
+// - should be NULL terminated
+// - relates enum names (ename), to representations (representation)
+// - if representation is NULL, the enum will not be listed in the dropbox
+// - if the enum name is not in the table, its representation will be the enum
+// name
+
+static GtkStringList *
+_createDropdownModel(const GtkGladeWindow::OptionMapping *mapping,
+                     ElementWriter &writer, ElementReader &reader)
+
 {
-  auto m = mapping;
-  for (auto i = idx; i--;) {
-    if (m && m->ename) {
-      if (idx) {
-        m++;
-      }
-      else {
+  // new model
+  auto model = gtk_string_list_new(NULL);
+
+  // run through the mapping
+  for (auto m = mapping; m && m->ename; m++) {
+    if (m->representation) {
+      gtk_string_list_append(model, m->representation);
+    }
+  }
+
+  // run through the enum names, add anything not in the mapping, and not
+  // blocked
+  // reader and writer are coupled, run through all options
+  writer.setFirstValue();
+  do {
+    std::string value;
+    reader.peek(value);
+    if (_notInMapping(mapping, value.c_str())) {
+      gtk_string_list_append(model, value.c_str());
+    }
+  }
+  while (writer.setNextValue());
+
+  return model;
+}
+
+unsigned _findIndexFromValue(const GtkGladeWindow::OptionMapping *mapping,
+                             GtkStringList *model, const char *ename)
+{
+  unsigned idx = 0U;
+
+  // run through the mapping first
+  for (auto m = mapping; m && m->ename; m++) {
+    if (!strcmp(m->ename, ename)) {
+      // match
+      return idx;
+    }
+    if (m->representation) {
+      idx++;
+    }
+  }
+
+  // remainder from the stringlist
+  auto item = gtk_string_list_get_string(model, idx);
+  while (item) {
+    if (!strcmp(item, ename)) {
+      return idx;
+    }
+    gtk_string_list_get_string(model, ++idx);
+  }
+
+  return std::numeric_limits<unsigned>::max();
+}
+
+const char *_findValueFromIndex(const GtkGladeWindow::OptionMapping *mapping,
+                                GtkStringList *model, unsigned idx)
+{
+  unsigned ii = 0U;
+
+  // first check all valid enames in mapping
+  for (auto m = mapping; m && m->ename; m++) {
+    if (m->representation) {
+      if (ii == idx) {
         return m->ename;
       }
-    }
-    else {
-      return NULL;
+      ii++;
     }
   }
-  return NULL;
+
+  return gtk_string_list_get_string(model, idx);
 }
 
-static int _indexInMap(const GtkGladeWindow::OptionMapping *mapping,
-                       const char *key)
-{
-  int idx = 0;
-  auto m = mapping;
-  for (; m->ename && strcmp(m->ename, key); m++) {
-    idx++;
-  }
-  if (m->ename)
-    return idx;
-  return -1;
-}
 
 bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
                                   ElementReader &reader,
@@ -405,20 +454,7 @@ bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
   if (GTK_IS_DROP_DOWN(o)) {
 
     // check whether a model or the right kind of model is set
-    auto model = gtk_string_list_new(NULL);
-
-    // reader and writer are coupled, run through all options
-    writer.setFirstValue();
-    do {
-      std::string value;
-      reader.peek(value);
-      if (mapping) {
-        value = _representationInMap(mapping, value.c_str(), warn);
-      }
-      gtk_string_list_append(model, value.c_str());
-    }
-    while (writer.setNextValue());
-
+    auto model = _createDropdownModel(mapping, writer, reader);
     gtk_drop_down_set_model(GTK_DROP_DOWN(o), G_LIST_MODEL(model));
     return true;
   }
@@ -460,29 +496,14 @@ bool GtkGladeWindow::_setValue(const char *wname, const char *value, bool warn)
   }
 
   if (GTK_IS_DROP_DOWN(o)) {
+
     auto *mapping =
       reinterpret_cast<OptionMapping *>(g_object_get_data(o, "d_mapping"));
-    if (mapping) {
-      auto res = _indexInMap(mapping, value);
-      if (res >= 0) {
-        gtk_drop_down_set_selected(GTK_DROP_DOWN(o), res);
-      }
-      else {
-        return false;
-      }
-    }
-    else {
-      auto model = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
-      guint pos = 0;
-      auto item = gtk_string_list_get_string(model, pos);
-      while (item) {
-        if (strcmp(item, value) == 0) {
-          gtk_drop_down_set_selected(GTK_DROP_DOWN(o), pos);
-          return true;
-        }
-        item = gtk_string_list_get_string(model, ++pos);
-      }
-      return false;
+    auto model = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
+    auto idx = _findIndexFromValue(mapping, model, value);
+    if (idx != std::numeric_limits<unsigned>::max()) {
+      gtk_drop_down_set_selected(GTK_DROP_DOWN(o), idx);
+      return true;
     }
   }
 
@@ -661,12 +682,16 @@ bool GtkGladeWindow::__getValue(const char *wname, boost::any &b, bool warn)
   }
 
   if (GTK_IS_DROP_DOWN(o)) {
+    auto mapping =
+      reinterpret_cast<OptionMapping *>(g_object_get_data(o, "d_mapping"));
     auto _model = gtk_drop_down_get_model(GTK_DROP_DOWN(o));
+
     if (GTK_IS_STRING_LIST(_model)) {
       auto model = GTK_STRING_LIST(_model);
       auto sel = gtk_drop_down_get_selected(GTK_DROP_DOWN(o));
+      auto value = _findValueFromIndex(mapping, model, sel);
       try {
-        b = boost::lexical_cast<T>(gtk_string_list_get_string(model, sel));
+        b = boost::lexical_cast<T>(value);
         return true;
       }
       catch (const std::exception &e) {
@@ -746,19 +771,13 @@ bool GtkGladeWindow::__getValue<std::string>(const char *wname, boost::any &b,
   }
 
   if (GTK_IS_DROP_DOWN(o)) {
-    auto item = gtk_drop_down_get_selected(GTK_DROP_DOWN(o));
-    auto *mapping =
+    auto mapping =
       reinterpret_cast<OptionMapping *>(g_object_get_data(o, "d_mapping"));
-    const char *res = NULL;
-    if (mapping) {
-      res = _keyFromMap(mapping, item);
-    }
-    else {
-      auto slist = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
-      res = gtk_string_list_get_string(slist, item);
-    }
-    if (res) {
-      b = std::string(res);
+    auto model = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
+    auto sel = gtk_drop_down_get_selected(GTK_DROP_DOWN(o));
+    auto value = _findValueFromIndex(mapping, model, sel);
+    if (value) {
+      b = std::string(value);
       return true;
     }
     else if (warn) {
@@ -1105,6 +1124,14 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
   return nset;
 }
 
+/** Search for a given mappint, based on DCO variable name
+
+    @param mappings   Table of defined mappings
+    @param key        DCO variable name
+    @param warn       Boolean, warn about missing mapping
+
+    @returns          OptionMapping pointer.
+*/
 static const GtkGladeWindow::OptionMapping *
 _searchMapping(const GtkGladeWindow::OptionMappings *mappings, const char *key,
                bool warn)

@@ -193,7 +193,8 @@ struct GladeCallbackTable
     connection in gtk. However, the callback system used by
     GtkGladeWindow already uses *that* gpointer. You can add a new
     value by specifying it in the last column of the
-    GladeCallbackTable.
+    GladeCallbackTable. This will help you re-use the same callback 
+    for different purposes.
 
     It is also possible to quickly link and load DCO objects to
     elements in your interface. Take the following dco object as an
@@ -201,7 +202,7 @@ struct GladeCallbackTable
 
     @code{.scheme}
     (Type float)
-    (Enum CmdType On Off)
+    (Enum CmdType On Off Schroedinger Invalid)
     (Object TestObject
             (float a (Default 0.1f))
             (CmdType command (Default Off))
@@ -228,10 +229,14 @@ struct GladeCallbackTable
 
     // each enum gets a mapping to label strings
     static const GtkGladeWindow::OptionMapping mapping_command[] = {
-      { "On", "Device on" },
-      { "Off", "Device off" },
+      { "On", "Device on" },    // instead of "On", the combo lists "Device On"
+      { "Off", "Device off" },  // etc.
+                                // option "Schroedinger" is simply shown 
+                                // as "Schroedinger"
+      { "Invalid", NULL },      // option "Invalid" will not be selectable
       { NULL, NULL }
     };
+
     // all mappings together, linked to the member name
     static const OptionMappings mappings[] = {
       { "command", mapping_command },
@@ -239,6 +244,10 @@ struct GladeCallbackTable
     };
 
     // apply the mappings to the opened window
+    // this looks through the mappings, finds "command" there, 
+    // then finds "mywidgets_command" in the gui (ID of widget), 
+    // and loads the options into the dropdown as per the 
+    // mapping_command table.
     mywindow.fillOptions("TestObject", "mywidgets_%s", NULL,
                          mappings, true);
 

@@ -20,7 +20,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <iostream>
 #include "GtkCaller.hxx"
 #include "GladeException.hxx"
 #include <boost/any.hpp>
@@ -175,7 +174,8 @@ struct GladeCallbackTable {
     connection in gtk. However, the callback system used by
     GtkGladeWindow already uses *that* gpointer. You can add a new
     value by specifying it in the last column of the
-    GladeCallbackTable.
+    GladeCallbackTable. This will help you re-use the same callback 
+    for different purposes.
 
     It is also possible to quickly link and load DCO objects to
     elements in your interface. Take the following dco object as an
@@ -183,7 +183,7 @@ struct GladeCallbackTable {
 
     @code{.scheme}
     (Type float)
-    (Enum CmdType On Off)
+    (Enum CmdType On Off Schroedinger Invalid)
     (Object TestObject
             (float a (Default 0.1f))
             (CmdType command (Default Off))
@@ -191,12 +191,12 @@ struct GladeCallbackTable {
     @endcode
 
     If you now ensure that the widgets holding this data (for the
-    float a TextEntry, an Adjustment, a SpinButton or a Range, for the
-    enum a ComboBox) are properly named, the GtkGladeWindow can:
+    float: a TextEntry, an Adjustment, a SpinButton or a Range, for the
+    enum: a ComboBox) are properly named, the GtkGladeWindow can:
 
     - Set the options for the ComboBox based on the enum values
     - Set the data from the "a" and "command" members into the interface
-    - Convert data from the interface to the "a" and "command" members.
+    - Convert data from the interface back to the "a" and "command" members.
 
     As an example, for a glade window with a SpinButton named
     "mywidgets_a" and a ComboBox named "mywidgets_command", the
@@ -205,21 +205,30 @@ struct GladeCallbackTable {
     @code{.cxx}
     // define a mapping between the enum values, and interface strings
     // note that whithout mappings (use NULL), the enum values are used
-    // directly in the interface
+    // directly in the interface. The mapping must remain valid, use a
+    // "static" keyword for that.
 
     // each enum gets a mapping to label strings
     static const GtkGladeWindow::OptionMapping mapping_command[] = {
-      { "On", "Device on" },
-      { "Off", "Device off" },
+      { "On", "Device on" },    // instead of "On", the combo lists "Device On"
+      { "Off", "Device off" },  // etc.
+                                // option "Schroedinger" is simply shown 
+                                // as "Schroedinger"
+      { "Invalid", NULL },      // option "Invalid" will not be selectable
       { NULL, NULL }
     };
+
     // all mappings together, linked to the member name
     static const OptionMappings mappings[] = {
       { "command", mapping_command },
       { NULL, NULL }
     };
 
-    // apply the mappings to the opened window
+    // applies the mappings to the opened window
+    // this looks through the mappings, finds "command" there, 
+    // then finds "mywidgets_command" in the gui (ID of widget), 
+    // and loads the options into the dropdown as per the 
+    // mapping_command table.
     mywindow.fillOptions("TestObject", "mywidgets_%s", NULL,
                          mappings, true);
 

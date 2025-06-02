@@ -13,12 +13,8 @@
 
 #define GtkGladeWindow_cxx
 
-#include <list>
-
 #include <dueca-conf.h>
 #include "GtkGladeWindow.hxx"
-#include "GtkDuecaButtons.hxx"
-#include "DuecaPath.hxx"
 #include <dueca/CommObjectReader.hxx>
 #include <dueca/CommObjectWriter.hxx>
 #include <dueca/CommObjectElementReader.hxx>
@@ -717,7 +713,8 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         auto ewriter = dco[ii];
         unsigned idx = 0;
         while (!ewriter.isEnd()) {
-          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii), idx++);
+          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii),
+                   idx++);
           boost::any b;
           if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii), b,
                         warn)) {
@@ -745,7 +742,8 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         auto ewriter = dco[ii];
         unsigned idx = 0;
         while (true) {
-          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii), idx++);
+          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii),
+                   idx++);
           boost::any b;
           if (_getValue(gtkid, dco.getMemberName(ii), dco.getMemberClass(ii), b,
                         warn)) {
@@ -786,12 +784,7 @@ static const char *_searchInMap(const GtkGladeWindow::OptionMapping *mapping,
 {
   for (auto m = mapping; m->ename != NULL; m++) {
     if (!strcmp(m->ename, key)) {
-      if (m->representation != NULL) {
-        return m->representation;
-      }
-      else {
-        return key;
-      }
+      return m->representation;
     }
   }
   if (warn) {
@@ -804,6 +797,8 @@ static const char *_searchInMap(const GtkGladeWindow::OptionMapping *mapping,
     W_XTR("GtkGladeWindow::fillOptions: Key \""
           << key << "\" not given in options mapping");
   }
+
+  // simply keep the name of the enum key
   return key;
 }
 
@@ -868,12 +863,15 @@ bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
   do {
     std::string value;
     reader.peek(value);
-    gtk_list_store_append(store, &it);
     if (mapping) {
-      gtk_list_store_set(store, &it, 0, value.c_str(), 1,
-                         _searchInMap(mapping, value.c_str(), warn), -1);
+      const char *repr = _searchInMap(mapping, value.c_str(), warn);
+      if (repr) {
+        gtk_list_store_append(store, &it);
+        gtk_list_store_set(store, &it, 0, value.c_str(), 1, repr, -1);
+      }
     }
     else {
+      gtk_list_store_append(store, &it);
       gtk_list_store_set(store, &it, 0, value.c_str(), -1);
     }
   }
