@@ -254,11 +254,7 @@ struct GladeCallbackTable {
 
     - Each ComboBox that you want to use has a text entry
 
-    - Specify column 0 of the associated GtkListStore for the entry if
-      you don't want a mapping (directly use the enum names), column
-      1 if you do want a mapping.
-
-    - A ComboBox does not need a GtkListStore in the gui file; if none
+    - A ComboBox does *not* need a GtkListStore in the gui file; if none
       is found, one will be automatically generated. If you do define
       a GtkListStore in the ui file, give it two gchararray columns.
 

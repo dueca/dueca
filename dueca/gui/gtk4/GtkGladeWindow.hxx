@@ -213,7 +213,9 @@ struct GladeCallbackTable
     float a TextEntry, an Adjustment, a SpinButton or a Range, for the
     enum a DropDown) are properly named, the GtkGladeWindow can:
 
-    - Set the options for the DropDown based on the enum values
+    - Set the options for the DropDown based on the enum values, or -- 
+      when using a mapping table -- have descriptive names instead of the
+      enum values.
     - Set the data from the "a" and "command" members into the interface
     - Convert data from the interface to the "a" and "command" members.
 
@@ -224,8 +226,8 @@ struct GladeCallbackTable
     @code{.cxx}
     // define a mapping between the enum values, and interface strings
     // note that whithout mappings (use NULL), the enum values are used
-    // directly in the interface. The mapping must remain valid, use a
-    // "static" keyword for that.
+    // directly in the interface. The mapping table must remain valid, 
+    // use a "static" keyword for that.
 
     // each enum gets a mapping to label strings
     static const GtkGladeWindow::OptionMapping mapping_command[] = {
@@ -237,21 +239,24 @@ struct GladeCallbackTable
       { NULL, NULL }
     };
 
-    // all mappings together, linked to the member name
+    // all mappings in this DCO together, linked to the member name
     static const OptionMappings mappings[] = {
       { "command", mapping_command },
       { NULL, NULL }
     };
 
     // apply the mappings to the opened window
-    // this looks through the mappings, finds "command" there, 
-    // then finds "mywidgets_command" in the gui (ID of widget), 
-    // and loads the options into the dropdown as per the 
-    // mapping_command table.
+    // this looks through the members of the DCO, and when the member is
+    // detected as an enum, then looks through the mappings, table. 
+    // It will finds "command" there, then finds "mywidgets_command" in 
+    // the gui (ID of widget), and loads the options into the dropdown 
+    // as per the mapping_command table.
     mywindow.fillOptions("TestObject", "mywidgets_%s", NULL,
                          mappings, true);
 
-    // set the default values of a TestObject on the interface
+    // set the default values of a TestObject on the interface. Note that
+    // this will also work with a DCOReader that can read data from a 
+    // channel
     TestObject deflt;
     CommObjectReader reader("TestObject", reinterpret_cast<void*>(&deflt));
     mywindow.setValues(reader, "mywidgets_%s", NULL, true);
@@ -271,23 +276,14 @@ struct GladeCallbackTable
 
     In your glade gui, ensure that:
 
-    - Each DropDown that you want to use has a text entry
-
-    - Specify column 0 of the associated GListStore for the entry if
-      you don't want a mapping (directly use the enum names), column
-      1 if you do want a mapping.
-
-    - A DropDown does not need a GListStore in the gui file; if none
-      is found, one will be automatically generated.
-
     - The widgets you want to connect to a DCO object need an ID that
       matches the DCO object member you want to link, e.g., ID
       "myui_speed" will link to the DCO member "speed", if you specify
       "myui_%s" as the format.
 
     - When linking to an array in a DCO object, use a number in the ID,
-      e.g., array format "myui_%s[%d]" enables you to link widgets with
-      ID's "myui_button[0]", "myui_button[1]", etc., to elements in an
+      e.g., an array format like "myui_%s[%d]" enables you to link widgets
+      with ID's "myui_button[0]", "myui_button[1]", etc., to elements in an
       array in the DCO object named "button"
 
  */
