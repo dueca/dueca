@@ -164,7 +164,7 @@ bool DDFFLogger::complete()
     /* DUECA ddff.
 
        A configuration channel has been configured. The DDFF file will
-       be opened when on command from the configuration channel.
+       be opened on command from the configuration channel.
    */
     I_XTR("Configuration channel specified, file opened later");
   }
@@ -479,6 +479,8 @@ bool DDFFLogger::isPrepared()
 bool DDFFLogger::internalIsPrepared()
 {
   bool res = true;
+  bool allfunctors = true;
+  bool madenew = false;
 
   for (targeted_list_t::iterator ii = targeted.begin(); ii != targeted.end();
        ii++) {
@@ -490,16 +492,28 @@ bool DDFFLogger::internalIsPrepared()
     CHECK_TOKEN((*ii)->r_token);
 
     // for valid tokens, and file opened, create the functor
-    if (hfile && (*ii)->r_token.isValid() && (*ii)->functor.get() == NULL) {
-      (*ii)->createFunctor(hfile, this, std::string(""));
+    if (hfile) {
+      if ((*ii)->r_token.isValid() && (*ii)->functor.get() == NULL) {
+        (*ii)->createFunctor(hfile, this, std::string(""));
 
-      /* DUECA ddff.
+        madenew = true;
+        /* DUECA ddff.
 
-         Information on the creation of a DDFF read functor for a
-         specific channel.
-       */
-      D_XTR("created functor for " << (*ii)->channelname);
+           Information on the creation of a DDFF read functor for a
+           specific channel.
+        */
+        D_XTR("created functor for " << (*ii)->channelname);
+      }
+      else if ((*ii)->functor.get() == NULL) {
+        allfunctors = false;
+      }
     }
+  }
+
+  if (hfile && allfunctors && madenew) {
+    // all functors now created, start a default period, and sync
+    hfile->nameRecording("", "");
+    hfile->syncInventory();
   }
 
   if (r_config) {

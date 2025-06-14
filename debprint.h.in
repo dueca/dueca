@@ -53,6 +53,10 @@
 #define DEBPRINTLEVEL -1
 #endif
 
+#if DEBPRINTLEVEL >= 0
+#include <iostream>
+#endif
+
 // remember debug header is defined, and use as flag in code
 #define DEBDEF
 
