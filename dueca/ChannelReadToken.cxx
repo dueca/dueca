@@ -127,7 +127,8 @@ ChannelReadToken::ChannelReadToken(
 
 ChannelReadToken::~ChannelReadToken() { channel->removeReadToken(handle); }
 
-void ChannelReadToken::selectFirstEntry() { channel->selectFirstEntry(handle); }
+void ChannelReadToken::selectFirstEntry() { 
+  channel->selectFirstEntry(handle); }
 
 const GlobalId &ChannelReadToken::getChannelId() const
 {

@@ -20,8 +20,6 @@
 #include <dueca_ns.h>
 #include <iterator>
 #include <AmorphStore.hxx>
-#include <string>
-#include <type_traits>
 #include <vectorexceptions.hxx>
 #include <boost/format.hpp>
 

@@ -15,13 +15,9 @@
 
 #pragma once
 #define fixvector_withdefault_hxx
-#include "AmorphStore.hxx"
 #include <CommObjectTraits.hxx>
 #include <PackTraits.hxx>
 #include <dueca_ns.h>
-#include <iterator>
-#include <string>
-#include <type_traits>
 #include <vectorexceptions.hxx>
 #include <fixvector.hxx>
 #include <boost/format.hpp>

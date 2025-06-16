@@ -79,20 +79,24 @@ To write this channel, the writing token is used with a datawriter:
     // use d.data() to access and write the MyData object
     d.data().<member> = <value>;
 
-
-
  
 _TLDR;_ 
 
+- Typically used to transmit regularly update data
+
 - Creates a *stream* channel with a single entry
 
-- Read tokens specify `JumpToMatchTime` reading of entry #0
+- Read tokens specify `Channel::JumpToMatchTime` reading of entry #0
 
-- By default, the data will be kept valid for at least `0.2` seconds, meaning that only data that is 0.2s older than the latest data written can be cleaned from the channel memory.
+- By default, the data will be kept valid for at least `0.2` seconds, meaning that only data that is 0.2s older than the latest data written will be cleaned from the channel memory.
 
-- Typically, the read tokens are used as trigger, or combined in the trigger for the reading activity, ensuring that the activity only runs when the data is valid. Reading may only fail when reading is really delayed, and data has in the meantime been cleaned out.
+- Typically, the read tokens are used as trigger, or combined in a trigger for the reading activity (usually with `and` logic), ensuring that the activity only runs when the data is valid. Reading may only fail when reading is really delayed, and data has in the meantime been cleaned out.
 
 - If not specified as trigger, the reading may fail when data is not yet there. 
+
+- Use a `DataReader` with the activity's time span to access the data of the required time.
+  
+- Add `MatchIntervalStartOrEarlier` to the `DataReader` when not triggering, and data for the current time may not be there.
 
 ### Single writer, multiple readers, event
 
@@ -111,7 +115,6 @@ The single entry for this channel will contain events, so only for each (integer
 
 The reading will follow the `Channel::ReadAllData` logic, and events come in one by one, in the same order as written by the write token. If the time is omitted from the read action:
 
-
     DataReader<MyData> dr(r_token);
 
 Any up to that point event data from the channel/entry will be returned. If the activity's current time is given:
@@ -120,5 +123,42 @@ Any up to that point event data from the channel/entry will be returned. If the 
 
 only data from before or at the time span start given in `ts` is returned. 
 
+_TLDR;_ 
 
-  
+- For example used to transmit configuration events from an interface, or button presses, clicks, etc. from a device. 
+- Creates an *event* channel with a single entry
+- Read tokens typically use `Channel::ReadAllData` (automatic for the default of `Channel::AdaptEventStream`)
+- Events are read one-by-one, use `haveVisibleSets(ts)` on the token to test for available events.
+- Use a `DataReader` with time specification to get events from before or at the run time.
+- Use a `DataReader` without time specification to simply get all available events.
+- Only trigger on such a channel for an activity that only does event processing; if no events are writting, the activity will not be triggered.
+
+### Multiple writers, multiple readers, stream
+
+It is also possible to have multiple entries in a channel. Each entry is then associated with a channel write token, a module may declare multiple channel write tokens, or multiple modules may declare channel write tokens on the channel. 
+
+If the writing tokens are created as 
+
+    w_token1(getId(), NameSet("MyData://myentity"), 
+        "MyData", "entry label", Channel::Continuous, Channel::OneOrMoreEntries),
+
+    w_token2(getId(), NameSet("MyData://myentity"), 
+        "MaybeOtherData", "another entry label", Channel::Continuous, Channel::OneOrMoreEntries),
+
+    w_token3(getId(), NameSet("MyData://myentity"), 
+        "MyData", "another entry label", Channel::Continuous, Channel::OneOrMoreEntries),
+
+The writing tokens need to allow multiple entries (with `OneOrMoreEntries`), otherwise one or more of the tokens will not become valid. This type of channels is typically used in distributed simulation with multiple "entities". Each entity then represents an aircraft, other vehicle or the like. 
+
+And a reading token can be created as:
+
+    r_token(getId(), NameSet("MyData://myentity"), 
+        "MyData", entry_any, Channel::Continuous, Channel::OneOrMoreEntries),
+
+This reading token will become valid and can be used to read *all* entries that contain "MyData". The `entry_any` entry id indicates that multiple entries may be read with the same token. 
+
+
+
+![Channel with multiple entries, one or more writing modules, stream data, multiple readers](images/channel-multiple-stream.svg)
+
+
