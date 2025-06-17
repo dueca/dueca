@@ -133,7 +133,7 @@ _TLDR;_
 - Use a `DataReader` without time specification to simply get all available events.
 - Only trigger on such a channel for an activity that only does event processing; if no events are writting, the activity will not be triggered.
 
-### Multiple writers, multiple readers, stream
+### Multiple writers, (one or) multiple readers, stream
 
 It is also possible to have multiple entries in a channel. Each entry is then associated with a channel write token, a module may declare multiple channel write tokens, or multiple modules may declare channel write tokens on the channel. 
 
@@ -155,10 +155,142 @@ And a reading token can be created as:
     r_token(getId(), NameSet("MyData://myentity"), 
         "MyData", entry_any, Channel::Continuous, Channel::OneOrMoreEntries),
 
-This reading token will become valid and can be used to read *all* entries that contain "MyData". The `entry_any` entry id indicates that multiple entries may be read with the same token. 
-
-
+This reading token will become valid when at least one of the entries in the channel is being written with a `MyData` data type, and can be used to read *all* entries that contain "MyData". The `entry_any` entry id indicates that multiple entries may be read with the same token. 
 
 ![Channel with multiple entries, one or more writing modules, stream data, multiple readers](images/channel-multiple-stream.svg)
 
+To extract all data from the channel now requires some extra effort. One possible way of doing this is by the following:
 
+    // "recycle" the read token to the first entry
+    r_token.selectFirstEntry();
+
+    // check that the token is actually linked to an entry
+    while (r_token.haveEntry()) {
+
+        try {
+
+            // read the data
+            DataReader<MyData> r(r_token, ts);
+
+            // or if not sure whether data has been written
+            // DataReader<MyData, MatchIntervalStartOrEarlier> r(r_token, ts);
+
+            // do things with the data, for example print
+            std::cout << r.data() << std::endl;
+
+            // you can also get to know more about the entry, like the id
+            std::cout << "entry id " << r_token.getEntryId() << std::endl;
+
+            // and the label given on creation
+            std::cout << "entry label " << r_token.getEntryLabel() << std::endl;
+        }
+
+        // over to the next entry if it is there
+        r_token.selectNextEntry();
+    }
+
+Of course, depending on what you want to do with the data in the channel, this can be a rather clumsy way to read from the channel. The most common case for multiple entries with identical (or similar) types of continuous data in the channel is for distribted simulation with multiple entities, e.g., multiple aircraft in a dogfight or formation flight. In that case is is convenient to track all these entries, and link them up to a known aircraft. You can use a `ChannelWatcher` for this purpose. The ChannelWatcher can have a callback function that is invoked when entries are added to or removed from the channel. It is also possible to poll (regularly check) the ChannelWatcher for changes. The information returned from the ChannelWatcher enables you to create a read token for the specific entry that was created. As an example, add to your module:
+
+    // a data structure to collect the read token and possibly some 
+    // additional information
+    struct FlightData {
+
+        // maybe collect the name
+        std::string name;
+
+        // with the token
+        ChannelReadToken r_token;
+
+        // new flightdata objects use the channel name, entry id, and store the label
+        FlightData(const dueca::GlobalId& id, std::string& channelname, std::string& label, entryid entry) :
+          name(label),
+          // the reading token is for a specific entry in the channel
+          r_token(id, NameSet(channelname), "MyData", entry)
+        {
+          // created name and token
+        }
+
+        ~FlightData() { }
+    };
+
+    // the watcher
+    ChannelWatcher watch_flights;
+
+    // collected flights indexed by entry id
+    std::map<entryid,FlightData> flights;
+
+In your constructor, initialize the watcher, with polling option:
+
+    watch_flights(NameSet("MyData://myentity"), true),
+
+And when updating, do something like:
+
+    ChannelEntryInfo einfo;
+    while (watch_flights.checkChange(einfo)) {
+
+        if (einfo.clientid != GlobalId() && einfo.dataclass == std::string("MyData")) {
+
+            // addition to the flights
+            flights.emplace(
+                std::piecewise_construct,
+                std::forward_as_tuple(einfo.entryid),
+                std::forward_as_tuple("MyData://myentity", einfo.label, einfo.entryid));
+        }
+        else {
+
+            // remove
+            flights.erase(einfo.clientid);
+        }
+    }
+
+    // and cycle through the flights, something like
+    for (const auto &f: flights) {
+        if (f.second.r_token.isValid() && f.second.r_token.haveVisibleSets()) {
+
+            // in this example read latest data
+            DataReader<MyData> r(f.second.r_token);
+
+            // and do something
+            std::cout << r.data() << std::endl;
+        }
+    }
+
+You now have an explicit overview of entries being created in and removed from the channel. In this way, the data read from can more easily be linked to other data. In addition, reading tokens attached to a single entry is more efficient than having a token iterate over all entries. 
+
+_TLDR;_ 
+
+- Simply create multiple writing tokens (from different modules, of multiple tokens in the same module), with a `Channel::OneOrMoreEntries` arity.
+- Best solution is using a `ChannelWatcher`, and when an entry is added or removed, create or remove the corresponding read token. This read token uses the channel entry to indicate which entry to connect to.
+
+### Multiple writers, (one or) multiple readers, event
+
+For a channel with multiple event entries, the reading of the data can be done as in the previous section for stream channels. There is however one additional possibility for reading event data that can be useful in "partyline" situation, where events can be sent from multiple locations (modules), but all events are treated equally and it is not important to assemble or correlate the events from a specific sender. Writing tokens are created as normal. Note that for event tokens, it usually makes no sense to create multiple of these for the same channel from a single module
+
+    w_token(getId(), NameSet("MyData://myentity"), 
+        "MyData", "from module Joe", Channel::Events, Channel::OneOrMoreEntries),
+
+And somewhere else
+
+    w_token2(getId(), NameSet("MyData://myentity"), 
+        "MyData", "from module Jane", Channel::Events, Channel::OneOrMoreEntries),
+
+
+If you want to read from this partyline channel, simply create a read token that connects to all entries again:
+
+    r_token(getId(), NameSet("MyData://myentity"), 
+        "MyData", entry_any, Channel::Events, Channel::OneOrMoreEntries)
+
+Reading in partlyline mode can be done with a single datareader:
+
+    while (r_token.haveVisibleSets()) {
+
+        DataReader<MyData,VirtualJoin> r(r_token);
+
+        // do something with the data
+    }
+
+_TLDR;_ 
+
+- Create write tokens as usual
+- Create a read token with `entry_any`
+- Use `VirtualJoin` when reading.
