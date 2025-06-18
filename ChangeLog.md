@@ -2,13 +2,19 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [4.2.2] - future?
+## [4.2.2] - 2025-06-18
 
-- Fix the problem where single-thread DUECA (generally used in debugging) 
+- gtk3 / gtk4 fixes to GtkGladeWindow
+- Initializer lists now accepted by vector types
+- New documentation on common channel uses
+- correction dco reading from xml
+- ensure that the index for ddff files is written early in the file
+- Fixes for the DUECA quit dialogs
+- Fix the problem where single-thread DUECA (generally used in debugging)
   does not properly close off.
-- Move LinearSystem and its defined Matrix/Vector types into dueca namespace, 
-  prevents issues with including other eigen3-based libraries
-- Add argcomplete to python-based scripts (dueca-gproject, new-dco, 
+- Move LinearSystem and its defined Matrix/Vector types into dueca namespace,
+  prevents issues with including other eigen3-based libraries.
+- Add argcomplete to python-based scripts (dueca-gproject, new-dco,
   dueca-channeldot)
 - Various documentation fixes
 
