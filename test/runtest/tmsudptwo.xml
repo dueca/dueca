@@ -61,8 +61,8 @@
     <check window="DUECA/DUSIME control panel" x="60" y="32" r="53" g="132" b="228" timeout="10.0" wait="0.5"/>
     <click window="DUECA/DUSIME control panel" x="60" y="32" button="Button.left" pressed="true" wait="0.2"/>
     <click window="DUECA/DUSIME control panel" x="60" y="32" button="Button.left" pressed="false" wait="0.2"/>
-    <check window="Are you serious?" x="111" y="28" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
-    <click window="Are you serious?" x="111" y="28" button="Button.left" pressed="true" wait="0.2"/>
-    <click x="155" y="216" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="Are you serious?" x="12" y="26" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
+    <click window="Are you serious?" x="12" y="26" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="144" y="155" button="Button.left" pressed="false" wait="0.2"/>
   </actions>
 </scenario>

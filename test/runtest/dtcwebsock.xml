@@ -107,9 +107,8 @@
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="60" y="35" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="Are you serious?" x="113" y="31" r="248" g="248" b="247" timeout="10.0"
-      wait="0.5" />
-    <click window="Are you serious?" x="113" y="31" button="Button.left" pressed="true" wait="0.2" />
-    <click x="157" y="219" button="Button.left" pressed="false" wait="0.2" />
+    <check window="Are you serious?" x="12" y="26" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
+    <click window="Are you serious?" x="12" y="26" button="Button.left" pressed="true" wait="0.2"/>
+    <click window="DUECA/DUSIME control panel" x="144" y="155" button="Button.left" pressed="false" wait="0.2"/>
   </actions>
 </scenario>

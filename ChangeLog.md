@@ -4,6 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [4.2.2] - 2025-06-18
 
+- Make the quit confirmation window modal, with DUECA control as parent
 - gtk3 / gtk4 fixes to GtkGladeWindow
 - Initializer lists now accepted by vector types
 - New documentation on common channel uses
