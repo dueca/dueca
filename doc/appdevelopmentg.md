@@ -749,7 +749,7 @@ your code, and
 
 To run this. Also see [the chapter on policies](#policies)
 
-### A module's CMakeLists.txt
+### A module's CMakeLists.txt {#appdevelg_modulecmake}
 
 The `CMakeLists.txt` files in the module folders are the proper place
 to add dependencies on external libraries. See also the page on

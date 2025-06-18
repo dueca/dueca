@@ -240,7 +240,11 @@ if (BUILD_WEBSOCK)
 endif()
 
 if (BUILD_DDFF)
-  list(APPEND DLIBS dueca-ddff)
+  list(APPEND SCMFILEN
+    ddff-logger.scm:ddff-logger)
+  list(APPEND DLIBS dueca-ddff dueca-ddfflog)
+  list(APPEND DLIBSL dueca-ddfflog-${SF} )
+  set(dlinkflags "${dlinkflags} -L../ddfflog -Wl,${ldundef}InitDDFFLog")
 endif()
 
 

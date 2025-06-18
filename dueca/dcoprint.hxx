@@ -16,13 +16,16 @@
 
 DUECA_NS_START;
 
-/** @file Print templates for printing dco member variables */
+/** @file dcoprint.hxx
+    Print templates for printing dco member variables.
+*/
 
 /** Default, print a standard object using standard iostream
 
     @param s   Stream to print to
     @param obj Object to print
-    @returns   Reference to the stream */
+    @returns   Reference to the stream
+*/
 template<typename S, typename T>
 inline S &dcoprint(S& s, const T& obj, const dco_print_single&)
 { return s << obj; }
@@ -31,7 +34,8 @@ inline S &dcoprint(S& s, const T& obj, const dco_print_single&)
     
     @param s   Stream to print to
     @param obj Object to print
-    @returns   Reference to the stream */
+    @returns   Reference to the stream
+*/
 template<typename S, typename T>
 inline S &dcoprint(S& s, const T& obj, const dco_print_iterable&)
 {
@@ -44,11 +48,12 @@ inline S &dcoprint(S& s, const T& obj, const dco_print_iterable&)
   return s << "}";
 }
 
-/** Print a pair
+/** Print a pair.
     
     @param s   Stream to print to
     @param obj Object to print
-    @returns   Reference to the stream */
+    @returns   Reference to the stream
+*/
 template<typename S, typename T>
 inline S &dcoprint(S& s, const T& obj, const dco_print_pair&)
 {
@@ -58,10 +63,12 @@ inline S &dcoprint(S& s, const T& obj, const dco_print_pair&)
   return s << ")";
 }
 
-/** Optionally filled value
+/** Print optionally filled value.
+
     @param s   Stream to print to
     @param obj Object to print
-    @returns   Reference to the stream */
+    @returns   Reference to the stream
+*/
 template<typename S, typename T>
 inline S &dcoprint(S& s, const T& obj, const dco_print_optional&)
 {

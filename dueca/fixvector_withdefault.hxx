@@ -40,6 +40,7 @@ template <size_t N, typename T, int DEFLT, unsigned BASE = 1>
 class fixvector_withdefault : public fixvector<N, T>
 {
 public:
+  /** class name, for reflection */
   static constexpr const char *classname = "fixvector_default";
   using typename fixvector<N, T>::value_type;
   using typename fixvector<N, T>::pointer;
@@ -157,6 +158,8 @@ struct dco_traits<fixvector_withdefault<N, D, DEFLT, BASE>> :
   }
   /** Value type for the elements of a trait's target */
   typedef D value_type;
+
+  /** Key type, not relevant here. */
   typedef void key_type;
 };
 

@@ -298,6 +298,8 @@ struct dco_traits<varvector<D>> :
 
   /** Value type for the elements of a trait's target */
   typedef D value_type;
+
+  /** Key type, not relevant here. */
   typedef void key_type;
 };
 

@@ -70,7 +70,7 @@ After the simulation has been made, we look at a few more things:
 
 If you want to explore a bit further, and look at how you could create
 multiplayer simulations with DUECA, you can check out the sequel
-[More Simple Simulation](#exampel2b).
+[More Simple Simulation](#example2b).
 
 ## Setting up
 

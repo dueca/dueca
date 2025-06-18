@@ -51,10 +51,21 @@ USING_DUECA_NS;
 
 /** Generic DDFF file format logging.
 
+    This provide a configurable interface to logging with DDFF format.
+
+    You can specify a label/location for logging individual channels,
+    or monitor channels for logging all entries in those channels. The
+    interface for logging is similar to the interface for the
+    dueca::HDF5Logger.
+
+    Use the ddff-convert program installed with DUECA to convert a DDFF
+    log to HDF5, or use the ddff python module to directly read a file
+    and convert the contents to numpy arrays.
+
     The instructions to create an module of this class from the Scheme
     script are:
 
-    \verbinclude DDFF-logger.scm
+    \verbinclude ddff-logger.scm
  */
 class DDFFLogger: public SimulationModule
 {

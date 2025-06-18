@@ -33,9 +33,7 @@ typedef Eigen::Map<Eigen::VectorXd> VectorE;
 /** This defines a "data-pack", with room for workspace for the
     Runge-Kutta integration. Call with the correct state vector
     size.
-
-    @example PulsedBody.cxx
-    */
+*/
 class RungeKuttaWorkspace
 {
   /** Data space */
@@ -56,11 +54,17 @@ public:
   VectorE xwork;
 
   /** Constructor.
-      \param size    Size of the state vector for integration. */
+
+      @param size    Size of the state vector for integration.
+  */
   RungeKuttaWorkspace(unsigned size);
 
   /** Constructor with external data.
-      The data must hold 6xsize variables */
+      The data must hold 6xsize variables
+
+      @param data    Array for the workspace
+      @param size    Size of the state vector for integration.
+  */
   RungeKuttaWorkspace(double *data, unsigned int size);
 
   /** Destructor. */
