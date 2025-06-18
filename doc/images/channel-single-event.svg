@@ -3,8 +3,8 @@
 
 <svg
    width="200mm"
-   height="150mm"
-   viewBox="0 0 200 150"
+   height="90mm"
+   viewBox="0 0 200 90"
    version="1.1"
    id="svg1"
    xml:space="preserve"
@@ -25,10 +25,10 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="2.9228668"
-     inkscape:cx="361.80233"
-     inkscape:cy="82.795427"
-     inkscape:window-width="1210"
+     inkscape:zoom="1.0333895"
+     inkscape:cx="286.9199"
+     inkscape:cy="269.98533"
+     inkscape:window-width="2345"
      inkscape:window-height="991"
      inkscape:window-x="26"
      inkscape:window-y="23"
@@ -255,13 +255,13 @@
        id="path29"
        sodipodi:nodetypes="csc" /><text
        xml:space="preserve"
-       style="font-size:4.93888889px;line-height:1;font-family:Arial;-inkscape-font-specification:Arial;text-align:start;text-decoration-color:#000000;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#4d4d4d;fill-opacity:1;stroke:none;stroke-width:0.301001;stroke-dasharray:none;stroke-opacity:1"
+       style="font-size:4.93889px;line-height:1;font-family:Arial;-inkscape-font-specification:Arial;text-align:start;text-decoration-color:#000000;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#4d4d4d;fill-opacity:1;stroke:none;stroke-width:0.301001;stroke-dasharray:none;stroke-opacity:1"
        x="150"
        y="27.999998"
        id="text30"><tspan
          sodipodi:role="line"
          id="tspan30"
-         style="stroke-width:0.301;fill:#4d4d4d;fill-opacity:1;stroke:none;font-size:4.93888889px"
+         style="font-size:4.93889px;fill:#4d4d4d;fill-opacity:1;stroke:none;stroke-width:0.301"
          x="150"
          y="27.999998">#0</tspan></text><g
        id="g15"
@@ -321,7 +321,7 @@
          id="path852-2"
          inkscape:connector-curvature="0" /></g><g
        id="g15-02"
-       transform="translate(9.9999993,42)"><rect
+       transform="translate(9.8467822,44.153219)"><rect
          style="fill:none;stroke:#838383;stroke-width:0.306437px;stroke-opacity:1;-inkscape-stroke:none"
          id="rect22-3"
          width="5.9999995"
