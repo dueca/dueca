@@ -84,6 +84,14 @@ void GtkGladeWindow::placeWindow(GtkWidget *win, gpointer user_data)
        position
     */
     W_XTR("Cannot influence window position on wayland");
+#if 0
+    // some ideas. Apparently only sub-window (of a fullscreen window) movement
+    // might be possible? But how to do this?
+    auto gdk_display_id = gdk_display_get_default();
+    auto gdksurf = GDK_SURFACE(gtk_native_get_surface(GTK_NATIVE(win)));
+    auto wlsurf = gdk_wayland_surface_get_wl_surface(gdksurf);
+    auto cmp = gdk_wayland_display_get_wl_compositor(gdk_display_id);
+#endif
   }
 }
 
@@ -118,8 +126,8 @@ bool GtkGladeWindow::readGladeFile(const char *file, const char *mainwidget,
     }
     else if (mainwidget) {
       /* DUECA graphics.
-      
-         You are trying to load a second ui file, and select a main widget, 
+
+         You are trying to load a second ui file, and select a main widget,
          but the main window/widget is already set. Ignoring this mainwidget
          name.
       */
@@ -166,9 +174,9 @@ void GtkGladeWindow::connectCallbacks(gpointer client,
     else if (warn) {
       /* DUECA graphics.
 
-           Cannot find a widget in the gtk-builder model, when trying
-           to connect the callbacks.
-        */
+         Cannot find a widget in the gtk-builder model, when trying
+         to connect the callbacks.
+      */
       W_CNF("GtkGladeWindow::connectCallbacks: Cannot find widget "
             << cbl->widget);
     }
@@ -197,9 +205,9 @@ void GtkGladeWindow::connectCallbacksAfter(gpointer client,
     else if (warn) {
       /* DUECA graphics.
 
-           Cannot find a widget in the gtk-builder model, when trying
-           to connect the callbacks.
-        */
+         Cannot find a widget in the gtk-builder model, when trying
+         to connect the callbacks.
+      */
       W_CNF("GtkGladeWindow::connectCallbacksAfter: Cannot find widget "
             << cbl->widget);
     }
@@ -252,10 +260,10 @@ bool GtkGladeWindow::_setValue(const char *wname, double value, bool warn)
     if (warn) {
       /* DUECA graphics.
 
-           When trying to set a value in the interface, the widget name
-           corresponding to the DCO member name was not found. This may
-           be a typo in your ui definition, or incidental.
-        */
+         When trying to set a value in the interface, the widget name
+         corresponding to the DCO member name was not found. This may
+         be a typo in your ui definition, or incidental.
+      */
       W_XTR("GtkGladeWindow::setValue: Could not find gtk object with id \""
             << wname << "\"");
     }
@@ -307,74 +315,123 @@ bool GtkGladeWindow::_setValue(const char *wname, double value, bool warn)
   if (warn) {
     /* DUECA graphics.
 
-         The widget is not compatible with float or double values from
-         the associated DCO object.
-       */
+       The widget is not compatible with float or double values from
+       the associated DCO object.
+     */
     W_XTR("GtkGladeWindow::setValue: Setting double/float for gtk object \""
           << wname << "\" not implemented");
   }
   return false;
 }
 
-static const char *
-_representationInMap(const GtkGladeWindow::OptionMapping *mapping,
-                     const char *key, bool warn)
+// When options are mapped:
+// - the mapping table options are mapped in order, options with NULL
+//   description  are nixed, remaining options are added. Runs through the
+//   mapping table, and then through all options again
+//
+// When options are set:
+// - value is looked up in mapping table, and index is set, otherwise value
+//   looked up from remaining values directly inserted in string list
+//
+// When options are retrieved from index:
+// - index is checked to be in mapping table, if not, index is looked up from
+//   remaining values in string list.
+
+bool _notInMapping(const GtkGladeWindow::OptionMapping *mapping,
+                   const char *ename)
 {
-  for (auto m = mapping; m->ename != NULL; m++) {
-    if (!strcmp(m->ename, key)) {
-      if (m->representation != NULL) {
-        return m->representation;
-      }
-      else {
-        return key;
-      }
+  for (auto m = mapping; m && m->ename; m++) {
+    if (!strcmp(m->ename, ename)) {
+      return false;
     }
   }
-  if (warn) {
-    /* DUECA graphics.
-
-         In the given key is missing from the option string mapping for
-         selecting an Enum with a ComboBox or DropDown. Check the mapping
-         against the DCO definition for the enum.
-      */
-    W_XTR("GtkGladeWindow::fillOptions: Key \""
-          << key << "\" not given in options mapping");
-  }
-  return key;
+  return true;
 }
 
-static const char *_keyFromMap(const GtkGladeWindow::OptionMapping *mapping,
-                               unsigned idx)
+// the OptionMapping table
+// - should be NULL terminated
+// - relates enum names (ename), to representations (representation)
+// - if representation is NULL, the enum will not be listed in the dropbox
+// - if the enum name is not in the table, its representation will be the enum
+// name
+
+static GtkStringList *
+_createDropdownModel(const GtkGladeWindow::OptionMapping *mapping,
+                     ElementWriter &writer, ElementReader &reader)
+
 {
-  auto m = mapping;
-  for (auto i = idx; i--;) {
-    if (m && m->ename) {
-      if (idx) {
-        m++;
-      }
-      else {
+  // new model
+  auto model = gtk_string_list_new(NULL);
+
+  // run through the mapping
+  for (auto m = mapping; m && m->ename; m++) {
+    if (m->representation) {
+      gtk_string_list_append(model, m->representation);
+    }
+  }
+
+  // run through the enum names, add anything not in the mapping, and not
+  // blocked
+  // reader and writer are coupled, run through all options
+  writer.setFirstValue();
+  do {
+    std::string value;
+    reader.peek(value);
+    if (_notInMapping(mapping, value.c_str())) {
+      gtk_string_list_append(model, value.c_str());
+    }
+  }
+  while (writer.setNextValue());
+
+  return model;
+}
+
+unsigned _findIndexFromValue(const GtkGladeWindow::OptionMapping *mapping,
+                             GtkStringList *model, const char *ename)
+{
+  unsigned idx = 0U;
+
+  // run through the mapping first
+  for (auto m = mapping; m && m->ename; m++) {
+    if (!strcmp(m->ename, ename)) {
+      // match
+      return idx;
+    }
+    if (m->representation) {
+      idx++;
+    }
+  }
+
+  // remainder from the stringlist
+  auto item = gtk_string_list_get_string(model, idx);
+  while (item) {
+    if (!strcmp(item, ename)) {
+      return idx;
+    }
+    gtk_string_list_get_string(model, ++idx);
+  }
+
+  return std::numeric_limits<unsigned>::max();
+}
+
+const char *_findValueFromIndex(const GtkGladeWindow::OptionMapping *mapping,
+                                GtkStringList *model, unsigned idx)
+{
+  unsigned ii = 0U;
+
+  // first check all valid enames in mapping
+  for (auto m = mapping; m && m->ename; m++) {
+    if (m->representation) {
+      if (ii == idx) {
         return m->ename;
       }
-    }
-    else {
-      return NULL;
+      ii++;
     }
   }
-  return NULL;
+
+  return gtk_string_list_get_string(model, idx);
 }
 
-static int _indexInMap(const GtkGladeWindow::OptionMapping *mapping,
-                       const char *key)
-{
-  int idx = 0;
-  auto m = mapping;
-  for (; m->ename && strcmp(m->ename, key); m++) {
-    idx++;
-  }
-  if (m->ename)
-    return idx;
-  return -1;
-}
 
 bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
                                   ElementReader &reader,
@@ -385,9 +442,9 @@ bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
     if (warn) {
       /* DUECA graphics.
 
-           Cannot find the given object; check whether it is in the interface,
-           or check for spelling errors.
-        */
+         Cannot find the given object; check whether it is in the interface,
+         or check for spelling errors.
+      */
       W_XTR("GtkGladeWindow::fillOptions: Could not find gtk object with id \""
             << wname << "\"");
     }
@@ -397,20 +454,7 @@ bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
   if (GTK_IS_DROP_DOWN(o)) {
 
     // check whether a model or the right kind of model is set
-    auto model = gtk_string_list_new(NULL);
-
-    // reader and writer are coupled, run through all options
-    writer.setFirstValue();
-    do {
-      std::string value;
-      reader.peek(value);
-      if (mapping) {
-        value = _representationInMap(mapping, value.c_str(), warn);
-      }
-      gtk_string_list_append(model, value.c_str());
-    }
-    while (writer.setNextValue());
-
+    auto model = _createDropdownModel(mapping, writer, reader);
     gtk_drop_down_set_model(GTK_DROP_DOWN(o), G_LIST_MODEL(model));
     return true;
   }
@@ -424,9 +468,9 @@ bool GtkGladeWindow::_fillOptions(const char *wname, ElementWriter &writer,
   if (warn) {
     /* DUECA graphics.
 
-         Cannot feed options to the given object; check whether it is
-         a GtkComboBox or GtkDropDown.
-      */
+       Cannot feed options to the given object; check whether it is
+       a GtkComboBox or GtkDropDown.
+    */
     W_XTR("GtkGladeWindow::fillOptions: Cannot fill options, object not a "
           "ComboBox or DropDown\""
           << wname << '"');
@@ -441,10 +485,10 @@ bool GtkGladeWindow::_setValue(const char *wname, const char *value, bool warn)
     if (warn) {
       /* DUECA graphics.
 
-           When trying to set a value in the interface, the widget name
-           corresponding to the DCO member name was not found. This may
-           be a typo in your ui definition, or incidental.
-        */
+         When trying to set a value in the interface, the widget name
+         corresponding to the DCO member name was not found. This may
+         be a typo in your ui definition, or incidental.
+      */
       W_XTR("GtkGladeWindow::setValue: Could not find gtk object with id \""
             << wname << "\"");
     }
@@ -452,29 +496,14 @@ bool GtkGladeWindow::_setValue(const char *wname, const char *value, bool warn)
   }
 
   if (GTK_IS_DROP_DOWN(o)) {
+
     auto *mapping =
       reinterpret_cast<OptionMapping *>(g_object_get_data(o, "d_mapping"));
-    if (mapping) {
-      auto res = _indexInMap(mapping, value);
-      if (res >= 0) {
-        gtk_drop_down_set_selected(GTK_DROP_DOWN(o), res);
-      }
-      else {
-        return false;
-      }
-    }
-    else {
-      auto model = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
-      guint pos = 0;
-      auto item = gtk_string_list_get_string(model, pos);
-      while (item) {
-        if (strcmp(item, value) == 0) {
-          gtk_drop_down_set_selected(GTK_DROP_DOWN(o), pos);
-          return true;
-        }
-        item = gtk_string_list_get_string(model, ++pos);
-      }
-      return false;
+    auto model = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
+    auto idx = _findIndexFromValue(mapping, model, value);
+    if (idx != std::numeric_limits<unsigned>::max()) {
+      gtk_drop_down_set_selected(GTK_DROP_DOWN(o), idx);
+      return true;
     }
   }
 
@@ -486,12 +515,23 @@ bool GtkGladeWindow::_setValue(const char *wname, const char *value, bool warn)
     }
   }
 
+  if (GTK_IS_FILE_CHOOSER(o)) {
+    auto *e = GTK_FILE_CHOOSER(o);
+    if (e != NULL) {
+      auto *fl = g_file_new_for_path(value);
+      // GError
+      gtk_file_chooser_set_file(e, fl, NULL);
+      g_object_unref(fl);
+      return true;
+    }
+  }
+
   if (warn) {
     /* DUECA graphics.
 
-         Trying to set a text for a widget, but the widget is neither
-         a combobox, a drop down, nor a text entry.
-      */
+       Trying to set a text for a widget, but the widget is neither
+       a combobox, a drop down, nor a text entry.
+    */
     W_XTR("GtkGladeWindow::setValue: Setting text for gtk object \""
           << wname << "\" not implemented");
   }
@@ -505,10 +545,10 @@ bool GtkGladeWindow::_setValue(const char *wname, bool value, bool warn)
     if (warn) {
       /* DUECA graphics.
 
-           When trying to set a value in the interface, the widget name
-           corresponding to the DCO member name was not found. This may
-           be a typo in your ui definition, or incidental.
-        */
+         When trying to set a value in the interface, the widget name
+         corresponding to the DCO member name was not found. This may
+         be a typo in your ui definition, or incidental.
+       */
       W_XTR("GtkGladeWindow::setValue: Could not find gtk object with id \""
             << wname << "\"");
     }
@@ -529,9 +569,9 @@ bool GtkGladeWindow::_setValue(const char *wname, bool value, bool warn)
   if (warn) {
     /* DUECA graphics.
 
-         Trying to set an on-off state for a widget, but the widget is not a
-         toggle button.
-      */
+       Trying to set an on-off state for a widget, but the widget is not a
+       toggle button.
+     */
     W_XTR("GtkGladeWindow::setValue: Setting state for gtk object \""
           << wname << "\" not implemented");
   }
@@ -642,12 +682,16 @@ bool GtkGladeWindow::__getValue(const char *wname, boost::any &b, bool warn)
   }
 
   if (GTK_IS_DROP_DOWN(o)) {
+    auto mapping =
+      reinterpret_cast<OptionMapping *>(g_object_get_data(o, "d_mapping"));
     auto _model = gtk_drop_down_get_model(GTK_DROP_DOWN(o));
+
     if (GTK_IS_STRING_LIST(_model)) {
       auto model = GTK_STRING_LIST(_model);
       auto sel = gtk_drop_down_get_selected(GTK_DROP_DOWN(o));
+      auto value = _findValueFromIndex(mapping, model, sel);
       try {
-        b = boost::lexical_cast<T>(gtk_string_list_get_string(model, sel));
+        b = boost::lexical_cast<T>(value);
         return true;
       }
       catch (const std::exception &e) {
@@ -677,10 +721,10 @@ bool GtkGladeWindow::__getValue<bool>(const char *wname, boost::any &b,
     if (warn) {
       /* DUECA graphics.
 
-           When trying to get a value from the interface, the widget name
-           corresponding to the DCO member name was not found. This may
-           be a typo in your ui definition, or incidental.
-        */
+         When trying to get a value from the interface, the widget name
+         corresponding to the DCO member name was not found. This may
+         be a typo in your ui definition, or incidental.
+      */
       W_XTR("GtkGladeWindow::getValue: Could not find gtk object with id \""
             << wname << "\"");
     }
@@ -699,8 +743,8 @@ bool GtkGladeWindow::__getValue<bool>(const char *wname, boost::any &b,
   if (warn) {
     /* DUECA graphics.
 
-         Getting a boolean value from this widget type is not supported.
-       */
+       Getting a boolean value from this widget type is not supported.
+     */
     W_XTR("GtkGladeWindow::getValue: Getting state for gtk object \""
           << wname << "\" not implemented");
   }
@@ -716,10 +760,10 @@ bool GtkGladeWindow::__getValue<std::string>(const char *wname, boost::any &b,
     if (warn) {
       /* DUECA graphics.
 
-           When trying to get a value from the interface, the widget name
-           corresponding to the DCO member name was not found. This may
-           be a typo in your ui definition, or incidental.
-        */
+         When trying to get a value from the interface, the widget name
+         corresponding to the DCO member name was not found. This may
+         be a typo in your ui definition, or incidental.
+      */
       W_XTR("GtkGladeWindow::getValue: Could not find gtk object with id \""
             << wname << "\"");
     }
@@ -727,27 +771,21 @@ bool GtkGladeWindow::__getValue<std::string>(const char *wname, boost::any &b,
   }
 
   if (GTK_IS_DROP_DOWN(o)) {
-    auto item = gtk_drop_down_get_selected(GTK_DROP_DOWN(o));
-    auto *mapping =
+    auto mapping =
       reinterpret_cast<OptionMapping *>(g_object_get_data(o, "d_mapping"));
-    const char *res = NULL;
-    if (mapping) {
-      res = _keyFromMap(mapping, item);
-    }
-    else {
-      auto slist = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
-      res = gtk_string_list_get_string(slist, item);
-    }
-    if (res) {
-      b = std::string(res);
+    auto model = GTK_STRING_LIST(gtk_drop_down_get_model(GTK_DROP_DOWN(o)));
+    auto sel = gtk_drop_down_get_selected(GTK_DROP_DOWN(o));
+    auto value = _findValueFromIndex(mapping, model, sel);
+    if (value) {
+      b = std::string(value);
       return true;
     }
     else if (warn) {
       /* DUECA graphics.
 
-           Attempting to get an active entry from a drop down, but none
-           is active. Maybe pre-select an entry.
-         */
+         Attempting to get an active entry from a drop down, but none
+         is active. Maybe pre-select an entry.
+       */
       W_XTR("GtkGladeWindow::getValue, no active entry in drop down \"" << wname
                                                                         << '"');
     }
@@ -760,11 +798,38 @@ bool GtkGladeWindow::__getValue<std::string>(const char *wname, boost::any &b,
     return true;
   }
 
+  if (GTK_IS_FILE_CHOOSER(o)) {
+    GtkFileChooser *e = GTK_FILE_CHOOSER(o);
+
+    auto gfile = gtk_file_chooser_get_file(e);
+    if (gfile != NULL) {
+      auto parent = g_file_new_for_path(".");
+      auto *fn = g_file_get_relative_path(parent, gfile);
+      if (fn == NULL) {
+        fn = g_file_get_path(gfile);
+      }
+      g_object_unref(gfile);
+      g_object_unref(parent);
+      if (fn) {
+        b = std::string(fn);
+        g_free(fn);
+        return true;
+      }
+    }
+
+    // when here, no file object or empty, return empty string
+    b = std::string();
+    return true;
+  }
+
+  // apparently file chooser button is replaced by normal button + file dialog
+  // still to decide what to do with that.
+
   if (warn) {
     /* DUECA graphics.
 
-         Getting a text value from this widget type is not supported.
-       */
+       Getting a text value from this widget type is not supported.
+     */
     W_XTR("GtkGladeWindow::getValue: Getting text for gtk object \""
           << wname << "\" not implemented");
   }
@@ -823,8 +888,8 @@ bool GtkGladeWindow::_getValue(const char *wname, const CommObjectWriter &cor,
   if (warn) {
     /* DUECA graphics.
 
-         Could not read data from this DCO member.
-      */
+       Could not read data from this DCO member.
+    */
     W_XTR("GtkGladeWindow::getValue: Could not interpret type of member \""
           << cor.getMemberName(im) << "\" with class \"" << cor.getClassname()
           << '"');
@@ -863,10 +928,10 @@ unsigned GtkGladeWindow::setValues(CommObjectReader &dco, const char *format,
       else {
         /* DUECA graphics.
 
-             You have an array member in the DCO object you try to
-             connect to a gtk window, but have not supplied an array
-             format string.
-          */
+           You have an array member in the DCO object you try to
+           connect to a gtk window, but have not supplied an array
+           format string.
+        */
         W_XTR("GtkGladeWindow::setValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
@@ -874,9 +939,9 @@ unsigned GtkGladeWindow::setValues(CommObjectReader &dco, const char *format,
     else {
       /* DUECA graphics.
 
-           This member class (mapping, variable size array or nested) cannot
-           be used in connecting to a gtk interface.
-        */
+         This member class (mapping, variable size array or nested) cannot
+         be used in connecting to a gtk interface.
+      */
       W_XTR("GtkGladeWindow::setValues: Could not interpret organisation of "
             "member "
             << dco.getMemberName(ii));
@@ -980,8 +1045,9 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         catch (dueca::ConversionNotDefined &e) {
           /* DUECA graphics.
 
-               Cannot convert value retrieved from interface into an enumerated
-               item value. Check how you set up your interface stores. */
+             Cannot convert value retrieved from interface into an enumerated
+             item value. Check how you set up your interface stores.
+          */
           W_MOD("GtkGladeWindow::getValues: Cannot convert value \""
                 << boost::any_cast<std::string>(b) << "\" from widget \""
                 << gtkid << "\"");
@@ -994,7 +1060,8 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         auto ewriter = dco[ii];
         unsigned idx = 0;
         while (!ewriter.isEnd()) {
-          snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
+          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii),
+                   idx++);
           boost::any b;
           if (_getValue(gtkid, dco, ii, b, warn)) {
             nset++;
@@ -1006,12 +1073,12 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         }
       }
       else {
-          /* DUECA graphics.
+        /* DUECA graphics.
 
-       You have an array member in the DCO object you try to
-       connect to a gtk window, but have not supplied an array
-       format string.
-    */
+           You have an array member in the DCO object you try to
+           connect to a gtk window, but have not supplied an array
+           format string.
+        */
         W_XTR("GtkGladeWindow::getValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
@@ -1021,7 +1088,8 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         auto ewriter = dco[ii];
         unsigned idx = 0;
         while (true) {
-          snprintf(gtkid, sizeof(gtkid), format, dco.getMemberName(ii), idx++);
+          snprintf(gtkid, sizeof(gtkid), arrformat, dco.getMemberName(ii),
+                   idx++);
           boost::any b;
           if (_getValue(gtkid, dco, ii, b, warn)) {
             ewriter.write(b);
@@ -1032,22 +1100,22 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
         }
       }
       else {
-          /* DUECA graphics.
+        /* DUECA graphics.
 
-       You have an array member in the DCO object you try to
-       connect to a gtk window, but have not supplied an array
-       format string.
-    */
+           You have an array member in the DCO object you try to
+           connect to a gtk window, but have not supplied an array
+           format string.
+        */
         W_XTR("GtkGladeWindow::getValues: No format specified for array member "
               << dco.getMemberName(ii));
       }
     }
     else {
-        /* DUECA graphics.
+      /* DUECA graphics.
 
-     This member class (mapping, variable size array or nested) cannot
-     be used in connecting to a gtk interface.
-  */
+         This member class (mapping, variable size array or nested) cannot
+         be used in connecting to a gtk interface.
+      */
       W_XTR("GtkGladeWindow::getValues: Could not interpret organisation of "
             "member "
             << dco.getMemberName(ii));
@@ -1056,6 +1124,14 @@ unsigned GtkGladeWindow::getValues(CommObjectWriter &dco, const char *format,
   return nset;
 }
 
+/** Search for a given mappint, based on DCO variable name
+
+    @param mappings   Table of defined mappings
+    @param key        DCO variable name
+    @param warn       Boolean, warn about missing mapping
+
+    @returns          OptionMapping pointer.
+*/
 static const GtkGladeWindow::OptionMapping *
 _searchMapping(const GtkGladeWindow::OptionMappings *mappings, const char *key,
                bool warn)
@@ -1069,12 +1145,12 @@ _searchMapping(const GtkGladeWindow::OptionMappings *mappings, const char *key,
     }
   }
   if (warn) {
-      /* DUECA graphics.
+    /* DUECA graphics.
 
-     In the given key is missing from the option string mapping for
-     selecting an Enum with a ComboBox. Check the mapping against
-     the DCO definition for the enum.
-  */
+       In the given key is missing from the option string mapping for
+       selecting an Enum with a ComboBox. Check the mapping against
+       the DCO definition for the enum.
+    */
     W_XTR("GtkGladeWindow::fillOptions: Mapping for member \""
           << key << "\" not given in options mapping");
   }
@@ -1087,65 +1163,65 @@ bool GtkGladeWindow::fillOptions(const char *dcoclass, const char *format,
 {
   auto eclass = DataClassRegistry::single().getEntryShared(dcoclass);
   if (!eclass.get()) {
-      /* DUECA graphics.
+    /* DUECA graphics.
 
-     When trying to fill selections for combobox entries in a GUI,
-     (GtkGladeWindow::fillOptions), the specified dco data class is
-     not available. Check spelling, or add the class to the
-     executable.
-  */
+       When trying to fill selections for combobox entries in a GUI,
+       (GtkGladeWindow::fillOptions), the specified dco data class is
+       not available. Check spelling, or add the class to the
+       executable.
+     */
     E_XTR("GtkGladeWindow cannot access data class " << dcoclass);
     return false;
   }
 
-    // work variable
+  // work variable
   char gtkid[128];
   auto converter = DataClassRegistry::single().getConverter(dcoclass);
   void *object = converter->clone(NULL);
 
-    /** Run through all members. */
+  /** Run through all members. */
   for (size_t im = 0;
        im < DataClassRegistry::single().getNumMembers(eclass.get()); im++) {
     auto access =
       DataClassRegistry::single().getMemberAccessor(eclass.get(), im);
 
-      // only the enums
+    // only the enums
     if (access->isEnum()) {
-        // reader and writer are used to find enum names
+      // reader and writer are used to find enum names
       auto eltreader = access->getReader(object);
       auto eltwriter = access->getWriter(object);
 
-        // iterable, run through the
+      // iterable, run through the
       if (access->getArity() == FixedIterable) {
         if (arrformat != NULL) {
           for (unsigned idx = access->getSize(); idx--;) {
             snprintf(gtkid, sizeof(gtkid), arrformat, access->getName(), idx);
-              // now need to get the enum values?
+            // now need to get the enum values?
             _fillOptions(gtkid, eltwriter, eltreader,
                          _searchMapping(mappings, access->getName(), warn),
                          warn);
           }
         }
         else {
-            /* DUECA graphics.
+          /* DUECA graphics.
 
-           There is an enum array specified, but no array format
-           available for finding it in the interface.
-        */
+             There is an enum array specified, but no array format
+             available for finding it in the interface.
+           */
           W_XTR("GtkGladeWindow::fillOptions missing array format");
         }
       }
       else if (access->getArity() == Single) {
 
         snprintf(gtkid, sizeof(gtkid), format, access->getName());
-          // again, enum values
+        // again, enum values
         _fillOptions(gtkid, eltwriter, eltreader,
                      _searchMapping(mappings, access->getName(), warn), warn);
       }
     }
   }
 
-    // return the memory
+  // return the memory
   converter->delData(object);
 
   return true;

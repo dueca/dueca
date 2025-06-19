@@ -25,14 +25,16 @@
 
  ;; In this state, the simulation is played again with recorded
  ;; input. Most modules can simply run their Advance code for this
- ;; @todo The replay functionality has not yet been implemented.
+ ;; only modules that (directly) read user data (think control loading
+ ;; and the like) or generate fresh data (turbulence?) need to replay
+ ;; previously recorded data.
  Replay
 
  ;; A state, exclusive for HardwareModule, in which the hardware is in
- ;; the safe position, but not error code.
+ ;; the safe position. There is no hardware error present.
  Inactive
 
- ;; Transition from inactive to HoldCurrent, for example lifting the
+ ;; Transition from inactive to HoldCurrent, for example lifting a
  ;; simulator cab to neutral position.
  Inactive_HoldCurrent
 
@@ -47,8 +49,8 @@
  ;; A transition state from Replay, back to HoldCurrent.
  Replay_HoldCurrent
 
- ;; A transition from HoldCurrent to inactive, for example going
- ;; down.
+ ;; A transition from HoldCurrent to inactive, for example with motion
+ ;; system going down.
  HoldCurrent_Inactive
 
  ;; Not a state, for initialising combination.

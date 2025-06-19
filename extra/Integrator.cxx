@@ -14,6 +14,8 @@
 #include <cstdio>
 #include <algorithm>
 using namespace std;
+namespace dueca {
+
 static double int_num[] = {1.0};
 static double int_den[] = {0.0, 1.0};
 
@@ -71,3 +73,5 @@ const Vector& Integrator::step(double u)
   if (ll.size() == 0) return LinearSystem::step(u);
   else                return LimitedLinearSystem::step(u);
 }
+
+} // namespace dueca

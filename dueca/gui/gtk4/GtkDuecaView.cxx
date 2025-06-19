@@ -465,10 +465,19 @@ bool GtkDuecaView::complete()
     string commonglade = DuecaPath::prepend("common_if-gtk4.ui");
 
     {
-      GladeCallbackTable cb_links[] = { { "button_really_quit", "clicked",
-                                          gtk_callback(
-                                            &GtkDuecaView::cbQuit2) },
-                                        { NULL, NULL, NULL, NULL } };
+      GladeCallbackTable cb_links[] = { 
+        
+        { "button_really_quit", "clicked",
+           gtk_callback(&GtkDuecaView::cbQuit2) },
+        { "obnoxious", "clicked",
+          gtk_callback(&GtkDuecaView::cbQuit2)},
+        { "button_continue", "clicked", 
+          gtk_callback(&GtkDuecaView::cbCloseQuit)},
+        { "close_dontstop", "clicked", 
+          gtk_callback(&GtkDuecaView::cbCloseQuit)},
+        { NULL, NULL, NULL, NULL } 
+                                      
+      };
 
       res = window.readGladeFile(commonglade.c_str(), NULL,
                                  reinterpret_cast<gpointer>(this), cb_links,
@@ -836,6 +845,12 @@ void GtkDuecaView::cbShowQuit(GSimpleAction *action, GVariant *arg,
   }
 }
 
+void GtkDuecaView::cbCloseQuit(GtkWidget *btn, gpointer user_data)
+{
+  gtk_widget_set_visible(window["really_quit"], FALSE);
+  gtk_widget_set_visible(window["dont_stop_warning"], FALSE);
+}
+
 static void process_file_result(GObject *dialog, GAsyncResult *res,
                                 gpointer view)
 {
@@ -884,6 +899,7 @@ void GtkDuecaView::cbQuit2(GtkWidget *button, gpointer gp)
 {
   NodeManager::single()->breakUp();
   gtk_widget_set_visible(window["really_quit"], FALSE);
+  gtk_widget_set_visible(window["dont_stop_warning"], FALSE);
 }
 
 void GtkDuecaView::updateEntityButtons(const ModuleState &confirmed_state,

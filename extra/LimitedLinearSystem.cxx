@@ -16,6 +16,7 @@
 #include <algorithm>
 using namespace std;
 
+namespace dueca {
 static const char *e_state_limit_size =
 "Limit vector sizes don't match state vector size";
 
@@ -104,4 +105,6 @@ const Vector& LimitedLinearSystem::step(double u)
 {
   Vector vu(1);vu<<u;
   return step(vu);
+}
+
 }

@@ -18,11 +18,13 @@
 #ifndef LinearSystem_hxx
 #define LinearSystem_hxx
 
-#ifndef USING_EIGEN3
-#define USING_EIGEN3
-#endif
+//#ifndef USING_EIGEN3
+//#define USING_EIGEN3
+//#endif
 
 #include <Eigen/Dense>
+
+namespace dueca {
 
 // a normal matrix, allocates its own storage
 typedef Eigen::MatrixXd Matrix;
@@ -177,4 +179,6 @@ public:
   /** Feedthrough matrix. */
   inline const Matrix& getD() const {return D;}
 };
+
+} // namespace dueca
 #endif

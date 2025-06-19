@@ -1,4 +1,5 @@
 #!@Python_EXECUTABLE@
+# PYTHON_ARGCOMPLETE_OK
 # -*-python-*-
 """     item            : ddff-convert
         made by         : RvP
@@ -21,6 +22,7 @@ except ModuleNotFoundError:
 import numpy as np
 import h5py
 import argparse
+import argcomplete
 import os
 import sys
 from functools import partial
@@ -201,6 +203,8 @@ class ToHdf5:
 
 
 ToHdf5.args(subparsers)
+
+argcomplete.autocomplete(parser)
 
 if __name__ == "__main__":
 

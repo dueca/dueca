@@ -20,8 +20,6 @@
 #include <dueca_ns.h>
 #include <iterator>
 #include <AmorphStore.hxx>
-#include <string>
-#include <type_traits>
 #include <vectorexceptions.hxx>
 #include <boost/format.hpp>
 
@@ -89,6 +87,13 @@ public:
   {
     for (int ii = N; ii--;)
       this->d[ii] = defval;
+  }
+
+  /** constructor with initializer list */
+  fixvector(const std::initializer_list<T>& e)
+  {
+    if (e.size() != N) throw indexexception();
+    std::copy(e.begin(), e.end(), this->d);
   }
 
   /** constructor without default value for the data

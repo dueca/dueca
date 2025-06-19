@@ -2,6 +2,23 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.2.2] - 2025-06-18
+
+- Make the quit confirmation window modal, with DUECA control as parent
+- gtk3 / gtk4 fixes to GtkGladeWindow
+- Initializer lists now accepted by vector types
+- New documentation on common channel uses
+- correction dco reading from xml
+- ensure that the index for ddff files is written early in the file
+- Fixes for the DUECA quit dialogs
+- Fix the problem where single-thread DUECA (generally used in debugging)
+  does not properly close off.
+- Move LinearSystem and its defined Matrix/Vector types into dueca namespace,
+  prevents issues with including other eigen3-based libraries.
+- Add argcomplete to python-based scripts (dueca-gproject, new-dco,
+  dueca-channeldot)
+- Various documentation fixes
+
 ## [4.2.1] - 2025-03-07
 
 - Still issues with run tests, ci environment is slightly different

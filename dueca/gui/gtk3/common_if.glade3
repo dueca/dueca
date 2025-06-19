@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2 -->
+<!-- Generated with glade 3.40.0 -->
 <!--*- mode: xml -*-->
 <interface>
-  <requires lib="gtk+" version="3.0"/>
+  <requires lib="gtk+" version="3.12"/>
   <object class="GtkAboutDialog" id="about2">
-    <property name="use-header-bar"> 0 </property>
     <property name="can-focus">False</property>
+    <property name="title" translatable="yes">About DUECA</property>
     <property name="type-hint">dialog</property>
     <property name="program-name">DUECA/DUSIME</property>
-    <property name="version">3.1.x</property>
+    <property name="version">4.2.x</property>
     <property name="copyright" translatable="yes">Delft University of Technology</property>
     <property name="comments" translatable="yes">Real-Time distributed computation and simulation	</property>
     <property name="website">https://dueca.tudelft.nl</property>
@@ -53,8 +53,8 @@
     </child>
   </object>
   <object class="GtkDialog" id="dont_change_a_running">
-    <property name="use-header-bar"> 0 </property>
     <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Stop DUECA before modifying!</property>
     <property name="type-hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox">
@@ -103,8 +103,8 @@ first stop the modules, then read additional configuration</property>
     </child>
   </object>
   <object class="GtkDialog" id="dont_stop_warning">
-    <property name="use-header-bar"> 0 </property>
     <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Warning: DUECA is active!</property>
     <property name="type-hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox">
@@ -165,7 +165,6 @@ please stop the modules, and then quit.</property>
     </child>
   </object>
   <object class="GtkDialog" id="really_quit">
-    <property name="use-header-bar"> 0 </property>
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">Are you serious?</property>
     <property name="type-hint">normal</property>
@@ -271,7 +270,6 @@ want to quit DUECA?</property>
     </child>
   </object>
   <object class="GtkFileChooserDialog" id="select_md2">
-    <property name="use-header-bar"> 0 </property>
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">Select a module modification file (.md2)</property>
     <property name="type-hint">dialog</property>

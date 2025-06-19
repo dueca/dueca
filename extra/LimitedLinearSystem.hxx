@@ -16,6 +16,8 @@
 #define LimitedLinearSystem_hxx
 #include "LinearSystem.hxx"
 
+namespace dueca {
+
 /** A specialization of LinearSystem that implements limits on the system state. */
 class LimitedLinearSystem : public LinearSystem
 {
@@ -81,4 +83,7 @@ protected:
   /// Keep track of saturation
   bool saturation;
 };
+
+} // namespace dueca
+
 #endif

@@ -28,8 +28,16 @@ DUECA_NS_START;
     DCO object. */
 struct xmldecodeexception: public std::exception
 {
+  /** Message */
   const char* reason;
+
+  /** Constructor
+
+      @param re   reason for the exception
+  */
   xmldecodeexception(const char* re);
+
+  /** Return the message */
   const char* what() const noexcept;
 };
 

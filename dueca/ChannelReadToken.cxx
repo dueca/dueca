@@ -127,7 +127,8 @@ ChannelReadToken::ChannelReadToken(
 
 ChannelReadToken::~ChannelReadToken() { channel->removeReadToken(handle); }
 
-void ChannelReadToken::selectFirstEntry() { channel->selectFirstEntry(handle); }
+void ChannelReadToken::selectFirstEntry() { 
+  channel->selectFirstEntry(handle); }
 
 const GlobalId &ChannelReadToken::getChannelId() const
 {
@@ -139,6 +140,14 @@ void ChannelReadToken::selectNextEntry() { channel->getNextEntry(handle); }
 bool ChannelReadToken::isSequential() const
 {
   return handle->entry->isSequential();
+}
+
+Channel::EntryTimeAspect ChannelReadToken::getTimeAspect() const
+{
+  if (handle->entry && handle->entry->entry) {
+    return handle->entry->entry->eventtype ? Channel::Events : Channel::Continuous;
+  }
+  return time_aspect;
 }
 
 bool ChannelReadToken::haveEntry() const { return handle->entry != NULL; }

@@ -106,6 +106,14 @@ public:
     d(N == 0 ? NULL : new T[N])
   {}
 
+  /** constructor with initializer list */
+  varvector(const std::initializer_list<T>& e) :
+    N(e.size()),
+    d(N == 0 ? NULL : new T[N])
+  {
+    std::copy(e.begin(), e.end(), this->d);
+  }
+
   /** copy constructor; copies the data */
   varvector(const varvector<T> &other) :
     N(other.size()),
@@ -290,6 +298,8 @@ struct dco_traits<varvector<D>> :
 
   /** Value type for the elements of a trait's target */
   typedef D value_type;
+
+  /** Key type, not relevant here. */
   typedef void key_type;
 };
 

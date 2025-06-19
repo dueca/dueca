@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# PYTHON_ARGCOMPLETE_OK
 # -*-python-*-
 """     item            : dueca-gproject
         made by         : RvP
@@ -21,6 +22,7 @@ import git
 import re
 import subprocess
 import argparse
+import argcomplete
 import tempfile
 from argparse import Namespace
 from collections import ChainMap
@@ -1550,6 +1552,7 @@ BuildProject.args(subparsers)
 #    'policies',
 #    '--policiesurl=file:///home/repa/dueca/test/gitscript/example-policies.xml']
 
+argcomplete.autocomplete(parser)
 pres = parser.parse_args(sys.argv[1:])
 #pres = parser.parse_args(testargs)
 

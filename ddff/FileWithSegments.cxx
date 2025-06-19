@@ -117,10 +117,10 @@ FileWithSegments::FileWithSegments(const std::string &filename, Mode mode,
   g_recorders("segmentedfile", false),
   ts_switch(MAX_TIMETICK, MAX_TIMETICK),
   my_recorders(),
-  tags(), 
+  tags(),
   next_tag(),
   tag_lookup(),
-  dirty(false),
+  dirty(true),
   w_tags()
 {
   // now create the tag writer, and read any existing tags

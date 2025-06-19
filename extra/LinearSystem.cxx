@@ -35,6 +35,8 @@
 
 using namespace std;
 
+namespace dueca {
+
 static const char *e_num_den_size =
 "numerator > denominator, or den zero size";
 static const char *state_space_dim =
@@ -344,6 +346,8 @@ const Vector& LinearSystem::step(double u)
   VectorE vu(&u, 1); // vu << u;
   return step(vu);
 }
+
+} // namespace dueca
 
 #ifdef TESTLINEARSYSTEM
 

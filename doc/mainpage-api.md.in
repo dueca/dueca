@@ -144,6 +144,8 @@ simulation.
 
 <li>  [Reference documentation for default modules in dueca.mod](@ref defmod)
 
+<li>  [Common ways of setting up channels](@ref channelpatterns)
+
 <li>  [Including code generated from Simulink](@ref rtw)
 
 <li>  [Including code generated from Simulink, Matlab 2015a and later](@ref coder)

@@ -12,6 +12,7 @@
 #include <LinearSystem.hxx>
 #include <iostream>
 using namespace std;
+using namespace dueca;
 
 int main()
 {

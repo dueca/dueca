@@ -47,6 +47,7 @@ typedef ReaderConfigurationChange* ReaderConfigurationChangePtr;
 class UChannelEntry
 {
   friend class UnifiedChannel;
+  friend class ChannelReadToken;
 
   /** Pointer to the handle of the access token that writes on this
       entry. If the writing is not done locally (i.e. data comes in

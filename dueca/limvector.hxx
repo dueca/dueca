@@ -106,6 +106,15 @@ public:
     _ptr(d)
   {}
 
+  /** constructor with initializer list */
+  limvector(const std::initializer_list<T>& e) :
+    n(e.size()),
+    _ptr(d)
+  {
+    if (e.size() > N) throw indexexception();
+    std::copy(e.begin(), e.end(), this->d);
+  }
+
   /** copy constructor */
   limvector(const limvector<N, T> &other) :
     n(other.size()),
