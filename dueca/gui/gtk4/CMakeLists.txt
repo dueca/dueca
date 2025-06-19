@@ -6,7 +6,9 @@
 #       copyright       : (c) 2016 TUDelft-AE-C&S
 
 pkg_check_modules(GTK4 REQUIRED gtk4)
-find_package(GLUT REQUIRED)
+if (ALSO_INIT_GLUT)
+  find_package(GLUT REQUIRED)
+endif()
 
 set(INSTALLHEADERS GtkGladeWindow.hxx GtkCaller.hxx GladeException.hxx)
 
@@ -32,7 +34,7 @@ add_compile_options(${GTK4_CFLAGS})
 # script-independent lib
 dueca_add_library(dueca-gtk4
   SOURCES ${SOURCES}
-  LINKLIBS dueca ${GTK4_LIBRARIES} ${X11_LIBRARIES} ${GLUT_LIBS} ${GL_LIBRARIES}
+  LINKLIBS dueca ${GTK4_LIBRARIES} ${X11_LIBRARIES} ${GLUT_LIBRARIES} ${GL_LIBRARIES}
   LINKDIRS ${GTK4_LIBRARY_DIRS} ${GLUT_LIBRARY_DIRS}
   INCLUDEDIRS ${INCDIRS} ${GTK4_INCLUDE_DIRS})
 

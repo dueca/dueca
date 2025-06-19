@@ -284,8 +284,8 @@ foreach(_SCM ${SCMFILEN})
   add_custom_command(
     OUTPUT ${SCM}
     COMMAND DUECA_SCRIPTINSTRUCTIONS=${MOD}
-    LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff
-    DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff
+    LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff:${CMAKE_BINARY_DIR}/ddfflog
+    DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff:${CMAKE_BINARY_DIR}/ddfflog
     ${CMAKE_CURRENT_BINARY_DIR}/dueca_run.x > ${CMAKE_CURRENT_BINARY_DIR}/${SCM}
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dueca_run.x
     )
