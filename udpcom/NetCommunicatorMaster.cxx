@@ -81,10 +81,10 @@ bool NetCommunicatorMaster::complete()
      initialisation here. Return false if something is wrong. */
 
   // interval for checking the connection requests
-  connect_check_interval = max
-    (TimeTickType(1),
-     TimeTickType(round(2.0 / Ticker::single()->getTimeGranule())) /
-     ts_interval);
+  connect_check_interval =
+    max(TimeTickType(1),
+        TimeTickType(round(2.0 / Ticker::single()->getTimeGranule())) /
+          ts_interval);
 
   if (!startServer()) {
     server_needsconnect = connect_check_interval;
@@ -112,7 +112,7 @@ NetCommunicatorMaster::~NetCommunicatorMaster()
 }
 
 // process configuration input for a slave type replicator
-void NetCommunicatorMaster::flushStore(AmorphStore& s, unsigned peer_id)
+void NetCommunicatorMaster::flushStore(AmorphStore &s, unsigned peer_id)
 {
   if (s.getSize() == 0) {
     /* DUECA network.
@@ -135,24 +135,22 @@ bool NetCommunicatorMaster::startServer()
     if (!config_url.size()) {
       /* DUECA network.
 
-	 Config url needs to be supplied */
+         Config url needs to be supplied */
       W_NET("Config URL needs to be supplied");
       throw(connectionfails());
     }
-    conf_comm.reset(new WebsockCommunicatorConfig
-                    (config_url, timeout, common_callback
-                     (this, &NetCommunicatorMaster::assignPeerId),
-                     config_buffer_size, 3));
+    conf_comm.reset(new WebsockCommunicatorConfig(
+      config_url, timeout,
+      common_callback(this, &NetCommunicatorMaster::assignPeerId),
+      config_buffer_size, 3));
   }
-
-
 
   // also create the data connection
   if (not data_comm) {
     // correct for old-style network definitions
     if (!url.size()) {
       url = std::string("udp://") + peer_address + std::string(":") +
-        boost::lexical_cast<std::string>(dataport);
+            boost::lexical_cast<std::string>(dataport);
     }
 
     std::string key = url.substr(0, url.find(":")) + std::string("-master");
@@ -192,8 +190,8 @@ void NetCommunicatorMaster::stopServer()
 }
 
 // collection of information on a peer in the communication
-NetCommunicatorMaster::CommPeer::CommPeer
-(unsigned sendid, unsigned previd, const std::string& address) :
+NetCommunicatorMaster::CommPeer::CommPeer(unsigned sendid, unsigned previd,
+                                          const std::string &address) :
   state(Vetting),
   delta_time(0.0),
   send_id(sendid),
@@ -209,8 +207,8 @@ NetCommunicatorMaster::CommPeer::~CommPeer()
   //
 }
 
-NetCommunicatorMaster::ChangeCycle::
-ChangeCycle(uint32_t change_cycle, uint16_t peer, bool add) :
+NetCommunicatorMaster::ChangeCycle::ChangeCycle(uint32_t change_cycle,
+                                                uint16_t peer, bool add) :
   change_cycle(change_cycle),
   peer(peer),
   addition(add)
@@ -218,16 +216,15 @@ ChangeCycle(uint32_t change_cycle, uint16_t peer, bool add) :
   //
 }
 
-int NetCommunicatorMaster::assignPeerId(const std::string& address)
+int NetCommunicatorMaster::assignPeerId(const std::string &address)
 {
   // add a new peer to the list
   unsigned previous_peer_id = peers.size() ? peers.back()->send_id : 0;
   next_peer_id++;
 
   // reserve the room for the peer
-  peers.push_back(std::shared_ptr<CommPeer>
-                  (new CommPeer(next_peer_id, previous_peer_id,
-                                address)));
+  peers.push_back(std::shared_ptr<CommPeer>(
+    new CommPeer(next_peer_id, previous_peer_id, address)));
   DEB("new peer from " << address << " id " << next_peer_id);
 
   // inform about the presence of a new peer
@@ -236,8 +233,8 @@ int NetCommunicatorMaster::assignPeerId(const std::string& address)
   /* DUECA network.
 
      Information on a new connecting peer. */
-  I_NET("Accepting a connection from " << address <<
-        " peer id " << next_peer_id);
+  I_NET("Accepting a connection from " << address << " peer id "
+                                       << next_peer_id);
   return int(next_peer_id);
 }
 
@@ -249,9 +246,8 @@ int NetCommunicatorMaster::assignPeerId(const std::string& address)
    * call client code for additional configuration
 */
 
-
-void NetCommunicatorMaster::
-sendCurrentConfigToPeer(const CommPeer& peer, uint32_t join_cycle)
+void NetCommunicatorMaster::sendCurrentConfigToPeer(const CommPeer &peer,
+                                                    uint32_t join_cycle)
 {
   // send the current configuration to this peer
   char buffer[config_buffer_size];
@@ -259,24 +255,19 @@ sendCurrentConfigToPeer(const CommPeer& peer, uint32_t join_cycle)
 
   try {
 
-
     // tell the previous ID in the sending sequence
-    DEB(UDPPeerConfig
-        (UDPPeerConfig::HookUp, peer.follow_id, join_cycle));
-    ::packData(s, UDPPeerConfig
-               (UDPPeerConfig::HookUp, peer.follow_id, join_cycle));
+    DEB(UDPPeerConfig(UDPPeerConfig::HookUp, peer.follow_id, join_cycle));
+    ::packData(
+      s, UDPPeerConfig(UDPPeerConfig::HookUp, peer.follow_id, join_cycle));
 
     // tell the new ID, also triggers info reading
-    DEB(UDPPeerConfig
-        (UDPPeerConfig::ConfigurePeer, peer.send_id));
-    ::packData(s, UDPPeerConfig
-               (UDPPeerConfig::ConfigurePeer, peer.send_id));
+    DEB(UDPPeerConfig(UDPPeerConfig::ConfigurePeer, peer.send_id));
+    ::packData(s, UDPPeerConfig(UDPPeerConfig::ConfigurePeer, peer.send_id));
 
     // information on UDP network connection
-    UDPPeerInfo pi
-      (public_data_url.size() ? public_data_url : url, peer.address,
-       buffer_size, join_cycle,
-       Ticker::single()->getTimeGranule(), ts_interval);
+    UDPPeerInfo pi(public_data_url.size() ? public_data_url : url, peer.address,
+                   buffer_size, join_cycle, Ticker::single()->getTimeGranule(),
+                   ts_interval);
     DEB("Information to peer " << pi);
 
     // pack the peer information
@@ -291,7 +282,7 @@ sendCurrentConfigToPeer(const CommPeer& peer, uint32_t join_cycle)
     ::packData(s, UDPPeerConfig(UDPPeerConfig::InitialConfComplete));
     flushStore(s, peer.send_id);
   }
-  catch(const AmorphStoreBoundary& e) {
+  catch (const AmorphStoreBoundary &e) {
 
     // the peerinfo data is too large
     /* DUECA network.
@@ -303,7 +294,7 @@ sendCurrentConfigToPeer(const CommPeer& peer, uint32_t join_cycle)
     E_NET("Configuration data and peer information too large for TCP buffer");
     throw(e);
   }
-  catch (const configconnectionbroken& e) {
+  catch (const configconnectionbroken &e) {
 
     /* DUECA network.
 
@@ -318,13 +309,14 @@ sendCurrentConfigToPeer(const CommPeer& peer, uint32_t join_cycle)
 /*
    Inform a peer that the UDP message should be in reply to another
    peer */
-void NetCommunicatorMaster::changeFollowId(const CommPeer& peer, uint32_t target_cycle)
+void NetCommunicatorMaster::changeFollowId(const CommPeer &peer,
+                                           uint32_t target_cycle)
 {
   char cbuf[16];
   AmorphStore s(cbuf, 16);
   DEB(UDPPeerConfig(UDPPeerConfig::HookUp, peer.follow_id));
-  ::packData(s, UDPPeerConfig
-             (UDPPeerConfig::HookUp, peer.follow_id, target_cycle));
+  ::packData(
+    s, UDPPeerConfig(UDPPeerConfig::HookUp, peer.follow_id, target_cycle));
   conf_comm->sendConfig(s, peer.send_id);
 }
 
@@ -333,25 +325,25 @@ void NetCommunicatorMaster::changeFollowId(const CommPeer& peer, uint32_t target
 void NetCommunicatorMaster::correctFollowId(uint32_t send_id,
                                             uint32_t follow_id)
 {
-  for (auto &p2: peers) {
-    if (p2->state <= CommPeer::Active &&
-        p2->follow_id == send_id) {
+  for (auto &p2 : peers) {
+    if (p2->state <= CommPeer::Active && p2->follow_id == send_id) {
       p2->follow_id = follow_id;
       if (p2->state > CommPeer::Vetting) {
         changeFollowId(*p2);
         /* DUECA network.
 
            Information on changes in the send order. */
-        I_NET("Correcting follow order, instructing peer " <<  p2->send_id <<
-              " to drop " << send_id << " and follow " << follow_id);
+        I_NET("Correcting follow order, instructing peer "
+              << p2->send_id << " to drop " << send_id << " and follow "
+              << follow_id);
       }
       else {
         /* DUECA network.
 
            Information on changes in the send order. */
-         I_NET("Correcting follow order, changing inactive peer "
-              << p2->send_id <<
-              " to drop " << send_id << " and follow " << follow_id);
+        I_NET("Correcting follow order, changing inactive peer "
+              << p2->send_id << " to drop " << send_id << " and follow "
+              << follow_id);
       }
       break; // from for loop!
     }
@@ -371,25 +363,23 @@ void NetCommunicatorMaster::correctFollowId(uint32_t send_id,
   Receive the configuration requests from slaves, and add or remove
   entries. This runs after the UDP messages have been exchanged
  */
-void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
+void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec &ts)
 {
   // update planned peer inclusion/exclusion
-  while (peer_changes.size() &&
-         message_cycle.cycleIsCurrentOrPast
-         (peer_changes.front().change_cycle)) {
+  while (peer_changes.size() && message_cycle.cycleIsCurrentOrPast(
+                                  peer_changes.front().change_cycle)) {
 
     // find the relevant peer by matching against send id
     peerlist_type::iterator pp = peers.begin();
-    while (pp != peers.end() &&
-           (*pp)->send_id != peer_changes.front().peer) pp++;
+    while (pp != peers.end() && (*pp)->send_id != peer_changes.front().peer)
+      pp++;
 
     // should not happen?
     if (pp == peers.end()) {
       /* DUECA network.
 
          A peer has disappeared from the list of sending peers. */
-      W_NET("Peer " << peer_changes.front().peer <<
-            " disappeared from list");
+      W_NET("Peer " << peer_changes.front().peer << " disappeared from list");
       peer_changes.pop_front();
       continue;
     }
@@ -413,12 +403,12 @@ void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
   }
 
   // buffer for request configation data from peers
-  //char peerreq[1024];
+  // char peerreq[1024];
 
   // receive peer configuration messages
   MessageBuffer::ptr_type msgbuf = conf_comm->receiveConfig(false);
   while (msgbuf) {
-    for (auto &p: peers) {
+    for (auto &p : peers) {
       if (p->send_id == msgbuf->origin) {
         if (msgbuf->fill == 0) {
 
@@ -448,11 +438,10 @@ void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
 
     // check for state changes from all peers
     anychanges = false;
-    for (peerlist_type::iterator pp = peers.begin();
-         pp != peers.end(); ) {
+    for (peerlist_type::iterator pp = peers.begin(); pp != peers.end();) {
 
       // peer state?
-      switch((*pp)->state) {
+      switch ((*pp)->state) {
 
       case CommPeer::Vetting: {
 
@@ -475,8 +464,8 @@ void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
             // if we have no UDP communication yet, kickstart
             sendCurrentConfigToPeer(**pp, message_cycle.cycleIncrement(2));
             (*pp)->state = CommPeer::Wait;
-            peer_changes.push_back
-              (ChangeCycle(message_cycle.cycleIncrement(2), (*pp)->send_id, true));
+            peer_changes.push_back(ChangeCycle(message_cycle.cycleIncrement(2),
+                                               (*pp)->send_id, true));
           }
           else {
             // already in a cycle with peers. make a planned change;
@@ -484,36 +473,36 @@ void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
             // sender
             sendCurrentConfigToPeer(**pp, message_cycle.cycleIncrement(10));
             (*pp)->state = CommPeer::Wait;
-            peer_changes.push_back
-              (ChangeCycle(message_cycle.cycleIncrement(10), (*pp)->send_id, true));
+            peer_changes.push_back(ChangeCycle(message_cycle.cycleIncrement(10),
+                                               (*pp)->send_id, true));
           }
           anychanges = true;
 
           // read the config in the next cycle
-          pp++; continue;
-        }
-          break;
+          pp++;
+          continue;
+        } break;
         case Delay:
           // no action yet
           break;
         }
-
       }
 
         // wait and active need no actions
       case CommPeer::Wait:
-      case CommPeer::Active: break;
+      case CommPeer::Active:
+        break;
 
         // broken is after configuration connection breaks
       case CommPeer::Broken:
 
         // sudden client disconnect, find the peer following this one, if
         // present, and reconfigure the send chain
-	/* DUECA network.
+        /* DUECA network.
 
-	   A sudden disconnect by a peer is detected. The communication
-	   chain will be reconfigured to skip the peer.
-	*/
+           A sudden disconnect by a peer is detected. The communication
+           chain will be reconfigured to skip the peer.
+        */
         W_NET("Sudden disconnect from peer " << (*pp)->send_id);
         correctFollowId((*pp)->send_id, (*pp)->follow_id);
 
@@ -528,7 +517,7 @@ void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
         pp++;
         continue;
 
-      };   // end of the peer state switch
+      }; // end of the peer state switch
 
       // read the configuration
       decodeConfigData(**pp);
@@ -544,7 +533,7 @@ void NetCommunicatorMaster::checkAndUpdatePeerStates(const TimeSpec& ts)
    Take a configuration update buffer, and send it out to all
    currently connected peers.
  */
-void NetCommunicatorMaster::distributeConfig(AmorphStore& s)
+void NetCommunicatorMaster::distributeConfig(AmorphStore &s)
 {
   // check that the store has been filled at least somewhat
   if (s.getSize() == 0) {
@@ -562,7 +551,7 @@ void NetCommunicatorMaster::distributeConfig(AmorphStore& s)
   s.reUse();
 }
 
-void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
+void NetCommunicatorMaster::doCycle(const TimeSpec &ts, Activity &activity)
 {
   // current tick as per ts:
   current_tick = ts.getValidityStart();
@@ -573,7 +562,8 @@ void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
 
   if (npeers) {
     cycle_bytes = codeAndSendUDPMessage(current_tick);
-  } else {
+  }
+  else {
     // keep up the packed_cycle, for the check
     packed_cycle = message_cycle;
   }
@@ -587,7 +577,7 @@ void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
 #warning "test options selected, simulated message receive missing added"
 
     // pretend to miss this single message
-    if (int(random()/test_failprob/(RAND_MAX+1.0)) == 0) {
+    if (int(random() / test_failprob / (RAND_MAX + 1.0)) == 0) {
 
       DEB("Simulating a receive failure cycle " << message_cycle);
       data_comm->setFailReceive();
@@ -602,7 +592,8 @@ void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
     ssize_t nbytes = result.second;
 
     // recover flag transmitted by peer
-    if (trigger_recover) break;
+    if (trigger_recover)
+      break;
 
     // 0 bytes means a timeout
     if (nbytes == 0) {
@@ -647,31 +638,33 @@ void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
 
     // determine round_trip delay from the first received message
     if (cycle_time == 0) {
-      cycle_time = Ticker::single()->getUsecsSinceTick(current_tick) -
-        start_offset;
+      cycle_time =
+        Ticker::single()->getUsecsSinceTick(current_tick) - start_offset;
       cycle_bytes += nbytes;
       DEB("trip delay " << cycle_time);
 
       // update per-byte time if enough variation
       if (std::abs(cycle_bytes - last_cycle_bytes) >
           std::min(10, int(buffer_size) / 20)) {
-        net_perbyte = (1.0 - net_tau1)*net_perbyte + net_tau1*
-          double(cycle_time-last_cycle_time)/double(cycle_bytes-last_cycle_bytes);
+        net_perbyte = (1.0 - net_tau1) * net_perbyte +
+                      net_tau1 * double(cycle_time - last_cycle_time) /
+                        double(cycle_bytes - last_cycle_bytes);
       }
       // and per-message time
-      net_permessage = (1.0 - net_tau2)*net_permessage + net_tau2*0.5*
-        (double(cycle_time) - double(cycle_bytes)*net_perbyte);
+      net_permessage =
+        (1.0 - net_tau2) * net_permessage +
+        net_tau2 * 0.5 *
+          (double(cycle_time) - double(cycle_bytes) * net_perbyte);
       last_cycle_time = cycle_time;
       last_cycle_bytes = cycle_bytes;
     }
-
   }
   DEB2("udp receive over");
 
   // erase deleted peers
   if (npeers < peer_cycles.size()) {
     for (peer_cycles_type::iterator pp = peer_cycles.begin();
-         pp != peer_cycles.end(); ) {
+         pp != peer_cycles.end();) {
       if (message_cycle.cycleIsCurrentOrPast(pp->second)) {
         peer_cycles_type::iterator toerase = pp;
         /* DUECA network.
@@ -679,9 +672,10 @@ void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
            Information message on a peer that no-longer responds and
            will be deleted from the cycle.
         */
-        W_NET("Peer " << pp->first << " at " << pp->second <<
-              " no update, removing at " << message_cycle);
-        pp++; peer_cycles.erase(toerase);
+        W_NET("Peer " << pp->first << " at " << pp->second
+                      << " no update, removing at " << message_cycle);
+        pp++;
+        peer_cycles.erase(toerase);
       }
       else {
         pp++;
@@ -719,7 +713,7 @@ void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
 
   // now check the requests for new clients, configuration changes
   // from clients & push configuration changes around
- connection_checkup:
+connection_checkup:
 
   if (!communicating) {
     stopServer();
@@ -734,11 +728,10 @@ void NetCommunicatorMaster::doCycle(const TimeSpec& ts, Activity& activity)
     }
     return;
   }
-  //checkNewConnections(ts);
+  // checkNewConnections(ts);
 }
 
-
-void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
+void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type &buffer)
 {
   // check the message size,should at least contain control bytes
   if (size_t(buffer->fill) < control_size) {
@@ -747,8 +740,8 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
        Very small message received from a peer. Check that the DUECA
        versions are compatible, and check for interfering
        communication. */
-    W_NET("Message from peer " << buffer->origin << " too small, " <<
-          buffer->fill);
+    W_NET("Message from peer " << buffer->origin << " too small, "
+                               << buffer->fill);
     data_comm->returnBuffer(buffer);
     return;
   }
@@ -788,8 +781,8 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
       return;
     }
 
-    DEB("message from " << i_.peer_id << " cycle " <<
-          i_.cycle << " n=" << buffer->fill);
+    DEB("message from " << i_.peer_id << " cycle " << i_.cycle
+                        << " n=" << buffer->fill);
 
     // mark the buffer with the cycle number
     buffer->message_cycle = i_.cycle.cycleCount();
@@ -802,8 +795,8 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
       // have not yet seen this peer. If the response is to the current
       // cycle, include in the peer list
       if (i_.cycle == message_cycle) {
-        clientUnpackPayload(buffer, i_.peer_id,
-                            current_tick, i_.peertick, i_.usecs_offset);
+        clientUnpackPayload(buffer, i_.peer_id, current_tick, i_.peertick,
+                            i_.usecs_offset);
         peer_cycles[i_.peer_id] = message_cycle;
       }
       else {
@@ -812,16 +805,16 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
            Minor start problem with a peer, starting at a cycle not
            commanded.
         */
-        I_NET("Peer " << i_.peer_id << " erroneous start i_cycle " <<
-              i_.cycle << " cycle " << message_cycle);
+        I_NET("Peer " << i_.peer_id << " erroneous start i_cycle " << i_.cycle
+                      << " cycle " << message_cycle);
         data_comm->returnBuffer(buffer);
       }
     }
     else {
       // know this peer already, unpack only if this is new data
       if (pp->second.cycleIsNext(i_.cycle)) {
-        clientUnpackPayload(buffer, i_.peer_id,
-                            current_tick, i_.peertick, i_.usecs_offset);
+        clientUnpackPayload(buffer, i_.peer_id, current_tick, i_.peertick,
+                            i_.usecs_offset);
         pp->second = i_.cycle;
       }
       else if (pp->second.cycleIsCurrentOrPast(i_.cycle)) {
@@ -831,8 +824,8 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
            processed. This can happen when a message cycle had to be
            repeated. */
         I_NET("Peer " << i_.peer_id << " already processed cycle_p "
-              << pp->second << " i_cycle " << i_.cycle <<
-              " cycle " << message_cycle);
+                      << pp->second << " i_cycle " << i_.cycle << " cycle "
+                      << message_cycle);
         data_comm->returnBuffer(buffer);
       }
       else {
@@ -842,8 +835,8 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
            ignored.
         */
         E_NET("Peer " << i_.peer_id << " cycles messed up, cycle_p "
-              << pp->second << " i_cycle " << i_.cycle <<
-              " cycle " << message_cycle);
+                      << pp->second << " i_cycle " << i_.cycle << " cycle "
+                      << message_cycle);
         data_comm->returnBuffer(buffer);
       }
     }
@@ -863,8 +856,8 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
            that. Recovery code will be entered, in which the requested
            cycle will be repeated until confirmed by all peers.
         */
-        W_NET("Peer " << i_.peer_id <<
-              " recover asked in message on cycle " << i_.cycle);
+        W_NET("Peer " << i_.peer_id << " recover asked in message on cycle "
+                      << i_.cycle);
 
         // but do not do this on the very first cycle!
         if (sendstate != Recover) {
@@ -878,14 +871,14 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
          Received a message that did not exactly match the requested
          cycle
       */
-      W_NET("Peer " << i_.peer_id << " received i_cycle " << i_.cycle <<
-            " not matching requested " << message_cycle);
+      W_NET("Peer " << i_.peer_id << " received i_cycle " << i_.cycle
+                    << " not matching requested " << message_cycle);
     }
 
     // done read one, for the right repeat and cycle
     DEB("Num received " << nreceived << " from peers " << npeers);
   }
-  catch(const AmorphReStoreEmpty& e) {
+  catch (const AmorphReStoreEmpty &e) {
     /* DUECA network.
 
        Unexpected failure in decoding data from one of the
@@ -896,9 +889,9 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
   }
 }
 
-void NetCommunicatorMaster
-::clientInfoPeerJoined(const std::string& address, unsigned id,
-                       const TimeSpec& ts)
+void NetCommunicatorMaster ::clientInfoPeerJoined(const std::string &address,
+                                                  unsigned id,
+                                                  const TimeSpec &ts)
 {
   /* DUECA network.
 
@@ -907,8 +900,7 @@ void NetCommunicatorMaster
   I_NET("new peer, id " << id << " from " << address);
 }
 
-void NetCommunicatorMaster::
-clientInfoPeerLeft(unsigned id, const TimeSpec& ts)
+void NetCommunicatorMaster::clientInfoPeerLeft(unsigned id, const TimeSpec &ts)
 {
   /* DUECA network.
 
@@ -918,8 +910,7 @@ clientInfoPeerLeft(unsigned id, const TimeSpec& ts)
 }
 
 NetCommunicatorMaster::VettingResult
-NetCommunicatorMaster::clientAuthorizePeer(CommPeer& peer,
-                                           const TimeSpec& ts)
+NetCommunicatorMaster::clientAuthorizePeer(CommPeer &peer, const TimeSpec &ts)
 {
   /* DUECA network.
 
@@ -929,7 +920,7 @@ NetCommunicatorMaster::clientAuthorizePeer(CommPeer& peer,
   return Accept;
 }
 
-void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
+void NetCommunicatorMaster::decodeConfigData(CommPeer &peer)
 {
   // decode the new data
   AmorphReStore s = peer.commbuf.getStore();
@@ -938,25 +929,25 @@ void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
   try {
     while (s.getSize()) {
       size_t storelevel0 = s.getIndex();
-      UDPPeerConfig cmd(s);   // decode the config command
+      UDPPeerConfig cmd(s); // decode the config command
       storelevel = s.getIndex();
       DEB("Unpack payld  " << cmd);
 
-      switch(cmd.mtype) {
+      switch (cmd.mtype) {
 
       case UDPPeerConfig::DeletePeer: {
 
-	/* DUECA network.
+        /* DUECA network.
 
-	   A network peer requested to leave. */
+           A network peer requested to leave. */
         W_NET("Acting on requested delete from peer " << peer.send_id);
         // note a wish to leave ASAP, give it 3 cycles (we already
         // updated the cycle counter to start the next round)
         // peer_changes are processed after the noted cycle, after the
         // noted cycle, the peer will not be included, npeers will be
         // reduced.
-        peer_changes.push_back
-          (ChangeCycle(message_cycle.cycleIncrement(4), peer.send_id, false));
+        peer_changes.push_back(
+          ChangeCycle(message_cycle.cycleIncrement(4), peer.send_id, false));
 
         // and immediate message on the planned cycle for deletion,
         // peer knows to leave after message_cycle+3
@@ -968,11 +959,11 @@ void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
         cmd.packData(s2);
         flushStore(s2, peer.send_id);
 
-        // find out if some other peer is sending after this peer, advance notice of
-        // changing the hookup; is also sent later when deletion in database complete
+        // find out if some other peer is sending after this peer, advance
+        // notice of changing the hookup; is also sent later when deletion in
+        // database complete
         correctFollowId(peer.send_id, peer.follow_id);
-      }
-        break;
+      } break;
 
       case UDPPeerConfig::ClientPayload:
         try {
@@ -989,36 +980,37 @@ void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
 
       case UDPPeerConfig::DuecaVersion:
 
-	try {
-	  uint16_t vmajor(s);
-	  uint16_t vminor(s);
-	  uint16_t revision(s);
-	  storelevel = s.getIndex();
+        try {
+          uint16_t vmajor(s);
+          uint16_t vminor(s);
+          uint16_t revision(s);
+          storelevel = s.getIndex();
 
-	  if (vmajor != DUECA_VERMAJOR || vminor != DUECA_VERMINOR ||
-	      revision != DUECA_REVISION) {
-	    /* DUECA network.
+          if (vmajor != DUECA_VERMAJOR || vminor != DUECA_VERMINOR ||
+              revision != DUECA_REVISION) {
+            /* DUECA network.
 
-	       A peer dueca process reports a different DUECA version
-	       than what is running here. Please update all DUECA
-	       nodes to the same version.
-	    */
-	    W_NET("Peer " << cmd.peer_id <<
-		  " reports a different DUECA version " << vmajor <<
-		  "." << vminor << "." << revision);
-	  }
-	}
-	catch (const dueca::AmorphReStoreEmpty &e) {
-	  /* DUECA network.
+               A peer dueca process reports a different DUECA version
+               than what is running here. Please update all DUECA
+               nodes to the same version.
+            */
+            W_NET("Peer " << cmd.peer_id
+                          << " reports a different DUECA version " << vmajor
+                          << "." << vminor << "." << revision);
+          }
+        }
+        catch (const dueca::AmorphReStoreEmpty &e) {
+          /* DUECA network.
 
-	     A peer dueca process has no information on the DUECA
-	     version in the welcome message. Update all DUECA nodes to
-	     the same version.
-	  */
+             A peer dueca process has no information on the DUECA
+             version in the welcome message. Update all DUECA nodes to
+             the same version.
+          */
           DEB("Cannot unpack version information");
-	  storelevel = storelevel0;
-	  throw(e);
-	}
+          storelevel = storelevel0;
+          throw(e);
+        }
+        break;
 
       default:
         /* DUECA network.
@@ -1026,8 +1018,8 @@ void NetCommunicatorMaster::decodeConfigData(CommPeer& peer)
            Unknown configuration request from a given peer. Check that
            the DUECA versions used are compatible.
         */
-        E_NET("peer with send id " << peer.send_id
-              << " unhandled command " << cmd.mtype);
+        E_NET("peer with send id " << peer.send_id << " unhandled command "
+                                   << cmd.mtype);
       }
     }
 
@@ -1046,7 +1038,7 @@ void NetCommunicatorMaster::breakCommunication()
 {
   stopServer();
 
-  communicating = false;    // flags comm break for next cycle
+  communicating = false; // flags comm break for next cycle
 
   // npeers = 0;               // stop UDP messages
 }
@@ -1055,6 +1047,5 @@ void NetCommunicatorMaster::communicatorAddTiming(ControlBlockWriter &cb)
 {
   cb.markTimeOffset(net_permessage, net_perbyte);
 }
-
 
 DUECA_NS_END;
