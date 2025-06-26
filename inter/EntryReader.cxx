@@ -15,7 +15,7 @@
 #include "EntryReader.hxx"
 #include "ChannelReplicator.hxx"
 #include <boost/lexical_cast.hpp>
-//#define I_INT
+// #define I_INT
 #include <debug.h>
 #include <DataTimeSpec.hxx>
 #define DO_INSTANTIATE
@@ -23,52 +23,47 @@
 #include <dueca.h>
 #include <dassert.h>
 
-#define DEBPRINTLEVEL -1
+#define DEBPRINTLEVEL 1
 #include <debprint.h>
 
 STARTNSREPLICATOR;
 
-EntryReader::EntryReader(const dueca::GlobalId& master_id,
-                         const dueca::ChannelEntryInfo& i,
-                         const std::string& channelname) :
+EntryReader::EntryReader(const dueca::GlobalId &master_id,
+                         const dueca::ChannelEntryInfo &i,
+                         const std::string &channelname) :
   EntryHandler(i, channelname, master_id, 0),
   tokenvalid(false),
   cbv(this, &EntryReader::tokenIsValid),
   r_entry(master_id, NameSet(channelname), i.data_class, i.entry_id,
-          i.time_aspect, Channel::ZeroOrMoreEntries, Channel::ReadAllData,
-          0.0, &cbv),
+          i.time_aspect, Channel::OnlyOneEntry, Channel::ReadAllData, 0.0,
+          &cbv),
   firstread(true)
 {
   data_magic = r_entry.getDataClassMagic();
   /* DUECA interconnect.
 
      Information on the creation of a new entry reader. */
-  I_INT("EntryReader " << channelname << " entry# " << i.entry_id <<
-        " type " << i.data_class << " " << i.time_aspect);
+  I_INT("EntryReader " << channelname << " entry# " << i.entry_id << " type "
+                       << i.data_class << " " << i.time_aspect);
   DEB("EntryReader " << channelname << " entry# " << i.entry_id);
 }
 
-EntryReader::~EntryReader()
-{
-  DEB("~EntryReader " << channelname);
-}
+EntryReader::~EntryReader() { DEB("~EntryReader " << channelname); }
 
-void EntryReader::tokenIsValid(const TimeSpec& ts)
+void EntryReader::tokenIsValid(const TimeSpec &ts)
 {
   tokenvalid = true;
-  DEB1("EntryReader token valid " << channelname <<
-       " entry# " << r_entry.getEntryId() <<
-       " rid " << getReplicatorEntryId());
+  DEB1("EntryReader token valid " << channelname << " entry# "
+                                  << r_entry.getEntryId() << " rid "
+                                  << getReplicatorEntryId());
 }
 
-bool EntryReader::readChannel(AmorphStore& s, uint16_t channelid)
+bool EntryReader::readChannel(AmorphStore &s, uint16_t channelid)
 {
   if (tokenvalid) {
     if (firstread) {
       r_entry.flushOlderSets();
-#ifndef ASSERT_ACTIVE
       firstread = false;
-#endif
     }
 
     // remember current store pointer
@@ -86,37 +81,28 @@ bool EntryReader::readChannel(AmorphStore& s, uint16_t channelid)
       // pack the data itself
       switch (r_entry.readAndStoreData(s, lasttick)) {
       case ChannelReadToken::DataSuccess:
-        DEB1("Channel " << channelid << " packed from " <<
-             r_entry.getName() <<
-             " entry " << r_entry.getEntryId() << " at " << lasttick <<
-             " s" << idx0 << ".." << s.getSize());
+        DEB1("Channel " << channelid << " packed from " << r_entry.getName()
+                        << " entry " << r_entry.getEntryId() << " at "
+                        << lasttick << " s" << idx0 << ".." << s.getSize());
         s.finishMark(idmark, channelid);
         s.endMark();
-#ifdef ASSERT_ACTIVE
-        if (firstread) {
-          // only an event channel can end up here on the first read
-          assert(getEntryTimeAspect() != Channel::Continuous);
-          firstread = false;
-        }
-#endif
         return true;
+
       case ChannelReadToken::NoData:
-        DEB1("No data from " << r_entry.getName() <<
-             " entry " << r_entry.getEntryId());
+        DEB1("No data from " << r_entry.getName() << " entry "
+                             << r_entry.getEntryId() << " at " << lasttick);
         s.setSize(idx0);
         return false;
+
       case ChannelReadToken::TimeSkip:
         /* DUECA interconnect.
 
            Information on sending a time skip in received data. */
-        I_INT("Channel " << channelid << " with skip " << r_entry.getName() <<
-              " entry " << r_entry.getEntryId() << " at " << lasttick <<
-              " s" << idx0 << ".." << s.getSize());
+        I_INT("Channel " << channelid << " with skip " << r_entry.getName()
+                         << " entry " << r_entry.getEntryId() << " at "
+                         << lasttick << " s" << idx0 << ".." << s.getSize());
         s.finishMark(idmark, uint16_t(0x8000 | channelid));
         s.endMark();
-#ifdef ASSERT_ACTIVE
-        firstread = false;
-#endif
         return true;
       }
     }
@@ -127,20 +113,19 @@ bool EntryReader::readChannel(AmorphStore& s, uint16_t channelid)
          store full exception (dueca::AmorphStoreBoundary) was
          encountered. The data from the last channel to be packed will
          be held until the next communication opportunity. If this
-         occurs frequently, try increasing the message size in the 
-	 ChannelReplicatorMaster. */
+         occurs frequently, try increasing the message size in the
+               ChannelReplicatorMaster. */
       W_INT("No room for channel data from " << r_entry.getName());
-      DEB1("Store full, ch " << channelid << " packed from " <<
-           r_entry.getName() <<
-           " entry " << r_entry.getEntryId() << " at " << lasttick <<
-           " s" << idx0 << ".." << s.getSize());
+      DEB1("Store full, ch "
+           << channelid << " packed from " << r_entry.getName() << " entry "
+           << r_entry.getEntryId() << " at " << lasttick << " s" << idx0 << ".."
+           << s.getSize());
       s.setSize(idx0);
       throw(e);
     }
   }
   return false;
 }
-
 
 void EntryReader::flushEntry()
 {

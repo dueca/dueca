@@ -21,7 +21,6 @@
 #include <dueca.h>
 USING_DUECA_NS;
 
-
 // include headers for functions/classes you need in the module
 #include "ChannelReplicator.hxx"
 #include <udpcom/NetCommunicatorMaster.hxx>
@@ -43,18 +42,22 @@ STARTNSREPLICATOR;
 
     It is possible to implement a vetting/information process. The
     module can open a channel with ReplicatorPeerJoined events. When a
-    peer joins, its IP address is communicated over this channel. The
-    peer is accepted when a response on another channel is returned.
-    Names for both channels can be specified, and the dataclass for the
-    response must be given. The packed size of the response must be under
-    1KByte.
+    peer joins, its IP address is communicated over this channel. If
+    a channel is supplied for ReplicatorPeerAcknowledge data, the
+    peer is only accepted when a response on that channel is returned.
+    The ReplicatorPeerAcknowledge message has a data field for informing
+    the client on configuration, e.g., to assign a name in the simulation
+    or something similar.
 
-    The instructions to create an module of this class from the Scheme
+    Names for both channels can be specified. The packed size of the
+    response must be under 1KByte.
+
+    The instructions to create an module of this class from the
     script are:
 
     \verbinclude channel-replicator-master.scm
 */
-class ChannelReplicatorMaster:
+class ChannelReplicatorMaster :
   public ChannelReplicator,
   public NetCommunicatorMaster
 {
@@ -62,62 +65,61 @@ class ChannelReplicatorMaster:
   typedef ChannelReplicatorMaster _ThisClass_;
 
 private: // simulation data
-
   /** Remember peer acknowledgements */
-  typedef std::map<uint16_t,ReplicatorPeerAcknowledge> peer_ack_type;
+  typedef std::map<uint16_t, ReplicatorPeerAcknowledge> peer_ack_type;
 
   /** Peer acknowledgements that came in */
-  peer_ack_type                       peer_acknowledgements;
+  peer_ack_type peer_acknowledgements;
 
   /** Type definition, for queue of channel readers */
-  typedef std::list<std::pair<uint16_t,std::shared_ptr<EntryReader> > >
-  readerlist_type;
+  typedef std::list<std::pair<uint16_t, std::shared_ptr<EntryReader>>>
+    readerlist_type;
 
   /** Channel readers to clean */
-  readerlist_type                    obsolete_readers;
+  readerlist_type obsolete_readers;
 
   /** Type definition, for queue of channel writers */
-  typedef std::list<std::pair<uint16_t,std::shared_ptr<EntryWriter> > >
-  writerlist_type;
+  typedef std::list<std::pair<uint16_t, std::shared_ptr<EntryWriter>>>
+    writerlist_type;
 
   /** Candidate writers to configure and insert */
-  writerlist_type                    candidate_writers;
+  writerlist_type candidate_writers;
 
   /** Obsolete writers to clean */
-  writerlist_type                    obsolete_writers;
+  writerlist_type obsolete_writers;
 
 private: // channel access
   /** If not NULL, information on the joining peer is sent over this
       channel */
-  ChannelWriteToken                 *w_peernotice;
+  ChannelWriteToken *w_peernotice;
 
   /** If not NULL, peers are approved after info came in */
-  ChannelReadToken                  *r_peerinfo;
+  ChannelReadToken *r_peerinfo;
 
   /** Watched channel information, including origin of entries */
-  ChannelWriteToken                 *w_replicatorinfo;
+  ChannelWriteToken *w_replicatorinfo;
 
 private: // activity allocation
   /** You might also need a clock. Don't mis-use this, because it is
       generally better to trigger on the incoming channels */
-  PeriodicAlarm                      masterclock;
+  PeriodicAlarm masterclock;
 
   /** Callback object for simulation calculation. */
-  Callback<_ThisClass_>              cb1;
+  Callback<_ThisClass_> cb1;
 
   /** Activity for simulation calculation. */
-  ActivityCallback                   do_calc;
+  ActivityCallback do_calc;
 
 public: // class name and trim/parameter tables
   /** Name of the module. */
-  static const char* const           classname;
+  static const char *const classname;
 
   /** Return the parameter table. */
-  static const ParameterTable*       getMyParameterTable();
+  static const ParameterTable *getMyParameterTable();
 
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
-  ChannelReplicatorMaster(Entity* e, const char* part, const PrioritySpec& ts);
+  ChannelReplicatorMaster(Entity *e, const char *part, const PrioritySpec &ts);
 
   /** Continued construction. This is called after all script
       parameters have been read and filled in, according to the
@@ -137,19 +139,19 @@ public: // construction and further specification
   // Delete if not needed!
 
   /** Specify a time specification for the simulation activity. */
-  bool setTimeSpec(const TimeSpec& ts);
+  bool setTimeSpec(const TimeSpec &ts);
 
   /** Request check on the timing. */
-  bool checkTiming(const vector<int>& i);
+  bool checkTiming(const vector<int> &i);
 
   /** Send notices when peer joins */
-  bool setJoinNoticeChannel(const std::string& channelname);
+  bool setJoinNoticeChannel(const std::string &channelname);
 
   /** Wait for information for peer */
-  bool setPeerInformationChannel(const std::string& peerinfo);
+  bool setPeerInformationChannel(const std::string &peerinfo);
 
   /** Additional information on the replicator actions */
-  bool setReplicatorInformationChannel(const std::string& channelname);
+  bool setReplicatorInformationChannel(const std::string &channelname);
 
 public: // member functions for cooperation with DUECA
   /** indicate that everything is ready. */
@@ -163,26 +165,24 @@ public: // member functions for cooperation with DUECA
 
 public: // the member functions that are called for activities
   /** the method that implements the main calculation. */
-  void doCalculation(const TimeSpec& ts);
+  void doCalculation(const TimeSpec &ts);
 
 private: // helper functions
-
   /** For the master node, decode and process connect requests */
-  void checkNewConnections(const TimeSpec&);
+  void checkNewConnections(const TimeSpec &);
 
   /** Send the configuration as is now */
-  void sendCurrentConfigToPeer(const CommPeer& peer,
-                               TimeTickType join_cycle,
-                               const std::string& extradata = std::string(""));
+  void sendCurrentConfigToPeer(const CommPeer &peer, TimeTickType join_cycle,
+                               const std::string &extradata = std::string(""));
 
   /** modify which sender to follow */
-  void changeFollowId(const CommPeer& peer);
+  void changeFollowId(const CommPeer &peer);
 
   /** send config changes from channels; new and deleted reading entries */
-  void sendChannelConfigChanges(const TimeSpec& ts);
+  void sendChannelConfigChanges(const TimeSpec &ts);
 
   /** check configuration requests from peers */
-  void checkAndUpdatePeerStates(const TimeSpec& ts);
+  void checkAndUpdatePeerStates(const TimeSpec &ts);
 
   /** clear all entries that correspond to a specific peer ID */
   void clearPeerMatchingEntries(unsigned peerno);
@@ -191,44 +191,46 @@ private: // helper functions
   bool watchChannels(const std::vector<std::string> &ch);
 
   /** Extract data from vetted message */
-  void clientUnpackPayload(MessageBuffer::ptr_type buffer,
-                           unsigned peer_id, TimeTickType current_tick,
-                           TimeTickType i_peertick, int usecoffset) final;
+  void clientUnpackPayload(MessageBuffer::ptr_type buffer, unsigned peer_id,
+                           TimeTickType current_tick, TimeTickType i_peertick,
+                           int usecoffset) final;
 
   /** Pack payload data */
   void clientPackPayload(MessageBuffer::ptr_type buffer) final
-  { ChannelReplicator::_clientPackPayload(buffer); }
+  {
+    ChannelReplicator::_clientPackPayload(buffer);
+  }
 
   /** Access this function here, payload packing implementation is
       common to master and peer */
   using ChannelReplicator::clientUnpackPayload;
 
-
   /** Receive info on new peer */
-  void clientInfoPeerJoined(const std::string& address, unsigned id,
-                            const TimeSpec& ts) final;
+  void clientInfoPeerJoined(const std::string &address, unsigned id,
+                            const TimeSpec &ts) final;
 
   /** Information on events for descendants */
-  void clientInfoPeerLeft(unsigned id, const TimeSpec& ts) final;
+  void clientInfoPeerLeft(unsigned id, const TimeSpec &ts) final;
 
   /** Additional peer data to add to welcome message
 
-      Pack data in the store, when full, flush the store to the given tcp socket.
+      Pack data in the store, when full, flush the store to the given tcp
+     socket.
 
       @param s      Store
       @param id     Numeric send id for the peer
       @param tcp_socket  Socket for flushing full stores
  */
-  void clientWelcomeConfig(AmorphStore& s, unsigned id) final;
+  void clientWelcomeConfig(AmorphStore &s, unsigned id) final;
 
    /** decode configuration payload.
 
-      Decode one object or message; when decode fails, restore the config buffer.
+     Decode one object or message; when decode fails, restore the config buffer.
 
-      @param s      Buffer with config data
-      @param id     Id for the sending client
-  */
-  void clientDecodeConfig(AmorphReStore& s, unsigned id) final;
+     @param s      Buffer with config data
+     @param id     Id for the sending client
+ */
+  void clientDecodeConfig(AmorphReStore &s, unsigned id) final;
 
   /** encode configuration payload.
 
@@ -240,7 +242,7 @@ private: // helper functions
       @param s      Buffer with config data
       @param id     ID for the target, if 0, send to all connected
  */
-  void clientSendConfig(const TimeSpec& ts, unsigned id) final;
+  void clientSendConfig(const TimeSpec &ts, unsigned id) final;
 
   /** Approve or decline peer joining.
 
@@ -248,12 +250,14 @@ private: // helper functions
       @param ts     Time spec for the action
   */
   NetCommunicatorMaster::VettingResult
-  clientAuthorizePeer(CommPeer& peer, const TimeSpec& ts) final;
+  clientAuthorizePeer(CommPeer &peer, const TimeSpec &ts) final;
 
 private:
   /** Return buffer, implemented/accessed by Master/Peer */
   void returnBuffer(MessageBuffer::ptr_type buffer) final
-  { data_comm->returnBuffer(buffer); }
+  {
+    data_comm->returnBuffer(buffer);
+  }
 };
 
 ENDNSREPLICATOR;

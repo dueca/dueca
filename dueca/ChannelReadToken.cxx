@@ -220,6 +220,7 @@ ChannelReadToken::readAndStoreData(AmorphStore &s, TimeTickType &tsprev)
   const void *data =
     channel->getReadAccess(handle, MAX_TIMETICK, origin, ts_actual);
 
+  // when no data, flag
   if (!data) {
     assert(handle->accessed == NULL);
     return NoData;
@@ -248,13 +249,9 @@ ChannelReadToken::readAndStoreData(AmorphStore &s, TimeTickType &tsprev)
     }
   }
   catch (const AmorphStoreBoundary &e) {
-    // channel->releaseReadAccess(handle); // this is wrong,
     channel->resetReadAccess(handle);
 
     handle->accessed = NULL; //->resetDataAccess(handle);
-    // revert the read index to previous element? Will this match with
-    // gap?
-    // handle->entry->read_index = handle->entry->read_index->getPrevious();
     throw(e);
   }
   // assert(handle->accessed == NULL);

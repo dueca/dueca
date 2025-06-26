@@ -51,8 +51,8 @@ const ParameterTable* ReplayMasterGtk3::getParameterTable()
     { "reference-files",
       new VarProbe<_ThisModule_,std::string>
         (&_ThisModule_::reference_file),
-      "Files with existing initial states (snapshots), one in each node. Will\n"
-      "be read and used to populate the initial set" },
+      "File with existing initial states (snapshots), this needs one file in\n"
+      "each node. Will be read and used to populate the initial set" },
 
     { "store-files",
       new VarProbe<_ThisModule_,std::string>

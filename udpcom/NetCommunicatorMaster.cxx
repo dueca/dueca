@@ -867,7 +867,9 @@ void NetCommunicatorMaster::unpackPeerData(MessageBuffer::ptr_type& buffer)
               " recover asked in message on cycle " << i_.cycle);
 
         // but do not do this on the very first cycle!
-        trigger_recover = backup_send_buffer->fill > 0;
+        if (sendstate != Recover) {
+          trigger_recover = backup_send_buffer->fill > 0;
+        }
       }
     }
     else {
