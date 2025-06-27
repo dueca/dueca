@@ -134,7 +134,7 @@ class Project:
 
 
 class Execute:
-    def __init__(self, platform=None, node=None, xmlnode=None, xmlroot=None):
+    def __init__(self, platform=None, node=None, command="./dueca_run.x", xmlnode=None, xmlroot=None):
 
         if xmlroot is not None and platform and node:
             self.xmlnode = etree.SubElement(xmlroot, "execute")
@@ -142,14 +142,18 @@ class Execute:
             self.platform = platform
             etree.SubElement(self.xmlnode, "node").text = node
             self.node = node
+            etree.SubElement(self.xmlnode, "command").text = command
+            self.command = command
 
         elif xmlnode is not None:
-            self.platform, self.node = None, None
+            self.platform, self.node, self.command = None, None, "./dueca_run.x"
             for elt in xmlnode:
                 if XML_tag(elt, "platform"):
                     self.platform = elt.text.strip()
                 elif XML_tag(elt, "node"):
                     self.node = elt.text.strip()
+                elif XML_tag(elt, "command"):
+                    self.command = elt.text.strip()
                 elif XML_comment(elt):
                     pass
                 else:
@@ -783,10 +787,23 @@ class DuecaRunner:
                         f"Failing build for {self.project}:\n{c1.stderr}"
                     )
 
-    async def _runDueca(self, platform="solo", node="solo"):
+    async def _runDueca(self, platform="solo", node="solo", command="./dueca_run.x"):
         print(f"runDueca for project {self.project}, p:{platform} n:{node}")
 
         rdir = f"{self.pdir}/run/{platform}/{node}"
+
+        # hackety hack, someone scrubbed my LD_LIBRARY_PATH
+        envdict = dict(os.environ)
+        # print(envdict)
+        if envdict.get("LD_LIBRARY_PATH", None) is None:
+            envdict["LD_LIBRARY_PATH"] = "/tmp/lib64:/tmp/lib"
+        for p in envdict["PATH"].split(":"):
+            if os.path.exists(f"{p}/dueca-gproject"):
+                break
+        else:
+            # development version in /tmp?
+            envdict["PATH"] = envdict["PATH"] + ":/tmp/bin"
+        print(f"set path to {envdict['PATH']}")
 
         cmpl = subprocess.run(
             ("source", "clean.script"),
@@ -807,22 +824,11 @@ class DuecaRunner:
         )
         if cmpl.returncode != 0:
             print(f"Failure to run links.script:\n{cmpl.stderr}")
-
-        # hackety hack, someone scrubbed my LD_LIBRARY_PATH
-        envdict = dict(os.environ)
-        # print(envdict)
-        if envdict.get("LD_LIBRARY_PATH", None) is None:
-            envdict["LD_LIBRARY_PATH"] = "/tmp/lib64:/tmp/lib"
-        for p in envdict["PATH"].split(":"):
-            if os.path.exists(f"{p}/dueca-gproject"):
-                break
-        else:
-            # development version in /tmp?
-            envdict["PATH"] = envdict["PATH"] + ":/tmp/bin"
+        print("Cleaning and links")
 
         print(f"using display {envdict.get('DISPLAY')}")
         duecaprocess = await asyncio.create_subprocess_shell(
-            f"./dueca_run.x",
+            command,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=rdir,
@@ -835,10 +841,11 @@ class DuecaRunner:
         print(f"\nNormal out {node}\n{stdout.decode()}")
         print(f"\nError out {node}\n{stderr.decode()}")
 
-    def runDueca(self, platform="solo", node="solo"):
+    def runDueca(self, platform="solo", node="solo", command="./dueca_run.x"):
+        print(f"Appending runner {platform}/{node}, {command}")
         self.running.append(
             # asyncio.ensure_future(self._runDueca(platform, node)))
-            self._runDueca(platform, node)
+            self._runDueca(platform, node, command)
         )
 
     def allComplete(self):
@@ -929,7 +936,7 @@ print(f"Code preparation took {tprep}s")
 
 # run the different dueca processes
 for p in scenario.processes:
-    runner.runDueca(p.platform, p.node)
+    runner.runDueca(p.platform, p.node, p.command)
 
 
 async def main():

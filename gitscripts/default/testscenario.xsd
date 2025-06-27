@@ -37,6 +37,8 @@
         minOccurs="1" maxOccurs="1" />
       <xs:element name="node" type="xs:string"
         minOccurs="1" maxOccurs="1" />
+      <xs:element name="command" type="xs:string"
+        minOccurs="0" maxOccurs="1" />
     </xs:sequence>
   </xs:complexType>
 
