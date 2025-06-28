@@ -9,8 +9,7 @@
     <window>TEAM 4 control panel</window>
     <window>TEAM 5 control panel</window>
   </project>
-  <repository>https://github.com/repagh/</repository>
-  <version>more-inter</version>
+  <repository>https://github.com/dueca/</repository>
   <execute>
     <platform>inter</platform>
     <node>central</node>
