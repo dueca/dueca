@@ -13,14 +13,10 @@
 
 #define NetCommunicatorPeer_cxx
 
-#include <exception>
-#include <iomanip>
-
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
 #include <net/if.h>

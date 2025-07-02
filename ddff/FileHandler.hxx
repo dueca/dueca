@@ -341,6 +341,9 @@ public:
   */
   void requestFileStreamReadRelease(FileStreamRead::pointer& ptr);
 
+  /** Give an (approximate) size of the file */
+  inline unsigned long getFileSize() const { return offset; };
+
 private:
   /** Calls for fileStreamRead */
   friend class FileStreamRead;
