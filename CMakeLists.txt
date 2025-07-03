@@ -414,7 +414,7 @@ else()
 endif()
 pkg_check_modules(GL gl)
 find_package(X11)
-set(GLUT_LIBRARIES ${GLUT_LIB} ${GLUT_LIBRARIES})
+set(GLUT_LIBRARIES ${GLUT_LIB} ${GLUT_LIBRARIES} ${X11_LIBRARIES})
 
 include(LibOpts)
 #message(STATUS "GLUT_LIBRARIES ${GLUT_LIBRARIES}")
