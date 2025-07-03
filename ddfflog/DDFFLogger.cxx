@@ -63,7 +63,7 @@ const ParameterTable *DDFFLogger::getMyParameterTable()
       "log a specific channel entry; enter channel name, dataclass type, if\n"
       "applicable entry label and as last the path where the data should be\n"
       "stored in the file. Without label, only the first entry is logged,\n"
-      "with, only the first entry matching the label" },
+      "with, only the first entry matching the label." },
 
     { "watch-channel",
       new MemberCall<_ThisModule_, vector<string>>(&_ThisModule_::watchChannel),
@@ -72,28 +72,28 @@ const ParameterTable *DDFFLogger::getMyParameterTable()
 
     { "filename-template",
       new VarProbe<_ThisModule_, std::string>(&_ThisModule_::lftemplate),
-      "Template for file name; check boost time_facet for format strings\n"
+      "Template for file name; check boost time_facet for format strings.\n"
       "Default name: datalog-%Y%m%d_%H%M%S.ddff" },
 
     { "log-always",
       new VarProbe<_ThisModule_, bool>(&_ThisModule_::always_logging),
-      "For watched channels or channel entries created with always_logging,\n"
+      "For watched channels or channel entries created with log-always,\n"
       "logging also is done in HoldCurrent mode. Default off, toggles\n"
       "this capability for logging defined hereafter." },
 
     { "immediate-start",
       new VarProbe<_ThisModule_, bool>(&_ThisModule_::immediate_start),
-      "Immediately start the logging module, do not wait for DUECA control\n" },
+      "Immediately start the logging module, do not wait for DUECA control." },
 
     { "reduction",
       new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setReduction),
       "Reduce the logging data rate according to the given time\n"
-      "specification. Applies to all following logged values" },
+      "specification. Applies to all following logged values." },
 
     { "config-channel",
       new MemberCall<_ThisModule_, vstring>(&_ThisModule_::setConfigChannel),
       "Specify a channel with configuration events, to control logging\n"
-      "check DUECALogConfig doc for options" },
+      "check DUECALogConfig doc for options." },
 
     { "status-channel",
       new VarProbe<_ThisModule_, std::string>(
@@ -105,7 +105,7 @@ const ParameterTable *DDFFLogger::getMyParameterTable()
     { "status-interval",
       new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setStatusInterval),
       "Reporting interval on logging status. If unset, status messages are\n"
-      "only provided for new files or new periods." },
+      "only provided for new files, new segments or for errors." },
 
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
@@ -200,7 +200,7 @@ bool DDFFLogger::complete()
 
   if (reduction && !w_status) {
     /* DUECA ddff.
-    
+
        Illogical configuration, asking for status reporting but without channel
        to send the reports to.
      */
@@ -271,11 +271,14 @@ bool DDFFLogger::checkTiming(const vector<int> &i)
 bool DDFFLogger::setStatusInterval(const TimeSpec &inter)
 {
   if (inter.getValiditySpan()) {
-    reporting.reset(new PeriodicTimeSpec(inter));
+    auto ns = new PeriodicTimeSpec(inter);
+    std::cout << *ns << std::endl;
+    reporting.reset(ns);
   }
   else {
     reporting.reset();
   }
+  return true;
 }
 
 DDFFLogger::TargetedLog::TargetedLog(const std::string &channelname,

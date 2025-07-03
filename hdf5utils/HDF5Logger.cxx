@@ -59,7 +59,7 @@ const ParameterTable *HDF5Logger::getMyParameterTable()
       "log a specific channel entry; enter channel name, dataclass type, if\n"
       "applicable entry label and as last the path where the data should be\n"
       "stored in the file. Without label, only the first entry is logged,\n"
-      "with, only the first entry matching the label" },
+      "with, only the first entry matching the label." },
 
     { "watch-channel",
       new MemberCall<_ThisModule_, vector<string>>(&_ThisModule_::watchChannel),
@@ -68,7 +68,7 @@ const ParameterTable *HDF5Logger::getMyParameterTable()
 
     { "filename-template",
       new VarProbe<_ThisModule_, std::string>(&_ThisModule_::lftemplate),
-      "Template for file name; check boost time_facet for format strings\n"
+      "Template for file name; check boost time_facet for format strings.\n"
       "Default name: datalog-%Y%m%d_%H%M%S.hdf5" },
 
     { "log-always",
@@ -79,7 +79,7 @@ const ParameterTable *HDF5Logger::getMyParameterTable()
 
     { "immediate-start",
       new VarProbe<_ThisModule_, bool>(&_ThisModule_::immediate_start),
-      "Immediately start the logging module, do not wait for DUECA control\n" },
+      "Immediately start the logging module, do not wait for DUECA control." },
 
     { "chunksize",
       new VarProbe<_ThisModule_, unsigned>(&_ThisModule_::chunksize),
@@ -88,17 +88,17 @@ const ParameterTable *HDF5Logger::getMyParameterTable()
 
     { "compress", new VarProbe<_ThisModule_, bool>(&_ThisModule_::compress),
       "Log compressed data sets; reduces file size and may increase\n"
-      "computation time. In effect for all following entries" },
+      "computation time. In effect for all following entries." },
 
     { "reduction",
       new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setReduction),
       "Reduce the logging data rate according to the given time\n"
-      "specification. Applies to all following logged values" },
+      "specification. Applies to all following logged values." },
 
     { "config-channel",
       new MemberCall<_ThisModule_, vstring>(&_ThisModule_::setConfigChannel),
       "Specify a channel with configuration events, to control logging\n"
-      "check DUECALogConfig doc for options" },
+      "check DUECALogConfig doc for options." },
 
     { "status-channel",
       new VarProbe<_ThisModule_, std::string>(
@@ -110,7 +110,7 @@ const ParameterTable *HDF5Logger::getMyParameterTable()
     { "status-interval",
       new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setStatusInterval),
       "Reporting interval on logging status. If unset, status messages are\n"
-      "only provided for new files or new periods." },
+      "only provided for new files, new segments or for errors." },
 
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
@@ -491,6 +491,7 @@ bool HDF5Logger::setStatusInterval(const TimeSpec &inter)
   else {
     reporting.reset();
   }
+  return true;
 }
 
 
