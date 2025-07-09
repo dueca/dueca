@@ -6,12 +6,11 @@ Created on Fri Apr  8 17:16:10 2022
 @author: repa
 """
 try:
-    from .ddffinventoried import DDFFInventoried, DDFFInventoriedStream
+    from .ddffinventoried import DDFFInventoried, DDFFInventoriedStream, Objecter
     from .ddffbase import vprint, DDFFStream, DDFFBlock
 except ImportError:
-    from ddffinventoried import DDFFInventoried, DDFFInventoriedStream
+    from ddffinventoried import DDFFInventoried, DDFFInventoriedStream, Objecter
     from ddffbase import vprint, DDFFStream, DDFFBlock
-import itertools
 import numpy as np
 
 
@@ -43,7 +42,7 @@ class DDFFTag:
 
     def __str__(self):
         return (
-            f'Period(n={self.name},cycle={self.cycle},at="{self.time}",'
+            f'Period(name="{self.name}",cycle={self.cycle},at="{self.time}",'
             f'span={self.index0}-{self.index1},offb={self.offset},offo={self.inblock_offset},ic="{self.inco}")'
         )
 
@@ -63,7 +62,6 @@ class DDFFTagIndex:
         Arguments:
             ddffs -- raw base stream with DDFFTag objects
         """
-        super(DDFFTagStream).__init__(*args, **kwargs)
         self.base = ddffs
         self.taglist = list()
         self.tagdict = dict()
@@ -130,7 +128,16 @@ class DDFFTagIndex:
 
 
 class DDFFTagStream:
-    """Tagged data stream"""
+    """Tagged data stream.
+
+    A tagged data stream contains data for difference periods/tags.
+
+    The data from each period can be extracted in the following ways:
+
+    - iterating over objects, each iteration returns a tuple with
+      - [ time value, time span value (may be 0) ]
+      - object value/struct
+    """
 
     def __init__(self, ddffs: DDFFInventoriedStream, tags: DDFFTagIndex):
         """Converts stream 1 to time period information dictionary
@@ -156,9 +163,21 @@ class DDFFTagStream:
         def __iter__(self):
             return self
 
+        def __next__(self):
+            raise StopIteration
+
     class TimeIt(BaseIt):
 
         def __init__(self, ddffs: DDFFStream, tag: DDFFTag):
+            """Create iterator to return time points
+
+            Parameters
+            ----------
+            ddffs : DDFFStream
+                Basic stream data
+            tag : DDFFTag
+                Time tag/period to iterate through
+            """
             super().__init__(ddffs, tag)
 
         def __next__(self):
@@ -182,23 +201,36 @@ class DDFFTagStream:
             return tmp[0]
 
     class ValueIt(BaseIt):
-        def __init__(self, ddffs: DDFFStream, tag: DDFFTag, member: int | None):
+        """Iterator for raw msgpack decoded values"""
 
+        def __init__(self, ddffs: DDFFStream, tag: DDFFTag, member: int | None):
+            """Create msgpack decoded value iteration.
+
+            Parameters
+            ----------
+            ddffs : DDFFStream
+                DDFF data stream with msgpack data.
+            tag : DDFFTag
+                Period to decode.
+            member : int | None
+                If none, return complete data, otherwise select only data for
+                a single data member.
+            """
             super().__init__(ddffs, tag)
             self.idx = member
 
         def __next__(self):
-            """Return next data point
+            """Return next data point.
 
             Returns
             -------
             list with data
-                Unpacked data from msgpack
+                Unpacked data from msgpack.
 
             Raises
             ------
             StopIteration
-                End of period
+                End of period.
             """
             tmp = next(self.reader)
             while tmp[0] + tmp[1] < self.t0:
@@ -210,8 +242,18 @@ class DDFFTagStream:
             return tmp[-1][self.idx]
 
     class ObjectIt(BaseIt):
-        def __init__(self, ddffs: DDFFStream, tag: DDFFTag):
+        """Iterator for complete time and object msgpack decoded data"""
 
+        def __init__(self, ddffs: DDFFStream, tag: DDFFTag):
+            """Create time and object data iteration
+
+            Parameters
+            ----------
+            ddffs : DDFFStream
+                DDFF data stream with msgpack data.
+            tag : DDFFTag
+                Period to decode.
+            """
             super().__init__(ddffs, tag)
 
         def __next__(self):
@@ -220,12 +262,12 @@ class DDFFTagStream:
             Returns
             -------
             list with time + data object
-                Time tag, span, data
+                Time tag, span, data.
 
             Raises
             ------
             StopIteration
-                End of period
+                End of period.
             """
             tmp = next(self.reader)
             while tmp[0] + tmp[1] < self.t0:
@@ -233,6 +275,54 @@ class DDFFTagStream:
             if tmp[0] > self.t1:
                 raise StopIteration()
             return tmp
+
+    class TimeAndObjectIt(BaseIt):
+        """Iterator on time and object structs, adds object decoding from
+        msgpack array to struct.
+        """
+
+        def __init__(self, ddffs: DDFFStream, tags: DDFFTag, objecter: Objecter):
+            """Create an iterator for returning times and objects
+
+            Parameters
+            ----------
+            ddffs : DDFFStream
+                Data stream to read.
+            tags : DDFFTag
+                Start and end times for this tagged segment.
+            objector : Objector
+                Converts array data to a struct according to type definition.
+            """
+            super().__init__(ddffs, tags)
+            self.objecter = objecter
+
+        def __next__(self):
+            """Return next time and object.
+
+            Returns
+            -------
+            tuple(tuple(int,int), object)
+                Time definition and data object.
+
+            Raises
+            ------
+            StopIteration
+                Raised when no data available, or data outside the time tag.
+            """
+
+            # get next object, might throw StopIteration
+            tmp = next(self.reader)
+
+            # verify not before start
+            while tmp[0] + tmp[1] < self.t0:
+                tmp = next(self.reader)
+
+            # and not after end of segment
+            if tmp[0] > self.t1:
+                raise StopIteration()
+
+            # return time and object
+            return (tmp[0:-1], self.objecter(tmp[-1]))
 
     def time(self, period: int | str | None = None):
         """Access time stamps, for a specific period and named stream
@@ -282,20 +372,20 @@ class DDFFTagStream:
             )
 
     def getData(self, period: int | str | None = None, icount: int = 100):
-        """Assemble stream data in numpy arrays
+        """Assemble stream data in numpy arrays.
 
         Parameters
         ----------
         period : int | str | None, optional
-            Chosen period, if None, return all data
+            Chosen period, if None, return all data.
         icount : int, optional
-            Default length allocation numpy arrays, by default 100
+            Default length allocation numpy arrays, by default 100.
 
         Returns
         -------
         (np.array, np.array, dict(str,np.array))
             Time arrays (start time, span), and dictionary with data arrays
-            for all object members.
+            for all decodable object members.
         """
         if period is None:
             return self.base.getData(icount)
@@ -327,6 +417,27 @@ class DDFFTagStream:
                 v.resize((icount, *v.shape[1:]), refcheck=False)
 
         return time0, time1, result
+
+    def items(self, period: int | str | None = None):
+        """Return a time and object iterator on the data stream.
+
+        Parameters
+        ----------
+        period : int | str | None, optional
+            Tag / period to select, if None, select all. by default None
+
+        Returns
+        -------
+        TimeAndObjectIt
+            Iterator returning time data and decoded object.
+        """
+
+        if period is None:
+            return self.base.items()
+        tag = self.tags[period]
+        return DDFFTagStream.TimeAndObjectIt(
+            self.base.base, tag, Objecter(self.base.structure)
+        )
 
 
 class DDFFTagged(DDFFInventoried):
@@ -364,7 +475,9 @@ class DDFFTagged(DDFFInventoried):
             self._scanStreams()
 
             # from the found offsets, create a default tag
-            offset = [self.streams[i].block0.offset for i in range(2, len(self.streams))]
+            offset = [
+                self.streams[i].block0.offset for i in range(2, len(self.streams))
+            ]
             inblock_offset = [28] * len(offset)
             self.streams[1].append([offset, inblock_offset, 0, 0, 0xFFFFFF, "", "", ""])
 
@@ -428,6 +541,16 @@ class DDFFTagged(DDFFInventoried):
 
 if __name__ == "__main__":
     import os
+
+    df = DDFFTagged(
+        f"/home/repa/tmp/varstab/250701/runlogs/2025-07-01_12:57:42/simlog-20250701_111742.ddff",
+        "r",
+    )
+    k = "/data/testsignalspec"
+    print(df[k].base.structure)
+    print([l for l in df[k].items()][0])
+    print(df.tags()[""])
+    print([l for l in df[k].items("")][0:2])
 
     f2 = DDFFTagged(
         os.path.dirname(__file__) + "/../../../test/ddff/recordings-PHLAB-new.ddff"

@@ -54,7 +54,7 @@ protected:
 
 public:
   /** Object is packable, and therefore its name is needed */
-  static const char* classname;
+  //static const char* classname;
 };
 
 /** This is yet another string class, this time for strings of a fixed

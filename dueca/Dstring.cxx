@@ -23,7 +23,7 @@ template class Dstring<32>;
 template class Dstring<40>;
 template class Dstring<64>;
 template class Dstring<128>;
-const char *dstring::classname = "Dstring";
+//const char *dstring::classname = "Dstring";
 
 /** Create a single check on the sizes of all Dstring objects. A size
     change would wreak havoc on a lot of stuff. */

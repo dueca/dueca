@@ -6,11 +6,11 @@ Created on Wed Apr  6 15:57:26 2022
 @author: repa
 """
 
+import io
+import os
 import struct
 import crcmod
 import msgpack
-import io
-import os
 
 # The crc function used to check the blocks
 crc16 = crcmod.predefined.mkPredefinedCrcFun("crc-ccitt-false")
@@ -19,7 +19,7 @@ __verbose = 0
 
 
 def dprint(*args, **kwargs):
-    """ Debug print function
+    """Debug print function
 
     When activated, prints all kinds of debug messages
     """
@@ -28,7 +28,7 @@ def dprint(*args, **kwargs):
 
 
 def vprint(*args, **kwargs):
-    """ Debug print function
+    """Debug print function
 
     When activated, prints all kinds of debug messages
     """
@@ -37,11 +37,11 @@ def vprint(*args, **kwargs):
 
 
 class DDFFBuffer(io.BytesIO):
-    """ Buffer back-end, reading and writing a base DDFF structured file"""
+    """Buffer back-end, reading and writing a base DDFF structured file"""
 
-    def __init__(self, streamid, offset, blocksize, *args, **kwargs):
+    def __init__(self, streamid, offset, block_size, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.blocksize = blocksize
+        self.block_size = block_size
         self.streamid = streamid
         self.blockcount = 0
         self.offset = offset
@@ -50,46 +50,46 @@ class DDFFBuffer(io.BytesIO):
     def write(self, *argc, **argv):
         dprint("buffer write")
         if self.object_offset == 0:
-            self.object_offset = (self.getbuffer().nbytes) % (self.blocksize - 28) + 28
+            self.object_offset = (self.getbuffer().nbytes) % (self.block_size - 28) + 28
         super().write(*argc, **argv)
 
     def size(self):
-        return self.getbuffer().nbytes - self.blockcount * (self.blocksize - 28)
+        return self.getbuffer().nbytes - self.blockcount * (self.block_size - 28)
 
     def getblock(self, flush=False):
 
-        while self.size() >= self.blocksize or (flush and (self.size() > 0)):
+        while self.size() >= self.block_size or (flush and (self.size() > 0)):
 
             if flush:
-                nzero = self.blocksize - self.size() - 28
+                nzero = self.block_size - self.size() - 28
                 if nzero > 0:
                     self.write(b"\0" * nzero)
-                    fill = self.blocksize - nzero
+                    fill = self.block_size - nzero
                 else:
-                    fill = self.blocksize
+                    fill = self.block_size
             else:
-                fill = self.blocksize
+                fill = self.block_size
 
             crc = 0
-            if self.size() > self.blocksize:
-                nextoffset = self.offset + self.blocksize
+            if self.size() > self.block_size:
+                nextoffset = self.offset + self.block_size
             else:
                 nextoffset = -1
             header1 = struct.pack(
                 ">HIIII",
                 self.streamid,
-                self.blocksize,
+                self.block_size,
                 fill,
                 self.object_offset,
                 self.blockcount,
             )
-            o = self.blockcount * (self.blocksize - 28)
-            crc = crc16(header1 + self.getbuffer()[o : o + self.blocksize - 28])
+            o = self.blockcount * (self.block_size - 28)
+            crc = crc16(header1 + self.getbuffer()[o : o + self.block_size - 28])
             header0 = struct.pack(">qH", nextoffset, crc)
 
             dprint("block at", self.offset, "size", fill)
-            yield header0 + header1 + self.getbuffer()[o : o + self.blocksize - 28]
-            self.offset += self.blocksize
+            yield header0 + header1 + self.getbuffer()[o : o + self.block_size - 28]
+            self.offset += self.block_size
             self.object_offset = 0
             self.blockcount += 1
 
@@ -138,7 +138,7 @@ class DDFFBlock:
         if self.block_size:
             self.tail = f.read(self.block_size - 28)
         else:
-            self.tail = b''
+            self.tail = b""
         if crc != crc16(header[10:] + self.tail):
             raise ValueError("CRC failure in reading ddff block")
         if self.block_size > self.block_fill:
@@ -146,14 +146,19 @@ class DDFFBlock:
 
 
 class DDFFStream(list):
+    """Object representing the data in a DDFF data stream.
 
-    """ Object representing the data in a DDFF data stream
-
+    Data (objects) are packed with the msgpack protocol.
     """
 
-
-    def __init__(self, file, block: DDFFBlock=None, stream_id:int|None=None):
-        """ Single data stream in a DDFF data file
+    def __init__(
+        self,
+        file,
+        block: DDFFBlock = None,
+        stream_id: int | None = None,
+        block_size: int = 4096,
+    ):
+        """Single data stream in a DDFF data file
 
         Parameters
         ----------
@@ -164,6 +169,8 @@ class DDFFStream(list):
             of this stream in the current file
         stream_id : int, optional
             If given, the stream is new
+        block_size : int
+            Determines block size for new streams
 
         Raises
         ------
@@ -183,10 +190,12 @@ class DDFFStream(list):
 
         # if not for an existing stream, finished here
         if block is None:
+            self.block_size = block_size
             return
 
         # extract information on the existing stream
         self.stream_id = block.stream_id
+        self.block_size = block.block_size
 
     def reader(self, block0=None):
         """Create a stream reader, which can iterate over the stream's contents
@@ -201,26 +210,26 @@ class DDFFStream(list):
         return DDFFReadStream(block0, self.file)
 
     def readToList(self):
-        """ Load any data from the file into memory.
+        """Load any data from the file into memory.
 
-            The stream object will function as a list with the loaded data
+        The stream object will function as a list with the loaded data
         """
         for x in self.reader():
             self.append(x)
 
-    def write(self, fd, blocksize=4096):
+    def write(self, fd):
         """Write memory data to file
 
         Parameters
         ----------
         fd : File
             File to write the data to. Its current pointer should be set
-        blocksize : int, optional
+        block_size : int, optional
             Size of data blocks to write, by default 4096
         """
 
         # create a buffer for writing the blocks
-        buf = DDFFBuffer(self.stream_id, fd.tell(), blocksize)
+        buf = DDFFBuffer(self.stream_id, fd.tell(), self.block_size)
 
         # run through all objects in the list
         for obj in self:
@@ -237,8 +246,7 @@ class DDFFStream(list):
 
 
 class DDFFReadStream:
-
-    """ Iterator to load data from a file stream
+    """Iterator to load data from a file stream
 
     Returns
     -------
@@ -255,7 +263,7 @@ class DDFFReadStream:
     maxobjectsize = 1024 * 1024
 
     def __init__(self, block: DDFFBlock, file):
-        """ Create a stream reader
+        """Create a stream reader
 
         Parameters
         ----------
@@ -265,14 +273,15 @@ class DDFFReadStream:
             File with further data
         """
         self.block = block
+        self.block_size = block.block_size
         self.loaded = block.block_fill
         self.file = file
         self.unpacker = msgpack.Unpacker()
         self.unpacked = []
         self.maxobjectsize = DDFFReadStream.maxobjectsize
 
-    def topup(self):
-        """ Feeds data blocks from the file.
+    def _topup(self):
+        """Feeds data blocks from the file.
 
             Get data blocks until the unpacker buffer has reached
             the given (1Mb fill size) or the file is exchausted.
@@ -295,7 +304,7 @@ class DDFFReadStream:
         return topped
 
     def __iter__(self):
-        """ Start an iteration
+        """Start an iteration
 
         Returns
         -------
@@ -305,7 +314,7 @@ class DDFFReadStream:
         return self
 
     def __next__(self):
-        """ Obtain the next object from the file/block
+        """Obtain the next object from the file/block
 
         Returns
         -------
@@ -323,7 +332,7 @@ class DDFFReadStream:
         while not self.unpacked:
             try:
                 # transfer from file to unpacker
-                if not self.topup():
+                if not self._topup():
                     raise StopIteration
 
                 # fill the unpacked again
@@ -340,25 +349,63 @@ class DDFFReadStream:
 
 
 class DDFF:
+    """DelftDataFormat File class
 
-    def __init__(self, fname, mode="r", blocksize=128, nstreams=None):
-        """ Access a DDFF encoded data file
+    ## General
+
+    This handles a file in the DDFF format. This format contains multiple,
+    numbered, data stream. The DDFF format is intended for real-time
+    logging, and its structure is adapted to that.
+
+    A single stream in the file will consist of equally-sized blocks,
+    with additional information to interpret these like a linked list.
+    This class can both read an existing file, and expose the different
+    data streams in a streamio fashion, create a new file in which
+    streams may be created, and extend existing files.
+
+    Commonly this class serves as a base class for DDFFInventoried class,
+    which connect the stream numbers with names, and add information on
+    the data objects within the stream (in that case stream #0 is used
+    for the inventory), or for the DDFFSegmented class, which adds
+    segments/period information (in which case stream #0 is used
+    for the segments/periods)
+
+    ## File format
+
+    Block sizes are a multiple of a base block size, default 4096
+    bytes, and for best performance chosen to match (be a multiple of)
+    physical device block size.
+
+    Each block has a 28-byte header, indicating next block location,
+    block size, fill level, block number, stream id, checksum,
+    etc. For the precise format see the description in
+    ControlBlock.hxx. The remainder of the block contains data.
+
+    """
+
+    def __init__(
+        self, fname, mode: str = "r", block_size: int = 128, nstreams: set | None = None
+    ):
+        """Access or create a DDFF encoded data file.
 
         Arguments:
             fname -- file name
 
         Keyword Arguments:
             mode -- read/write mode (default: {'r'})
-            blocksize -- size of data blocks in the file (default: {128})
+            block_size -- default size of data blocks in the file (default: {128})
+            nstreams -- streams to pre-load (i.e., find their initial block
+                        in the file). If None, and the file exists, the entire
+                        file will be scanned, which may be slow
         """
 
         self.file = open(fname, mode + "b")
         self.streams = dict()
         self.scanpoint = 0
         self._scanStreams(nstreams)
-        self.blocksize = blocksize
+        self.block_size = block_size
 
-    def _scanStreams(self, neededstreams: set | None=None):
+    def _scanStreams(self, neededstreams: set | None = None):
         """Internal method to parse data and create streams
 
         Parameters
@@ -392,8 +439,8 @@ class DDFF:
             pass
         self.scanpoint = self.file.tell()
 
-    def _initStreams(self, neededstreams: set, offsets):
-        """ Improved method to find data streams
+    def _initStreams(self, neededstreams: set, offsets: list | tuple):
+        """Improved method to find data streams
 
             If offset positions of streams are known (typically from ddfftagged file
             and reading the tags), create streams by loading the initial blocks
@@ -428,40 +475,44 @@ class DDFF:
                 "Cannot find streams", neededstreams.difference(self.streams.keys())
             )
 
-    def createStream(self):
-        """ Create a new DDFF stream
+    def createStream(self, block_size=None):
+        """Create a new DDFF stream
 
         Raises:
             ValueError: exception to indicate the previous/read file is not
             correct
 
         Returns:
-            The new data stream
+            DDFFStream: The new data stream
         """
         if len(self.streams) in self.streams:
             raise ValueError("DDFF streams not contiguous")
         newid = len(self.streams)
-        self.streams[newid] = DDFFStream(stream_id=newid, file=self.file)
+        self.streams[newid] = DDFFStream(
+            stream_id=newid, file=self.file, block_size=block_size or self.block_size
+        )
         return self.streams[newid]
 
-    def write(self, blocksize: int = 0) -> None:
+    def write(self, block_size: int = 0) -> None:
         """Write current streams from memory back to file space
 
         Keyword Arguments:
-            blocksize -- Size of blocks (default: {0})
+            block_size -- Size of blocks (default: {0})
         """
         # this writes the streams in order, not randomly scattered like
         # in real-time writing (since we cannot know the timing)
         for ids in sorted(self.streams.keys()):
-            self.streams[ids].write(self.file, blocksize or self.blocksize)
+            self.streams[ids].write(self.file, block_size or self.block_size)
         self.file.flush()
 
 
 if __name__ == "__main__":
 
     prj = "DuecaTestCommunication"
-    recdata = DDFF(os.path.dirname(__file__) +
-            '/../../../test/ddff/recordings-PHLAB-new.ddff', mode="r")
+    recdata = DDFF(
+        os.path.dirname(__file__) + "/../../../test/ddff/recordings-PHLAB-new.ddff",
+        mode="r",
+    )
     print(recdata.streams[0], recdata.streams[1])
 
     test = "123456789".encode("ascii")
@@ -479,7 +530,7 @@ if __name__ == "__main__":
     verif.streams[0].readToList()
     print(verif.streams)
 
-    stuff2 = DDFF("test2.ddff", mode="w", blocksize=128)
+    stuff2 = DDFF("test2.ddff", mode="w", block_size=128)
     st0 = stuff2.createStream()
     for i in range(100):
         st0.append((i, f"data point {i}"))
