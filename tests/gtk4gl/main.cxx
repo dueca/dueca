@@ -42,7 +42,7 @@ static void on_realize(GtkGLArea *area, gpointer u)
 {
   gtk_gl_area_make_current(area);
   if (gtk_gl_area_get_error(area) != NULL) {
-    std::cerr << "cauthg an error, see you later" << std::endl;
+    std::cerr << "caught an error, see you later" << std::endl;
     return;
   }
 
@@ -53,7 +53,7 @@ GtkWidget *area = NULL;
 
 static gint call_environment_loop(gpointer user_data)
 {
-  bool opened = false;
+  static bool opened = false;
 
   if (!opened) {
     auto gdk_display_id = gdk_display_get_default();
