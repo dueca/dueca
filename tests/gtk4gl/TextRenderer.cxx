@@ -11,6 +11,7 @@
 */
 
 #include "TextRenderer.hxx"
+#include <epoxy/egl.h>
 #include <ft2build.h>
 #include <iostream>
 #include FT_FREETYPE_H

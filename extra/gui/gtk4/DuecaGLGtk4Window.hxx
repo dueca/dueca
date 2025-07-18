@@ -35,6 +35,16 @@ DUECA_NS_START;
     BareDuecaGLWindow you will get a window with lower overhead, that can
     also be run in a separate thread, blocking for the graphics refresh.
     Use that for serious deployment, and the GTK version for testing.
+
+    Also note that under "modern" desktops, you would get a Wayland
+    window with the default gtk4 GLArea, and these use OpenGL ES, rather
+    than the "classic" desktop OpenGL you might be used to. The shaders
+    you use need to be compliant with ES, see 
+
+    [this WikiPedia page](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+
+    As far as I can tell it is not possible to mix this in the same
+    DUECA process with X11 GL windows.
 */
 class DuecaGLGtk4Window : public DuecaGtkInteraction
 {
@@ -56,6 +66,12 @@ class DuecaGLGtk4Window : public DuecaGtkInteraction
   /** fullscreen? */
   bool fullscreen;
 
+  /** Depth buffer */
+  gboolean depth_buffer;
+
+  /** Stencil buffer? */
+  gboolean stencil_buffer;
+
   /** selected cursor */
   int cursortype;
 
@@ -69,14 +85,9 @@ public:
       @param pass_passive For compatibility, passive movement always passed.
   */
   DuecaGLGtk4Window(const char *window_title = "DUECA",
-                    bool pass_passive = false);
-
-  /** Backwards compatible constructor. Arguments, except
-      mouse_passive, are ignored. */
-  DUECA_DEPRECATED("Obsolete GL window contstructor");
-  DuecaGLGtk4Window(const char *window_title, bool dummy1, bool dummy2,
-                    bool dummy3 = true, bool dummy4 = true,
-                    bool mouse_passive = true);
+                    bool pass_passive = false, 
+                    bool depth_buffer = true,
+                    bool stencil_buffer = false);
 
   /// Destructor
   ~DuecaGLGtk4Window();
@@ -121,6 +132,7 @@ public:
   void redraw();
 
   /** Swap front and back buffers. */
+  DUECA_DEPRECATED("swapBuffers not needed for gtk4")
   void swapBuffers();
 
   /** Set the graphics content as current.

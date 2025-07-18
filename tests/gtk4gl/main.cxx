@@ -33,7 +33,7 @@ void exit_gtk()
 
 static gboolean on_render(GtkGLArea *area, gpointer u)
 {
-  gtk_gl_area_make_current(area);
+  // gtk_gl_area_make_current(area);
   display->display();
   return TRUE;
 }
@@ -79,6 +79,8 @@ static gint call_environment_loop(gpointer user_data)
   usleep(500000);
   display->update();
 
+  gtk_gl_area_queue_render(GTK_GL_AREA(area));
+
   static unsigned count = 1000;
   if (!--count) {
     delete display;
@@ -94,14 +96,13 @@ int main(int argc, char **argv)
   app = gtk_application_new(APPLICATION_ID, G_APPLICATION_NON_UNIQUE);
   g_signal_connect(G_APPLICATION(app), "activate", G_CALLBACK(app_activate),
                    NULL);
-  g_application_hold(G_APPLICATION(app));
 
   // ref: passcontrol
   g_idle_add(call_environment_loop, NULL);
 
   int res = g_application_run(G_APPLICATION(app), argc, argv);
-
+  g_object_unref(app);
   // stuff to do here
 
-  return 0;
+  return res;
 }

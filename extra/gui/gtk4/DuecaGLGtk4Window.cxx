@@ -30,7 +30,8 @@
 DUECA_NS_START;
 
 DuecaGLGtk4Window::DuecaGLGtk4Window(const char *window_title,
-                                     bool pass_passive) :
+                                     bool pass_passive, bool depth_buffer,
+                                     bool stencil_buffer) :
   DuecaGtkInteraction(NULL, 400, 300),
   gdk_display_id(NULL),
   gtk_win_id(NULL),
@@ -38,21 +39,8 @@ DuecaGLGtk4Window::DuecaGLGtk4Window(const char *window_title,
   gdk_cursor_id(NULL),
   title(window_title),
   fullscreen(false),
-  cursortype(1)
-{
-  //
-}
-
-DuecaGLGtk4Window::DuecaGLGtk4Window(const char *window_title, bool dummy1,
-                                     bool dummy2, bool dummy3, bool dummy4,
-                                     bool pass_passive) :
-  DuecaGtkInteraction(NULL, 400, 300),
-  gdk_display_id(NULL),
-  gtk_win_id(NULL),
-  area(NULL),
-  gdk_cursor_id(NULL),
-  title(window_title),
-  fullscreen(false),
+  depth_buffer(depth_buffer ? TRUE : FALSE),
+  stencil_buffer(stencil_buffer ? TRUE : FALSE),
   cursortype(1)
 {
   //
@@ -89,7 +77,6 @@ void DuecaGLGtk4Window::setWindow(int posx, int posy, int width, int height)
 
 void DuecaGLGtk4Window::swapBuffers()
 {
-  glFlush();
   // no-op?
 }
 
@@ -134,7 +121,6 @@ void DuecaGLGtk4Window::selectCursor(int cursortype)
 void DuecaGLGtk4Window::redraw()
 {
   gtk_gl_area_queue_render(GTK_GL_AREA(area));
-  //gtk_widget_queue_draw(GTK_WIDGET(area));
 }
 
 void DuecaGLGtk4Window::makeCurrent()
@@ -152,18 +138,13 @@ DuecaGLGtk4Window::~DuecaGLGtk4Window()
 
 static gboolean on_render(GtkGLArea *area, GdkGLContext *context, gpointer self)
 {
-  // if (gtk_gl_area_get_error(area) != NULL)
-  //   return FALSE;
   reinterpret_cast<DuecaGLGtk4Window *>(self)->display();
-  glFinish();
-  gtk_widget_queue_draw(GTK_WIDGET(area));
   return TRUE;
 }
 
 static void on_realize(GtkGLArea *area, gpointer self)
 {
   gtk_gl_area_make_current(area);
-  //gtk_gl_area_attach_buffers(area);
 
   auto gerr = gtk_gl_area_get_error(area);
   if (gerr) {
@@ -176,7 +157,7 @@ static void on_realize(GtkGLArea *area, gpointer self)
 
   reinterpret_cast<DuecaGLGtk4Window *>(self)->passShape();
   reinterpret_cast<DuecaGLGtk4Window *>(self)->initGL();
-  
+
   return;
 }
 
@@ -213,39 +194,33 @@ void DuecaGLGtk4Window::openWindow()
   gdk_display_id = gdk_display_get_default();
   gtk_win_id = GTK_WINDOW(gtk_window_new());
   gtk_window_set_title(GTK_WINDOW(gtk_win_id), title.c_str());
+  if (fullscreen) {
+    gtk_window_fullscreen(gtk_win_id);
+  }
+  else {
+    gtk_window_set_default_size(gtk_win_id, width, height);
+  }
 
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, FALSE);
-  gtk_window_set_child(GTK_WINDOW(gtk_win_id), box);
   if (!fullscreen && x >= 0 && y >= 0) {
     g_signal_connect(gtk_win_id, "realize", G_CALLBACK(on_window_realize),
                      this);
   }
-  area = gtk_gl_area_new();
-  gtk_gl_area_set_required_version(GTK_GL_AREA(area), 4, 4);
-  gtk_gl_area_set_auto_render(GTK_GL_AREA(area), FALSE);
-  if (CSE.getGraphicDepthBufferSize()) {
-    gtk_gl_area_set_has_depth_buffer(GTK_GL_AREA(area), TRUE);
-  }
-  if (CSE.getGraphicStencilBufferSize()) {
-    gtk_gl_area_set_has_stencil_buffer(GTK_GL_AREA(area), TRUE);
-  }
 
-  if (fullscreen) {
-    gtk_window_fullscreen(gtk_win_id);
-  }
-  else if (width > 0 && height > 0) {
-    gtk_widget_set_size_request(area, width, height);
-  }
+  area = gtk_gl_area_new();
+  gtk_gl_area_set_has_depth_buffer(GTK_GL_AREA(area), depth_buffer);
+  gtk_gl_area_set_has_stencil_buffer(GTK_GL_AREA(area), stencil_buffer);
+  gtk_widget_set_hexpand(GTK_WIDGET(area), TRUE);
+  gtk_widget_set_vexpand(GTK_WIDGET(area), TRUE);
 
   g_signal_connect(area, "render", G_CALLBACK(on_render), this);
   g_signal_connect(area, "realize", G_CALLBACK(on_realize), this);
 
   // DuecaGtkInteraction::init(area);
-  gtk_box_append(GTK_BOX(box), GTK_WIDGET(area));
+  gtk_window_set_child(gtk_win_id, GTK_WIDGET(area));
 
   DuecaGtkInteraction::init(GTK_WIDGET(area));
+  gtk_window_present(gtk_win_id);
 
-  gtk_widget_set_visible(GTK_WIDGET(gtk_win_id), TRUE);
   changeCursor(cursortype, GTK_WIDGET(gtk_win_id), gdk_cursor_id,
                gdk_display_id);
 }

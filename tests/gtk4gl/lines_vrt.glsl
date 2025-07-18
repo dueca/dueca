@@ -1,7 +1,7 @@
 // https://open.gl/drawing
 
-#version 150 core
-
+#version 320 es
+precision lowp float;
 in vec2 position;
 uniform mat4 projection;
 

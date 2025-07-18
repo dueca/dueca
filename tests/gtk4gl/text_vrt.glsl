@@ -1,6 +1,7 @@
 // https://learnopengl.com/In-Practice/Text-Rendering
 
-#version 330 core
+#version 320 es
+precision lowp float;
 layout (location = 0) in vec4 vertex; // <vec2 pos, vec2 tex>
 out vec2 TexCoords;
 

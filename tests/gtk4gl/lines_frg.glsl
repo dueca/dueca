@@ -1,7 +1,7 @@
 // https://open.gl/drawing
 
-#version 150 core
-
+#version 320 es
+precision lowp float;
 out vec4 outColor;
 
 void main()

@@ -65,6 +65,9 @@ void MyDisplay::display()
   texter->setProjection(projection);
 
   texter->renderText("E", -0.08, 0.6, 0.005, green);
+
+  // reset the vertex binding
+  glBindVertexArray(0);
 }
 
   /** Setup function */
@@ -134,5 +137,5 @@ void MyDisplay::reshape(int w, int h)
 
 void MyDisplay::update()
 {
-  heading += 0.5f;
+  heading += 0.5f * M_PI / 180.0;
 }
