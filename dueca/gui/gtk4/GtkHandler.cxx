@@ -153,8 +153,8 @@ void GtkHandler::returnControl()
 
      Information on commanding end of graphics code run. */
   I_SYS("Calling g_application_release()");
-  g_application_release(G_APPLICATION(app));
   g_application_quit(G_APPLICATION(app));
+  g_application_release(G_APPLICATION(app));
   //gtk_main_quit();
 }
 DUECA_NS_END

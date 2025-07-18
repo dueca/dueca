@@ -134,6 +134,7 @@ void DuecaGLGtk4Window::selectCursor(int cursortype)
 void DuecaGLGtk4Window::redraw()
 {
   gtk_gl_area_queue_render(GTK_GL_AREA(area));
+  //gtk_widget_queue_draw(GTK_WIDGET(area));
 }
 
 void DuecaGLGtk4Window::makeCurrent()
@@ -153,17 +154,16 @@ static gboolean on_render(GtkGLArea *area, GdkGLContext *context, gpointer self)
 {
   // if (gtk_gl_area_get_error(area) != NULL)
   //   return FALSE;
-
-  // gtk_gl_area_make_current(area);
-
   reinterpret_cast<DuecaGLGtk4Window *>(self)->display();
+  glFinish();
+  gtk_widget_queue_draw(GTK_WIDGET(area));
   return TRUE;
 }
 
 static void on_realize(GtkGLArea *area, gpointer self)
 {
   gtk_gl_area_make_current(area);
-  gtk_gl_area_attach_buffers(area);
+  //gtk_gl_area_attach_buffers(area);
 
   auto gerr = gtk_gl_area_get_error(area);
   if (gerr) {
@@ -176,7 +176,7 @@ static void on_realize(GtkGLArea *area, gpointer self)
 
   reinterpret_cast<DuecaGLGtk4Window *>(self)->passShape();
   reinterpret_cast<DuecaGLGtk4Window *>(self)->initGL();
-
+  
   return;
 }
 

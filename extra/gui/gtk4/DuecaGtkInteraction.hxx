@@ -6,6 +6,7 @@
         description     :
         changes         : 151013 first version
         language        : C++
+        api             : DUECA_API
         copyright       : (c) 2016 TUDelft-AE-C&S
         copyright       : (c) 2022 René van Paassen
         license         : EUPL-1.2
@@ -20,23 +21,31 @@
 DUECA_NS_START;
 
 /** This class provides feedback from keypresses and mouse movements
-    on a Gtk3 widget. It is normally used in combination with GL
+    on a Gtk widget. It is normally used in combination with GL
     widgets. */
 class DuecaGtkInteraction
 {
+  /** GL drawing widget. */
   GtkWidget *wdgt;
 
 protected:
+  /** Width of the GL widget */
   int width;
+  /** Height of the GL widget */
   int height;
+  /** X position of the GL widget */
   int x;
+  /** Y position of the GL widget */
   int y;
+  /** Flag to indicate passing events. */
   bool dopass;
 
 protected:
   /** Helper function, initialization */
   void init(GtkWidget* widget = NULL);
+
 public:
+  /** Specify a new size. */
   void newSize(int w, int h);
 
   /** Constructor */
@@ -48,13 +57,16 @@ public:
   /** Information function, retrieve width */
   int getWidth();
 
+  /** Information function, retrieve height. */
   int getHeight();
 
+  /** Retrieve x position */
   int getXOffset();
 
+  /** Retrieve y position */
   int getYOffset();
 
-  /** pass a previous/default shape */
+  /** pass a previous/default shape. */
   void passShape();
 
   /** callback function, override to get notified of shape changes */

@@ -15,6 +15,7 @@
 #pragma once
 #include <gtk/gtk.h>
 #include <dueca_ns.h>
+#include <dueca/visibility.h>
 #include <string>
 #include <vector>
 
@@ -72,6 +73,7 @@ public:
 
   /** Backwards compatible constructor. Arguments, except
       mouse_passive, are ignored. */
+  DUECA_DEPRECATED("Obsolete GL window contstructor");
   DuecaGLGtk4Window(const char *window_title, bool dummy1, bool dummy2,
                     bool dummy3 = true, bool dummy4 = true,
                     bool mouse_passive = true);
