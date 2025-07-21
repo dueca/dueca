@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+libdir=@libdir@
+dueca_includedir=@dueca_includedir@
+version=@VERSION@
+staticsuffix=
+
+Name: dueca-extra-glfw
+Description: Real-time distributed control or simulation environment
+Version: ${version}
+Libs: -L${libdir} -ldueca-extra-glfw${staticsuffix}
+Cflags: -I${dueca_includedir}/extra/gui/glfw
+Requires: dueca-gtk4 = ${version}, dueca-extra-x11 = ${version}, glfw3
