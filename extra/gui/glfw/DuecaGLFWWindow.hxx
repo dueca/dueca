@@ -42,8 +42,11 @@ DUECA_NS_START;
 */
 class DuecaGLFWWindow
 {
+  /** Monitor */
+  GLFWmonitor *glfw_mon;
+
   /** Window */
-  GLFWwindow *glfw_win_id;
+  GLFWwindow *glfw_win;
 
   /** Window title */
   std::string title;
@@ -79,7 +82,7 @@ class DuecaGLFWWindow
   bool dopass;
 
   /** map from glfw win id to class */
-  static std::map<const GLFWwindow*, DuecaGLFWWindow*> winmap;
+  unsigned opened_windows;
 
 public:
   /** Constructor

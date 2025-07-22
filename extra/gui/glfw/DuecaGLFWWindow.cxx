@@ -1,16 +1,14 @@
 /* ------------------------------------------------------------------   */
 /*      item            : DuecaGLFWWindow.cxx
         made by         : Rene van Paassen
-        date            : 180607
+        date            : 250722
         category        : header file
         description     :
-        changes         : 180607 first version
+        changes         : 250722 first version
         language        : C++
-        copyright       : (c) 2018 TUDelft-AE-C&S
         copyright       : (c) 2022 René van Paassen
         license         : EUPL-1.2
 */
-// https://docs.gtk.org/FW/migrating-3to4.html
 
 #include "DuecaGLFWWindow.hxx"
 #include <dueca/Environment.hxx>
@@ -20,12 +18,10 @@
 
 DUECA_NS_START;
 
-std::map<const GLFWwindow*, DuecaGLFWWindow*> DuecaGLFWWindow::winmap;
-
-DuecaGLFWWindow::DuecaGLFWWindow(const char *window_title,
-                                     bool pass_passive, bool depth_buffer,
-                                     bool stencil_buffer) :
-  glfw_win_id(NULL),
+DuecaGLFWWindow::DuecaGLFWWindow(const char *window_title, bool pass_passive,
+                                 bool depth_buffer, bool stencil_buffer) :
+  glfw_mon(NULL),
+  glfw_win(NULL),
   title(window_title),
   fullscreen(false),
   depth_buffer(depth_buffer),
@@ -70,16 +66,15 @@ void DuecaGLFWWindow::setWindow(int posx, int posy, int width, int height)
   this->height = height;
 }
 
-void DuecaGLFWWindow::swapBuffers()
-{
-  glfwSwapBuffers(glfw_win_id);
-}
+void DuecaGLFWWindow::swapBuffers() { }
 
 static void changeCursor(int cursor, GLFWwindow *win)
 {
-  static GLFWcursor *crosshair = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+  static GLFWcursor *crosshair =
+    glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
   static GLFWcursor *alias = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-  static GLFWcursor *pointer = glfwCreateStandardCursor(GLFW_POINTING_HAND_CURSOR);
+  static GLFWcursor *pointer =
+    glfwCreateStandardCursor(GLFW_POINTING_HAND_CURSOR);
 
   switch (cursor) {
   case 0:
@@ -108,26 +103,28 @@ static void changeCursor(int cursor, GLFWwindow *win)
 
 void DuecaGLFWWindow::selectCursor(int cursortype)
 {
-  if (glfw_win_id && this->cursortype != cursortype) {
-    changeCursor(cursortype, glfw_win_id);
+  if (glfw_win && this->cursortype != cursortype) {
+    changeCursor(cursortype, glfw_win);
   }
   this->cursortype = cursortype;
 }
 
 void DuecaGLFWWindow::redraw()
 {
-  gtk_gl_area_queue_render(GTK_GL_AREA(area));
+  if (glfw_win && !glfwWindowShouldClose(glfw_win)) {
+    glfwMakeContextCurrent(glfw_win);
+    this->display();
+    glfwSwapBuffers(glfw_win);
+    glfwPollEvents();
+  }
 }
 
-void DuecaGLFWWindow::makeCurrent()
-{
-  glfwMakeContextCurrent(glfw_win_id);
-}
+void DuecaGLFWWindow::makeCurrent() {  }
 
 DuecaGLFWWindow::~DuecaGLFWWindow()
 {
-  if (glfw_win_id)
-    glfwSetWindowShouldClose(glfw_win_id, 1);
+  if (glfw_win)
+    glfwSetWindowShouldClose(glfw_win, 1);
 }
 
 static void on_render(GLFWwindow *win)
@@ -138,84 +135,77 @@ static void on_render(GLFWwindow *win)
 
 static void on_realize(GLFWwindow *win)
 {
-  gtk_gl_area_make_current(area);
-
-  auto gerr = gtk_gl_area_get_error(area);
-  if (gerr) {
-    /* DUECA extra.
-
-       Unspecified error signalled by the gtk2 gl area. */
-    E_XTR("Errors with the GL area " << gerr->message);
-    return;
-  }
-
-  reinterpret_cast<DuecaGLFWWindow *>(self)->passShape();
-  reinterpret_cast<DuecaGLFWWindow *>(self)->initGL();
-
   return;
 }
 
-void on_window_realize(GtkWindow *win, gpointer self)
+static void on_close(GLFWWindow *win)
 {
-  reinterpret_cast<DuecaGLFWWindow *>(self)->placeWindow();
+
 }
 
-void DuecaGLFWWindow::placeWindow()
-{
-  if (GDK_IS_X11_DISPLAY(gdk_display_id)) {
-
-    auto surf = GDK_SURFACE(gtk_native_get_surface(GTK_NATIVE(glfw_win_id)));
-    if (surf) {
-      auto xw = GDK_SURFACE_XID(surf);
-      auto xd = GDK_SURFACE_XDISPLAY(surf);
-      if (xd) {
-        XMoveWindow(xd, xw, x, y);
-      }
-    }
-  }
-  else if (GDK_IS_WAYLAND_DISPLAY(gdk_display_id)) {
-    /* DUECA extra.
-
-          Under wayland, it is (currently) not possible to request a window
-          position
-        */
-    W_XTR("Cannot influence window position on wayland");
-  }
-}
+unsigned DuecaGLFWWindow::opened_windows = 0;
 
 void DuecaGLFWWindow::openWindow()
 {
-  glfw_win_id = glfwCreateWindow(width, height, title.c_str(), fullscreen ? glfwGetDGLFWmonitor *monitor, GLFWwindow *share)GTK_WINDOW(gtk_window_new());
-  gtk_window_set_title(GTK_WINDOW(glfw_win_id), title.c_str());
-  if (fullscreen) {
-    gtk_window_fullscreen(glfw_win_id);
+  // first time?
+  if (opened_windows == 0) {
+    if (glfwInit() == GLFW_FALSE) {
+      /** DUECA extra.
+
+          Not possible to initialize GLFW, check graphics hardware.
+      */
+      E_XTR("Cannot initialize GLFW");
+    }
+  }
+
+  // monitors
+  int count;
+  GLFWmonitor **monitors = glfwGetMonitors(&count);
+  glfw_mon = NULL;
+
+  // determine monitor on basis of x, y specified position
+  glfw_mon = monitors[0];
+  for (auto idx = count; idx--;) {
+    int xpos, ypos, width, height;
+    glfwGetMonitorWorkarea(monitors[idx], &xpos, &ypos, &width, &height);
+    if (x >= xpos && x < xpos + width && y >= ypos && y < ypos + height) {
+      glfw_mon = monitors[idx];
+      break;
+    }
+  }
+
+  if (x >= 0 && y >= 0 && !fullscreen) {
+    glfwWindowHint(GLFW_POSITION_X, x);
+    glfwWindowHint(GLFW_POSITION_Y, y);
   }
   else {
-    gtk_window_set_default_size(glfw_win_id, width, height);
+    glfwWindowHint(GLFW_POSITION_X, GLFW_ANY_POSITION);
+    glfwWindowHint(GLFW_POSITION_Y, GLFW_ANY_POSITION);
   }
 
-  if (!fullscreen && x >= 0 && y >= 0) {
-    g_signal_connect(glfw_win_id, "realize", G_CALLBACK(on_window_realize),
-                     this);
+  glfw_win = glfwCreateWindow(width, height, title.c_str(),
+                              fullscreen ? glfw_mon : NULL, NULL);
+  if (!glfw_win) {
+    /* DUECA extra.
+
+       Failure to create an glfw window.
+    */
+    E_XTR("Failed to create glfw window.")
+    return;
   }
-
-  area = gtk_gl_area_new();
-  gtk_gl_area_set_has_depth_buffer(GTK_GL_AREA(area), depth_buffer);
-  gtk_gl_area_set_has_stencil_buffer(GTK_GL_AREA(area), stencil_buffer);
-  gtk_widget_set_hexpand(GTK_WIDGET(area), TRUE);
-  gtk_widget_set_vexpand(GTK_WIDGET(area), TRUE);
-
-  g_signal_connect(area, "render", G_CALLBACK(on_render), this);
-  g_signal_connect(area, "realize", G_CALLBACK(on_realize), this);
-
-  // DuecaGtkInteraction::init(area);
-  gtk_window_set_child(glfw_win_id, GTK_WIDGET(area));
-
-  DuecaGtkInteraction::init(GTK_WIDGET(area));
-  gtk_window_present(glfw_win_id);
-
-  changeCursor(cursortype, GTK_WIDGET(glfw_win_id), gdk_cursor_id,
-               gdk_display_id);
+  opened_windows++;
+  glfwSetWindowUserPointer(glfw_win, this);
+  glfwSetWindowCloseCallback(glfw_win, on_close);
+  glfwSetWindowSizeCallback(glfw_win, on_resize);
+  glfwSetWindowRefreshCallback(glfw_win, on_render);
+  glfwSetKeyCallback(glfw_win, on_keypress);
+  glfwSetMouseButtonCallback(glfw_win, on_mouse);
+  if (dopass) {
+    glfwSetCursorPosCallback(glfw_win, on_passive);
+  }
+  glfwMakeContextCurrent(glfw_win);
+  initGL();
+  changeCursor(cursortype, glfw_win);
 }
 
 void DuecaGLFWWindow::initGL()
