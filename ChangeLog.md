@@ -2,6 +2,15 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [4.2.3] - 2025-07-22
+
+- Add a glfw-based gl window, capable of native running under wayland
+- Fixes and tests for inter-dueca communication
+- Improve ddff logger, with reports on logging progress
+- Extend ddffpy, to more easily interpret event logging
+- Fix the gtk4 GL window
+- Correct a memory issue in the logpoint stash
+
 ## [4.2.2] - 2025-06-18
 
 - Make the quit confirmation window modal, with DUECA control as parent
