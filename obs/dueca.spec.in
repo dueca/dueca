@@ -84,6 +84,7 @@ BuildRequires: librsvg2-tools
 %endif
 BuildRequires: gcc-c++
 BuildRequires: freeglut-devel
+BuildRequires: glfw-devel
 BuildRequires: graphviz
 %if 0%{?suse_version}
 BuildRequires: graphviz-gd

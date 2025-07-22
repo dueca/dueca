@@ -91,9 +91,13 @@ static void changeCursor(int cursor, GLFWwindow *win)
   static GLFWcursor *crosshair =
     glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
   static GLFWcursor *alias = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+#if (GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 4) ||                    \
+  GLFW_VERSION_MAJOR > 3
   static GLFWcursor *pointer =
     glfwCreateStandardCursor(GLFW_POINTING_HAND_CURSOR);
-
+#else
+  static GLFWcursor *pointer = alias;
+#endif
   switch (cursor) {
   case 0:
     glfwSetCursor(win, NULL);
@@ -140,21 +144,21 @@ void DuecaGLFWWindow::redraw()
   }
 }
 
-void DuecaGLFWWindow::makeCurrent() 
+void DuecaGLFWWindow::makeCurrent()
 {
   // obsolete
 }
 
 DuecaGLFWWindow::~DuecaGLFWWindow()
 {
-  DEB("Close requested " << reinterpret_cast<void*>(glfw_win));
+  DEB("Close requested " << reinterpret_cast<void *>(glfw_win));
   if (glfw_win)
     glfwSetWindowShouldClose(glfw_win, 1);
 }
 
 static void on_render(GLFWwindow *win)
 {
-  DEB("Render request and action " << reinterpret_cast<void*>(win));
+  DEB("Render request and action " << reinterpret_cast<void *>(win));
   auto dwin =
     reinterpret_cast<DuecaGLFWWindow *>(glfwGetWindowUserPointer(win));
   if (dwin) {
@@ -167,7 +171,8 @@ static void on_render(GLFWwindow *win)
 
 static void on_resize(GLFWwindow *win, int width, int height)
 {
-  DEB("Resize callback " << reinterpret_cast<void*>(win) << " " << width << "," << height);
+  DEB("Resize callback " << reinterpret_cast<void *>(win) << " " << width << ","
+                         << height);
   auto dwin =
     reinterpret_cast<DuecaGLFWWindow *>(glfwGetWindowUserPointer(win));
   if (dwin) {
@@ -298,6 +303,8 @@ void DuecaGLFWWindow::openWindow()
 
   DEB("Opening window");
 
+#if (GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 4) ||                    \
+  GLFW_VERSION_MAJOR > 3
   if (x >= 0 && y >= 0 && !fullscreen) {
     glfwWindowHint(GLFW_POSITION_X, x);
     glfwWindowHint(GLFW_POSITION_Y, y);
@@ -306,6 +313,7 @@ void DuecaGLFWWindow::openWindow()
     glfwWindowHint(GLFW_POSITION_X, GLFW_ANY_POSITION);
     glfwWindowHint(GLFW_POSITION_Y, GLFW_ANY_POSITION);
   }
+#endif
 
   glfw_win = glfwCreateWindow(width, height, title.c_str(),
                               fullscreen ? glfw_mon : NULL, NULL);
@@ -341,7 +349,7 @@ void DuecaGLFWWindow::openWindow()
   glfwSetCursorPosCallback(glfw_win, [](GLFWwindow *win, double x, double y) {
     auto dwin =
       reinterpret_cast<DuecaGLFWWindow *>(glfwGetWindowUserPointer(win));
-      DEB1("Cursor motion " << x << "," << y);
+    DEB1("Cursor motion " << x << "," << y);
     dwin->cur_x = int(x);
     dwin->cur_y = int(y);
     if (dwin->dopass) {
@@ -353,7 +361,7 @@ void DuecaGLFWWindow::openWindow()
   glfwMakeContextCurrent(glfw_win);
   initGL();
   glfwMakeContextCurrent(NULL);
-  
+
   // set desired cursor
   changeCursor(cursortype, glfw_win);
 
