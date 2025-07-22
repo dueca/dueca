@@ -24,8 +24,10 @@ DUECA_NS_START
 
 InformationStash<LogPoint>& Logpoint_stash()
 {
-  static InformationStash<LogPoint> _stash("LogPoint");
-  return _stash;
+  // this mem will be lost, otherwise it may be deleted while logging
+  // is still continuing.
+  static InformationStash<LogPoint>* _stash = new InformationStash<LogPoint>("LogPoint");
+  return *_stash;
 }
 
 Logger::Logger(const char* fname, const int lnumber,
