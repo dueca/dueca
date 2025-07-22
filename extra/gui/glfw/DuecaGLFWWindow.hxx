@@ -13,12 +13,12 @@
 */
 
 #pragma once
+#include <epoxy/gl.h>
 #include <GLFW/glfw3.h>
-#include <dueca_ns.h>
+#include <dueca/dueca_ns.h>
 #include <dueca/visibility.h>
 #include <string>
 #include <vector>
-#include <map>
 
 DUECA_NS_START;
 
@@ -81,8 +81,12 @@ class DuecaGLFWWindow
   /** Flag to indicate passing events. */
   bool dopass;
 
-  /** map from glfw win id to class */
-  unsigned opened_windows;
+public:
+  /** Cursor position */
+  int cur_x;
+
+   /** Cursor position */
+  int cur_y;
 
 public:
   /** Constructor
@@ -90,16 +94,14 @@ public:
       @param window_title Title for the window
       @param pass_passive For compatibility, passive movement always passed.
   */
-  DuecaGLFWWindow(const char *window_title = "DUECA",
-                    bool pass_passive = false,
-                    bool depth_buffer = true,
-                    bool stencil_buffer = false);
+  DuecaGLFWWindow(const char *window_title = "DUECA", bool pass_passive = false,
+                  bool depth_buffer = true, bool stencil_buffer = false);
 
   /// Destructor
   ~DuecaGLFWWindow();
 
     /** Request full screen drawing -- or not. Can be linked to Scheme
-    in a parameter table. This call is ignored for  */
+in a parameter table. This call is ignored for  */
   bool setFullScreen(const bool &fs = true);
 
   /** Set the window position, at least if the window manager will
@@ -149,12 +151,27 @@ public:
       for that.
 
       @param do_select  When false, resets the GC */
-  inline void selectGraphicsContext(bool do_select = true) { makeCurrent(); }
+  bool selectGraphicsContext(bool do_select = true);
 
   /** If you want to do GL work outside the draw routine (add GL lists
       etc.) the window needs to be current. First call this routine in
       that case. */
   void makeCurrent();
+
+  /** Specify a new size. */
+  void newSize(int w, int h);
+
+  /** Information function, retrieve width */
+  int getWidth();
+
+  /** Information function, retrieve height. */
+  int getHeight();
+
+  /** Retrieve x position */
+  int getXOffset();
+
+  /** Retrieve y position */
+  int getYOffset();
 
 public:
   /** Function to implement in a derived class. Can assume that the GL

@@ -46,6 +46,14 @@ DuecaGLGtk4Window::DuecaGLGtk4Window(const char *window_title,
   //
 }
 
+bool DuecaGLGtk4Window::selectGraphicsContext(bool do_select)
+{
+  if (do_select) {
+    gtk_gl_area_make_current(GTK_GL_AREA(area));
+  }
+  return do_select;
+}
+
 bool DuecaGLGtk4Window::setFullScreen(const bool &fs)
 {
   fullscreen = fs;

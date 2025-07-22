@@ -143,7 +143,7 @@ public:
       for that.
 
       @param do_select  When false, resets the GC */
-  inline void selectGraphicsContext(bool do_select = true) { makeCurrent(); }
+  bool selectGraphicsContext(bool do_select = true);
 
   /** If you want to do GL work outside the draw routine (add GL lists
       etc.) the window needs to be current. First call this routine in

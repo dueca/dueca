@@ -442,13 +442,15 @@ static const XGlutCharLink key_trans_table[] = {
   { 0, 0 }
 };
 
-void BareDuecaGLWindow::selectGraphicsContext(bool do_select)
+bool BareDuecaGLWindow::selectGraphicsContext(bool do_select)
 {
   if (my && do_select) {
     glXMakeCurrent(static_dpy, my->xwin, my->glc);
+    return true;
   }
   else if (my) {
     glXMakeCurrent(static_dpy, None, NULL);
+    return false;
   }
 }
 

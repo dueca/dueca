@@ -50,6 +50,14 @@ DuecaGLGtk3Window::DuecaGLGtk3Window(const char* window_title,
   //
 }
 
+bool DuecaGLGtk3Window::selectGraphicsContext(bool do_select)
+{
+  if (do_select) {
+    gtk_gl_area_make_current(GTK_GL_AREA(area));
+  }
+  return do_select;
+}
+
 bool DuecaGLGtk3Window::setFullScreen(const bool& fs)
 {
   fullscreen = fs;

@@ -134,7 +134,7 @@ public:
       for that.
 
       @param do_select  When false, resets the GC */
-  inline void selectGraphicsContext(bool do_select=true) { makeCurrent(); }
+  bool selectGraphicsContext(bool do_select=true);
 
 public:
   /** Function to implement in a derived class. Can assume that the GL

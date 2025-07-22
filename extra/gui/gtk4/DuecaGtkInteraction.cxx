@@ -79,9 +79,7 @@ void DuecaGtkInteraction::newSize(int w, int h)
   this->width = w;
   this->height = h;
   if (wdgt) {
-#if GTK_CHECK_VERSION(3, 16, 0)
     gtk_gl_area_make_current(GTK_GL_AREA(wdgt));
-#endif
     this->reshape(w, h);
   }
   else {
