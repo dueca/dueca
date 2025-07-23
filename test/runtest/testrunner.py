@@ -498,6 +498,7 @@ class Scenario:
             self.project = None
             self.actions = []
             self.version = None
+            self.buildoptions = []
             self.offset = None
 
             # read from file
@@ -517,6 +518,8 @@ class Scenario:
                             self.repository = node.text.strip()
                         elif XML_tag(node, "version"):
                             self.version = node.text.strip()
+                        elif XML_tag(node, "buildoptions"):
+                            self.buildoptions = node.text.strip().split()
                         elif XML_tag(node, "execute"):
                             self.processes.append(Execute(xmlnode=node))
                         elif XML_tag(node, "actions"):
@@ -653,13 +656,14 @@ class Scenario:
 
 class DuecaRunner:
 
-    def __init__(self, project, base, repository, version=None):
+    def __init__(self, project, base, repository, version=None, buildoptions=None):
         print(f"Creating runner {project}")
         self.project = project
         self.pdir = f"{base}/{project}/{project}"
         self.base = base
         self.repository = repository
         self.version = version
+        self.buildoptions = buildoptions or []
         self.running = []
 
     def prepare(self):
@@ -732,7 +736,7 @@ class DuecaRunner:
                 )
 
             c1 = subprocess.run(
-                "dueca-gproject build",
+                ["dueca-gproject",  "build"] + self.buildoptions,
                 cwd=f"{self.pdir}",
                 shell=True,
                 stderr=subprocess.PIPE,
@@ -761,31 +765,30 @@ class DuecaRunner:
                     f"{c1.stderr}"
                 )
 
-            # rebuild if switched
-            if c1.stderr.startswith(b"Switched"):
+            # rebuild, options might be different
 
-                c1 = subprocess.run(
-                    "dueca-gproject build --clean",
-                    cwd=f"{self.pdir}",
-                    shell=True,
-                    stderr=subprocess.PIPE,
+            c1 = subprocess.run(
+                "dueca-gproject build --clean",
+                cwd=f"{self.pdir}",
+                shell=True,
+                stderr=subprocess.PIPE,
+            )
+            if c1.returncode != 0:
+                raise RuntimeError(
+                    f"Failing clean for {self.project}:\n{c1.stderr}"
                 )
-                if c1.returncode != 0:
-                    raise RuntimeError(
-                        f"Failing clean for {self.project}:\n{c1.stderr}"
-                    )
-                
-                c1 = subprocess.run(
-                    "dueca-gproject build --debug",
-                    cwd=f"{self.pdir}",
-                    shell=True,
-                    stderr=subprocess.PIPE,
-                )
+            
+            c1 = subprocess.run(
+                ["dueca-gproject", "build"] + self.buildoptions,
+                cwd=f"{self.pdir}",
+                shell=True,
+                stderr=subprocess.PIPE,
+            )
 
-                if c1.returncode != 0:
-                    raise RuntimeError(
-                        f"Failing build for {self.project}:\n{c1.stderr}"
-                    )
+            if c1.returncode != 0:
+                raise RuntimeError(
+                    f"Failing build for {self.project}:\n{c1.stderr}"
+                )
 
     async def _runDueca(self, platform="solo", node="solo", command="./dueca_run.x"):
         print(f"runDueca for project {self.project}, p:{platform} n:{node}")
@@ -927,7 +930,7 @@ scenario = Scenario(fname=pres.control)
 
 # prepare the executable
 runner = DuecaRunner(
-    scenario.project.name, pres.base, scenario.repository, scenario.version
+    scenario.project.name, pres.base, scenario.repository, scenario.version, scenario.buildoptions
 )
 runner.prepare()
 
