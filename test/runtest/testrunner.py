@@ -738,7 +738,6 @@ class DuecaRunner:
             c1 = subprocess.run(
                 ["dueca-gproject",  "build"] + self.buildoptions,
                 cwd=f"{self.pdir}",
-                shell=True,
                 stderr=subprocess.PIPE,
             )
             if c1.returncode != 0:
@@ -781,8 +780,8 @@ class DuecaRunner:
             c1 = subprocess.run(
                 ["dueca-gproject", "build"] + self.buildoptions,
                 cwd=f"{self.pdir}",
-                shell=True,
                 stderr=subprocess.PIPE,
+                text=True
             )
 
             if c1.returncode != 0:
