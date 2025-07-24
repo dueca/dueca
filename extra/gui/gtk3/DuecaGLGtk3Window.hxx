@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION(3, 16, 0)
 
 #include "DuecaGtkInteraction.hxx"
 
@@ -39,57 +39,58 @@ DUECA_NS_START;
     also be run in a separate thread, blocking for the graphics refresh.
     Use that for serious deployment, and the GTK version for testing.
 */
-class DuecaGLGtk3Window: public DuecaGtkInteraction
+class DuecaGLGtk3Window : public DuecaGtkInteraction
 {
   /** Display */
-  GdkDisplay          *gdk_display_id;
+  GdkDisplay *gdk_display_id;
 
   /** Window */
-  GtkWindow           *gtk_win_id;
+  GtkWindow *gtk_win_id;
 
   /** pointer to the underlying GL area */
-  GtkWidget           *area;
+  GtkWidget *area;
 
   /** cursor to be used */
-  GdkCursor           *gdk_cursor_id;
+  GdkCursor *gdk_cursor_id;
 
   /** Window title */
-  std::string          title;
+  std::string title;
 
   /** fullscreen? */
-  bool                 fullscreen;
+  bool fullscreen;
+
+  /** Depth buffer */
+  gboolean depth_buffer;
+
+  /** Stencil buffer? */
+  gboolean stencil_buffer;
 
   /** selected cursor */
-  int                  cursortype;
+  int cursortype;
 
 public:
   /** Constructor
 
       @param window_title Title for the window
       @param pass_passive For compatibility, passive movement always passed.
+      @param depth_buffer Request a depth buffer
+      @param stencil_buffer Request a stencil buffer
   */
-  DuecaGLGtk3Window(const char* window_title = "DUECA",
-                    bool pass_passive = false);
-
-  /** Backwards compatible constructor. Arguments, except
-      mouse_passive, are ignored. */
-  DuecaGLGtk3Window(const char* window_title,
-                    bool dummy1, bool dummy2,
-                    bool dummy3 = true,
-                    bool dummy4 = true,
-                    bool mouse_passive = true);
+  DuecaGLGtk3Window(const char *window_title = "DUECA",
+                    bool pass_passive = false, bool depth_buffer = true,
+                    bool stencil_buffer = false);
 
   /// Destructor
   ~DuecaGLGtk3Window();
 
     /** Request full screen drawing -- or not. Can be linked to Scheme
-      in a parameter table. This call is ignored for  */
-  bool setFullScreen(const bool& fs = true);
+  in a parameter table. This call is ignored for  */
+  bool setFullScreen(const bool &fs = true);
 
   /** Set the window position, at least if the window manager will
       honour this. Can be linked to Scheme in a parameter table. Use
       this call before opening the window with openWindow. */
-  bool setWindow(const std::vector<int>& wpos);
+  bool setWindow(const std::vector<int> &wpos);
 
   /** Set up the window initial position and size. Honouring of
       initial position depends on the window manager. Use this call
@@ -126,15 +127,15 @@ public:
       that case. */
   void makeCurrent();
 
-  /** Set the graphics content as current. 
+  /** Set the graphics content as current.
 
-      Note that this is normally not needed, in the initGL, display and 
+      Note that this is normally not needed, in the initGL, display and
       reshape callbacks, the GC will be current. You can use this in your
       destructor, when GL objects are deleted, and you need a correct GC
       for that.
 
       @param do_select  When false, resets the GC */
-  bool selectGraphicsContext(bool do_select=true);
+  bool selectGraphicsContext(bool do_select = true);
 
 public:
   /** Function to implement in a derived class. Can assume that the GL

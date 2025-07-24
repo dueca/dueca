@@ -14,11 +14,10 @@
 
 #include "DuecaGLGtk4Window.hxx"
 #include <dueca/Environment.hxx>
-#include <GL/gl.h>
-#include <gtk/gtk.h>
 
 #include "debug.h"
 #include "gdk/gdk.h"
+#include <epoxy/gl.h>
 
 #ifdef GDK_WINDOWING_X11
 #include <gdk/x11/gdkx.h>
@@ -50,6 +49,7 @@ bool DuecaGLGtk4Window::selectGraphicsContext(bool do_select)
 {
   if (do_select) {
     gtk_gl_area_make_current(GTK_GL_AREA(area));
+    if (!epoxy_has_gl_extension("GL_ARB_multitexture")) return false;
   }
   return do_select;
 }
@@ -138,6 +138,7 @@ void DuecaGLGtk4Window::makeCurrent()
 
 DuecaGLGtk4Window::~DuecaGLGtk4Window()
 {
+  gtk_gl_area_make_current(GTK_GL_AREA(area));
   if (gdk_cursor_id)
     g_object_unref(G_OBJECT(gdk_cursor_id));
   if (gtk_win_id)
@@ -146,6 +147,9 @@ DuecaGLGtk4Window::~DuecaGLGtk4Window()
 
 static gboolean on_render(GtkGLArea *area, GdkGLContext *context, gpointer self)
 {
+  if (gtk_gl_area_get_error(area) != NULL)
+    return FALSE;
+
   reinterpret_cast<DuecaGLGtk4Window *>(self)->display();
   return TRUE;
 }
@@ -201,6 +205,7 @@ void DuecaGLGtk4Window::openWindow()
 {
   gdk_display_id = gdk_display_get_default();
   gtk_win_id = GTK_WINDOW(gtk_window_new());
+  g_object_ref(G_OBJECT(gtk_win_id));
   gtk_window_set_title(GTK_WINDOW(gtk_win_id), title.c_str());
   if (fullscreen) {
     gtk_window_fullscreen(gtk_win_id);

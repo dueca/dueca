@@ -75,14 +75,13 @@ class DuecaGLGtk4Window : public DuecaGtkInteraction
   /** selected cursor */
   int cursortype;
 
-  /** did the init */
-  bool need_init;
-
 public:
   /** Constructor
 
       @param window_title Title for the window
       @param pass_passive For compatibility, passive movement always passed.
+      @param depth_buffer Request a depth buffer
+      @param stencil_buffer Request a stencil buffer
   */
   DuecaGLGtk4Window(const char *window_title = "DUECA",
                     bool pass_passive = false, 
