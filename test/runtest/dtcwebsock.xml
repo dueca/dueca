@@ -11,6 +11,7 @@
   <execute>
     <platform>solo</platform>
     <node>websock</node>
+    <command>./runscript</command>
   </execute>
   <offset x="1" y="-10" />
   <actions>
