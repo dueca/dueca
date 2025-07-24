@@ -292,6 +292,8 @@ void DuecaGLFWWindow::openWindow()
 
   // determine monitor on basis of x, y specified position
   glfw_mon = monitors[0];
+#if (GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 3) ||                    \
+  GLFW_VERSION_MAJOR > 3
   for (auto idx = count; idx--;) {
     int xpos, ypos, width, height;
     glfwGetMonitorWorkarea(monitors[idx], &xpos, &ypos, &width, &height);
@@ -300,6 +302,7 @@ void DuecaGLFWWindow::openWindow()
       break;
     }
   }
+#endif
 
   DEB("Opening window");
 
