@@ -568,7 +568,6 @@ getent group rtdueca || groupadd rtdueca
 %{_libdir}/libdueca-glut-??.%{startsoa}
 %{_libdir}/libdueca-gtk2.%{so_or_a}
 %{_libdir}/libdueca-gtk2-??.%{startsoa}
-%{_libdir}/libdueca-glfw.%{so_or_a}
 %if 0%{?gtkmm_config}
 %{_libdir}/pkgconfig/dueca-gtkmm.pc
 %{_libdir}/libdueca-gtkmm.%{so_or_a}
@@ -600,6 +599,7 @@ getent group rtdueca || groupadd rtdueca
 %{_libdir}/libdueca-extra-glut-??.%{startsoa}
 %{_libdir}/libdueca-extra-gtk2.%{so_or_a}
 %{_libdir}/libdueca-extra-gtk2-??.%{startsoa}
+%{_libdir}/libdueca-extra-glfw.%{so_or_a}
 %if 0%{?gtkmm_config}
 %{_libdir}/libdueca-extra-gtkmm.%{so_or_a}
 %endif
