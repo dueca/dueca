@@ -43,7 +43,7 @@
     <node>five</node>
     <command>./runscript</command>
   </execute>
-  <offset x="1" y="-10" />
+  <offset x="1" y="-5" />
   <actions>
     <check window="TEAM 5 control panel" x="476" y="37" r="65" g="255" b="11" timeout="40.0"
       wait="0.5" />
