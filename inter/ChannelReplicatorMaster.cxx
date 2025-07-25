@@ -16,7 +16,6 @@
         license         : EUPL-1.2
 */
 
-
 #define ChannelReplicatorMaster_cxx
 
 // include the definition of the module class
@@ -27,7 +26,7 @@
 
 // include the debug writing header, by default, write warning and
 // error messages
-//#define D_INT
+// #define D_INT
 #define I_INT
 #include <debug.h>
 
@@ -57,94 +56,89 @@
 STARTNSREPLICATOR;
 
 // class/module name
-const char* const ChannelReplicatorMaster::classname = "channel-replicator-master";
+const char *const ChannelReplicatorMaster::classname =
+  "channel-replicator-master";
 
 // Parameters to be inserted
-const ParameterTable* ChannelReplicatorMaster::getMyParameterTable()
+const ParameterTable *ChannelReplicatorMaster::getMyParameterTable()
 {
   static const ParameterTable parameter_table[] = {
 
     { "set-timing",
-      new MemberCall<_ThisClass_,TimeSpec>
-        (&_ThisClass_::setTimeSpec), set_timing_description },
+      new MemberCall<_ThisClass_, TimeSpec>(&_ThisClass_::setTimeSpec),
+      set_timing_description },
 
     { "check-timing",
-      new MemberCall<_ThisClass_,vector<int> >
-      (&_ThisClass_::checkTiming), check_timing_description },
+      new MemberCall<_ThisClass_, vector<int>>(&_ThisClass_::checkTiming),
+      check_timing_description },
 
     { "watch-channels",
-      new MemberCall<_ThisClass_,std::vector<std::string> >
-      (&_ThisClass_::watchChannels),
+      new MemberCall<_ThisClass_, std::vector<std::string>>(
+        &_ThisClass_::watchChannels),
       "Provide a list of the watched channels for this replicator" },
 
     // specific for UDP connections
-    { "port-re-use",
-      new VarProbe<_ThisClass_,bool>(&_ThisClass_::port_re_use),
+    { "port-re-use", new VarProbe<_ThisClass_, bool>(&_ThisClass_::port_re_use),
       "Specify port re-use, typically for testing." },
-    { "lowdelay", new VarProbe<_ThisClass_,bool>
-      (&_ThisClass_::lowdelay),
-      "Set lowdelay TOS on the sent packets. Default true."},
-    { "socket-priority", new VarProbe<_ThisClass_,int>
-      (&_ThisClass_::socket_priority),
+    { "lowdelay", new VarProbe<_ThisClass_, bool>(&_ThisClass_::lowdelay),
+      "Set lowdelay TOS on the sent packets. Default true." },
+    { "socket-priority",
+      new VarProbe<_ThisClass_, int>(&_ThisClass_::socket_priority),
       "Set socket priority on send socket. Default 6. Suggestion\n"
       "6, or 7 with root access / CAP_NET_ADMIN capability, -1 to disable." },
 
     { "message-size",
-      new VarProbe<_ThisClass_,unsigned>(&_ThisClass_::buffer_size),
+      new VarProbe<_ThisClass_, unsigned>(&_ThisClass_::buffer_size),
       "Size of UDP messages." },
 
     { "join-notice-channel",
-      new MemberCall<_ThisClass_,std::string>
-      (&_ThisClass_::setJoinNoticeChannel),
+      new MemberCall<_ThisClass_, std::string>(
+        &_ThisClass_::setJoinNoticeChannel),
       "Create a write token to a channel for sending ReplicatorPeerJoined\n"
       "messages. Supply the channel name." },
 
     { "peer-information-channel",
-      new MemberCall<_ThisClass_,std::string >
-      (&_ThisClass_::setPeerInformationChannel),
+      new MemberCall<_ThisClass_, std::string>(
+        &_ThisClass_::setPeerInformationChannel),
       "Create a read token on channel with supplemental start information\n"
-      "for a peer. Supply the channel name." },
+      "for a peer in ReplicatorPeerAcknowledge objects. Supply the channel "
+      "name." },
 
     { "replicator-information-channel",
-      new MemberCall<_ThisClass_,std::string >
-      (&_ThisClass_::setReplicatorInformationChannel),
+      new MemberCall<_ThisClass_, std::string>(
+        &_ThisClass_::setReplicatorInformationChannel),
       "Create a write token on channel with overview information on\n"
       "replication." },
 
     // for WebSocket connections, can be used for UDP too
-    { "data-url", new VarProbe<_ThisClass_,std::string>
-      (&_ThisClass_::url),
+    { "data-url", new VarProbe<_ThisClass_, std::string>(&_ThisClass_::url),
       "URL of the data connection, for both UDP and WebSocket connections\n"
       "UDP example: \"udp://hostname-or-ipaddress:data-port\"\n"
       "WS  example: \"ws://hostname-or-ipaddress:data-port/data\". If you are\n"
       "using websockets for data communication, these must be on the same\n"
-      "port as the configuration URL, but at a different endpoint."},
+      "port as the configuration URL, but at a different endpoint." },
 
-    { "public-data-url", new VarProbe<_ThisClass_,std::string>
-      (&_ThisClass_::public_data_url),
+    { "public-data-url",
+      new VarProbe<_ThisClass_, std::string>(&_ThisClass_::public_data_url),
       "Override the information on the data connection, in case clients\n"
       "connect through a firewall with port mapping. Provide a different\n"
       "client-side view of the connection." },
 
     // configuration URL
-    { "config-url", new VarProbe<_ThisClass_,std::string>
-      (&_ThisClass_::config_url),
+    { "config-url",
+      new VarProbe<_ThisClass_, std::string>(&_ThisClass_::config_url),
       "URL of the configuration connection. Must be Websocket (start with ws\n"
       "includes port, and path, e.g., \"ws://myhost:8888/config\"" },
 
-    { "timeout",
-      new VarProbe<_ThisClass_,double>
-      (&_ThisClass_::timeout),
+    { "timeout", new VarProbe<_ThisClass_, double>(&_ThisClass_::timeout),
       "Timeout, in s, before a message from the peers is considered missing" },
 
     { "timing-gain",
-      new VarProbe<_ThisClass_,double>
-      (&_ThisClass_::timing_gain),
+      new VarProbe<_ThisClass_, double>(&_ThisClass_::timing_gain),
       "Gain factor for determining timing differences (default 0.002)" },
 
     { "timing-interval",
-      new VarProbe<_ThisClass_,unsigned>
-      (&_ThisClass_::ts_interval),
+      new VarProbe<_ThisClass_, unsigned>(&_ThisClass_::ts_interval),
       "Interval on which data time translation is rounded. Default ticker's\n"
       "time interval." },
 
@@ -164,16 +158,15 @@ const ParameterTable* ChannelReplicatorMaster::getMyParameterTable()
       "For the master module, specify a URL for the configuration service\n"
       "and a URL for the data service. With the watch-channels argument,\n"
       "you can indicate which dueca channels are to be replicated; note\n"
-      "that these will be watched in all connected nodes."}
+      "that these will be watched in all connected nodes." }
   };
 
   return parameter_table;
 }
 
 // constructor
-ChannelReplicatorMaster::ChannelReplicatorMaster(Entity* e,
-                                                 const char* part,
-                                                 const PrioritySpec& ps) :
+ChannelReplicatorMaster::ChannelReplicatorMaster(Entity *e, const char *part,
+                                                 const PrioritySpec &ps) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
      part arguments. */
@@ -213,10 +206,11 @@ ChannelReplicatorMaster::~ChannelReplicatorMaster()
 }
 
 // as an example, the setTimeSpec function
-bool ChannelReplicatorMaster::setTimeSpec(const TimeSpec& ts)
+bool ChannelReplicatorMaster::setTimeSpec(const TimeSpec &ts)
 {
   // a time span of 0 is not acceptable
-  if (ts.getValiditySpan() == 0) return false;
+  if (ts.getValiditySpan() == 0)
+    return false;
 
   // set the master clock
   masterclock.changePeriodAndOffset(ts);
@@ -227,7 +221,7 @@ bool ChannelReplicatorMaster::setTimeSpec(const TimeSpec& ts)
 
 // the checkTiming function installs a check on the activity/activities
 // of the module
-bool ChannelReplicatorMaster::checkTiming(const vector<int>& i)
+bool ChannelReplicatorMaster::checkTiming(const vector<int> &i)
 {
   if (i.size() == 3) {
     new TimingCheck(do_calc, i[0], i[1], i[2]);
@@ -241,67 +235,67 @@ bool ChannelReplicatorMaster::checkTiming(const vector<int>& i)
   return true;
 }
 
-bool ChannelReplicatorMaster::
-setJoinNoticeChannel(const std::string& channelname)
+bool ChannelReplicatorMaster::setJoinNoticeChannel(
+  const std::string &channelname)
 {
   delete w_peernotice;
   try {
-    w_peernotice = new ChannelWriteToken
-      (getId(), NameSet(channelname), ReplicatorPeerJoined::classname,
-       getNameSet().name, Channel::Events);
+    w_peernotice = new ChannelWriteToken(getId(), NameSet(channelname),
+                                         ReplicatorPeerJoined::classname,
+                                         getNameSet().name, Channel::Events);
   }
-  catch(const std::exception& e) {
+  catch (const std::exception &e) {
     /* DUECA interconnect.
 
        Unforeseen failure in creating a write token for the notice
        channel for peer connections. Check how other modules
        interacting with this channel have specified channel
        properties. */
-    E_INT("Could not create write token on channel " << channelname <<
-          " cause: " << e.what());
+    E_INT("Could not create write token on channel " << channelname
+                                                     << " cause: " << e.what());
     return false;
   }
   return true;
 }
 
-bool ChannelReplicatorMaster::
-setPeerInformationChannel(const std::string& channelname)
+bool ChannelReplicatorMaster::setPeerInformationChannel(
+  const std::string &channelname)
 {
   delete r_peerinfo;
   try {
-    r_peerinfo = new ChannelReadToken
-      (getId(), NameSet(channelname), ReplicatorPeerAcknowledge::classname,
-       0, Channel::Events, Channel::OnlyOneEntry, Channel::ReadAllData);
+    r_peerinfo = new ChannelReadToken(
+      getId(), NameSet(channelname), ReplicatorPeerAcknowledge::classname, 0,
+      Channel::Events, Channel::OnlyOneEntry, Channel::ReadAllData);
   }
-  catch(const std::exception& e) {
+  catch (const std::exception &e) {
     /* DUECA interconnect.
 
        Unforeseen failure in creating a read token for the peer
        information channel. Check that this channel is being written to. */
-    E_INT("Could not create read token on channel " << channelname <<
-          " cause: " << e.what());
+    E_INT("Could not create read token on channel " << channelname
+                                                    << " cause: " << e.what());
     return false;
   }
   return true;
 }
 
-bool ChannelReplicatorMaster::
-setReplicatorInformationChannel(const std::string& channelname)
+bool ChannelReplicatorMaster::setReplicatorInformationChannel(
+  const std::string &channelname)
 {
   delete w_replicatorinfo;
   try {
-    w_replicatorinfo = new ChannelWriteToken
-      (getId(), NameSet(channelname), ReplicatorInfo::classname,
-       getNameSet().name, Channel::Events);
+    w_replicatorinfo = new ChannelWriteToken(
+      getId(), NameSet(channelname), ReplicatorInfo::classname,
+      getNameSet().name, Channel::Events);
   }
-  catch(const std::exception& e) {
+  catch (const std::exception &e) {
     /* DUECA interconnect.
 
        Unforeseen failure in creating a write token for the replicator
        information channel. Check how other modules interacting with
        this channel have specified channel properties. */
-    E_INT("Could not create write token on channel " << channelname <<
-          " cause: " << e.what());
+    E_INT("Could not create write token on channel " << channelname
+                                                     << " cause: " << e.what());
     return false;
   }
   return true;
@@ -312,9 +306,12 @@ bool ChannelReplicatorMaster::isPrepared()
 {
   bool res = true;
 
-  if (w_peernotice) CHECK_TOKEN(*w_peernotice);
-  if (r_peerinfo) CHECK_TOKEN(*r_peerinfo);
-  if (w_replicatorinfo) CHECK_TOKEN(*w_replicatorinfo);
+  if (w_peernotice)
+    CHECK_TOKEN(*w_peernotice);
+  if (r_peerinfo)
+    CHECK_TOKEN(*r_peerinfo);
+  if (w_replicatorinfo)
+    CHECK_TOKEN(*w_replicatorinfo);
 
   // return result of checks
   return res;
@@ -335,11 +332,12 @@ void ChannelReplicatorMaster::stopModule(const TimeSpec &time)
 // this routine contains the main simulation process of your module. You
 // should read the input channels here, and calculate and write the
 // appropriate output
-void ChannelReplicatorMaster::doCalculation(const TimeSpec& ts)
+void ChannelReplicatorMaster::doCalculation(const TimeSpec &ts)
 {
   // early return if delayed by timeout
-  if (do_calc.numScheduledBehind()) return;
-  
+  if (do_calc.numScheduledBehind())
+    return;
+
   doCycle(ts, do_calc);
 
   if (peers.size() == 0) {
@@ -348,9 +346,9 @@ void ChannelReplicatorMaster::doCalculation(const TimeSpec& ts)
   }
 }
 
-void ChannelReplicatorMaster::
-clientInfoPeerJoined(const std::string& address, unsigned id,
-                     const TimeSpec& ts)
+void ChannelReplicatorMaster::clientInfoPeerJoined(const std::string &address,
+                                                   unsigned id,
+                                                   const TimeSpec &ts)
 {
   DEB("Peer joined " << address << " peer id " << id);
   // inform about the presence of a new peer
@@ -361,8 +359,7 @@ clientInfoPeerJoined(const std::string& address, unsigned id,
   }
 
   // create room for timing information
-  peer_timing.emplace(std::piecewise_construct,
-                      std::forward_as_tuple(id), 
+  peer_timing.emplace(std::piecewise_construct, std::forward_as_tuple(id),
                       std::forward_as_tuple(ts_interval, timing_gain));
 }
 
@@ -375,18 +372,18 @@ clientInfoPeerJoined(const std::string& address, unsigned id,
 */
 static const UDPPeerConfig clientmark(UDPPeerConfig::ClientPayload);
 
-void ChannelReplicatorMaster::
-clientWelcomeConfig(AmorphStore& s, unsigned peer_id)
+void ChannelReplicatorMaster::clientWelcomeConfig(AmorphStore &s,
+                                                  unsigned peer_id)
 {
   unsigned filllevel = s.getSize();
   DEB("Welcome data to peer " << peer_id);
 
   for (channelmap_type::const_iterator cc = watched.begin();
-       cc != watched.end(); ) {
+       cc != watched.end();) {
     try {
       // add all configured channels and their entries
-      ReplicatorConfig cf(ReplicatorConfig::AddChannel, 0, cc->first,
-                          0, 0, cc->second->channelname);
+      ReplicatorConfig cf(ReplicatorConfig::AddChannel, 0, cc->first, 0, 0,
+                          cc->second->channelname);
       DEB(cf);
       ::packData(s, clientmark);
       ::packData(s, cf);
@@ -394,7 +391,7 @@ clientWelcomeConfig(AmorphStore& s, unsigned peer_id)
       // it worked, over to next channel, remember fill level
       filllevel = s.getSize();
     }
-    catch(const AmorphStoreBoundary& e) {
+    catch (const AmorphStoreBoundary &e) {
       // send over the buffer, and reset it to accept more data
       s.setSize(filllevel);
       flushStore(s, peer_id);
@@ -402,16 +399,14 @@ clientWelcomeConfig(AmorphStore& s, unsigned peer_id)
     }
 
     // all entries originating here,
-    for (WatchedChannel::readerlist_type::const_iterator
-           ee = cc->second->readers.begin();
-         ee != cc->second->readers.end(); ) {
+    for (WatchedChannel::readerlist_type::const_iterator ee =
+           cc->second->readers.begin();
+         ee != cc->second->readers.end();) {
       try {
         // add all configured channels and their entries
-        ReplicatorConfig cf(ReplicatorConfig::AddEntry, 0U,
-                            cc->first, (*ee)->getReplicatorEntryId(),
-                            dueca::entry_end,
-                            (*ee)->getLabel(),
-                            (*ee)->getEntryTimeAspect(),
+        ReplicatorConfig cf(ReplicatorConfig::AddEntry, 0U, cc->first,
+                            (*ee)->getReplicatorEntryId(), dueca::entry_end,
+                            (*ee)->getLabel(), (*ee)->getEntryTimeAspect(),
                             (*ee)->getEntryArity(), (*ee)->getPackingMode(),
                             (*ee)->getTransportClass());
         addDataClass(cf, (*ee)->getDataClass());
@@ -420,9 +415,10 @@ clientWelcomeConfig(AmorphStore& s, unsigned peer_id)
         ::packData(s, cf);
 
         // it worked, over to next reader, remember fill level
-        filllevel = s.getSize(); ee++;
+        filllevel = s.getSize();
+        ee++;
       }
-      catch(const AmorphStoreBoundary& e) {
+      catch (const AmorphStoreBoundary &e) {
 
         // send over the buffer, and reset it to accept more data
         s.setSize(filllevel);
@@ -432,25 +428,25 @@ clientWelcomeConfig(AmorphStore& s, unsigned peer_id)
     }
 
     // all entries from elsewhere, and written here
-    for (WatchedChannel::writerlist_type::const_iterator
-           ee = cc->second->writers.begin();
-         ee != cc->second->writers.end(); ) {
+    for (WatchedChannel::writerlist_type::const_iterator ee =
+           cc->second->writers.begin();
+         ee != cc->second->writers.end();) {
       try {
-        ReplicatorConfig cf(ReplicatorConfig::AddEntry, ee->second->getOrigin(),
-                            cc->first, ee->first, dueca::entry_end,
-                            ee->second->getLabel(),
-                            ee->second->getEntryTimeAspect(),
-                            ee->second->getEntryArity(), ee->second->getPackingMode(),
-                            ee->second->getTransportClass());
+        ReplicatorConfig cf(
+          ReplicatorConfig::AddEntry, ee->second->getOrigin(), cc->first,
+          ee->first, dueca::entry_end, ee->second->getLabel(),
+          ee->second->getEntryTimeAspect(), ee->second->getEntryArity(),
+          ee->second->getPackingMode(), ee->second->getTransportClass());
         addDataClass(cf, ee->second->getDataClass());
         DEB(cf);
         ::packData(s, clientmark);
         ::packData(s, cf);
 
         // it worked, over to next reader, remember fill level
-        filllevel = s.getSize(); ee++;
+        filllevel = s.getSize();
+        ee++;
       }
-      catch(const AmorphStoreBoundary& e) {
+      catch (const AmorphStoreBoundary &e) {
 
         // send over the buffer, and reset it to accept more data
         s.setSize(filllevel);
@@ -471,11 +467,17 @@ struct DEBANNOUNCE
 {
   bool p1;
   const std::string msg;
-  DEBANNOUNCE(const std::string& msg) : p1(true), msg(msg) {}
-  template<typename X>
-  void operator () (const X& x) {
-    if (p1) { DEB(msg); }
-    DEB(x); }
+  DEBANNOUNCE(const std::string &msg) :
+    p1(true),
+    msg(msg)
+  {}
+  template <typename X> void operator()(const X &x)
+  {
+    if (p1) {
+      DEB(msg);
+    }
+    DEB(x);
+  }
 };
 #else
 #define DEB_A(A)
@@ -495,7 +497,8 @@ struct DEBANNOUNCE
      ignore the ones from our own writers, and send deletion
      information on all others
 */
-void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer_id)
+void ChannelReplicatorMaster::clientSendConfig(const TimeSpec &ts,
+                                               unsigned peer_id)
 {
 #ifdef DEBDEF
   DEBANNOUNCE DEBA("Config data to all peers");
@@ -524,21 +527,23 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       WatchedChannel::writerlist_type::iterator ww =
         watched[cid]->writers.begin();
       while (ww != watched[cid]->writers.end() &&
-             ww->second->getEntryId() != ei->entry_id) ww++;
+             ww->second->getEntryId() != ei->entry_id)
+        ww++;
       writerlist_type::iterator wc = candidate_writers.begin();
       while (wc != candidate_writers.end() &&
-             wc->second->getEntryId() != ei->entry_id &&
-             wc->first != cid) wc++;
+             wc->second->getEntryId() != ei->entry_id && wc->first != cid)
+        wc++;
 
-      if (ww != watched[cid]->writers.end() ||
-          wc != candidate_writers.end()) {
-        DEB("channel " << cid <<
-            " ignoring callback on replicator-written entry# " <<
-            ei->entry_id <<
-            (ww != watched[cid]->writers.end() ?
-             " found in writers" : " found in candidates"));
-        uint16_t peerid = (ww != watched[cid]->writers.end() ?
-                           ww->second->getOrigin() : wc->second->getOrigin());
+      if (ww != watched[cid]->writers.end() || wc != candidate_writers.end()) {
+        DEB("channel " << cid
+                       << " ignoring callback on replicator-written entry# "
+                       << ei->entry_id
+                       << (ww != watched[cid]->writers.end()
+                             ? " found in writers"
+                             : " found in candidates"));
+        uint16_t peerid =
+          (ww != watched[cid]->writers.end() ? ww->second->getOrigin()
+                                             : wc->second->getOrigin());
         if (w_replicatorinfo) {
           DataWriter<ReplicatorInfo> p(*w_replicatorinfo, ts);
           p.data().mtype = ReplicatorInfo::AddEntry;
@@ -552,11 +557,9 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       else {
 
         // pack, to send to all peers
-        ReplicatorConfig cf(ReplicatorConfig::AddEntry, 0U,
-                            cid, rid, dueca::entry_end,
-                            ei->entry_label,
-                            ei->time_aspect, ei->arity, ei->packingmode,
-                            ei->transportclass);
+        ReplicatorConfig cf(ReplicatorConfig::AddEntry, 0U, cid, rid,
+                            dueca::entry_end, ei->entry_label, ei->time_aspect,
+                            ei->arity, ei->packingmode, ei->transportclass);
         addDataClass(cf, ei->data_class);
         ::packData(s, clientmark);
         ::packData(s, cf);
@@ -567,13 +570,12 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
         /* DUECA interconnect.
 
            Information on a local reading entry. */
-        I_INT("Enabled local reading entry in channel " <<
-              watched[cid]->channelname << " Rid " << rid);
+        I_INT("Enabled local reading entry in channel "
+              << watched[cid]->channelname << " Rid " << rid);
 
         // packing worked, proceed with creating entry in readers
-        watched[cid]->readers.push_back
-          (std::shared_ptr<EntryReader>
-           (new EntryReader(getId(), *ei, watched[cid]->channelname)));
+        watched[cid]->readers.push_back(std::shared_ptr<EntryReader>(
+          new EntryReader(getId(), *ei, watched[cid]->channelname)));
 
         if (w_replicatorinfo) {
           DataWriter<ReplicatorInfo> p(*w_replicatorinfo, ts);
@@ -593,7 +595,7 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       delete detected_entries.front();
       detected_entries.pop();
     }
-    catch (const AmorphStoreBoundary& e) {
+    catch (const AmorphStoreBoundary &e) {
       // send over the buffer, and reset it to accept more data
       s.setSize(filllevel);
       distributeConfig(s);
@@ -603,7 +605,7 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
 
   // check for new writers (from other nodes) or obsolete writers
   for (writerlist_type::iterator ww = candidate_writers.begin();
-       ww != candidate_writers.end(); ) {
+       ww != candidate_writers.end();) {
     try {
 
       // insert the candidate in the accepted writers, assign an
@@ -612,13 +614,11 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       uint16_t rid = watched[cid]->next_id;
 
       // transmit configuration on this new writer
-      ReplicatorConfig cf(ReplicatorConfig::AddEntry, ww->second->getOrigin(),
-                          cid, rid,
-                          ww->second->getReplicatorEntryId(),
-                          ww->second->getLabel(),
-                          ww->second->getEntryTimeAspect(),
-                          ww->second->getEntryArity(), ww->second->getPackingMode(),
-                          ww->second->getTransportClass());
+      ReplicatorConfig cf(
+        ReplicatorConfig::AddEntry, ww->second->getOrigin(), cid, rid,
+        ww->second->getReplicatorEntryId(), ww->second->getLabel(),
+        ww->second->getEntryTimeAspect(), ww->second->getEntryArity(),
+        ww->second->getPackingMode(), ww->second->getTransportClass());
       addDataClass(cf, ww->second->getDataClass());
       DEBA(clientmark);
       DEBA(cf);
@@ -634,16 +634,16 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       /* DUECA interconnect.
 
          Information on a local writing entry. */
-      I_INT("Enabled local writing entry in channel " <<
-            watched[cid]->channelname <<
-            " entry# " << ww->second->getEntryId() <<
-            " rid " << ww->second->getReplicatorEntryId());
+      I_INT("Enabled local writing entry in channel "
+            << watched[cid]->channelname << " entry# "
+            << ww->second->getEntryId() << " rid "
+            << ww->second->getReplicatorEntryId());
 
       // over to next writer, remember fill level
       candidate_writers.pop_front();
       ww = candidate_writers.begin();
     }
-    catch(const AmorphStoreBoundary& e) {
+    catch (const AmorphStoreBoundary &e) {
 
       // send over the buffer, and reset it to accept more data
       s.setSize(filllevel);
@@ -656,15 +656,15 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
   // a channel. Send information and delete; this will also delete
   // the write token
   for (writerlist_type::iterator ww = obsolete_writers.begin();
-       ww != obsolete_writers.end(); ) {
+       ww != obsolete_writers.end();) {
 
     try {
 
       uint16_t cid = ww->first;
       // pack, to send to all peers
       ReplicatorConfig cf(ReplicatorConfig::RemoveEntry,
-                          ww->second->getOrigin(),
-                          cid, ww->second->getReplicatorEntryId());
+                          ww->second->getOrigin(), cid,
+                          ww->second->getReplicatorEntryId());
       DEBA(clientmark);
       DEBA(cf);
       ::packData(s, clientmark);
@@ -675,10 +675,10 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
 
          Information on the removal of a local writing entry in a
          channel. */
-      I_INT("Removing local writing entry in channel " <<
-            watched[cid]->channelname <<
-            " entry# " << ww->second->getEntryId() <<
-            " rid " << ww->second->getReplicatorEntryId());
+      I_INT("Removing local writing entry in channel "
+            << watched[cid]->channelname << " entry# "
+            << ww->second->getEntryId() << " rid "
+            << ww->second->getReplicatorEntryId());
 
       if (w_replicatorinfo) {
         DataWriter<ReplicatorInfo> p(*w_replicatorinfo, ts);
@@ -692,7 +692,7 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       obsolete_writers.pop_front();
       ww = obsolete_writers.begin();
     }
-    catch(const AmorphStoreBoundary& e) {
+    catch (const AmorphStoreBoundary &e) {
 
       // send over the buffer, and reset it to accept more data
       s.setSize(filllevel);
@@ -713,17 +713,16 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       WatchedChannel::readerlist_type::iterator rr =
         watched[cid]->readers.begin();
 
-      while (rr != watched[cid]->readers.end() &&
-             (*rr)->getEntryId() != eid) rr++;
+      while (rr != watched[cid]->readers.end() && (*rr)->getEntryId() != eid)
+        rr++;
 
       if (rr == watched[cid]->readers.end()) {
 
         /* DUECA interconnect.
 
            Information on a change in a locally watched channel. */
-        I_INT("Channel " << watched[cid]->channelname <<
-              " removed entry# " << eid <<
-              " not in watched reader list");
+        I_INT("Channel " << watched[cid]->channelname << " removed entry# "
+                         << eid << " not in watched reader list");
       }
       else {
         ReplicatorConfig cf(ReplicatorConfig::RemoveEntry, 0U, cid,
@@ -737,10 +736,8 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
         /* DUECA interconnect.
 
            Information on removing a local entered entry. */
-        I_INT("Channel " <<
-              watched[cid]->channelname <<
-              " removing entry# " << eid <<
-              " rid " << (*rr)->getReplicatorEntryId());
+        I_INT("Channel " << watched[cid]->channelname << " removing entry# "
+                         << eid << " rid " << (*rr)->getReplicatorEntryId());
 
         if (w_replicatorinfo) {
           DataWriter<ReplicatorInfo> p(*w_replicatorinfo, ts);
@@ -756,7 +753,7 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
       delete deleted_entries.front();
       deleted_entries.pop();
     }
-    catch(const AmorphStoreBoundary& e) {
+    catch (const AmorphStoreBoundary &e) {
 
       // send over the buffer, and reset it to accept more data
       s.setSize(filllevel);
@@ -771,9 +768,8 @@ void ChannelReplicatorMaster::clientSendConfig(const TimeSpec& ts, unsigned peer
   }
 }
 
-
-void ChannelReplicatorMaster::
-clientDecodeConfig(AmorphReStore& s, unsigned peer_id)
+void ChannelReplicatorMaster::clientDecodeConfig(AmorphReStore &s,
+                                                 unsigned peer_id)
 {
 #ifdef DEBDEF
   DEBANNOUNCE DEBA("Decoding data from peer " +
@@ -789,7 +785,7 @@ clientDecodeConfig(AmorphReStore& s, unsigned peer_id)
     ReplicatorConfig cmd(s);
     DEB("decode config " << cmd);
 
-    switch(cmd.mtype) {
+    switch (cmd.mtype) {
     case ReplicatorConfig::AddEntry: {
 
       // throws and stops all if the dataclass tree is wrong
@@ -797,31 +793,32 @@ clientDecodeConfig(AmorphReStore& s, unsigned peer_id)
 
       // add the entry to the candidate writers, this addition
       // will be processed in sendChannelConfigChanges
-      candidate_writers.push_back
-        (make_pair
-         (cmd.channel_id, std::shared_ptr<EntryWriter>
-          (new EntryWriter
-           (getId(), peer_id, cmd.tmp_entry_id,
-            watched[cmd.channel_id]->channelname,
-            cmd.dataclass.front(), cmd.data_magic.front(), cmd.name,
-            cmd.time_aspect, cmd.arity, cmd.packmode, cmd.tclass, getId()))));
+      candidate_writers.push_back(
+        make_pair(cmd.channel_id,
+                  std::shared_ptr<EntryWriter>(new EntryWriter(
+                    getId(), peer_id, cmd.tmp_entry_id,
+                    watched[cmd.channel_id]->channelname, cmd.dataclass.front(),
+                    cmd.data_magic.front(), cmd.name, cmd.time_aspect,
+                    cmd.arity, cmd.packmode, cmd.tclass, getId()))));
 
       /* DUECA interconnect.
 
          Information on adding a local entered entry. */
-      I_INT("Adding writer entry to candidates, from " <<
-            cmd.slave_id << " RidT " << cmd.tmp_entry_id);
+      I_INT("Adding writer entry to candidates, from "
+            << cmd.slave_id << " RidT " << cmd.tmp_entry_id);
 
       break;
     }
-    case  ReplicatorConfig::RemoveEntry: {
+    case ReplicatorConfig::RemoveEntry: {
 
       // find the entry, and move it to the obsoletes, so it can be
       // notified and deleted
       WatchedChannel::writerlist_type::iterator ww =
         watched[cmd.channel_id]->writers.begin();
       while (ww != watched[cmd.channel_id]->writers.end() &&
-             ww->first != cmd.entry_id) { ww++; }
+             ww->first != cmd.entry_id) {
+        ww++;
+      }
 
       // check we found it
       if (ww == watched[cmd.channel_id]->writers.end()) {
@@ -829,8 +826,9 @@ clientDecodeConfig(AmorphReStore& s, unsigned peer_id)
 
            There is an issue with removing a writer entry from a
            channel. Indicates a DUECA programming error. */
-        W_INT("Cannot remove writer entry id " << cmd.entry_id <<
-              " from channel " << watched[cmd.channel_id]->channelname);
+        W_INT("Cannot remove writer entry id "
+              << cmd.entry_id << " from channel "
+              << watched[cmd.channel_id]->channelname);
         break;
       }
 
@@ -848,7 +846,7 @@ clientDecodeConfig(AmorphReStore& s, unsigned peer_id)
       E_INT("Incorrect request from peer " << cmd.mtype);
     }
   }
-  catch (const dueca::AmorphReStoreEmpty& e) {
+  catch (const dueca::AmorphReStoreEmpty &e) {
 
     /* DUECA interconnect.
 
@@ -863,8 +861,8 @@ clientDecodeConfig(AmorphReStore& s, unsigned peer_id)
   }
 }
 
-NetCommunicatorMaster::VettingResult ChannelReplicatorMaster::
-clientAuthorizePeer(CommPeer& peer, const TimeSpec& ts)
+NetCommunicatorMaster::VettingResult
+ChannelReplicatorMaster::clientAuthorizePeer(CommPeer &peer, const TimeSpec &ts)
 {
   DEB("Authorizing peer " << peer.send_id);
   // first check up the peerinfo channel
@@ -899,10 +897,9 @@ clientAuthorizePeer(CommPeer& peer, const TimeSpec& ts)
   return Delay;
 }
 
-
 /* walk through all watched & written entries, and make these obsolete */
-void ChannelReplicatorMaster::
-clientInfoPeerLeft(unsigned peer_id, const TimeSpec& ts)
+void ChannelReplicatorMaster::clientInfoPeerLeft(unsigned peer_id,
+                                                 const TimeSpec &ts)
 {
   DEB("Goodbye to peer " << peer_id);
   if (w_replicatorinfo) {
@@ -912,14 +909,14 @@ clientInfoPeerLeft(unsigned peer_id, const TimeSpec& ts)
   }
 
   // clear matching entries
-  for (channelmap_type::iterator cc = watched.begin();
-       cc != watched.end(); cc++) {
+  for (channelmap_type::iterator cc = watched.begin(); cc != watched.end();
+       cc++) {
 
     // move from the writers to a list with obsoletes; will be
     // cleaned in the config update
     for (WatchedChannel::writerlist_type::iterator ww =
            cc->second->writers.begin();
-         ww != cc->second->writers.end(); ) {
+         ww != cc->second->writers.end();) {
       if (ww->second->getOrigin() == peer_id) {
         obsolete_writers.push_back(make_pair(cc->first, ww->second));
         WatchedChannel::writerlist_type::iterator toerase = ww;
@@ -932,9 +929,8 @@ clientInfoPeerLeft(unsigned peer_id, const TimeSpec& ts)
     }
 
     // directly remove from candidate writers
-    for (writerlist_type::iterator
-           ww = candidate_writers.begin();
-         ww != candidate_writers.end(); ) {
+    for (writerlist_type::iterator ww = candidate_writers.begin();
+         ww != candidate_writers.end();) {
       if (ww->second->getOrigin() == peer_id && ww->first == cc->first) {
         ww = candidate_writers.erase(ww);
       }
@@ -945,9 +941,8 @@ clientInfoPeerLeft(unsigned peer_id, const TimeSpec& ts)
   }
 }
 
-
-bool ChannelReplicatorMaster::watchChannels
-(const std::vector<std::string> &chlist)
+bool ChannelReplicatorMaster::watchChannels(
+  const std::vector<std::string> &chlist)
 {
   // continue numbering with size of watched map
   channel_id_t channel_id = watched.size();
@@ -955,8 +950,8 @@ bool ChannelReplicatorMaster::watchChannels
   // add all named channels to the watched list
   for (std::vector<std::string>::const_iterator ii = chlist.begin();
        ii != chlist.end(); ii++) {
-    watched[channel_id] = std::shared_ptr<WatchedChannel>
-      (new WatchedChannel(*ii, channel_id, this));
+    watched[channel_id] = std::shared_ptr<WatchedChannel>(
+      new WatchedChannel(*ii, channel_id, this));
     channel_id++;
   }
 
@@ -964,19 +959,16 @@ bool ChannelReplicatorMaster::watchChannels
   return true;
 }
 
-void ChannelReplicatorMaster::clientUnpackPayload
-(MessageBuffer::ptr_type buffer, unsigned peer_id,
- TimeTickType current_tick, TimeTickType i_peertick, int usecoffset)
+void ChannelReplicatorMaster::clientUnpackPayload(
+  MessageBuffer::ptr_type buffer, unsigned peer_id, TimeTickType current_tick,
+  TimeTickType i_peertick, int usecoffset)
 {
   peer_timing[peer_id].adjustDelta(current_tick, i_peertick, false);
-  ChannelReplicator::_clientUnpackPayload
-    (buffer, peer_id, peer_timing[peer_id]);
+  ChannelReplicator::_clientUnpackPayload(buffer, peer_id,
+                                          peer_timing[peer_id]);
 }
 
-
-
 ENDNSREPLICATOR
-
 
 // Make a TypeCreator object for this module, the TypeCreator
 // will check in with the script code, and enable the

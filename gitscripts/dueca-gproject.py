@@ -163,7 +163,7 @@ _dueca_cnf_defaults = {
     }
 
 def _gui_choices():
-    return ('none', 'gtk3', 'gtk2', 'glut', 'glut-gui')
+    return ('none', 'gtk4', 'gtk3', 'gtk2', 'glut', 'glut-gui')
 
 
 def read_transform_and_write(f0, f1, subst, insert=None):

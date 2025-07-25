@@ -1,3 +1,6 @@
+if(BUILD_GLFW)
+  add_subdirectory(glfw)
+endif()
 if(BUILD_GTK2 AND BUILD_GTKGLEXT)
   add_subdirectory(gtk2)
 endif()

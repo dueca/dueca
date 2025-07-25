@@ -33,7 +33,7 @@ Component selection options:
         --dusime           # DUSIME objects
         --inter            # DUECA process intercommunication
         --hdf5             # HDF5 logging utilities
-	--ddff             # DDFF data file format logging
+	    --ddff             # DDFF data file format logging
         --rtw53 / --rtwv30 # Real-time workshop 3.0, from Matlab 5.3
         --rtw60 / --rtwv40 # Real-time workshop 4.0, from Matlab 6.0
         --rtw61 / --rtwv41 # Real-time workshop 4.1, from Matlab 6.1
@@ -73,6 +73,7 @@ Component selection options:
         --glut-gui         # include glui-gui (glui) based framework
         --fltk             # include fltk-based framework
         --x11              # include components that use x11 directly
+        --glfw             # include glfw windowing for GL
         --qt               # add qt, only possible with gtk2
         --python           # scripting interface with python
         --scheme           # scripting interface with scheme (default)
@@ -309,6 +310,9 @@ case $OPTION in
                 --x11)
                     PKGS="$PKGS dueca-extra-x11"
                     ;;
+                --glfw)
+                    PKGS="$PKGS dueca-extra-glfw"
+                    ;;
                 --extra)
                     PKGS="$PKGS dueca-extra\${SCRIPTSUFFIX}"
                     OPTEXTRA=1
@@ -425,8 +429,7 @@ case $OPTION in
                         PKGS="$PKGS dueca-extra-gtkmm"
                         ;;
                     --gtkmm3)
-                        # no content yet
-                        # PKGS="$PKGS dueca-extra-gtkmm3"
+                        PKGS="$PKGS dueca-extra-gtkmm3"
                         ;;
                     --gtk3)
                         PKGS="$PKGS dueca-extra-gtk3"
@@ -451,6 +454,9 @@ case $OPTION in
                     --x11)
                         PKGS="$PKGS dueca-extra-x11"
                         EXTRAGUI="dueca-extra\${SCRIPTSUFFIX}"
+                        ;;
+                    --glfw)
+                        PKGS="$PKGS dueca-extra-glfw"
                         ;;
                 esac
             done

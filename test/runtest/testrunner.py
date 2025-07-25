@@ -134,7 +134,7 @@ class Project:
 
 
 class Execute:
-    def __init__(self, platform=None, node=None, xmlnode=None, xmlroot=None):
+    def __init__(self, platform=None, node=None, command="./dueca_run.x", xmlnode=None, xmlroot=None):
 
         if xmlroot is not None and platform and node:
             self.xmlnode = etree.SubElement(xmlroot, "execute")
@@ -142,14 +142,18 @@ class Execute:
             self.platform = platform
             etree.SubElement(self.xmlnode, "node").text = node
             self.node = node
+            etree.SubElement(self.xmlnode, "command").text = command
+            self.command = command
 
         elif xmlnode is not None:
-            self.platform, self.node = None, None
+            self.platform, self.node, self.command = None, None, "./dueca_run.x"
             for elt in xmlnode:
                 if XML_tag(elt, "platform"):
                     self.platform = elt.text.strip()
                 elif XML_tag(elt, "node"):
                     self.node = elt.text.strip()
+                elif XML_tag(elt, "command"):
+                    self.command = elt.text.strip()
                 elif XML_comment(elt):
                     pass
                 else:
@@ -494,6 +498,7 @@ class Scenario:
             self.project = None
             self.actions = []
             self.version = None
+            self.buildoptions = []
             self.offset = None
 
             # read from file
@@ -513,6 +518,8 @@ class Scenario:
                             self.repository = node.text.strip()
                         elif XML_tag(node, "version"):
                             self.version = node.text.strip()
+                        elif XML_tag(node, "buildoptions"):
+                            self.buildoptions = node.text.strip().split()
                         elif XML_tag(node, "execute"):
                             self.processes.append(Execute(xmlnode=node))
                         elif XML_tag(node, "actions"):
@@ -649,13 +656,14 @@ class Scenario:
 
 class DuecaRunner:
 
-    def __init__(self, project, base, repository, version=None):
+    def __init__(self, project, base, repository, version=None, buildoptions=None):
         print(f"Creating runner {project}")
         self.project = project
         self.pdir = f"{base}/{project}/{project}"
         self.base = base
         self.repository = repository
         self.version = version
+        self.buildoptions = buildoptions or []
         self.running = []
 
     def prepare(self):
@@ -728,9 +736,8 @@ class DuecaRunner:
                 )
 
             c1 = subprocess.run(
-                "dueca-gproject build",
+                ["dueca-gproject",  "build"] + self.buildoptions,
                 cwd=f"{self.pdir}",
-                shell=True,
                 stderr=subprocess.PIPE,
             )
             if c1.returncode != 0:
@@ -757,36 +764,48 @@ class DuecaRunner:
                     f"{c1.stderr}"
                 )
 
-            # rebuild if switched
-            if c1.stderr.startswith(b"Switched"):
+            # rebuild, options might be different
 
-                c1 = subprocess.run(
-                    "dueca-gproject build --clean",
-                    cwd=f"{self.pdir}",
-                    shell=True,
-                    stderr=subprocess.PIPE,
+            c1 = subprocess.run(
+                "dueca-gproject build --clean",
+                cwd=f"{self.pdir}",
+                shell=True,
+                stderr=subprocess.PIPE,
+            )
+            if c1.returncode != 0:
+                raise RuntimeError(
+                    f"Failing clean for {self.project}:\n{c1.stderr}"
                 )
-                if c1.returncode != 0:
-                    raise RuntimeError(
-                        f"Failing clean for {self.project}:\n{c1.stderr}"
-                    )
-                
-                c1 = subprocess.run(
-                    "dueca-gproject build --debug",
-                    cwd=f"{self.pdir}",
-                    shell=True,
-                    stderr=subprocess.PIPE,
+            
+            c1 = subprocess.run(
+                ["dueca-gproject", "build"] + self.buildoptions,
+                cwd=f"{self.pdir}",
+                stderr=subprocess.PIPE,
+                text=True
+            )
+
+            if c1.returncode != 0:
+                raise RuntimeError(
+                    f"Failing build for {self.project}:\n{c1.stderr}"
                 )
 
-                if c1.returncode != 0:
-                    raise RuntimeError(
-                        f"Failing build for {self.project}:\n{c1.stderr}"
-                    )
-
-    async def _runDueca(self, platform="solo", node="solo"):
+    async def _runDueca(self, platform="solo", node="solo", command="./dueca_run.x"):
         print(f"runDueca for project {self.project}, p:{platform} n:{node}")
 
         rdir = f"{self.pdir}/run/{platform}/{node}"
+
+        # hackety hack, someone scrubbed my LD_LIBRARY_PATH
+        envdict = dict(os.environ)
+        # print(envdict)
+        if envdict.get("LD_LIBRARY_PATH", None) is None:
+            envdict["LD_LIBRARY_PATH"] = "/tmp/lib64:/tmp/lib"
+        for p in envdict["PATH"].split(":"):
+            if os.path.exists(f"{p}/dueca-gproject"):
+                break
+        else:
+            # development version in /tmp?
+            envdict["PATH"] = envdict["PATH"] + ":/tmp/bin"
+        print(f"set path to {envdict['PATH']}")
 
         cmpl = subprocess.run(
             ("source", "clean.script"),
@@ -807,22 +826,11 @@ class DuecaRunner:
         )
         if cmpl.returncode != 0:
             print(f"Failure to run links.script:\n{cmpl.stderr}")
-
-        # hackety hack, someone scrubbed my LD_LIBRARY_PATH
-        envdict = dict(os.environ)
-        # print(envdict)
-        if envdict.get("LD_LIBRARY_PATH", None) is None:
-            envdict["LD_LIBRARY_PATH"] = "/tmp/lib64:/tmp/lib"
-        for p in envdict["PATH"].split(":"):
-            if os.path.exists(f"{p}/dueca-gproject"):
-                break
-        else:
-            # development version in /tmp?
-            envdict["PATH"] = envdict["PATH"] + ":/tmp/bin"
+        print("Cleaning and links")
 
         print(f"using display {envdict.get('DISPLAY')}")
         duecaprocess = await asyncio.create_subprocess_shell(
-            f"./dueca_run.x",
+            command,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=rdir,
@@ -835,10 +843,11 @@ class DuecaRunner:
         print(f"\nNormal out {node}\n{stdout.decode()}")
         print(f"\nError out {node}\n{stderr.decode()}")
 
-    def runDueca(self, platform="solo", node="solo"):
+    def runDueca(self, platform="solo", node="solo", command="./dueca_run.x"):
+        print(f"Appending runner {platform}/{node}, {command}")
         self.running.append(
             # asyncio.ensure_future(self._runDueca(platform, node)))
-            self._runDueca(platform, node)
+            self._runDueca(platform, node, command)
         )
 
     def allComplete(self):
@@ -920,7 +929,7 @@ scenario = Scenario(fname=pres.control)
 
 # prepare the executable
 runner = DuecaRunner(
-    scenario.project.name, pres.base, scenario.repository, scenario.version
+    scenario.project.name, pres.base, scenario.repository, scenario.version, scenario.buildoptions
 )
 runner.prepare()
 
@@ -929,7 +938,7 @@ print(f"Code preparation took {tprep}s")
 
 # run the different dueca processes
 for p in scenario.processes:
-    runner.runDueca(p.platform, p.node)
+    runner.runDueca(p.platform, p.node, p.command)
 
 
 async def main():

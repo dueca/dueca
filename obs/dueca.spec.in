@@ -84,6 +84,7 @@ BuildRequires: librsvg2-tools
 %endif
 BuildRequires: gcc-c++
 BuildRequires: freeglut-devel
+BuildRequires: glfw-devel
 BuildRequires: graphviz
 %if 0%{?suse_version}
 BuildRequires: graphviz-gd
@@ -502,6 +503,8 @@ getent group rtdueca || groupadd rtdueca
 %{_libdir}/libdueca-extra.so.*
 %{_libdir}/libdueca-extra-glut.so.*
 %{_libdir}/libdueca-extra-gtk2.so.*
+%{_libdir}/libdueca-extra-glfw.so.*
+
 %if 0%{?gtkmm_config}
 %{_libdir}/libdueca-extra-gtkmm.so.*
 %endif
@@ -596,6 +599,7 @@ getent group rtdueca || groupadd rtdueca
 %{_libdir}/libdueca-extra-glut-??.%{startsoa}
 %{_libdir}/libdueca-extra-gtk2.%{so_or_a}
 %{_libdir}/libdueca-extra-gtk2-??.%{startsoa}
+%{_libdir}/libdueca-extra-glfw.%{so_or_a}
 %if 0%{?gtkmm_config}
 %{_libdir}/libdueca-extra-gtkmm.%{so_or_a}
 %endif

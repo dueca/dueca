@@ -13,6 +13,10 @@ else()
   find_program(INKSCAPE inkscape)
 endif()
 
+if (ALSO_INIT_GLUT)
+  find_package(GLUT REQUIRED)
+endif()
+
 pkg_check_modules(GTK2 REQUIRED gtk+-2.0)
 pkg_check_modules(GLADE2 REQUIRED libglade-2.0)
 
@@ -37,7 +41,7 @@ set(INCDIRS ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}
 dueca_add_library(dueca-gtk2
   SOURCES ${SOURCES}
   LINKLIBS dueca ${GLADE2_LIBRARIES} ${GTK2_LIBRARIES} ${X11_LIBRARIES}
-  ${GLUT_LIBS}
+  ${GLUT_LIBRARIES}
   INCLUDEDIRS ${INCDIRS}
   LINKDIRS ${GLADE2_LIBRARY_DIRS} ${GTK2_LIBRARY_DIRS}
   COMPILEOPTIONS ${GTK2_CFLAGS} ${GLADE2_CFLAGS})

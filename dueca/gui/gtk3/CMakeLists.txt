@@ -6,7 +6,6 @@
 #       copyright       : (c) 2016 TUDelft-AE-C&S
 
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-find_package(GLUT REQUIRED)
 
 set(INSTALLHEADERS GtkGladeWindow.hxx GtkCaller.hxx GladeException.hxx)
 
@@ -32,7 +31,7 @@ add_compile_options(${GTK3_CFLAGS})
 # script-independent lib
 dueca_add_library(dueca-gtk3
   SOURCES ${SOURCES}
-  LINKLIBS dueca ${GTK3_LIBRARIES} ${X11_LIBRARIES} ${GLUT_LIBS} ${GL_LIBRARIES}
+  LINKLIBS dueca ${GTK3_LIBRARIES} ${X11_LIBRARIES} ${GLUT_LIBRARIES} ${GL_LIBRARIES}
   LINKDIRS ${GTK3_LIBRARY_DIRS} ${GLUT_LIBRARY_DIRS}
   INCLUDEDIRS ${INCDIRS})
 

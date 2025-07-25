@@ -13,6 +13,8 @@
           minOccurs="1" maxOccurs="1" />
         <xs:element name="version" type="xs:string"
           minOccurs="0" maxOccurs="1" />
+        <xs:element name="buildoptions" type="xs:string"
+          minOccurs="0" maxOccurs="1" />
         <xs:element name="execute" type="execute_t"
           minOccurs="1" maxOccurs="unbounded" />
         <xs:element name="offset" type="offset_t"
@@ -37,6 +39,8 @@
         minOccurs="1" maxOccurs="1" />
       <xs:element name="node" type="xs:string"
         minOccurs="1" maxOccurs="1" />
+      <xs:element name="command" type="xs:string"
+        minOccurs="0" maxOccurs="1" />
     </xs:sequence>
   </xs:complexType>
 

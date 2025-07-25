@@ -274,7 +274,7 @@ protected:
   */
   peer_cycles_type                    peer_cycles;
 
-  /** Global communication cycle counter. The master updates it's
+  /** Global communication cycle counter. The master updates its
       message cycle if confirmation has been received that all peers
       completed a message, the peers follow the cycle
       indicated/transmitted by the master.

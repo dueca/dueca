@@ -253,7 +253,7 @@ public:
       for that.
 
       @param do_select  When false, resets the GC */
-  void selectGraphicsContext(bool do_select=true);
+  bool selectGraphicsContext(bool do_select=true);
 
   /** Destructor */
   virtual ~BareDuecaGLWindow();

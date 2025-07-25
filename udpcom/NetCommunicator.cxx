@@ -37,7 +37,7 @@
 
 #ifdef BUILD_TESTOPT
 static const double test_failprob = 0.001;
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #else
 #define DEBPRINTLEVEL -1
 #endif

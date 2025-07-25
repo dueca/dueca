@@ -14,7 +14,7 @@
   </project>
   <!-- specify the repository -->
   <repository>https://github.com/dueca/</repository>
-  <version>gtk4</version>
+  <buildoptions>-DUSE_GTK4=ON</buildoptions>
   <!-- Each execute given here starts a DUECA process.
 
        Supply platform and node, you can use multiple 'execute' tags,

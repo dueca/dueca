@@ -7,9 +7,11 @@
     <window>Are you serious?</window>
   </project>
   <repository>https://github.com/dueca/</repository>
+  <buildoptions>-DUSE_GTK3=ON</buildoptions>
   <execute>
     <platform>solo</platform>
     <node>websock</node>
+    <command>./runscript</command>
   </execute>
   <offset x="1" y="-10" />
   <actions>
@@ -107,8 +109,9 @@
       wait="0.2" />
     <click window="DUECA/DUSIME control panel" x="60" y="35" button="Button.left" pressed="false"
       wait="0.2" />
-    <check window="Are you serious?" x="12" y="26" r="248" g="248" b="247" timeout="10.0" wait="0.5"/>
-    <click window="Are you serious?" x="12" y="26" button="Button.left" pressed="true" wait="0.2"/>
-    <click window="DUECA/DUSIME control panel" x="144" y="155" button="Button.left" pressed="false" wait="0.2"/>
+    <check window="Are you serious?" x="12" y="26" r="248" g="248" b="247" timeout="10.0" wait="0.5" />
+    <click window="Are you serious?" x="12" y="26" button="Button.left" pressed="true" wait="0.2" />
+    <click window="DUECA/DUSIME control panel" x="144" y="155" button="Button.left" pressed="false"
+      wait="0.2" />
   </actions>
 </scenario>

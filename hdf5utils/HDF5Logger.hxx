@@ -28,16 +28,13 @@
 #include <DUECALogStatus.hxx>
 
 // additional helpers and includes
-#include "ChannelWatcher.hxx"
 #include <H5Cpp.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 // include headers for functions/classes you need in the module
 #include "HdfLogNamespace.hxx"
 #include "HDF5DCOWriteFunctor.hxx"
-#include "HDF5DCOReadFunctor.hxx"
 #include "HDF5DCOMetaFunctor.hxx"
-#include <map>
 #include <list>
 #include <string>
 #include <memory>
@@ -61,7 +58,7 @@ USING_DUECA_NS;
 
     There is a warning, however. Not all data type logging is equally easy
     with hdf5, it works well for fixed-size stuff, but for variable-length
-    arrays, strings, etc., and high data rates, hfd5 logging is 
+    arrays, strings, etc., and high data rates, hfd5 logging is
     computationally intensive.
 
     If you find that the hdf5 logging is taking up too much time, which
@@ -190,14 +187,20 @@ private: // simulation data
   DataTimeSpec alltime;
 
   /** Reducing time specification? */
-  DataTimeSpec *reduction;
+  boost::scoped_ptr<DataTimeSpec> reduction;
+
+  /** Timing for reports */
+  boost::scoped_ptr<PeriodicTimeSpec> reporting;
 
 private: // channel reading
   /// Optionally taking config commands from user control
   boost::scoped_ptr<ChannelReadToken> r_config;
 
+  /// Channel name for the status feedback
+  std::string status_channelname;
+
   /// Feedback on logging status
-  ChannelWriteToken w_status;
+  boost::scoped_ptr<ChannelWriteToken> w_status;
 
   /// Send some status message
   void sendStatus(const std::string &msg, bool error, TimeTickType moment);
@@ -264,6 +267,9 @@ private:
 
   /** Listen to a channel with configuration commands */
   bool setConfigChannel(const std::string &cname);
+
+  /** Adapt the interval for status messages */
+  bool setStatusInterval(const TimeSpec &interval);
 
 private: // member functions for cooperation with DUECA
   /** indicate that everything is ready. */

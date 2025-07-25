@@ -192,15 +192,15 @@ set(DLIBS
 
 # manual work, to force insertion of the code
 set(dlinkflags
-  "-L../dueca \
-   -L../dueca/gui/gtk3 \
-   -L../dueca/gui/glut \
-   -L../dusime \
-   -L../dusime/gui/gtk3 \
-   -L../extra \
-   -L../extra/gui/gtk3 \
-   -L../extra/gui/glut \
-   -L../inter \
+  "-L${CMAKE_BINARY_DIR}/dueca \
+   -L${CMAKE_BINARY_DIR}/dueca/gui/gtk3 \
+   -L${CMAKE_BINARY_DIR}/dueca/gui/glut \
+   -L${CMAKE_BINARY_DIR}/dusime \
+   -L${CMAKE_BINARY_DIR}/dusime/gui/gtk3 \
+   -L${CMAKE_BINARY_DIR}/extra \
+   -L${CMAKE_BINARY_DIR}/extra/gui/gtk3 \
+   -L${CMAKE_BINARY_DIR}/extra/gui/glut \
+   -L${CMAKE_BINARY_DIR}/inter \
    -Wl,${ldundef}InitIp \
    -Wl,${ldundef}InitShm \
    -Wl,${ldundef}InitInter \
@@ -218,7 +218,7 @@ if (BUILD_HDF5)
     hdf5-replayer.scm:hdf5-replayer )
   list(APPEND DLIBSL dueca-hdf-${SF} )
   list(APPEND DLIBS dueca-hdf )
-  set(dlinkflags "${dlinkflags} -L../hdf5utils -Wl,${ldundef}InitHDF5")
+  set(dlinkflags "${dlinkflags} -L${CMAKE_BINARY_DIR}/hdf5utils -Wl,${ldundef}InitHDF5")
 endif()
 
 if (BUILD_UDP)
@@ -227,7 +227,7 @@ if (BUILD_UDP)
     dueca-net-master.scm:NetMaster)
   list(APPEND DLIBSL dueca-udp-${SF} )
   list(APPEND DLIBS dueca-udp)
-  set(dlinkflags "${dlinkflags} -L../udpcom -Wl,${ldundef}InitUDPCom")
+  set(dlinkflags "${dlinkflags} -L${CMAKE_BINARY_DIR}/udpcom -Wl,${ldundef}InitUDPCom")
 endif()
 
 if (BUILD_WEBSOCK)
@@ -236,7 +236,7 @@ if (BUILD_WEBSOCK)
     config-storage.scm:config-storage)
   list(APPEND DLIBSL dueca-websock-${SF} )
   list(APPEND DLIBS dueca-websock)
-  set(dlinkflags "${dlinkflags} -L../websock -Wl,${ldundef}InitWebSock")
+  set(dlinkflags "${dlinkflags} -L${CMAKE_BINARY_DIR}/websock -Wl,${ldundef}InitWebSock")
 endif()
 
 if (BUILD_DDFF)
@@ -244,7 +244,7 @@ if (BUILD_DDFF)
     ddff-logger.scm:ddff-logger)
   list(APPEND DLIBS dueca-ddff dueca-ddfflog)
   list(APPEND DLIBSL dueca-ddfflog-${SF} )
-  set(dlinkflags "${dlinkflags} -L../ddfflog -Wl,${ldundef}InitDDFFLog")
+  set(dlinkflags "${dlinkflags} -L${CMAKE_BINARY_DIR}/ddfflog -L${CMAKE_BINARY_DIR}/ddff -Wl,${ldundef}InitDDFFLog")
 endif()
 
 
@@ -284,8 +284,8 @@ foreach(_SCM ${SCMFILEN})
   add_custom_command(
     OUTPUT ${SCM}
     COMMAND DUECA_SCRIPTINSTRUCTIONS=${MOD}
-    LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff
-    DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff
+    LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff:${CMAKE_BINARY_DIR}/ddfflog
+    DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/dueca:${CMAKE_BINARY_DIR}/extra:${CMAKE_BINARY_DIR}/inter:${CMAKE_BINARY_DIR}/dusime:${CMAKE_BINARY_DIR}/dueca/gui/gtk3:${CMAKE_BINARY_DIR}/dueca/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/glut:${CMAKE_BINARY_DIR}/extra/gui/X11:${CMAKE_BINARY_DIR}/extra/gui/gtk3:${CMAKE_BINARY_DIR}/dusime/gui/gtk3:${CMAKE_BINARY_DIR}/hdf5utils:${CMAKE_BINARY_DIR}/udpcom:${CMAKE_BINARY_DIR}/websock:${CMAKE_BINARY_DIR}/ddff:${CMAKE_BINARY_DIR}/ddfflog
     ${CMAKE_CURRENT_BINARY_DIR}/dueca_run.x > ${CMAKE_CURRENT_BINARY_DIR}/${SCM}
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dueca_run.x
     )

@@ -11,6 +11,7 @@
 
 (Type vstring "#include <stringoptions.h>")
 (Type bool)
+(Type uint64_t "#include <inttypes.h>")
 
 ;; Status feedback for hdf logging
 (Event DUECALogStatus
@@ -18,4 +19,6 @@
        (vstring status)
        ;; Error flag, indicating an error or problem
        (bool error (Default false))
+       ;; Current log file size
+       (uint64_t loggedsize (Default 0))
        )
