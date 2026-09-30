@@ -2,6 +2,20 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## [4.3.3] - 2026-09-30
+
+### Changed
+
+- Fix to InputCalibratorRanging
+- Remove need QNX shell def for GenericStart
+- Add glf2 to debian packaging
+- Improvements prepare platform defaults dueca-gproject
+- DUECA start scripts now will use a 'runscript' script
+
+### Added
+
+- Test case for InputCalibratorRanging
+
 ## [4.3.2] - 2026-08-11
 
 ### Changed
