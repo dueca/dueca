@@ -5,7 +5,7 @@ set(SOURCES BareDuecaGLWindow.cxx BareDuecaGLWindow.hxx)
 
 dueca_add_library(dueca-extra-X11
   SOURCES ${SOURCES}
-  LINKLIBS dueca-extra ${GL_LIBRARIES} ${X11_LIBRARIES}
+  LINKLIBS dueca-extra ${EPOXY_LIBRARIES} ${GL_LIBRARIES} ${X11_LIBRARIES}
   ${X11_Xext_LIB} ${X11_Xi_LIB}
   LINKDIRS ${GL_LIBRARY_DIRS}
   INCLUDEDIRS ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}

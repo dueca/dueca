@@ -29,6 +29,7 @@ namespace dueca {
     another double as output. The application for this in DUECA is as
     an input calibrator for IO signals, see also the InputCalibrator
     and OutputCalibrator documentation. */
+
 class PolynomialN : public SimpleFunction
 {
   /** Order of the polynomial. */
@@ -38,6 +39,9 @@ class PolynomialN : public SimpleFunction
   double *a;
 
 public:
+  /** datatype for the output and calculation */
+  typedef double data_type;
+
   /** Empty */
   PolynomialN();
 
@@ -70,6 +74,9 @@ public:
 
   /** Print the object */
   std::ostream &print(std::ostream &os) const;
+
+  /** Adjust the offset */
+  void adjustOffset(const double off);
 };
 
 } // namespace dueca

@@ -176,9 +176,15 @@ class Expression:
 
     def convert(self, level, pool):
         if self.arguments[0].name in pool:
-            #print(f"Calling {self.arguments[0].name} from pool")
-            return pool[self.arguments[0].name](
-                level, pool, *self.arguments[1:])
+            try:
+                #print(f"Calling {self.arguments[0].name} from pool")
+                return pool[self.arguments[0].name](
+                    level, pool,
+                    *[a for a in self.arguments[1:] if not isinstance(a, Comment)])
+            except Exception as e:
+                print(f"Failed to convert function {self.arguments[0].name}",
+                      "arguments", str(self.arguments[1:]))
+                return f"# Failure convert expression {self.arguments}"
         for k, e in pool.items():
             if isinstance(k, re.Pattern):
                 m = k.fullmatch(self.arguments[0].name)

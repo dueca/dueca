@@ -20,7 +20,7 @@ rt_sync_mode = @rt-sync-mode@                       # 0=sigwait, obsolete
                                        #   slaves as well as masters
                                        # 3=rtc, obsolete
 
-# graphic interface selection, typically "none", "gtk2", "gtk3"
+# graphic interface selection, typically "none", "gtk3", "gtk4"
 graphic_interface = "@graphic-interface@"             # selection of interface
 
 ### parameters defining "size" of the time. Note that all nodes should have

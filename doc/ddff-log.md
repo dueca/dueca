@@ -391,4 +391,36 @@ msgpack::packer<dueca::MessageBuffer> pk(buf); pk.pack(o1);
 ~~~~
 
 In this case, the object will be packed as an object. The msgpack format
-is binary, but can be
+is binary, so a simple dump of the datafile cannot be inspected. You can
+use the `pyddff` python module to read this data. If you could convert to
+the human-readable JSON format, you would get something like this:
+
+~~~~{.json}
+{ 'a': 1, 'b': 2 }
+~~~~
+
+If you want to communicate with external software using msgpack, for example
+for the Pupil Labs Core eye tracker, data in this format can be used. The
+DCO objects with a `msgpack` option (with sometimes an additional trick),
+can be used to pack and unpack these messages.
+
+To make the logging a bit more compact, the DCO objects data is packed in
+an array, rather than a dictionary/struct, for the ddff format. If you
+would translate this to the equivalent JSON, you get something like:
+
+~~~~{.json}
+[ 1, 2 ]
+~~~~
+
+A C++ templating trick is used to choose between the two possible packing
+formats. To use this in your own code, do something like:
+
+~~~~{.cxx}
+dueca::MessageBuffer buf(200);
+MyObject o1; // will have default data
+msgpack::packer<dueca::MessageBuffer> pk(buf); pk.pack(mark_for_dco_msgpack(o1));
+~~~~
+
+Now the DCO object will be packed as an array. If the DCO object happens to contain
+other DCO objects as nested data members (either directly, or in lists, arrays, maps
+or the like), these will also be packed as arrays.

@@ -21,9 +21,6 @@
 #include <ifaddrs.h>
 #include <net/if.h>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/swap.hpp>
-
 #define I_NET
 #include <dueca-conf.h>
 #include <dueca/dueca-version.h>

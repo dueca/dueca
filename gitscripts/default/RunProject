@@ -31,6 +31,13 @@ XNODES="@xnodes@"
 # per node, an example:
 # <node>_CLEANMORE="pgrep Xorg && pgrep Xorg | xargs sudo kill -9"
 
+# By default, the rrundueca start script will search for, and run the first of:
+# - ./runscript, ./dueca_run.x, ../../../build/dueca_run.x, ../../../dueca_run.x
+# For the dueca_run.x versions, dueca-archivelogfiles will be run first.
+# Any script should run dueca-archivelogfiles before starting dueca
+# If applicable, user-defined scripts may be run by specifying
+# <node>_SPECIAL="script or executable name"
+
 # Nodes where just a shell needs to be started; e-grep expression
 LNODES="@lnodes@"
 

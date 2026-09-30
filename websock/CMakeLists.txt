@@ -66,6 +66,7 @@ set(SOURCES
 
   CommonChannelServer.cxx WebSocketsServer.hxx
   CommonChannelServer.hxx WebSocketsServer.cxx
+  WebSocketsServerInstantiate.hxx
   ConfigStorage.cxx ConfigStorage.hxx
   msgpackpacker.cxx msgpackpacker.hxx
   jsonpacker.hxx)

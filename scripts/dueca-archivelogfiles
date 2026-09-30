@@ -28,21 +28,24 @@ usage() {
 # create folder runlogs if it does not yet exist
 test -d runlogs || mkdir runlogs
 
-# don't know CTIME yes
+# don't know CTIME yet
 CTIME=
 CSECONDS=
 
 # run through all files, first one will determine creation time
 for F in $LOGFILES; do
 
-    # files may not always be there
+    # files may not always be there, test
     if [ -f $F ]; then
 
         # get creation time in seconds
         BIRTH=$(stat -c "%W" ${F})
         if [ $BIRTH = "0" ]; then
-            BIRTH=$(stat -c "%X")
+            BIRTH=$(stat -c "%X" ${F})
+        fi
+        if [ $BIRTH = "0" ]; then
             echo "Warning, could not determine creation time of $F"
+            continue
         fi
 
         # if the first, assume this for the DUECA run time
@@ -57,7 +60,7 @@ for F in $LOGFILES; do
 
             # trim
             CTIME=$(echo ${CTIME} | cut --delimiter="." -f 1 | tr " " "_")
- 
+
             # folder for the results
             mkdir runlogs/${CTIME}
         fi
@@ -69,7 +72,7 @@ for F in $LOGFILES; do
         else
             echo "File $F seems to be from a different time than ${CTIME}"
         fi
-    
+
     fi
 
 done

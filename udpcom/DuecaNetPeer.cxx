@@ -41,68 +41,72 @@ namespace dueca {
 
 int DuecaNetPeer::sequence = 0;
 
-const ParameterTable* DuecaNetPeer::getParameterTable()
+const ParameterTable *DuecaNetPeer::getParameterTable()
 {
   static const ParameterTable table[] = {
     // communication with DUECA system
-    { "packer", new MemberCall2Way<_ThisClass_,ScriptCreatable>
-      (&_ThisClass_::setPacker),
+    { "packer",
+      new MemberCall2Way<_ThisClass_, ScriptCreatable>(&_ThisClass_::setPacker),
       "Packer that assembles and compacts to-be-transported data." },
-    { "unpacker", new MemberCall2Way<_ThisClass_,ScriptCreatable>
-      (&_ThisClass_::setUnpacker),
+    { "unpacker",
+      new MemberCall2Way<_ThisClass_, ScriptCreatable>(
+        &_ThisClass_::setUnpacker),
       "Unpacker that extracts and distributed data coming in." },
-    { "fill-packer", new MemberCall2Way<_ThisClass_,ScriptCreatable>
-      (&_ThisClass_::setFillPacker),
+    { "fill-packer",
+      new MemberCall2Way<_ThisClass_, ScriptCreatable>(
+        &_ThisClass_::setFillPacker),
       "Packer that compacts low-priority (possibly bulk sized) data." },
-    { "fill-unpacker", new MemberCall2Way<_ThisClass_,ScriptCreatable>
-      (&_ThisClass_::setFillUnpacker),
+    { "fill-unpacker",
+      new MemberCall2Way<_ThisClass_, ScriptCreatable>(
+        &_ThisClass_::setFillUnpacker),
       "Unpacker that extracts low-priority data." },
 
     // specific for UDP connections
-    { "port-reuse", new VarProbe<_ThisClass_,bool>
-      (&_ThisClass_::port_re_use),
+    { "port-reuse", new VarProbe<_ThisClass_, bool>(&_ThisClass_::port_re_use),
       "Enable port re-use, only necessary in specific configurations where\n"
       "multiple DUECA nodes run on one physical computer and use UDP comm." },
-    { "lowdelay", new VarProbe<_ThisClass_,bool>
-      (&_ThisClass_::lowdelay),
-      "Set lowdelay TOS on the sent packets. Default true."},
-    { "socket-priority", new VarProbe<_ThisClass_,int>
-      (&_ThisClass_::socket_priority),
+    { "lowdelay", new VarProbe<_ThisClass_, bool>(&_ThisClass_::lowdelay),
+      "Set lowdelay TOS on the sent packets. Default true." },
+    { "socket-priority",
+      new VarProbe<_ThisClass_, int>(&_ThisClass_::socket_priority),
       "Set socket priority on send socket. Default 6. Suggestion\n"
       "6, or 7 with root access / CAP_NET_ADMIN capability, -1 to disable." },
 
-    { "if-address", new VarProbe<_ThisClass_,std::string>
-      (&_ThisClass_::interface_address),
+    { "if-address",
+      new VarProbe<_ThisClass_, std::string>(&_ThisClass_::interface_address),
       "IP address of the interface to use here. It is imperative to specify\n"
-      "this when the computer has multiple options for Ethernet connection."},
+      "this when the computer has multiple options for Ethernet connection." },
 
-    { "timeout", new VarProbe<_ThisClass_,double>
-      (&_ThisClass_::timeout),
+    { "timeout", new VarProbe<_ThisClass_, double>(&_ThisClass_::timeout),
       "Timeout value [s], by default a high (2.0s) value is used, and the\n"
       "timeout setting is generally not critical for a peer." },
 
-    { "config-url", new MemberCall<_ThisClass_,std::string>
-      (&_ThisClass_::setMasterUrl),
+    { "config-url",
+      new MemberCall<_ThisClass_, std::string>(&_ThisClass_::setMasterUrl),
       "URL of the configuration connection. Must be Websocket (start with ws\n"
       "includes port, and path, e.g., \"ws://myhost:8888/config\"" },
-    { "override-data-url", new VarProbe<_ThisClass_,std::string>
-      (&_ThisClass_::override_data_url),
+    { "override-data-url",
+      new VarProbe<_ThisClass_, std::string>(&_ThisClass_::override_data_url),
       "Option to override the data url sent by the master, in case network\n"
       "port translation is applied." },
-    { "config-buffer-size", new VarProbe<_ThisClass_,uint32_t>
-      (&_ThisClass_::config_buffer_size),
+    { "config-buffer-size",
+      new VarProbe<_ThisClass_, uint32_t>(&_ThisClass_::config_buffer_size),
       "Configuration buffer size. This is the buffer used for initial\n"
-      "connection to the master. The default (1024) is usually correct."},
+      "connection to the master. The default (1024) is usually correct." },
 
     // priority and timing
-    { "set-priority", new VarProbe<_ThisClass_,PrioritySpec>
-      (&_ThisClass_::priority),
+    { "set-priority",
+      new VarProbe<_ThisClass_, PrioritySpec>(&_ThisClass_::priority),
       "Priority for communication. Note no other activities can use this\n"
-      "priority level on a peer.\n"},
+      "priority level on a peer.\n" },
 
-    { "set-timing", new MemberCall<_ThisClass_,TimeSpec>
-      (&_ThisClass_::setTimeSpec),
+    { "set-timing",
+      new MemberCall<_ThisClass_, TimeSpec>(&_ThisClass_::setTimeSpec),
       "Time interval, needed when not running multi-threaded." },
+
+    { "fill-size",
+      new VarProbe<_ThisClass_, uint32_t>(&_ThisClass_::fill_maximum),
+      "Maximum size of fill data per message, overriding master config." },
 
     { NULL, NULL,
       "DUECA net communicator server, peer. Will connect to a server port\n"
@@ -116,11 +120,12 @@ const ParameterTable* DuecaNetPeer::getParameterTable()
 
 DuecaNetPeer::DuecaNetPeer() :
   Accessor(NameSet("dueca", "DuecaNetPeer",
-                   1000*ObjectManager::single()->getLocation() +
-                   sequence++), control_size, control_size),
+                   1000 * ObjectManager::single()->getLocation() + sequence++),
+           control_size, control_size),
   NetCommunicatorPeer(),
   priority(0, 0),
-  fill_minimum(max(uint32_t(32), buffer_size/8)),
+  fill_minimum(32U),
+  fill_maximum(0U),
   commanded_stop(false),
   clock(),
   cb(this, &_ThisClass_::runIO),
@@ -140,10 +145,10 @@ bool DuecaNetPeer::complete()
   // switch on
   net_io.changePriority(priority);
   net_io.setTrigger(clock);
-  net_io.switchOn(TimeSpec(0,0));
+  net_io.switchOn(TimeSpec(0, 0));
 
-  time_spec.forceAdvance(SimTime::now()+Ticker::single()->
-                         getCompatibleIncrement());
+  time_spec.forceAdvance(SimTime::now() +
+                         Ticker::single()->getCompatibleIncrement());
   clock.requestAlarm(time_spec.getValidityStart());
 
   return res;
@@ -154,7 +159,7 @@ DuecaNetPeer::~DuecaNetPeer()
   //
 }
 
-bool DuecaNetPeer::setTimeSpec(const TimeSpec& ts)
+bool DuecaNetPeer::setTimeSpec(const TimeSpec &ts)
 {
   time_spec = ts;
   return true;
@@ -165,7 +170,7 @@ void DuecaNetPeer::returnBuffer(MessageBuffer::ptr_type buffer)
   data_comm->returnBuffer(buffer);
 }
 
-void DuecaNetPeer::runIO(const TimeSpec& ts)
+void DuecaNetPeer::runIO(const TimeSpec &ts)
 {
   if (Environment::getInstance()->runningMultiThread()) {
     /* DUECA network.
@@ -181,7 +186,7 @@ void DuecaNetPeer::runIO(const TimeSpec& ts)
     try {
       oneCycle(net_io);
     }
-    catch(const connectionfails& e) {
+    catch (const connectionfails &e) {
       /* DUECA network.
 
          Tried to run a communication cycle, but could not make the
@@ -255,17 +260,14 @@ void DuecaNetPeer::clientPackPayload(MessageBuffer::ptr_type buffer)
   buffer->fill += breg;
 
   // any significant room left for fill?
-  if (fill_packer /* &&
-                     buffer->capacity - buffer->fill > fill_minimum */) {
-    // fill_packer->packWork();
+  if (fill_packer) {
 
-    buffer->fill +=
-      fill_packer->stuffMessage(&(buffer->buffer[buffer->fill]),
-                                buffer->capacity - buffer->fill, buffer);
+    buffer->fill += fill_packer->stuffMessage(
+      &(buffer->buffer[buffer->fill]),
+      std::min(size_t(fill_maximum), buffer->capacity - buffer->fill), buffer);
   }
-  DEB("pack o=" << control_size + 4 <<
-      " r=" << breg - 4 << " f=" << buffer->fill << " cycle=" << (buffer->message_cycle >> 4));
-
+  DEB("pack o=" << control_size + 4 << " r=" << breg - 4 << " f="
+                << buffer->fill << " cycle=" << (buffer->message_cycle >> 4));
 }
 
 void DuecaNetPeer::clientIsConnected()
@@ -275,12 +277,12 @@ void DuecaNetPeer::clientIsConnected()
 
   unpacker->initialiseStores();
   if (fill_unpacker) {
-    fill_unpacker->initialiseStores
-      (peer_id, ObjectManager::single()->getNoOfNodes());
+    fill_unpacker->initialiseStores(peer_id,
+                                    ObjectManager::single()->getNoOfNodes());
   }
 }
 
-void DuecaNetPeer::clientDecodeConfig(AmorphReStore& s)
+void DuecaNetPeer::clientDecodeConfig(AmorphReStore &s)
 {
   // expecting:
   // - send order
@@ -295,6 +297,20 @@ void DuecaNetPeer::clientDecodeConfig(AmorphReStore& s)
        Information on the assigned send order in the data cycle. */
     //I_NET("Send order " << order << " received");
     //DEB("This peer was assigned send order " << order);
+    try {
+      // if we mix DUECA versions, fill maximum might not be sent.
+      // In that case silently use default
+      // @TODO: remove this try/catch once operational
+      uint32_t _fillmax(s);
+      if (fill_maximum < fill_minimum) {
+        fill_maximum = _fillmax;
+      }
+    }
+    catch (const dueca::AmorphReStoreEmpty &e) {
+      if (fill_maximum < fill_minimum) {
+        fill_maximum = 1024U;
+      }
+    }
   }
   catch (const dueca::AmorphReStoreEmpty &e) {
     /* DUECA network.
@@ -307,10 +323,9 @@ void DuecaNetPeer::clientDecodeConfig(AmorphReStore& s)
   }
 }
 
-void DuecaNetPeer::
-clientUnpackPayload(MessageBuffer::ptr_type buffer, unsigned id,
-                    TimeTickType current_tick, TimeTickType peertick,
-                    int usecoffset)
+void DuecaNetPeer::clientUnpackPayload(MessageBuffer::ptr_type buffer,
+                                       unsigned id, TimeTickType current_tick,
+                                       TimeTickType peertick, int usecoffset)
 
 {
   AmorphReStore store(buffer->buffer, buffer->fill);
@@ -333,8 +348,8 @@ clientUnpackPayload(MessageBuffer::ptr_type buffer, unsigned id,
 
   uint32_t regularsize(store);
   buffer->regular = regularsize;
-  DEB1("unpack, tick " << peertick << " o=" << buffer->offset <<
-       " r=" << buffer->regular << " f=" << buffer->fill);
+  DEB1("unpack, tick " << peertick << " o=" << buffer->offset
+                       << " r=" << buffer->regular << " f=" << buffer->fill);
   unpacker->acceptBuffer(buffer, current_tick);
   if (fill_unpacker && regularsize + buffer->offset < buffer->fill) {
     fill_unpacker->acceptBuffer(buffer, current_tick);
@@ -344,6 +359,5 @@ clientUnpackPayload(MessageBuffer::ptr_type buffer, unsigned id,
 }
 
 template <> const char *getclassname<DuecaNetPeer>() { return "DuecaNetPeer"; }
-
 
 } // namespace dueca

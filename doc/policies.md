@@ -50,11 +50,20 @@ default, policies can be installed in several locations:
     This project is publicly readable, so it may also serve the interest
     of others.
 
+In response to a `dueca-gproject policies` call, the script lists which policies are applicable to your project. Policy issues might indicate that you are borrowing DCO files or modules from obsolete projects or the like. In most cases, a policy can be automatically applied, meaning that the script will edit your files to correct for the policy issue. It then will record that edit in the `.config/policylist.xml` file. Policies fixes that operate on the borrowed modules, or dco files are generally quite robust, but more generic fixes that rely on search and replace actions can sometimes produce unwanted results. Use caution and `git diff`.
+
+To apply a single policy, run
+
+    dueca-gproject policies --apply 'policyid'
+
+Or to apply all
+
+    dueca-gproject policies --apply-all
 
 ## Background
 
 The policy checking system is expandable, so the capabilities might
-change in the future, but the following is roughly possible:
+change in the future, but roughly the following is possible:
 
 - Check whether a project uses (either borrowed or 'own') a specific
   module.
@@ -115,7 +124,7 @@ object. You need to add that second dco object to the comm-objects.lst
 files in all of the modules that use the first dco object. To do this,
 you would need to:
 
-- Figure out which comm-objects.lst file use your dco file, let's call
+- Figure out which comm-objects.lst files use your dco file, let's call
   it BaseProject/comm-objects/Venerable.dco
 
 - Figure out which comm-objects.lst files do not yet include the new

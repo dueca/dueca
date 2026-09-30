@@ -30,7 +30,8 @@ namespace dueca {
 
 DuecaGLGtk4Window::DuecaGLGtk4Window(const char *window_title,
                                      bool pass_passive, bool depth_buffer,
-                                     bool stencil_buffer) :
+                                     bool stencil_buffer, bool _dum1,
+                                     unsigned _dum2, bool _dum3) :
   DuecaGtkInteraction(NULL, 400, 300),
   gdk_display_id(NULL),
   gtk_win_id(NULL),
@@ -49,7 +50,8 @@ bool DuecaGLGtk4Window::selectGraphicsContext(bool do_select)
 {
   if (do_select) {
     gtk_gl_area_make_current(GTK_GL_AREA(area));
-    if (!epoxy_has_gl_extension("GL_ARB_multitexture")) return false;
+    if (!epoxy_has_gl_extension("GL_ARB_multitexture"))
+      return false;
   }
   return do_select;
 }

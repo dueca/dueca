@@ -2,6 +2,42 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## [4.3.3] - 2026-09-30
+
+### Changed
+
+- Fix to InputCalibratorRanging
+- Remove need QNX shell def for GenericStart
+- Add glf2 to debian packaging
+- Improvements prepare platform defaults dueca-gproject
+- DUECA start scripts now will use a 'runscript' script
+
+### Added
+
+- Test case for InputCalibratorRanging
+
+## [4.3.2] - 2026-08-11
+
+### Changed
+
+- Use eigen3's exp for c2d procedure in LinearSystem
+- dueca-gproject, ignore inactive and "pseudo" modules for dco dependency analysis
+- Fix crash in msgpack unpack of a bool
+- Correct websocket http server root check
+- Convert more lexical_cast, stringstream and boost::format to fmt::format
+- Adapt rrundueca environment variable detection to use sway / wayland
+- Correct the main/master branch issues for borrowed modules on older distributions
+- Check url changes for borrowed modules, and handle these
+- Use epoxy/gl.h instead of GL/gl.h includes, compatibility with client code
+- Fix the dueca-archivelogfiles script, failed on some cases/platforms
+- Implement a configurable size for the fill packing
+- Truncate the dueca.scratch file when opening it for writing
+
+### Added
+
+- Add extra/InputCalibratorRanging, can adjust its zero from min/max values
+- Workflow files checking ubuntu 22.04 and 26.04
+
 ## [4.3.1] - 2026-07-03
 
 ### Changed

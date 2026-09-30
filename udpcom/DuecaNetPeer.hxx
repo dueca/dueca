@@ -34,7 +34,10 @@ class DuecaNetPeer:
   PeriodicTimeSpec time_spec;
 
   /** Minimum size of fill section */
-  size_t fill_minimum;
+  uint32_t fill_minimum;
+
+  /** Maximum size of fill section */
+  uint32_t fill_maximum;
 
   /** Stop command received */
   bool commanded_stop;

@@ -19,7 +19,6 @@
 #include <dueca/msgpack-unstream-iter.hxx>
 #include <dueca/msgpack-unstream-iter.ixx>
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 #include <dueca/ObjectManager.hxx>
 #include <dueca/ChronoTimePoint.hxx>
 #include <dassert.h>
@@ -488,10 +487,6 @@ void FileWithSegments::nameRecording(const std::string &label,
   // make the label unique if needed
   while (tag_lookup.count(next_tag.label)) {
     next_tag.label = fmt::format("{}_{:06d}", label, ++suffix);
-
-    //stringstream modlabel;
-    //modlabel << label << "_" << std::setw(6) << std::setfill('0') << ++suffix;
-    //next_tag.label = modlabel.str();
   }
   DEB("FileWithSegments new label " << next_tag.label);
 }

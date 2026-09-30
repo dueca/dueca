@@ -15,7 +15,7 @@
 #include <sstream>
 #define CommonChannelServer_cxx
 #include "CommonChannelServer.hxx"
-#include <boost/lexical_cast.hpp>
+#include <fmt/format.h>
 #include <debug.h>
 #define NO_TYPE_CREATION
 #define DO_INSTANTIATE
@@ -57,9 +57,7 @@ SingleEntryRead::SingleEntryRead(const std::string &channelname,
                                  const std::string &datatype, entryid_type eid,
                                  const WebSocketsServerBase *master,
                                  const PrioritySpec &ps) :
-  ConnectionList(channelname + std::string("(entry :)") +
-                   boost::lexical_cast<std::string>(eid) + std::string(")"),
-                 master),
+  ConnectionList(fmt::format("{} (entry :{})", channelname, eid), master),
   autostart_cb(this, &SingleEntryRead::tokenValid),
   do_valid(master->getId(), "token valid", &autostart_cb, ps),
   r_token(master->getId(), NameSet(channelname), datatype, eid,
@@ -158,16 +156,15 @@ SingleEntryFollow::SingleEntryFollow(const std::string &channelname,
                                      const WebSocketsServerBase *master,
                                      const PrioritySpec &ps,
                                      const DataTimeSpec &ts) :
-  ConnectionList(channelname + std::string(" (entry ") +
-                   boost::lexical_cast<std::string>(eid) + std::string(")"),
-                 master),
+  ConnectionList(fmt::format("{} (entry: {})", channelname, eid), master),
   autostart_cb(this, &SingleEntryFollow::tokenValid),
   do_valid(master->getId(), "token valid", &autostart_cb, ps),
   r_token(master->getId(), NameSet(channelname), datatype, eid,
           Channel::AnyTimeAspect, Channel::OneOrMoreEntries,
           Channel::ReadAllData, 0.0, &do_valid),
   cb(this, &SingleEntryFollow::passData),
-  do_calc(master->getId(), (std::string("follow ") + channelname).c_str(), &cb, ps),
+  do_calc(master->getId(), (std::string("follow ") + channelname).c_str(), &cb,
+          ps),
   datatype(datatype),
   inactive(true),
   firstwrite(true)
@@ -295,6 +292,22 @@ void ConnectionList::sendAll(const std::string &data, const char *desc)
     sendOne(data, desc, cn);
   }
 }
+
+#if 0
+void ConnectionList::ping()
+{
+  for (auto &cn : connections) {
+    static const std::shared_ptr<WsServer::OutMessage> msg(
+      new WsServer::OutMessage(0));
+    cn->send(msg, nullptr, 9);
+  }
+  for (auto &cn : sconnections) {
+    static const std::shared_ptr<WssServer::OutMessage> msg(
+      new WssServer::OutMessage(0));
+    cn->send(msg, nullptr, 9);
+  }
+}
+#endif
 
 template <typename C>
 void ConnectionList::sendOne(const std::string &data, const char *desc,
@@ -605,6 +618,22 @@ void WriteEntry::sendOne(const std::string &data, const char *desc)
   }
 }
 
+#if 0
+void WriteEntry::ping()
+{
+  if (connection) {
+    static const std::shared_ptr<WsServer::OutMessage> msg(
+      new WsServer::OutMessage(0));
+    connection->send(msg, nullptr, 9);
+  }
+  else {
+    static const std::shared_ptr<WssServer::OutMessage> msg(
+      new WssServer::OutMessage(0));
+    sconnection->send(msg, nullptr, 9);
+  }
+}
+#endif
+
 PresetWriteEntry::PresetWriteEntry(const std::string &channelname,
                                    const std::string &datatype,
                                    const std::string &label,
@@ -769,7 +798,7 @@ WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
   r_channelname(setup->r_channelname),
   w_dataclass(),
   r_dataclass(),
-  label(boost::lexical_cast<std::string>(setup->getNextId())),
+  label(fmt::format("{}", setup->getNextId())),
   master(imaster),
   active(true),
   bulk(setup->bulk),
@@ -928,6 +957,22 @@ void WriteReadEntry::sendOne(const std::string &data, const char *desc)
   }
 }
 
+#if 0
+void WriteReadEntry::ping()
+{
+  if (connection) {
+    std::shared_ptr<WsServer::OutMessage> msg(
+      new WsServer::OutMessage(0));
+    connection->send(msg, nullptr, 9);
+  }
+  else {
+    std::shared_ptr<WssServer::OutMessage> msg(
+      new WssServer::OutMessage(0));
+    sconnection->send(msg, nullptr, 9);
+  }
+}
+#endif
+
 void WriteReadEntry::entryRemoved(const ChannelEntryInfo &i)
 {
   if (i.entry_label == label) {
@@ -947,5 +992,5 @@ void WriteReadEntry::entryRemoved(const ChannelEntryInfo &i)
   }
 }
 
-} // namespace dueca
 } // namespace websock
+} // namespace dueca

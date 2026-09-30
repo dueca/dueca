@@ -51,7 +51,7 @@
 #include "Callback.hxx"
 #include "VarProbe.hxx"
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 using namespace std;
 

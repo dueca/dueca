@@ -1,0 +1,111 @@
+name: CMake26
+
+on: workflow_dispatch
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+  PREFIX: ${HOME}/prefix
+  PYVERSION: 3.14
+
+jobs:
+  build26:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-26.04
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        wget -qO - https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_26.04/Release.key | gpg --dearmor | sudo sed -n 'w /etc/apt/trusted.gpg.d/repabuild.gpg'
+        sudo add-apt-repository -y "deb https://download.opensuse.org/repositories/home:/repabuild:/vulkanscenegraph/xUbuntu_26.04/ ./"
+        sudo add-apt-repository -y "deb https://download.opensuse.org/repositories/home:/repabuild:/xenial-universe/xUbuntu_26.04/ ./"
+        sudo add-apt-repository -y "deb https://download.opensuse.org/repositories/home:/repabuild/xUbuntu_26.04/ ./"
+        sudo apt --assume-yes update
+        sudo apt --assume-yes upgrade
+        sudo apt --assume-yes --no-install-recommends --no-install-suggests install libeigen3-dev libfltk1.3-dev flex bison doxygen guile-2.2-dev graphviz freeglut3-dev libgtkglext1-dev libglui2c2 libglui-dev python3-pyparsing libboost-dev librsvg2-bin cmake ninja-build libgtk-3-dev libgtkmm-3.0-dev libhdf5-dev libboost-python-dev python3-dev lsb-release rapidjson-dev libssl-dev simple-websocket-server-dev simple-web-server-dev python3-xlwt wget python3-setuptools python3-git libpugixml-dev python3-pip python3-wheel python3-build python3-lxml libatomic-ops-dev libmsgpack-dev libdate-dev libtoml11-dev python3-venv wmctrl openbox xvfb language-pack-nl menu hdf5-tools python3-msgpack python3-h5py python3-jinja2 xnest python3-crcmod libopenscenegraph-dev libtirpc-dev libepoxy-dev libsdl2-dev xmlstarlet dbus-x11 libgtk-4-dev libgtkmm-4.0-dev python3-venv adwaita-icon-theme libglm-dev libglfw3-dev libopenscenegraph-dev libvsgxchange-dev python3-websockets python3-opencv python3-aggdraw tesseract-ocr glslang-dev glslc libfmt-dev
+
+    - name: Install Python packages
+      # these packages enable the testing code, using X framebuffer and
+      # controlled mouse/keyboard input
+      run: |
+        python3 -m venv --system-site-packages dpyenv
+        source ./dpyenv/bin/activate
+        pip3 install wmctrl
+        pip3 install pynput
+        pip3 install attrs
+        pip3 install pillow
+        pip3 install pytesseract
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is
+      # only required if you are using a single-configuration generator
+      # such as make. See
+      # https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
+      run: source ./dpyenv/bin/activate &&
+         cmake -G Ninja -B ${{github.workspace}}/build
+        -DCMAKE_CXX_FLAGS="-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_30"
+        -DCMAKE_INSTALL_PREFIX=${{env.PREFIX}}
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -DBUILD_DOC=ON
+        -DDUECA_BUILD_SHARED=ON
+        -DDUECA_BUILD_STATIC=OFF
+        -DBUILD_UDP=ON
+        -DBUILD_WEBSOCK=ON
+        -DSCRIPT_PYTHON=ON
+        -DBUILD_GTK2=OFF -DBUILD_GTKMM=OFF
+        -DBUILD_GTK3=ON -DBUILD_GTKMM3=ON
+        -DBUILD_GTK4=ON
+        -DBUILD_GLUT=ON -DBUILD_GLUTGUI=ON
+        -DBUILD_X11GL=ON -DRTC_RATE=1024
+        -DNEW_LOGGING=ON -DBUILD_MOREWARN=ON
+        -DBUILD_ASSERT=ON
+        -DBUILD_TESTOPT=ON
+        -DBUILD_DEBPRINT=ON
+        -DALSO_INIT_GLUT=ON
+        -DACTIV_NOCATCH=ON
+        -DHDF5_NOCATCH=ON
+        -DDDFF_NOCATCH=ON
+        -DRUN_TESTS=ON
+        -DLOG_COMMUNICATIONS=ON
+        -DLOG_PACKING=ON
+        -DBUILD_HDF5=ON
+        -DBUILD_DDFF=ON
+        -DFORCE_PYTHON_MALLOC=OFF
+        -DDUECA_INSTALL_ENVIRONMENT=ON
+        -DFILLPACKER_SEND_ID=ON
+        -DPYSITEDIR:PATH=${{env.PREFIX}}/lib/python${{env.PYVERSION}}/site-packages
+
+    - name: Build
+      # Build your program with the given configuration
+      run: |
+        source ./dpyenv/bin/activate
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Install
+      # Installs to a local prefix, needed for running some of the tests
+      run: |
+        source ./dpyenv/bin/activate
+        cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: |
+        source ${{github.workspace}}/dpyenv/bin/activate
+        git config --global user.email "ghtest@example.com"
+        git config --global user.name  "example runner"
+        source ${{env.PREFIX}}/dueca-env.sh && USER=example ctest -C ${{env.BUILD_TYPE}}
+
+    - name: Upload log
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: TestResult
+        path: |
+          ${{github.workspace}}/build/Testing/Temporary/LastTest.log
+          ${{github.workspace}}/build/test/runtest/*.png

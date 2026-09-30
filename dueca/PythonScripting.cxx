@@ -16,7 +16,7 @@
 #include <dueca/ScriptInterpret.hxx>
 #include <dueca/Environment.hxx>
 #include <dueca/debug.h>
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 #include <fstream>
 #include <dueca-conf.h>
@@ -139,7 +139,7 @@ BOOST_PYTHON_MODULE(dueca)
 
 void PythonScripting::initiate()
 {
-  scratchfile.open("dueca.scratch", ios::out);
+  scratchfile.open("dueca.scratch", ios::out | ios::trunc);
 
   // check that it is OK. Unwriteable files do not return good
   if (!scratchfile.good()) {
@@ -292,7 +292,7 @@ void PythonScripting::interpreter()
 
     /* recycle scratchfile */
     scratchfile.close();
-    scratchfile.open("dueca.scratch", ios::out);
+    scratchfile.open("dueca.scratch", ios::out | ios::trunc);
 
     // releases the GIL
   }
@@ -320,7 +320,7 @@ void PythonScripting::interpreter()
       throw(e);
     }
     scratchfile.close();
-    scratchfile.open("dueca.scratch", ios::out);
+    scratchfile.open("dueca.scratch", ios::out | ios::trunc);
 
     Environment::getInstance()->proceed(3);
   }

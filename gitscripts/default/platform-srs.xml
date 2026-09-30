@@ -23,114 +23,96 @@
         set(PROJECT_INCLUDE_DIRS ${SRSIO_INCLUDE_DIRS})
       </config>
       <modules>
-        <module>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>ControlLoading</name>
-          <version>master</version>
-        </module>
-        <module pseudo="true">
+          <module>ControlLoading</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>CLConfigurations</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module pseudo="true">CLConfigurations</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>CLTools</name>
           <version>master</version>
-        </module>
-        <module>
+          <module>CLTools</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>cl-analyser</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module>cl-analyser</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>IOController</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module>IOController</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>scripts</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module pseudo="true">scripts</module>
+        </project>
+        <project>
           <url>dgrbase:///SRS.git</url>
-          <name>control-switches</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module>control-switches</module>
+        </project>
+        <project>
           <url>dgrbase:///SRS.git</url>
-          <name>gear-lever</name>
-          <version>master</version>
-        </module>
+          <module>gear-lever</module>
+        </project>
       </modules>
     </machineclass>
     <machineclass name="srs-ig" gui="none">
       <modules>
-	<module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>FlightGearVisual</name>
-          <version>master</version>
-	</module>
-	<module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>WorldView</name>
-          <version>master</version>
-	</module>
-	<module>
-	  <url>dgrpub:///WorldView.git</url>
-	  <name>SpecificationBase</name>
-          <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///SRSVisual.git</url>
-	  <name>flightgear-data</name>
-          <version>master</version>
-        </module>
+        <project>
+          <url>dgrpub:///WorldView.git</url>
+          <module>FlightGearVisual</module>
+        </project>
+        <project>
+          <url>dgrpub:///WorldView.git</url>
+          <module>WorldView</module>
+        </project>
+        <project>
+          <url>dgrpub:///WorldView.git</url>
+          <module>SpecificationBase</module>
+        </project>
+        <project>
+          <url>dgrbase:///SRSVisual.git</url>
+          <module>flightgear-data</module>
+        </project>
       </modules>
     </machineclass>
     <machineclass name="srs-host" gui="none">
       <modules>
-	<module>
-	  <url>dgrbase:///SRSMotion.git</url>
-	  <name>motion-common</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///SRSMotion.git</url>
-	  <name>motion-limiter</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///SRSMotion.git</url>
-	  <name>motion-filter-classical-16</name>
-	  <version>master</version>
-	</module>
-	<module>
-	  <url>dgrbase:///SRSMotion.git</url>
-	  <name>motion-filter-tuner</name>
-	  <version>master</version>
-	</module>
+        <project>
+          <url>dgrbase:///SRSMotion.git</url>
+          <module>motion-common</module>
+        </project>
+        <project>
+          <url>dgrbase:///SRSMotion.git</url>
+          <module>motion-limiter</module>
+        </project>
+        <project>
+          <url>dgrbase:///SRSMotion.git</url>
+          <module>motion-filter-classical-16</module>
+        </project>
+        <project>
+          <url>dgrbase:///SRSMotion.git</url>
+          <module>motion-filter-tuner</module>
+        </project>
       </modules>
     </machineclass>
     <machineclass name="srs-efis" gui="none" />
     <machineclass name="srs-sound" gui="none">
       <modules>
-        <module>
+        <project>
           <url>dgrpub:///WorldListener.git</url>
-          <name>OpenALListener</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module>OpenALListener</module>
+        </project>
+        <project>
           <url>dgrpub:///WorldListener.git</url>
-          <name>WorldListener</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module>WorldListener</module>
+        </project>
+        <project>
           <url>dgrpub:///WorldView.git</url>
-          <name>SpecificationBase</name>
-          <version>master</version>
-        </module>
+          <module>SpecificationBase</module>
+        </project>
       </modules>
     </machineclass>
   </machineclasses>

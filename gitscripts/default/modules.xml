@@ -5,8 +5,16 @@
      modules.
 
      note that the comm-objects directories should *not* be listed here.
-     The module name must be one of the folders in the given project.
-     The project must contain the full path to a git repository
+     The module name you list here must be one of the folders in the given
+     project.
+
+     Each listed external project must start with a <url> tag that defines
+     the path to a git repository. If you have environment variables (like
+     DAPPS_GITROOT_base=....) , you can use the prefix dgrbase: (etc) to get
+     a shorter url.
+
+     The URL for the own or main project is not needed. Instead, this
+     project has the attribute main="true".
 
      If you encounter a message that a certain comm-objects folder cannot
      be found, use dueca-gproject borrow-project to add that project url.
@@ -16,11 +24,6 @@
      If you need to check out from a specific branch, version or
      revision, add a <version>...</version> tag to specify branch, tag or
      the git hash.
-
-     The URL for the project information matching the main project
-     should be starting with the URL alias remote:/// . This means that
-     it follows the original git clone, run `git remote -v` to find out
-     where it is.
 -->
 <machine xmlns="https://dueca.tudelft.nl/modules"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

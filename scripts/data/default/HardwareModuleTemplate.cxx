@@ -299,6 +299,9 @@ void @Module@::doCalculation(const TimeSpec& ts)
   }
   break;
 
+  case SimulationState::Replay:
+    // In this template, the replay and advance modes are treated identical
+    // If you record user input in this module, make a distinction there.
   case SimulationState::Advance: {
     // access the input
     // example:
@@ -321,6 +324,7 @@ void @Module@::doCalculation(const TimeSpec& ts)
   }
   break;
 
+  case SimulationState::Replay_HoldCurrent:
   case SimulationState::Advance_HoldCurrent: {
     // return the device from wherever the Advance state left it to
     // the holdcurrent position

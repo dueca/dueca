@@ -127,7 +127,7 @@
     <check-image window="DUECA/DUSIME control panel" x="29" y="66" template="quit-blue" testsize="96" timeout="10.0" wait="0.5"/>
     <click relative="true" x="1" y="-1" button="Button.left" pressed="true" wait="0.3"/>
     <click relative="true" x="1" y="-1" button="Button.left" pressed="false" wait="0.3"/>
-    <check-word window="Are you serious?" x="25" y="51" word="Yes," testsize="64" timeout="10.0" wait="0.5"/>
+    <check-word window="Are you serious?" x="25" y="51" word="Yes," testsize="64" timeout="10.0" wait="0.5" criterion="30" />
     <click relative="true" x="-2" y="-4" button="Button.left" pressed="true" wait="0.3"/>
     <click relative="true" x="-2" y="-4" button="Button.left" pressed="false" wait="0.3"/>
   </actions>

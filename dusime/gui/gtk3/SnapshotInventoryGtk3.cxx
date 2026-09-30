@@ -21,7 +21,7 @@
 // include the definition of the module class
 #include "SnapshotInventoryGtk3.hxx"
 #include <dueca/DuecaPath.hxx>
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 #include <dueca/gui/gtk3/GtkDuecaView.hxx>
 #include <boost/date_time/posix_time/posix_time.hpp>

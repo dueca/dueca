@@ -41,7 +41,6 @@
 #include <debprint.h>
 using namespace std;
 
-
 namespace dueca {
 namespace websock {
 
@@ -235,6 +234,8 @@ WebSocketsServerBase::WebSocketsServerBase(Entity *e, const char *part,
   aggressive_reconnect(false),
   immediate_start(false),
   auto_started(false),
+  ping_interval(1U),
+  ping_count(0U),
   thelock("JSON ws(s) server", false),
   read_prio(ps),
   time_spec(0, 0),
@@ -249,7 +250,7 @@ WebSocketsServerBase::WebSocketsServerBase(Entity *e, const char *part,
   cb1(this, &_ThisModule_::doTransfer),
   cb2(this, &_ThisModule_::doStart),
   do_transfer(getId(), "run websocket IO", &cb1, ps),
-  do_startup(getId(), "websocket quick", &cb2, PrioritySpec(0,0))
+  do_startup(getId(), "websocket quick", &cb2, PrioritySpec(0, 0))
 {
   // connect the triggers for simulation
   do_transfer.setTrigger(myclock);
@@ -269,7 +270,8 @@ bool WebSocketsServerBase::complete()
     // connect and activate startup
     do_startup.setTrigger(startclock);
     do_startup.switchOn(SimTime::now());
-    startclock.requestAlarm(SimTime::getTimeTick() + Ticker::single()->getIncrement(1.0));
+    startclock.requestAlarm(SimTime::getTimeTick() +
+                            Ticker::single()->getIncrement(1.0));
   }
   return true;
 }
@@ -324,6 +326,9 @@ WebSocketsServerBase::~WebSocketsServerBase()
 bool WebSocketsServerBase::setTimeSpec(const TimeSpec &ts)
 {
   myclock.changePeriodAndOffset(ts);
+
+  ping_interval = max(1U, unsigned(10.0 / ts.getDtInSeconds()));
+  ping_count = ping_interval;
 
   // return true if everything is acceptable
   return true;
@@ -607,7 +612,8 @@ bool WebSocketsServerBase::setPresetWriterSetup(
 
            Wrong keywords found in the setup of a writer with
            preset. Check your configuration files. */
-        E_CNF("Can only use keywords \"event\", \"stream\", \"bulk\", \"diffpack\", or \"ctiming\"");
+        E_CNF("Can only use keywords \"event\", \"stream\", \"bulk\", "
+              "\"diffpack\", or \"ctiming\"");
         return false;
       }
     }
@@ -744,10 +750,11 @@ bool WebSocketsServerBase::isPrepared()
   return res;
 }
 
-void WebSocketsServerBase::doStart(const TimeSpec& ts)
+void WebSocketsServerBase::doStart(const TimeSpec &ts)
 {
   assert(immediate_start);
-  if (auto_started) return;
+  if (auto_started)
+    return;
   if (isPrepared()) {
 
     // start normal activities
@@ -762,7 +769,8 @@ void WebSocketsServerBase::doStart(const TimeSpec& ts)
   }
   else {
     // look again a second later
-    startclock.requestAlarm(ts.getValidityStart() + Ticker::single()->getIncrement(1.0));
+    startclock.requestAlarm(ts.getValidityStart() +
+                            Ticker::single()->getIncrement(1.0));
   }
 }
 
@@ -821,6 +829,34 @@ void WebSocketsServerBase::doTransfer(const TimeSpec &ts)
 #else
   runcontext->restart();
 #endif
+#if 0
+  if (!ping_count--) {
+    DEB("Sending ping on connections");
+    // keep connections alive
+    for (auto &c : readsingles) {
+      c.second->ping();
+    }
+    for (auto &c : autosingles) {
+      c.second->ping();
+    }
+    for (auto &c : followers) {
+      c.second->ping();
+    }
+    for (auto &c : autofollowers) {
+      c.second->ping();
+    }
+    for (auto &c : monitors) {
+      c.second->ping();
+    }
+    for (auto &c : writers) {
+      c.second->ping();
+    }
+    for (auto &c : writersreaders) {
+      c.second->ping();
+    }
+    ping_count = ping_interval;
+  }
+#endif
 }
 
 } // namespace websock
@@ -828,7 +864,7 @@ void WebSocketsServerBase::doTransfer(const TimeSpec &ts)
 #include <dueca/undebug.h>
 #include <undebprint.h>
 
-#include "WebSocketsServer.ixx"
+#include "WebSocketsServerInstantiate.hxx"
 #include "jsonpacker.hxx"
 #include "msgpackpacker.hxx"
 

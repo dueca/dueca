@@ -24,7 +24,7 @@
 //#define D_NET
 //#define I_NET
 #include <dassert.h>
-#define MIN_FILL 50
+#define MIN_FILL 32
 #include "ParameterTable.hxx"
 #define DO_INSTANTIATE
 #include "VarProbe.hxx"
@@ -196,9 +196,6 @@ int FillPacker::stuffMessage(char *buff, int size,
         store_to_fill = 0;
       store[store_to_fill].reUse();
     }
-
-    // can now leave the state, filling can continue in parallel with
-    // sending of another store
   }
 
   // early return if nothing to send or too little room available

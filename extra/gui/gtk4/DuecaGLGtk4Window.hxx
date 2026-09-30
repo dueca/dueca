@@ -39,7 +39,7 @@ namespace dueca {
     Also note that under "modern" desktops, you would get a Wayland
     window with the default gtk4 GLArea, and these use OpenGL ES, rather
     than the "classic" desktop OpenGL you might be used to. The shaders
-    you use need to be compliant with ES, see 
+    you use need to be compliant with ES, see
 
     [this WikiPedia page](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 
@@ -82,11 +82,17 @@ public:
       @param pass_passive For compatibility, passive movement always passed.
       @param depth_buffer Request a depth buffer
       @param stencil_buffer Request a stencil buffer
+      @param pointer_visible TODO
+      @param display_periods TODO
+      @param pass_touch TODO
   */
   DuecaGLGtk4Window(const char *window_title = "DUECA",
-                    bool pass_passive = false, 
+                    bool pass_passive = false,
                     bool depth_buffer = true,
-                    bool stencil_buffer = false);
+                    bool stencil_buffer = false,
+                    bool pointer_visible = false,
+                    unsigned display_periods = 0,
+                    bool pass_touch = false);
 
   /// Destructor
   ~DuecaGLGtk4Window();

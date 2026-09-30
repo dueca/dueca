@@ -23,6 +23,7 @@ usr/lib/*/libdueca-extra-fltk.*
 usr/lib/*/libdueca-extra-glut*.*
 usr/lib/*/libdueca-extra-gtk*.*
 usr/lib/*/libdueca-extra-X11*.*
+usr/lib/*/libdueca-extra-glfw.*
 
 usr/lib/*/pkgconfig/dueca-extra*.pc
 usr/lib/*/pkgconfig/dueca-fltk*.pc

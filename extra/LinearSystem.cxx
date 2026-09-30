@@ -17,7 +17,7 @@
 #define LinearSystem_cxx
 #include "LinearSystem.hxx"
 #include <iostream>
-//#define TEST
+
 #ifdef TESTLINEARSYSTEM
 #define DDEB(A) cout << A << endl
 #else
@@ -29,6 +29,7 @@
 #endif
 #include <cstdio>
 #include <cassert>
+#include <dueca-conf.h>
 
 #ifdef HAVE_EIGEN3_UNSUPPORTED_EIGEN_MATRIXFUNCTIONS
 #include <unsupported/Eigen/MatrixFunctions>
@@ -297,27 +298,30 @@ void LinearSystem::continuous2discrete(const Matrix& A, const Matrix& B,
   s *= dt;
 
 #ifdef HAVE_EIGEN3_UNSUPPORTED_EIGEN_MATRIXFUNCTIONS
-  Matrix g = Matrix::Zero(ns, ns);
-  Eigen::MatrixExponential<Matrix> e(s);
-  e.compute(g);
+  Matrix g = s.exp();
+  //Matrix::Zero(ns, ns);
+  //Eigen::MatrixExponential<Matrix> e(s);
+  //e.compute(g);
 #else
 
   // working matrices
   Matrix g = Matrix::Identity(ns, ns) + s,
         s2 = s;
 
-  for (int ii = 2; ii < 100; ii++) {
+  for (int ii = 2; ii < 1000; ii++) {
     s2 *= (s / double(ii));
     g  += s2;
   }
 #endif
-
   //  copy(g.sub_matrix(0, n-1, 0, n-1), Phi);
   //  copy(g.sub_matrix(0, n-1, n, n+B.cols()), Psi);
   for (int ii = n; ii--; ) {
     for (int jj = n; jj--; ) Phi(ii, jj) = g(ii, jj);
     for (int jj = B.cols(); jj--; ) Psi(ii, jj) = g(ii, n+jj);
   }
+  DDEB("Phi = " << Phi);
+  DDEB("Psi = " << Psi);
+
 }
 
 void LinearSystem::reset()

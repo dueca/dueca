@@ -147,20 +147,23 @@ Note that in the call to `readGladeFile`, now the `this` pointer for the module,
 Initialize the counter to zero in the constructor of your `ExperimentInterface` module. As an example for the button callback function, we could make this:
 
 ~~~~{.cxx}
+/// at the top:
+#include <fmt/format.h>
+
 void ExperimentInterface::cbMyButton(GtkButton* button, gpointer user_data)
 {
   // increase the counter
   count += 1;
 
   // write a string:
-  auto newlabel = boost::str(boost::format("Count: %d") % count);
+  auto newlabel = fmt::format("Count: {}", count);
 
   // set this label text in the label widget
   gtk_label_set_label(GTK_LABEL(eciwindow["my_label"]), newlabel.c_str());
 }
 ~~~~
 
-We can see a number of things here. First, I used the code in the handy `boost/format.hpp` to write a new label. The `eciwindow` object has a handy indexing function to look up widgets in the interface, we use that to get the label widget. This returns a `GtkWidget` object, the `GTK_LABEL` macro will convert/cast that one to a `GtkLabel`, which can then be used to change the label text. The c-style interface for the gtk widget toolkit might be a bit cumbersome, but it is precise and does a lot of checking, and personally I prefer this to using the c++ interface for it.
+We can see a number of things here. First, I used the code in the handy `fmt/format.h` to write a new label. The `eciwindow` object has a handy indexing function to look up widgets in the interface, we use that to get the label widget. This returns a `GtkWidget` object, the `GTK_LABEL` macro will convert/cast that one to a `GtkLabel`, which can then be used to change the label text. The c-style interface for the gtk widget toolkit might be a bit cumbersome, but it is precise and does a lot of checking, and personally I prefer this to using the c++ interface for it.
 
 ## Sucking the data in to fill a DCO object
 
@@ -174,7 +177,7 @@ Of course, reacting to single button presses is not the only way to get data fro
 )
 ~~~~
 
-Also assume you have defined an event write token `w_expcond` (left as exercise for the reader). We can now use the last element in the display, the text entry box, to show how data can be obtained from the interface and collected in a DCO object. Modify the button callback to:
+Also assume you have defined a write token `w_expcond` (left as exercise for the reader). We can now use the last element in the display, the text entry box, to show how data can be obtained from the interface and collected in a DCO object. Modify the button callback to:
 
 ~~~~{.cxx}
 void ExperimentInterface::cbMyButton(GtkButton* button, gpointer user_data)
@@ -195,9 +198,9 @@ void ExperimentInterface::cbMyButton(GtkButton* button, gpointer user_data)
 }
 ~~~~
 
-Some explanation on how this works might be in order. The the `eciwindow`'s `getValues` call is templated, and as argument it can accept DCO types created with DUECA's code generator. This call inspects both the DCO object and the interface, and then tries to fill all "matching" members of the DCO object, in this case an `ExpCondition`. 
+Some explanation on how this works might be in order. The the `eciwindow`'s `getValues` call is templated, and as argument it can accept DCO types created with DUECA's code generator. This call inspects both the DCO object and the interface, and then tries to fill all "matching" members of the DCO object, in this case an `ExpCondition`.
 
-The `"eci_%s"` string specifies the format for looking for widgets. It will be combined with the name of the members in the DCO object (in this case the single member of the `ExpCondition`), here resulting in `"eci_participantid"`. That is the name of the `GtkEntry` widget, so that will be matched, and the text found in the `GtkEntry` widget will be written in the `ExpCondition` object that will be sent off over the channel linked to `w_expcond`. By using a prefix (in this case "eci_"), we can avoid confusion with names of other widgets, and it will also be possible to extract multiple identical DCO object from the interface, as long as different prefixes are used in naming the widgets.
+The `"eci_%s"` string specifies the format for looking for widgets. It will be combined with the name of the members in the DCO object (in this case the single member of the `ExpCondition`), here resulting in `"eci_participantid"`. That is the name of the `GtkEntry` widget, so that will be matched, and the text found in the `GtkEntry` widget will be written in the `ExpCondition` object that will be sent off over the channel linked to `w_expcond`. By using a prefix (in this case "eci_"), we can avoid confusion with names of other widgets, and it will also be possible to extract multiple identicallly typed DCO objects from the interface, as long as different prefixes are used in naming the widgets.
 
 It is also possible to work the other way, with a `setValues` call, and set values from a DCO object in the interface. For a short overview of what types of data can be matched to what types of widgets, see the table below:
 
@@ -234,7 +237,7 @@ Linking an enum to a group of radio buttons needs some special preparation. In g
 
 This would assume an prefix of `eci_`, then an enum in the `option` member of your DCO which can have values `Default`, `HiGain` and `EasyDoesIt`. Depending on which of these radio buttons is the currently active one, the enum value will be set.
 
-## Loose ends, getting or settina a single value
+## Loose ends, getting or setting a single value
 
 You do not always have to use a DCO object to get data from the interface, although in many cases it is by far the most efficient options. For loose ends, such as single floating point or integer values, or simple strings, you can use the (templated) dueca::GtkGladeWindow::setValue and dueca::GtkGladeWindow::getValue call. Given the eciwindow as used above, you could for example do:
 

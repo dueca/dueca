@@ -17,7 +17,7 @@
 #include <dueca/debug.h>
 #include <dueca/NodeManager.hxx>
 #include <dueca/gui/gtk4/GtkDuecaView.hxx>
-#include <boost/lexical_cast.hpp>
+#include <fmt/format.h>
 #include <dueca/DuecaPath.hxx>
 #include <sstream>
 #include <iomanip>
@@ -187,9 +187,7 @@ int NetUseOverviewGtk4::cbDraw(GtkDrawingArea *w, cairo_t *cr, int width,
 
     // set max time on label
     gtk_label_set_markup(GTK_LABEL(tlabel),
-                         (boost::lexical_cast<std::string>(timing_log.t_max) +
-                          std::string(" <span>&#956;s</span>"))
-                           .c_str());
+                         fmt::format("{} <span>[&#956;s]</span>", timing_log.t_max).c_str());
 
     // message setup time
     {

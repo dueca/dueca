@@ -16,8 +16,7 @@
 
 #include <algorithm>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/swap.hpp>
+#include <fmt/format.h>
 
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -149,8 +148,7 @@ bool NetCommunicatorMaster::startServer()
   if (not data_comm) {
     // correct for old-style network definitions
     if (!url.size()) {
-      url = std::string("udp://") + peer_address + std::string(":") +
-            boost::lexical_cast<std::string>(dataport);
+      url = fmt::format("udp://{}:{}", peer_address, dataport);
     }
 
     std::string key = url.substr(0, url.find(":")) + std::string("-master");
@@ -264,7 +262,7 @@ void NetCommunicatorMaster::sendCurrentConfigToPeer(const CommPeer &peer,
     DEB(UDPPeerConfig(UDPPeerConfig::ConfigurePeer, peer.send_id));
     ::packData(s, UDPPeerConfig(UDPPeerConfig::ConfigurePeer, peer.send_id));
 
-    // information on UDP network connection
+    // information on network connection
     UDPPeerInfo pi(public_data_url.size() ? public_data_url : url, peer.address,
                    buffer_size, join_cycle, Ticker::single()->getTimeGranule(),
                    ts_interval);

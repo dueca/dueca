@@ -49,7 +49,10 @@ class DuecaNetMaster:
   TimeSpec time_spec;
 
   /** Minimum size of fill section */
-  size_t fill_minimum;
+  uint32_t fill_minimum;
+
+  /** Maximum size of fill section */
+  uint32_t fill_maximum;
 
   /** List of nodes to connect to. This node is master, and therefore
       peer 0; the order of node_id's in this list determines the

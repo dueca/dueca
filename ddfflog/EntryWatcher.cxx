@@ -17,8 +17,7 @@
 #define EntryWatcher_cxx
 #include "EntryWatcher.hxx"
 #include "DDFFLogger.hxx"
-#include <sstream>
-#include <iomanip>
+#include <fmt/format.h>
 //#define I_XTR
 #include <debug.h>
 
@@ -193,8 +192,7 @@ void EntryWatcher::EntryData::createFunctor(std::weak_ptr<FileWithSegments> nfil
     (r_token.getMetaFunctor<DDFFDCOMetaFunctor>("msgpack"));
 
   // dpath is the identifying path, add an e00000 counter for each entry
-  std::stringstream dpath;
-  dpath << path << "/e" << std::setw(6) << std::setfill('0') << eidx;
+  auto dpath = fmt::format("{}/e{:06d}", path, eidx);
 
   // get a description of the data for the stream label
   rapidjson::StringBuffer doc;
@@ -202,10 +200,10 @@ void EntryWatcher::EntryData::createFunctor(std::weak_ptr<FileWithSegments> nfil
 
   // request a stream in the file
   w_stream = nfile.lock()->createNamedWrite
-    (dpath.str(), doc.GetString());
+    (dpath, doc.GetString());
 
   // check in with the recorder,
-  nfile.lock()->recorderCheckIn(dpath.str(), this);
+  nfile.lock()->recorderCheckIn(dpath, this);
 
   // use the stream for the functor
   functor.reset(metafunctor.lock()->getReadFunctor

@@ -12,7 +12,7 @@
 #include "DuecaNetMaster.hxx"
 
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
+#include <fmt/format.h>
 
 #include <dueca/Environment.hxx>
 #include <dueca/ObjectManager.hxx>
@@ -111,7 +111,10 @@ const ParameterTable *DuecaNetMaster::getParameterTable()
       "timeout value [s]" },
     { "packet-size",
       new VarProbe<_ThisClass_, uint32_t>(&_ThisClass_::buffer_size),
-      "data packet size" },
+      "Data packet size for each message." },
+    { "fill-size",
+      new VarProbe<_ThisClass_, uint32_t>(&_ThisClass_::fill_maximum),
+      "Maximum size of fill data per message." },
     { "n-logpoints",
       new VarProbe<_ThisClass_, uint32_t>(&_ThisClass_::n_logpoints),
       "Number of cycles to assemble for for histogram logs of timing\n"
@@ -148,7 +151,8 @@ DuecaNetMaster::DuecaNetMaster() :
   NetCommunicatorMaster(),
   priority(0, 0),
   time_spec(0, Ticker::single()->getCompatibleIncrement()),
-  fill_minimum(std::max(uint32_t(32), buffer_size / 8)),
+  fill_minimum(32U),
+  fill_maximum(1024U),
   peer_nodeids(),
   metainfo(),
   send_order_counter(1),
@@ -250,6 +254,15 @@ bool DuecaNetMaster::complete()
     W_NET("Could not read /dev/random, using a non-random group id");
   }
 
+  if (fill_maximum < fill_minimum) {
+    /* DUECA network.
+
+       Maximum fill size too small, adjusting.
+    */
+    W_NET("Unreasonable value maximum fillup size " << fill_maximum);
+    fill_maximum = fill_minimum;
+  }
+
   return res;
 }
 
@@ -277,9 +290,8 @@ void DuecaNetMaster::whenUp(const TimeSpec &ts)
     for (int ii = 0; ii < ObjectManager::single()->getNoOfNodes(); ii++) {
       w_logcapacity[ii] = new ChannelWriteToken(
         getId(), NameSet("dueca", "NetCommLog", ""), NetCapacityLog::classname,
-        std::string("net use node ") + boost::lexical_cast<std::string>(ii),
-        Channel::Events, Channel::OneOrMoreEntries, Channel::MixedPacking,
-        Channel::Bulk, cbv2);
+        fmt::format("net use node {}", ii), Channel::Events,
+        Channel::OneOrMoreEntries, Channel::MixedPacking, Channel::Bulk, cbv2);
       if (ii) {
         log_capacity[ii] = new NetCapacityLog(peer_nodeids[ii - 1]);
       }
@@ -460,13 +472,11 @@ void DuecaNetMaster::clientPackPayload(MessageBuffer::ptr_type buffer)
     buffer->fill += breg;
 
     // any significant room left for fill?
-    if (fill_packer /* &&
-                       buffer->capacity - buffer->fill > fill_minimum*/) {
-      //fill_packer->packWork();
+    if (fill_packer) {
 
       buffer->fill +=
         fill_packer->stuffMessage(&(buffer->buffer[buffer->fill]),
-                                  buffer->capacity - buffer->fill, buffer);
+                                  std::min(size_t(fill_maximum), buffer->capacity - buffer->fill), buffer);
     }
   }
   else {
@@ -564,8 +574,12 @@ void DuecaNetMaster::clientWelcomeConfig(AmorphStore &s, unsigned peer_id)
   ::packData(s, clientmark);
   s.packData(metainfo[peer_id].send_order);
   s.packData(group_magic);
+  s.packData(fill_maximum);
 }
 
-template <> const char *getclassname<DuecaNetMaster>() { return "DuecaNetMaster"; }
+template <> const char *getclassname<DuecaNetMaster>()
+{
+  return "DuecaNetMaster";
+}
 
 } // namespace dueca

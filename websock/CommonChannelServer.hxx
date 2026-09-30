@@ -106,6 +106,9 @@ struct ConnectionList
   template <typename C>
   void sendOne(const std::string &data, const char *desc, const C &c);
 
+  /** Run a ping */
+  void ping();
+
   /** Close the connections */
   void close(const char *reason, int status = 1000);
 
@@ -184,6 +187,11 @@ private:
     When the channel token is valid, each connection will first receive
     a definition of the data. Subsequent data follows as it is received
     on the channel.
+
+    Optionally, the data rate can be adjusted.
+
+    When no data is written to the channel, a keepalive ping will be
+    sent instead.
   */
 struct SingleEntryFollow : public ConnectionList
 {
@@ -396,6 +404,9 @@ struct WriteEntry INHERIT_REFCOUNT(WriteEntry)
 
   /** Send data */
   void sendOne(const std::string &data, const char *desc);
+
+  /** ping */
+  void ping();
 
   /** Constructor
 
@@ -641,6 +652,9 @@ struct WriteReadEntry :
 
   /** Set the connection link */
   void setConnection(sconnection_t connection);
+
+  /** ping */
+  void ping();
 
   /** Disconnect */
   inline void doDisconnect() { state = DisConnected; }

@@ -12,6 +12,7 @@ set(SOURCES
   DuecaGLCanvas.cxx DuecaGLWindow.cxx InterpIndex.hxx randNormal.cxx
   LinearSystem.cxx LimitedLinearSystem.cxx Integrator.cxx
   SingletonPointer.hxx Polynomial.hxx InputCalibrator.hxx
+  InputCalibratorRanging.hxx
   InputRatioCalibrator.hxx OutputCalibrator.hxx Steps.hxx Steps.cxx
   PolynomialN.cxx StepsN.cxx Inverse.cxx Circular.cxx
   CircularWithPoly.cxx SimpleFunction.cxx StringUtils.cxx
@@ -25,6 +26,7 @@ set(HEADERS DuecaGLCanvas.hxx DuecaGLWindow.hxx InterpIndex.hxx
   InterpTable4.hxx Interpolator4.hxx randNormal.hxx LinearSystem.hxx
   LimitedLinearSystem.hxx Integrator.hxx SingletonPointer.hxx
   Polynomial.hxx InputCalibrator.hxx InputRatioCalibrator.hxx
+  InputCalibratorRanging.hxx
   OutputCalibrator.hxx PolynomialN.hxx StepsN.hxx Inverse.hxx
   Circular.hxx CircularWithPoly.hxx Steps.hxx SimpleFunction.hxx
   StringUtils.hxx RigidBody.hxx integrate_euler.hxx
@@ -35,12 +37,13 @@ set(HEADERS DuecaGLCanvas.hxx DuecaGLWindow.hxx InterpIndex.hxx
 set(INCDIRS
   ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}/dueca ${CMAKE_SOURCE_DIR}/dueca
-  ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+  ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+  ${Eigen3_INCLUDE_DIRS})
 
 dueca_add_library(dueca-extra
   SOURCES ${SOURCES}
-  LINKLIBS dueca fmt::fmt
-  COMPILEOPTIONS ${EIGEN_CFLAGS}
+  LINKLIBS dueca fmt::fmt Eigen3::Eigen
+  COMPILEOPTIONS ${Eigen3_CFLAGS}
   INCLUDEDIRS ${INCDIRS})
 
 foreach(S ${SCRIPTLANG})

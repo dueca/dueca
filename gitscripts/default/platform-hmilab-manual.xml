@@ -11,41 +11,61 @@
 
   -->
   <machineclasses>
-    <machineclass name="hmi-ecs" gui="gtk3" />
+    <machineclass name="hmi-ecs" gui="gtk4" />
     <machineclass name="hmi-io" gui="none">
       <config>
-        set(PROJECT_LIBRARIES -L$ENV{HOME}/apps/hmi-io/build
-            -lhmi-io -lethercat)
-        set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/apps/hmi-io/build)
+        # variant, can choose real hardware (hmi) or hmi-sim
+        set(HMI_VARIANT hmi CACHE STRING "Choose a variant for the HMI io")
+
+        # Find the relevant headers
+        find_path(HMIIO_BASE_DIR NAMES
+                hmi/HardwareInterface.hxx hmi/hmiio_calib_volts.h REQUIRED
+                PATHS ${CMAKE_SOURCE_DIR}/../../gen-ecat-io)
+
+        list(APPEND HMIIO_INCLUDE_DIRS
+                ${HMIIO_BASE_DIR}/hmi
+                ${HMIIO_BASE_DIR}
+                ${HMIIO_BASE_DIR}/build-${HMI_VARIANT})
+
+        find_library(HMIIO_LIBRARY NAMES hmi-ecat-io REQUIRED
+          PATHS ${HMIIO_BASE_DIR}/build-${HMI_VARIANT})
+
+        # define PROJECT_LIBRARIES with libraries needed on the current platform,
+        set(PROJECT_LIBRARIES ${HMIIO_LIBRARY})
+
+        # define PROJECT_INCLUDE_DIRS with include directories common to all on
+        # the current platform
+        set(PROJECT_INCLUDE_DIRS ${HMIIO_INCLUDE_DIRS})
       </config>
       <modules>
-        <module>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>IOController</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module>IOController</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>ControlLoading</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module>ControlLoading</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>CLConfigurations</name>
-          <version>master</version>
-        </module>
-        <module>
+          <module pseudo="true">CLConfigurations</module>
+        </project>
+        <project>
           <url>dgrbase:///CSControlLoading.git</url>
-          <name>cl-analyser</name>
-          <version>master</version>
-        </module>
+          <module>cl-analyser</module>
+        </project>
       </modules>
     </machineclass>
-    <machineclass name="hmi-efis" gui="glut" />
+    <machineclass name="hmi-efis" gui="none" />
   </machineclasses>
   <platform name="hmilab" comm-master="dutmms4">
-    <node name="dutmms1" machineclass="hmi-ecs" node-number="0" />
-    <node name="dutmms4" machineclass="hmi-io" />
-    <node name="dutmms2" machineclass="hmi-efis" />
+    <scriptlet place="## [nodes]">
+      ecs_node = 0      # experiment control station, node 0 with gui
+      cl_node = 1       # dutmms4
+      pfd_node = 2      # dutmms2
+    </scriptlet>
+    <node name="dutmms1" machineclass="hmi-ecs" node-number="0" if-address="192.168.2.1"/>
+    <node name="dutmms4" machineclass="hmi-io" node-number="1" comm-master="true" if-address="192.168.2.4" highest-prio="5"/>
+    <node name="dutmms2" machineclass="hmi-efis" node-number="2" if-address="192.168.2.2" />
   </platform>
 </configuration>

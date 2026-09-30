@@ -8,6 +8,7 @@
     <xs:simpleContent>
       <xs:extension base="xs:string">
         <xs:attribute name="pseudo" type="xs:boolean" default="false" />
+        <xs:attribute name="inactive" type="xs:boolean" default="false"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>

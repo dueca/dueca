@@ -730,7 +730,7 @@ template <typename S> inline void msg_unpack(S &i0, const S &iend, int64_t &i)
 
 template <typename S> inline void msg_unpack(S &i0, const S &iend, bool &i)
 {
-  unstream<S>::unpack_int(i0, iend, i);
+  unstream<S>::unpack_bool(i0, iend, i);
 }
 
 template <typename S> inline void msg_unpack(S &i0, const S &iend, float &i)

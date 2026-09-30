@@ -16,7 +16,7 @@
 #include <dueca/debug.h>
 #include <dueca/NodeManager.hxx>
 #include <dueca/gui/gtk2/GtkDuecaView.hxx>
-#include <boost/lexical_cast.hpp>
+#include <fmt/format.h>
 #include <dueca/DuecaPath.hxx>
 #include <sstream>
 #include <iomanip>
@@ -129,7 +129,7 @@ bool NetUseOverviewGtk2::complete()
   sutlabel = window["sutlabel"];
 
   gtk_widget_hide(window["net_use_view"]);
-  
+
   return res;
 }
 
@@ -183,8 +183,7 @@ int NetUseOverviewGtk2::cbDraw(GtkWidget* w, GdkEventExpose *event)
     // set max time on label
     gtk_label_set_markup
       (GTK_LABEL(tlabel),
-       (boost::lexical_cast<std::string>(timing_log.t_max) +
-        std::string(" <span>[&#956;s]</span>")).c_str());
+       fmt::format("{} <span>[&#956;s]</span>", timing_log.t_max).c_str());
 
     // message setup time
     {
@@ -237,7 +236,7 @@ int NetUseOverviewGtk2::cbConfigure(GtkWidget* w, GdkEventConfigure *ev)
   DEB(getId() << " " << classname << " cbConfigure " << node);
   GtkAllocation alc; gtk_widget_get_allocation(w, &alc);
 
-  // check whether widget is large enough 
+  // check whether widget is large enough
   //if (alc.height < 80 || alc.width < 220) {
     gtk_widget_set_size_request(w, 220, 80);
     //}

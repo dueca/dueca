@@ -25,8 +25,7 @@ namespace dueca {
 SchemeScripting::SchemeScripting() :
   ScriptHelper("(pass-control 2) ; *Added by ScriptInterpret*",
                "(pass-control 3) ; *Added by ScriptInterpret*",
-               "(quit) ; *Added by ScriptInterpret*",
-               ";;end_of_input::")
+               "(quit) ; *Added by ScriptInterpret*", ";;end_of_input::")
 {
   ScriptInterpret::single(this);
 }
@@ -39,7 +38,7 @@ SchemeScripting::~SchemeScripting()
 
 void SchemeScripting::initiate()
 {
-  to_scheme.open("dueca.scratch", ios::out);
+  to_scheme.open("dueca.scratch", ios::out | ios::trunc);
 
   // check that it is OK. Unwriteable files do not return good
   if (!to_scheme.good()) {
@@ -67,13 +66,13 @@ void scheme_inner_main(void *closure, int argc, char **argv)
     (*(*ii))();
   }
 #endif
-  for (const InitFunction* f = ScriptInterpret::single()->getNextInitFunction();
+  for (const InitFunction *f = ScriptInterpret::single()->getNextInitFunction();
        f; f = ScriptInterpret::single()->getNextInitFunction()) {
     (*f)();
     delete f;
   }
   // call the scheme shell, never returns!
-  scm_shell (argc, argv);
+  scm_shell(argc, argv);
 }
 
 void SchemeScripting::interpreter()
@@ -84,12 +83,12 @@ void SchemeScripting::interpreter()
 #else
   int argc = 3;
 #endif
-  char* argv[4] = {const_cast<char*>("dusime_guile"),
+  char *argv[4] = { const_cast<char *>("dusime_guile"),
 #if SCM_MAJOR_VERSION >= 2
-                   const_cast<char*>("--no-auto-compile"),
+                    const_cast<char *>("--no-auto-compile"),
 #endif
-                   const_cast<char*>("-s"),
-                   const_cast<char*>("dueca.scratch")};
+                    const_cast<char *>("-s"),
+                    const_cast<char *>("dueca.scratch") };
 
   {
     // now write the basic configuration to the scratch file
@@ -100,7 +99,7 @@ void SchemeScripting::interpreter()
       std::cerr << "Error opening dueca.cnf" << std::endl;
       throw(scriptexception());
     }
-    while(getline(cnf, buff)) {
+    while (getline(cnf, buff)) {
       to_scheme << buff << std::endl;
     }
     to_scheme << "(pass-control 1) ; *Added by ScriptInterpret*" << std::endl;
@@ -108,17 +107,17 @@ void SchemeScripting::interpreter()
   }
 
 #if defined(SCM_USE_FOREIGN)
-  DEB("calling guile with arguments: " << argv[0] << ' '
-      << argv[1] << ' ' << argv[2] << ' ' << argv[3]);
+  DEB("calling guile with arguments: " << argv[0] << ' ' << argv[1] << ' '
+                                       << argv[2] << ' ' << argv[3]);
 #else
-  DEB("calling guile with arguments: " << argv[0] << ' '
-      << argv[1] << ' ' << argv[2]);
+  DEB("calling guile with arguments: " << argv[0] << ' ' << argv[1] << ' '
+                                       << argv[2]);
 #endif
 
   scm_boot_guile(argc, argv, scheme_inner_main, 0);
 }
 
-bool SchemeScripting::readline(std::string& line)
+bool SchemeScripting::readline(std::string &line)
 {
   static ifstream mod("dueca.mod");
   if (!mod.good()) {
@@ -128,7 +127,7 @@ bool SchemeScripting::readline(std::string& line)
   return bool(getline(mod, line));
 }
 
-bool SchemeScripting::writeline(const std::string& line)
+bool SchemeScripting::writeline(const std::string &line)
 {
   if (line == stopsign) {
 
@@ -139,6 +138,5 @@ bool SchemeScripting::writeline(const std::string& line)
   to_scheme << line << endl;
   return false;
 }
-
 
 } // namespace dueca

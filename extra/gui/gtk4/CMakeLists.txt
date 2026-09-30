@@ -28,7 +28,7 @@ set(INCDIRS
 
 dueca_add_library(dueca-extra-gtk4
   SOURCES ${SOURCES}
-  LINKLIBS dueca-gtk4 dueca-extra
+  LINKLIBS dueca-gtk4 dueca-extra ${EPOXY_LIBRARIES}
   COMPILEOPTIONS ${GTK4_CFLAGS}
   LINKDIRS ${GTK4_LIBRARY_DIRS})
 
@@ -37,4 +37,3 @@ install(FILES ${INSTALLHEADERS}
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dueca-extra-gtk4.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-

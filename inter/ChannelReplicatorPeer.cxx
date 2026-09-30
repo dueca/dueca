@@ -39,8 +39,6 @@
 #include "EntryReader.hxx"
 #include <errno.h>
 #include <fcntl.h>
-#include <boost/lexical_cast.hpp>
-#include <boost/swap.hpp>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <exception>

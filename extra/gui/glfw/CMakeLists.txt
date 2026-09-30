@@ -14,7 +14,7 @@ configure_file(dueca-extra-glfw.pc.in dueca-extra-glfw.pc @ONLY)
 
 dueca_add_library(dueca-extra-glfw
   SOURCES ${SOURCES}
-  LINKLIBS dueca-extra
+  LINKLIBS dueca-extra ${GLFW_LIBRARIES}
   COMPILEOPTIONS ${GLFW_CFLAGS} # ${GTKGLEXT_CFLAGS}
   LINKDIRS ${GLFW_LIBRARY_DIRS})
 
@@ -23,4 +23,3 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dueca-extra-glfw.pc
 
 install(FILES DuecaGLFWWindow.hxx
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dueca/extra/gui/glfw)
-

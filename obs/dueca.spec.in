@@ -106,10 +106,6 @@ BuildRequires: python3-devel
 BuildRequires: libboost_python3-devel
 %define SCRIPT_PYTHON_CONFIG -DSCRIPT_PYTHON=ON
 %endif
-%if 0%{?python_config}
-BuildRequires: python-devel
-%define SCRIPT_PYTHON_CONFIG -DSCRIPT_PYTHON=ON
-%endif
 
 %if 0%{?sle_version} || 0%{?suse_version} >= 1600
 BuildRequires:  openSUSE-release
@@ -201,9 +197,7 @@ Requires: glui-devel
 %if 0%{?python3_config}
 Requires: python3-devel
 Requires: libboost_python3-devel
-%endif
-%if 0%{?python_config}
-Requires: python2-devel
+Requires: python3-GitPython
 %endif
 Requires: boost-devel
 

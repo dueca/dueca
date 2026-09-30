@@ -19,11 +19,22 @@
 
 #if defined(DUECA_CONFIG_GTK4)
 
+#if 1
 #include "gui/gtk4/DuecaGLGtk4Window.hxx"
 
 namespace dueca {
 typedef DuecaGLGtk4Window DuecaGLWindow;
 }
+#else
+
+#warning "Using compatibility BareDuecaGLWindow for GL under gtk+4"
+
+// gtk3 GL interfacing simplified with BareDuecaGLWindow
+#include <extra/gui/X11/BareDuecaGLWindow.hxx>
+namespace dueca {
+typedef BareDuecaGLWindow DuecaGLWindow;
+} // namespace dueca
+#endif
 
 #elif DUECA_CONFIG_GTK3
 

@@ -41,7 +41,7 @@
 #define NO_TYPE_CREATION
 #include <dueca.h>
 
-#define DEBPRINTLEVEL 0
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 #ifdef BOOST1_65
@@ -50,6 +50,18 @@
 #else
 #define BOOST_POSTCALL boost::asio::post
 #define BOOST_POSTARG1 *runcontext,
+#endif
+
+#if DEBPRINTLEVEL >= 0
+#define PINGPONG(A)                                                            \
+  A.on_ping = [](std::shared_ptr<typename S::Connection> connection) {       \
+    DEB("Ping received on " #A " link");                                      \
+  };                                                                           \
+  A.on_ping = [](std::shared_ptr<typename S::Connection> connection) {       \
+    DEB("Pong received on " #A " link");                                      \
+  };
+#else
+#define PINGPONG(A) {}
 #endif
 
 namespace dueca {
@@ -71,17 +83,17 @@ WebSocketsServer<Encoder, Decoder>::~WebSocketsServer()
 /** Local function for sending the response data, using 64K chunks */
 template <typename R>
 static void read_and_send(const R &response,
-                          const std::shared_ptr<ifstream> &ifs)
+                          const std::shared_ptr<std::ifstream> &ifs)
 {
   // single-thread only
-  static vector<char> buffer(0x10000);
-  streamsize read_length;
+  static std::vector<char> buffer(0x10000);
+  std::streamsize read_length;
 
   if ((read_length =
-         ifs->read(&buffer[0], static_cast<streamsize>(buffer.size()))
+         ifs->read(&buffer[0], static_cast<std::streamsize>(buffer.size()))
            .gcount()) > 0) {
     response->write(&buffer[0], read_length);
-    if (read_length == static_cast<streamsize>(buffer.size())) {
+    if (read_length == static_cast<std::streamsize>(buffer.size())) {
       response->send([response, ifs](const SimpleWeb::error_code &ec) {
         if (!ec) {
           read_and_send(response, ifs);
@@ -106,8 +118,8 @@ template <typename S> bool WebSocketsServerBase::_complete_http(S &server)
 
   // create a generic URL
   server.default_resource["GET"] =
-    [this](shared_ptr<typename S::Response> response,
-           shared_ptr<typename S::Request> request) {
+    [this](std::shared_ptr<typename S::Response> response,
+           std::shared_ptr<typename S::Request> request) {
       try {
         auto web_root_path = boost::filesystem::canonical(this->document_root);
         auto path = boost::filesystem::canonical(web_root_path / request->path);
@@ -115,10 +127,10 @@ template <typename S> bool WebSocketsServerBase::_complete_http(S &server)
         DEB("http request for " << request->path);
 
         // Check if path is within document_root
-        if (distance(web_root_path.begin(), web_root_path.end()) >
-              distance(path.begin(), path.end()) ||
-            !equal(web_root_path.begin(), web_root_path.end(), path.begin())) {
-          throw(invalid_argument("path outside root requested"));
+        if (std::distance(web_root_path.begin(), web_root_path.end()) >
+              std::distance(path.begin(), path.end()) ||
+            !std::equal(web_root_path.begin(), web_root_path.end(), path.begin())) {
+          throw(std::invalid_argument("path outside root requested"));
         }
 
         // If this is a folder, get the index file
@@ -127,14 +139,14 @@ template <typename S> bool WebSocketsServerBase::_complete_http(S &server)
         }
 
         SimpleWeb::CaseInsensitiveMultimap header;
-        auto ifs = make_shared<ifstream>();
-        ifs->open(path.string(), ifstream::in | ios::binary | ios::ate);
+        auto ifs = std::make_shared<std::ifstream>();
+        ifs->open(path.string(), std::ifstream::in | std::ios::binary | std::ios::ate);
 
         if (*ifs) {
           auto length = ifs->tellg();
-          ifs->seekg(0, ios::beg);
+          ifs->seekg(0, std::ios::beg);
           header.emplace("Content-Length", to_string(length));
-          string ext =
+          std::string ext =
             path.extension().c_str(); // boost::filesystem::extension(path);
           auto mime = mimemap.find(ext);
           if (mime == mimemap.end()) {
@@ -151,14 +163,14 @@ template <typename S> bool WebSocketsServerBase::_complete_http(S &server)
           read_and_send(response, ifs);
         }
       }
-      catch (const exception &e) {
+      catch (const std::exception &e) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request,
                         "Could not open " + request->path + ": " + e.what());
         DEB("HTTP fails for " << request->path << ": " << e.what());
       }
     };
 
-  server.on_error = [](shared_ptr<typename S::Request> request,
+  server.on_error = [](std::shared_ptr<typename S::Request> request,
                        const SimpleWeb::error_code &ec) {
     // note, error 125 is returned when a client pauses too much
     if (ec.value() != 125) {
@@ -184,7 +196,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
 
   // access configuration of the server
   auto &configinfo = server.endpoint["^/configuration"];
-  configinfo.on_error = [](shared_ptr<typename S::Connection> connection,
+  configinfo.on_error = [](std::shared_ptr<typename S::Connection> connection,
                            const SimpleWeb::error_code &ec) {
     /* DUECA websockets.
 
@@ -194,7 +206,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
                                       << "Error: " << ec
                                       << ", error message: " << ec.message());
   };
-  configinfo.on_open = [this](shared_ptr<typename S::Connection> connection) {
+  configinfo.on_open = [this](std::shared_ptr<typename S::Connection> connection) {
     // Encoder class converts data to binary/ascii
     std::stringstream buf;
     Encoder writer(buf);
@@ -306,7 +318,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       // const std::string reason("Configuration data sent");
       // connection->send_close(1000, reason);
   };
-  configinfo.on_close = [this](shared_ptr<typename S::Connection> connection,
+  configinfo.on_close = [this](std::shared_ptr<typename S::Connection> connection,
                                int status, const std::string &reason) {
     /* DUECA websockets.
 
@@ -316,13 +328,15 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
                                             << " reason: \"" << reason << '"');
   };
 
+  PINGPONG(configinfo);
+
   // access channel data on request; each message (no data needed)
   // is replied to with the current value read from the accessed channel
   // and entry
   auto &current = server.endpoint["^/current/([a-zA-Z0-9_-]+)$"];
 
-  current.on_message = [this](shared_ptr<typename S::Connection> connection,
-                              shared_ptr<typename S::InMessage> in_message) {
+  current.on_message = [this](std::shared_ptr<typename S::Connection> connection,
+                              std::shared_ptr<typename S::InMessage> in_message) {
     DEB("Message on connection 0x"
         << std::hex << reinterpret_cast<void *>(connection.get()) << std::dec);
 
@@ -380,7 +394,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       writer.OpCode());
   };
 
-  current.on_error = [](shared_ptr<typename S::Connection> connection,
+  current.on_error = [](std::shared_ptr<typename S::Connection> connection,
                         const SimpleWeb::error_code &ec) {
       /* DUECA websockets.
 
@@ -391,7 +405,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
           << "Error: " << ec << ", error message: " << ec.message());
   };
 
-  current.on_close = [this](shared_ptr<typename S::Connection> connection,
+  current.on_close = [this](std::shared_ptr<typename S::Connection> connection,
                             int status, const std::string &reason) {
     DEB("Close on connection 0x"
         << std::hex << reinterpret_cast<void *>(connection.get()) << std::dec);
@@ -429,7 +443,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
   };
 
   // open should be last?
-  current.on_open = [this](shared_ptr<typename S::Connection> connection) {
+  current.on_open = [this](std::shared_ptr<typename S::Connection> connection) {
     DEB("Open on connection 0x"
         << std::hex << reinterpret_cast<void *>(connection.get()) << std::dec);
     DEB("New connection currentdata");
@@ -485,11 +499,12 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       }
     }
   };
+  PINGPONG(current);
 
   // access channel data to collect all data; messages are followed
   auto &follow = server.endpoint["^/read/([a-zA-Z0-9_-]+)$"];
 
-  follow.on_error = [](shared_ptr<typename S::Connection> connection,
+  follow.on_error = [](std::shared_ptr<typename S::Connection> connection,
                        const SimpleWeb::error_code &ec) {
     /* DUECA websockets.
 
@@ -500,7 +515,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
                                         << ", error message: " << ec.message());
   };
 
-  follow.on_close = [this](shared_ptr<typename S::Connection> connection,
+  follow.on_close = [this](std::shared_ptr<typename S::Connection> connection,
                            int status, const std::string &reason) {
     // find the specific URL, and entry number
     auto qpars = SimpleWeb::QueryString::parse(connection->query_string);
@@ -543,7 +558,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
     }
   };
 
-  follow.on_open = [this](shared_ptr<typename S::Connection> connection) {
+  follow.on_open = [this](std::shared_ptr<typename S::Connection> connection) {
     // find the specific URL, and entry number
     auto qpars = SimpleWeb::QueryString::parse(connection->query_string);
     auto ekey = qpars.find("entry");
@@ -602,10 +617,11 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       connection->send_close(1001, reason);
     }
   };
+  PINGPONG(follow);
 
   auto &monitor = server.endpoint["^/info/([a-zA-Z0-9_-]+)$"];
 
-  monitor.on_error = [](shared_ptr<typename S::Connection> connection,
+  monitor.on_error = [](std::shared_ptr<typename S::Connection> connection,
                         const SimpleWeb::error_code &ec) {
     /* DUECA websockets.
 
@@ -615,7 +631,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
           << "Error: " << ec << ", error message: " << ec.message());
   };
 
-  monitor.on_close = [this](shared_ptr<typename S::Connection> connection,
+  monitor.on_close = [this](std::shared_ptr<typename S::Connection> connection,
                             int status, const std::string &reason) {
     // try to find the monitoring object
     std::string key(connection->path_match[1]);
@@ -646,7 +662,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
     }
   };
 
-  monitor.on_open = [this](shared_ptr<typename S::Connection> connection) {
+  monitor.on_open = [this](std::shared_ptr<typename S::Connection> connection) {
     // try to find the monitoring object
     std::string key(connection->path_match[1]);
     // ScopeLock l(this->thelock);
@@ -667,12 +683,13 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       ee->second->addConnection(connection);
     }
   };
+  PINGPONG(monitor);
 
   // writing to DUECA from a websocket connection
   auto &writer = server.endpoint["^/write/([a-zA-Z0-9_-]+)$"];
 
   // error response
-  writer.on_error = [](shared_ptr<typename S::Connection> connection,
+  writer.on_error = [](std::shared_ptr<typename S::Connection> connection,
                        const SimpleWeb::error_code &ec) {
     /* DUECA websockets.
 
@@ -682,7 +699,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
                                         << ", error message: " << ec.message());
   };
 
-  writer.on_open = [this](shared_ptr<typename S::Connection> connection) {
+  writer.on_open = [this](std::shared_ptr<typename S::Connection> connection) {
     // try to find the setup
     // ScopeLock l(this->thelock);
 
@@ -780,8 +797,8 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       connection);
   };
 
-  writer.on_message = [this](shared_ptr<typename S::Connection> connection,
-                             shared_ptr<typename S::InMessage> in_message) {
+  writer.on_message = [this](std::shared_ptr<typename S::Connection> connection,
+                             std::shared_ptr<typename S::InMessage> in_message) {
     // find the entry, of type WriteEntry
     auto ww = this->writers.find(reinterpret_cast<void *>(connection.get()));
 
@@ -824,7 +841,8 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
         dec.findMember("dataclass", dataclass);
         DEB("Write entry definition dataclass="
             << dataclass << " label=" << label << " ctiming=" << ctiming
-            << " event=" << event << " bulk=" << bulk << " diffpack=" << diffpack);
+            << " event=" << event << " bulk=" << bulk
+            << " diffpack=" << diffpack);
         // WriteEntry
         ww->second->complete(dataclass, label, !event, ctiming, bulk, diffpack);
       }
@@ -846,7 +864,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
   };
 
   // close occurrence
-  writer.on_close = [this](shared_ptr<typename S::Connection> connection,
+  writer.on_close = [this](std::shared_ptr<typename S::Connection> connection,
                            int status, const std::string &reason) {
     /* DUECA websockets.
 
@@ -874,10 +892,11 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
             << connection->path_match[1]);
     }
   };
+  PINGPONG(writer);
 
   auto &writerreader = server.endpoint["^/write-and-read/([a-zA-Z0-9_-]+)$"];
 
-  writerreader.on_error = [](shared_ptr<typename S::Connection> connection,
+  writerreader.on_error = [](std::shared_ptr<typename S::Connection> connection,
                              const SimpleWeb::error_code &ec) {
     DEB("Error in write-and-read connection");
     /* DUECA websockets.
@@ -888,7 +907,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
           << "Error: " << ec << ", error message: " << ec.message());
   };
 
-  writerreader.on_open = [this](shared_ptr<typename S::Connection> connection) {
+  writerreader.on_open = [this](std::shared_ptr<typename S::Connection> connection) {
     // try to find the setup
     // ScopeLock l(this->thelock);
 
@@ -920,8 +939,8 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
   };
 
   writerreader.on_message =
-    [this](shared_ptr<typename S::Connection> connection,
-           shared_ptr<typename S::InMessage> in_message) {
+    [this](std::shared_ptr<typename S::Connection> connection,
+           std::shared_ptr<typename S::InMessage> in_message) {
       // find the entry
       auto ww =
         this->writersreaders.find(reinterpret_cast<void *>(connection.get()));
@@ -940,7 +959,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
             Decoder dec(in_message->string());
             ww->second->writeFromCoded(dec);
           }
-          catch (const exception &e) {
+          catch (const std::exception &e) {
             /* DUECA websockets.
 
                Error in attempting to read data from a "write-and-read" URL.
@@ -992,7 +1011,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
     };
 
   // close occurrence
-  writerreader.on_close = [this](shared_ptr<typename S::Connection> connection,
+  writerreader.on_close = [this](std::shared_ptr<typename S::Connection> connection,
                                  int status, const std::string &reason) {
     // find the writing object, using the connection as index
     // ScopeLock l(this->thelock);
@@ -1020,6 +1039,7 @@ bool WebSocketsServer<Encoder, Decoder>::_complete(S &server)
       this->writersreaders.erase(wr);
     }
   };
+  PINGPONG(writerreader);
 
   server.io_service = runcontext;
 

@@ -103,6 +103,12 @@ protected: // simulation data
   /** Start flag for immediate_start */
   bool auto_started;
 
+  /** Ping interval */
+  unsigned ping_interval;
+
+  /** Ping counter */
+  unsigned ping_count;
+
   /** Access lock for shared data */
   StateGuard thelock;
 

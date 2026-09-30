@@ -22,7 +22,8 @@
 // be extremely careful with X11 headers; these have all kinds of
 // damaging defines, never include these in a header used by a "client"
 #define GLX_GLXEXT_PROTOTYPES 1
-#include <GL/gl.h>
+#include <epoxy/gl.h>
+//#include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
 #include <GL/glu.h>

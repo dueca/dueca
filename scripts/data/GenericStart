@@ -1,8 +1,7 @@
 #!/bin/sh
 
 if [ -z "$MAINDIR" -o \
-     -z "$MASTERNODE" -o -z "$ZERONODE" -o  \
-     -z "$RSHL" -o -z "$RSHQ" ]; then
+     -z "$MASTERNODE" -o -z "$ZERONODE" ]; then
     cat <<EOF
 $Usage $0 Invoke this script as the tail of another script,
          in which you define
@@ -29,8 +28,7 @@ $Usage $0 Invoke this script as the tail of another script,
          FVWMNODES   [opt] nodes that run Linux, and need X and fvwm started
          LNODES      [opt] other nodes that run Linux
          MNODES      [opt] notes that you will start manually (for debugging!)
-         RSHL        shell you will use for connections to Linux
-         RSHQ        shell you will use for connections to QNX
+         RSHL        [opt] shell you will use for connections to other computers (ssh)
          SUDO        [opt] set to 'sudo' to use sudo on Linux nodes
                      Note that you don't need sudo; see the page
                      "tuning linux workstations" in the DUECA documentation
@@ -44,7 +42,7 @@ $Usage $0 Invoke this script as the tail of another script,
                      e.g. dutmms2_SPECIAL=./mystartscript
          NODENAME_CLEANMORE [opt] for each (Linux) node, additional commands
                      to run for cleaning up (e.g.
-                     dutmms6_CLEANMORE="killall -3 fgfs")
+                     dutmms6_CLEANMORE="killall -s SIGINT fgfs")
          NODENAME_XOPTS [opt] Additional options for xinit start; these
                      are the options after the --, see man xinit
                      Useful: ":0 -br" start up with black screen
@@ -53,6 +51,9 @@ $Usage $0 Invoke this script as the tail of another script,
 EOF
     exit 1
 fi
+
+# default ssh for logging in
+RSHL=${RSHL:-ssh}
 
 startnode()
 {
@@ -208,13 +209,13 @@ cleannode()
 
     echo "Cleaning Linux node $1"
     if [ "${ALIAS}" != "${ZERONODE}" ]; then
-	$RSHL $NODE $SUDO /usr/bin/killall -s 3 dueca_run.x
+	$RSHL $NODE $SUDO /usr/bin/killall -s SIGINT dueca_run.x
 	if eval echo "Running \${${ALIAS}_CLEANMORE:-no_such_command} on $1 "| \
 		grep --invert-match no_such_command; then
             eval $RSHL $NODE \$${ALIAS}_CLEANMORE
 	fi
     else
-	$SUDO /usr/bin/killall -s 3 dueca_run.x
+	$SUDO /usr/bin/killall -s SIGINT dueca_run.x
 	if eval echo "Running \${${ALIAS}_CLEANMORE:-no_such_command} on $1 "| \
 		grep --invert-match no_such_command; then
             eval \$${ALIAS}_CLEANMORE

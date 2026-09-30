@@ -74,5 +74,10 @@ std::ostream& PolynomialN::print(std::ostream& os) const
   return os << ")";
 }
 
-} // namespace dueca
 
+void PolynomialN::adjustOffset(const double off)
+{
+  a[0] += off;
+}
+
+} // namespace dueca

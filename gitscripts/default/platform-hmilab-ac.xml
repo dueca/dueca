@@ -4,89 +4,168 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="https://dueca.tudelft.nl/platform https://dueca.tudelft.nl/schemas/platform.xsd">
 	<machineclasses>
-		<machineclass name="hmi-ecs" gui="gtk3" />
+		<!-- Experiment Control Station -->
+		<machineclass name="hmi-ecs" gui="gtk4">
+			<modules>
+				<project>
+					<url>dgrpub:///FlexiStick.git</url>
+					<module>flexi-stick</module>
+				</project>
+			</modules>
+		</machineclass>
+		<!-- Control Loading -->
 		<machineclass name="hmi-io" gui="none">
 			<config>
-        set(PROJECT_LIBRARIES -L$ENV{HOME}/dapps/hmi-io/build
-            -lhmi-io -lethercat)
-        set(PROJECT_INCLUDE_DIRS -I$ENV{HOME}/dapps/hmi-io/build
-            -I$ENV{HOME}/apps/hmi-io)
+				# variant, can choose real hardware (hmi) or hmi-sim
+				set(HMI_VARIANT hmi CACHE STRING "Choose a variant for the HMI io")
+
+				# Find the relevant headers
+				find_path(HMIIO_BASE_DIR NAMES
+					hmi/HardwareInterface.hxx hmi/hmiio_calib_volts.h REQUIRED
+					PATHS ${CMAKE_SOURCE_DIR}/../../gen-ecat-io)
+
+				list(APPEND HMIIO_INCLUDE_DIRS
+					${HMIIO_BASE_DIR}/hmi
+					${HMIIO_BASE_DIR}
+					${HMIIO_BASE_DIR}/build-${HMI_VARIANT})
+
+				find_library(HMIIO_LIBRARY NAMES hmi-ecat-io REQUIRED
+				  PATHS ${HMIIO_BASE_DIR}/build-${HMI_VARIANT})
+
+				# define PROJECT_LIBRARIES with libraries needed on the current platform,
+				set(PROJECT_LIBRARIES ${HMIIO_LIBRARY})
+
+				# define PROJECT_INCLUDE_DIRS with include directories common to all on
+				# the current platform
+				set(PROJECT_INCLUDE_DIRS ${HMIIO_INCLUDE_DIRS})
       </config>
 			<modules>
-				<module>
+				<project>
 					<url>dgrbase:///CSControlLoading.git</url>
-					<name>IOController</name>
-					<version>master</version>
-				</module>
-				<module>
+					<module>IOController</module>
+				</project>
+				<project>
 					<url>dgrbase:///CSControlLoading.git</url>
-					<name>ControlLoading</name>
-					<version>master</version>
-				</module>
-				<module>
+					<module>ControlLoading</module>
+				</project>
+				<project>
 					<url>dgrbase:///CSControlLoading.git</url>
-					<name>CLConfigurations</name>
-					<version>master</version>
-				</module>
-				<module>
+					<module>CLConfigurations</module>
+				</project>
+				<project>
 					<url>dgrbase:///CSControlLoading.git</url>
-					<name>cl-analyser</name>
-					<version>master</version>
-				</module>
+					<module>cl-analyser</module>
+				</project>
 			</modules>
 		</machineclass>
+		<!-- image generation -->
 		<machineclass name="hmi-ig" gui="none">
 			<modules>
-				<module>
+				<project>
 					<url>dgrpub:///WorldView.git</url>
-					<name>WorldView</name>
-					<version>master</version>
-				</module>
-				<module>
+					<module>WorldView</module>
+				</project>
+				<project>
 					<url>dgrpub:///WorldView.git</url>
-					<name>OSGViewer</name>
-					<version>master</version>
-				</module>
-				<module pseudo="true">
+					<module>FlightGearViewer</module>
+				</project>
+				<project>
 					<url>dgrpub:///WorldView.git</url>
-					<name>HMILabViewFiles</name>
-					<version>master</version>
-				</module>
-				<module>
+					<module pseudo="true">HMILabViewFiles</module>
+				</project>
+				<project>
 					<url>dgrpub:///WorldView.git</url>
-					<name>SpecificationBase</name>
-					<version>master</version>
-				</module>
+					<module>SpecificationBase</module>
+				</project>
 			</modules>
 		</machineclass>
-		<machineclass name="hmi-efis" gui="glut" />
-		<machineclass name="hmi-host" gui="glut">
+		<!-- Image generation and sound output -->
+		<machineclass name="hmi-ig+" gui="none">
 			<modules>
-				<module>
-					<url>dgrpub:///WorldListener.git</url>
-					<name>OpenALListener</name>
-					<version>master</version>
-				</module>
-				<module>
-					<url>dgrpub:///WorldListener.git</url>
-					<name>WorldListener</name>
-					<version>master</version>
-				</module>
-				<module>
+				<project>
 					<url>dgrpub:///WorldView.git</url>
-					<name>SpecificationBase</name>
-					<version>master</version>
-				</module>
+					<module>WorldView</module>
+				</project>
+				<project>
+					<url>dgrpub:///WorldView.git</url>
+					<module>OSGViewer</module>
+				</project>
+				<project>
+					<url>dgrpub:///WorldView.git</url>
+					<module pseudo="true">HMILabViewFiles</module>
+				</project>
+				<project>
+					<url>dgrpub:///WorldView.git</url>
+					<module>SpecificationBase</module>
+				</project>
+				<project>
+					<url>dgrpub:///WorldListener.git</url>
+					<module>OpenALListener</module>
+				</project>
+				<project>
+					<url>dgrpub:///WorldListener.git</url>
+					<module>WorldListener</module>
+				</project>
+			</modules>
+		</machineclass>
+		<machineclass name="hmi-efis" gui="none" />
+		<machineclass name="hmi-host" gui="none">
+			<modules>
+				<project>
+					<url>dgrpub:///FlexiStick.git</url>
+					<module>flexi-stick</module>
+				</project>
 			</modules>
 		</machineclass>
 	</machineclasses>
 	<platform name="hmilab" comm-master="dutmms4">
-		<node name="dutmms1" machineclass="hmi-ecs" node-number="0" />
-		<node name="dutmms6" machineclass="hmi-host" />
-		<node name="dutmms4" machineclass="hmi-io" />
-		<node name="dutmms2" machineclass="hmi-efis" />
-		<node name="dutmms14" machineclass="hmi-ig" />
-		<node name="dutmms15" machineclass="hmi-ig" />
-		<node name="dutmms16" machineclass="hmi-ig" />
+    <scriptlet place="## [nodes]">
+      ecs_node = 0      # experiment control station, node 0 with gui
+      cl_node = 1       # dutmms4
+      pfd_node = 2      # dutmms2
+      host_node = 3     # dutmms6
+      ig_node_front = 4 # dutmms14
+      ig_node_left = 5  # dutmms15
+      ig_node_right = 6 # dutmms16
+    </scriptlet>
+    <scriptlet place="## [priority]">
+      # priority set-up table
+      #
+      #             ecs    cl    host   pfd   ig
+      # admin       0      0     0      0     0
+      # logging     1
+      # graphics    0            1      1     1
+      # mcp_rx                   2
+      # unpack+sim  2      2     3      2     2
+      # comm        3      3     4      3     3
+      # cl                 4
+      # cl-io              5
+      # clock       4      5     5      4     4
+
+      admin_priority = dueca.PrioritySpec(0, 0)
+      gl_gtk_priority = admin_priority
+      if this_node_id == host_node:
+          sim_priority = dueca.PrioritySpec(3, 0)
+          mcp_rx_priority = dueca.PrioritySpec(2, 0)
+          mcp_priority = sim_priority
+      else:
+          sim_priority = dueca.PrioritySpec(2, 0)
+      if this_node_id == cl_node:
+          cl_priority = dueca.PrioritySpec(4, 0)
+          io_priority = dueca.PrioritySpec(5, 0)
+          sim_priority = dueca.PrioritySpec(3, 0)
+      if this_node_id == ecs_node:
+          graphics_priority = admin_priority
+          log_priority = dueca.PrioritySpec(1, 0)
+      else:
+          graphics_priority = dueca.PrioritySpec(1, 0)
+		</scriptlet>
+		<node name="dutmms1" machineclass="hmi-ecs" node-number="0" if-address="192.168.2.1"/>
+		<node name="dutmms4" machineclass="hmi-io" node-number="1" comm-master="true" if-address="192.168.2.4" highest-prio="5"/>
+		<node name="dutmms2" machineclass="hmi-efis" node-number="2" if-address="192.168.2.2"/>
+		<node name="dutmms6" machineclass="hmi-host" node-number="3" if-address="192.168.2.6" highest-prio="5"/>
+		<node name="dutmms14" machineclass="hmi-ig+" node-number="4" if-address="192.168.2.14"/>
+		<node name="dutmms15" machineclass="hmi-ig" if-address="192.168.2.15"/>
+		<node name="dutmms16" machineclass="hmi-ig" if-address="192.168.2.16"/>
 	</platform>
 </configuration>

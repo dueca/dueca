@@ -24,7 +24,7 @@
        (vstring peer_if (Default "0.0.0.0"))
 
        ;; datapacket size
-       (uint32_t message_size (Default 2048))
+       (uint32_t message_size (Default 2048U))
 
        ;; cycle where participation is asked
        (uint32_t join_cycle (Default 0U))

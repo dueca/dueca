@@ -406,7 +406,7 @@ void ChannelDataMonitorGtk4::refreshData(const ChannelMonitorResult &rdata)
   std::stringstream timespan;
   timespan << rdata.ts_actual.getValidityStart();
   if (rdata.ts_actual.getValiditySpan()) {
-    timespan << ", " << rdata.ts_actual.getValidityStart();
+    timespan << ", " << rdata.ts_actual.getValidityEnd();
   }
   gtk_label_set_text(GTK_LABEL(window["timespan_label"]),
                      timespan.str().c_str());

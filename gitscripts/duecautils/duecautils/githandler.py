@@ -72,7 +72,7 @@ class GitHandler(git.Repo):
         pass
 
     def addFiles(self, files):
-        self.index.add(f)
+        self.index.add(files)
         #for f in files:
         #    self.index.add(f)
 

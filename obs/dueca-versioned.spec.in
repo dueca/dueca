@@ -51,11 +51,6 @@ BuildRequires: python3-devel
 BuildRequires: libboost_python3-devel
 %define SCRIPT_PYTHON_CONFIG -DSCRIPT_PYTHON=ON
 %endif
-%if 0%{?python_config}
-BuildRequires: python-devel
-Requires: python-devel
-%define SCRIPT_PYTHON_CONFIG -DSCRIPT_PYTHON=ON
-%endif
 
 %if 0%{?sle_version} || 0%{?suse_version} >= 1600
 BuildRequires:  libboost_system-devel >= 1.60

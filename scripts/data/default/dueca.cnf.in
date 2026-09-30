@@ -17,7 +17,7 @@
                                        ; 3=rtc, obsolete
 
 (define graphic-interface "@graphic-interface@")       ; selection of interface
-                                       ; "gtk2", "gtk3", "none" or "glut"
+                                       ; "gtk3", "gtk4", "none" or "glut"
 
 ;;; parameters defining "size" of the time. Note that all nodes should have
 ;;; the same compatible-increment, and for all nodes

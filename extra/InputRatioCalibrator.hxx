@@ -5,7 +5,7 @@
         category        : header file
         description     :
         changes         : 150725 Derived from InputCalibrator, uses
-                          ratio between to A/D converted signals, rather
+                          ratio between two A/D converted signals, rather
                           than a single value.
         documentation   : DUECA_API
         language        : C++

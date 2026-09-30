@@ -24,6 +24,7 @@
 #include "Ticker.hxx"
 #include "ActivityLog.hxx"
 #include "Arena.hxx"
+#include <fmt/format.h>
 #include "Su.hxx"
 #include <dueca-conf.h>
 #include "ChannelReadToken.hxx"
@@ -38,11 +39,6 @@
 #include <sched.h>
 #endif
 
-#ifdef HAVE_SSTREAM
-#include <sstream>
-#else
-#include <strstream>
-#endif
 #include <unistd.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -70,19 +66,6 @@ static Arena activityitemarena(sizeof(ActivityItem), 256);
 
 int ActivityItem::time_weight = 100;
 
-static vstring makeRope(int i)
-{
-#ifdef HAVE_SSTREAM
-  ostringstream st;
-  st << i << std::ends;
-  return vstring(st.str());
-#else
-  char buf[20];
-  strstream st(buf, 20);
-  st << i << '\000';
-  return vstring(st.str());
-#endif
-}
 
 ActivityItem::ActivityItem(Activity *iactivity, const TimeSpec &itime_spec) :
   activity(iactivity),
@@ -289,7 +272,7 @@ ActivityManager::ActivityManager(int level, int sched_mode, int sched_prio) :
   niceval(sched_mode == SCHED_OTHER ? sched_prio : 0),
   sched_mode(sched_mode),
   sched_prio(sched_prio),
-  queue_condition((vstring("ActivityManager ") + makeRope(level)).c_str()),
+  queue_condition(fmt::format("ActivityManager {}", level).c_str()),
   running(false),
   dummy_graphics_update(NULL),
 
@@ -339,12 +322,10 @@ void ActivityManager::completeCreation()
     getId(), NameSet("dueca", ActivityLogRequest::classname, ""),
     ActivityLogRequest::classname, 0, Channel::Events, Channel::OnlyOneEntry,
     Channel::ReadAllData);
-  stringstream label;
-  label << "N" << int(ObjectManager::single()->getLocation()) << "A" << prio;
   log_response = new ChannelWriteToken(
     getId(),
     NameSet("dueca", ActivityLog::classname, inzero ? "zero" : "others"),
-    ActivityLog::classname, label.str(), Channel::Events,
+    ActivityLog::classname, fmt::format("N{}A{}", int(ObjectManager::single()->getLocation()), prio), Channel::Events,
     Channel::OneOrMoreEntries, Channel::OnlyFullPacking, Channel::Bulk);
 
   /* DUECA activity.
@@ -353,7 +334,7 @@ void ActivityManager::completeCreation()
   */
   I_ACT(
     "ActivityManager log channel "
-    << label.str() << " "
+    << fmt::format("N{}A{}", int(ObjectManager::single()->getLocation()), prio) << " "
     << NameSet("dueca", ActivityLog::classname, inzero ? "zero" : "others"));
 
   if (prio == 0) {

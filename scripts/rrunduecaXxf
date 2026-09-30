@@ -8,25 +8,8 @@ fi
 # step into run directory
 cd "$1"
 
-# keep old logs
-LOGFILES="
-error.log
-normal.log
-dueca.messagelog
-dueca.timinglog
-dueca.channels
-dueca.objects
-dueca.activities
-dueca.activitylog
-dueca.channelreadinfo
-dueca.channelwriteinfo
-dueca.netload
-dueca.nettiming"
-
-dueca-archivelogfiles
-
 # remove junk that might be in the way
-rm -f dueca.scratch $LOGFILES
+rm -f dueca.scratch
 
 # determine whether X server instructions are included
 XOPTS=""
@@ -36,15 +19,20 @@ fi
 
 # start up with xf as window manager
 if test -z "$2"; then
-    if [ -x ./dueca_run.x ]; then
+    if [ -x ./runscript ]; then
+        DUECA_EXECUTABLE=./runscript
+    elif [ -x ./dueca_run.x ]; then
+        dueca-archivelogfiles
         DUECA_EXECUTABLE=./dueca_run.x
     elif [ -x ../../../build/dueca_run.x ]; then
+        dueca-archivelogfiles
         DUECA_EXECUTABLE=../../../build/dueca_run.x
     elif [ -x ../../../dueca_run.x ]; then
+        dueca-archivelogfiles
         DUECA_EXECUTABLE=../../../dueca_run.x
     else
         cat <<EOF >error.log
-Cannot find ../../../build/dueca_run.x or ../../../dueca_run.x
+Cannot find ./runscript, ./dueca_run.x, ../../../build/dueca_run.x or ../../../dueca_run.x
 from folder `pwd`
 EOF
         exit 1

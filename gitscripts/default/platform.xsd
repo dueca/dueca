@@ -32,19 +32,32 @@
 
   <xs:complexType name="modules_t">
     <xs:sequence>
-      <xs:element name="module" type="module_t"
+      <xs:element name="project" type="project_t"
         minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
   </xs:complexType>
 
+  <xs:complexType name="project_t">
+    <xs:sequence>
+      <xs:element name="url"
+        type="xs:string"/>
+      <xs:element name="version"
+        type="xs:string"
+        minOccurs="0" maxOccurs="1"/>
+      <xs:element name="module"
+        type="module_t"
+        minOccurs="0"
+        maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="module_t">
-    <xs:all>
-      <xs:element name="url" type="xs:string" />
-      <xs:element name="name" type="xs:string" />
-      <xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1" />
-    </xs:all>
-    <xs:attribute name="pseudo" type="xs:string" />
-    <xs:attribute name="inactive" type="xs:string" />
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="pseudo" type="xs:boolean" default="false" />
+        <xs:attribute name="inactive" type="xs:boolean" default="false"/>
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
 
   <xs:complexType name="scriptlet_t">
