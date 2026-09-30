@@ -17,12 +17,48 @@
 
 #include <iostream>
 
+namespace dueca {
+
+template <class T, class R>
+class InputCalibratorRanging;
+
+template <class T, class R = int>
+struct RangingLockReason {
+  typedef InputCalibratorRanging<T,R> caltype;
+
+  const caltype &r;
+
+  template <typename OS> OS &print(OS &os) const {
+     double _r = r.out_max - r.out_min;
+  if ((r.found_max - r.found_min - _r) <= _r * r.range_tolerance) {
+    os << "range matching ";
+  }
+  else {
+    os << "range error ";
+  }
+  return os << r.found_min << "(" << r.out_min << ") .. " << r.found_max << "("
+            << r.out_max << ") c=" << r.converter(0);
+  }
+
+  RangingLockReason(const InputCalibratorRanging<T,R> &r) : r(r) {}
+};
+
+template <class T, class R>
+std::ostream &operator<<(std::ostream &os,
+                         const RangingLockReason<T, R> &o)
+{
+  return o.print(os);
+}
+
 /** Class that performs calibration and scaling of an incoming integer
     value from an A/D converter or other input device. It is a
     templated class, and the template parameter must be a class
     capable of scaling the incoming values. */
-template <class T, class R = int> class InputCalibratorRanging
+  template <class T, class R = int>
+  class InputCalibratorRanging
 {
+  friend class RangingLockReason<T,R>;
+
   /** Minimum value to be received from A/D conversion. */
   const R in_min;
 
@@ -67,14 +103,18 @@ public:
   /** Constructor. Takes a converter as argument.
       \param in_min   Minimum integer value
       \param in_max   Maximum integer value
-      \param out_min  Minimum output value
-      \param out_max  Maximum output value
       \param c        Converter of (template) type T, the operation
                       operator() (const double x) should exist for
                       values between in_min and in_max, and
                       should produce the required converted/scaled
                       value.
-      \param idx      Optional index to be stored with the calibrator. */
+      \param out_min  Minimum output value
+      \param out_max  Maximum output value
+      \param idx      Optional index to be stored with the calibrator
+      \param range_tolerance Relative tolerance for the error between the
+                      out_min..out_max range and the range detected in
+                      homing.
+  */
   InputCalibratorRanging(const R in_min, const R in_max, const T &c,
                          const data_type out_min, const data_type out_max,
                          unsigned int idx = 0,
@@ -116,7 +156,14 @@ public:
   bool lockOffset();
 
   /** Print calibration offset reasoning */
-  template <typename OS> OS &lockReason(OS &os) const;
+  RangingLockReason<T,R> lockReason() const { return RangingLockReason<T,R>(*this); }
+
+  /** Reset for a new homing movement */
+  void resetHoming()
+  {
+    found_min = out_max;
+    found_max = out_min;
+  }
 
   /** Print to stream, for debugging purposes */
   std::ostream &print(std::ostream &os) const;
@@ -135,12 +182,12 @@ InputCalibratorRanging<T, R>::InputCalibratorRanging(
   data_type out_max, unsigned int idx, const double range_tolerance) :
   in_min(in_min),
   in_max(in_max),
+  in_coming(0),
+  converter(c),
   out_min(out_min),
   out_max(out_max),
   found_min(out_max),
   found_max(out_min),
-  in_coming(0),
-  converter(c),
   value((out_min + out_max) * 0.5),
   range_tolerance(range_tolerance),
   idx(idx)
@@ -223,24 +270,11 @@ template <class T, class R> bool InputCalibratorRanging<T, R>::lockOffset()
 }
 
 template <class T, class R>
-template <typename OS>
-OS &InputCalibratorRanging<T, R>::lockReason(OS &os) const
-{
-  double r = out_max - out_min;
-  if ((found_max - found_min - r) <= r * range_tolerance) {
-    os << "range matching ";
-  }
-  else {
-    os << "range error ";
-  }
-  return os << found_min << "(" << out_min << ") .. " << found_max << "("
-            << out_max << ")";
-}
-
-template <class T, class R>
 std::ostream &InputCalibratorRanging<T, R>::print(std::ostream &os) const
 {
   return os << "InputCalibratorRanging(in_min=" << in_min
             << ", in_max=" << in_max << " c=" << converter << ") " << in_coming
             << " -> " << value;
 }
+
+} // namespace dueca

@@ -3,6 +3,7 @@ add_test(STEPS StepsTest.x)
 add_test(POLYNOMIALN PolynomialNTest.x)
 add_test(CIRCULARPOLY CircularWithPolyTest.x)
 add_test(CIRCULAR CircularTest.x)
+add_test(CALIB_RANGING InputCalibratorRangingTest.x)
 
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -28,3 +29,5 @@ add_executable(CircularWithPolyTest.x CircularWithPolyTest.cxx)
 target_link_libraries(CircularWithPolyTest.x dueca-extra${STATICSUFFIX})
 add_executable(CircularTest.x CircularTest.cxx)
 target_link_libraries(CircularTest.x dueca-extra${STATICSUFFIX})
+add_executable(InputCalibratorRangingTest.x InputCalibratorRangingTest.cxx)
+target_link_libraries(InputCalibratorRangingTest.x dueca-extra${STATICSUFFIX})

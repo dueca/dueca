@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Current file",
             "type": "debugpy",
@@ -10,7 +11,7 @@
             "justMyCode": false,
             "cwd": "${fileDirname}"
         },
-        { 
+        {
             "name": "Python: ddff-convert",
             "type": "debugpy",
             "request": "launch",
@@ -18,6 +19,13 @@
             "args": ["hdf5", "/home/repa/gdapps/DuecaTestCommunication/DuecaTestCommunication/run/solo/solo/datalog.ddff"],
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "C++ test executable",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/build-linux/${relativeFileDirname}/${fileBasenameNoExtension}.x",
+            "cwd": "${workspaceFolder}/build-linux/${relativeFileDirname}"
         }
     ]
 }
