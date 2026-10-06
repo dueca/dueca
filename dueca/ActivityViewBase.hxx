@@ -47,6 +47,9 @@ public:
   /** Table with adjustable parameters. */
   static const ParameterTable*   getParameterTable();
 
+  /** Override objecttype */
+  ObjectType getObjectType() const override { return O_Dueca; }
+
 protected:
   /** singleton pointer, there can only be one view in an executable. */
   static ActivityViewBase*           singleton;
