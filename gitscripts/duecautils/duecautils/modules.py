@@ -474,7 +474,7 @@ class Modules:
 
         # get project folder
         self.clean = None
-        self.repo_cycle = 1
+        self.repo_cycle = 0
         self.repo = ProjectRepo(calldir).repo
         self.ownproject = ProjectRepo(calldir).project
         self.projectdir = ProjectRepo(calldir).projectdir
@@ -552,6 +552,8 @@ class Modules:
         None
 
         """
+        selection_changes = False
+
         if os.path.isdir(f"../{prj.name}"):
 
             # folder already there, get the repo object
@@ -564,6 +566,7 @@ class Modules:
                     if _url != prj.url:
                         print(f"Project {prj.name}, remote URL changed from {_url} to {prj.url}")
                         os.rename(f"../{prj.name}", f"../{prj.name}.bak{int(time.time())}" )
+                        selection_changes = True
                 except:
                     print(f"Cannot find remote for borrowed project {prj.name}")
                     os.rename(f"../{prj.name}", f"../{prj.name}.bak{int(time.time())}" )
@@ -572,7 +575,8 @@ class Modules:
         if not os.path.isdir(f"../{prj.name}"):
 
             # folder not present? make and init
-            dprint("adding project", prj.name)
+            dprint("Adding project", prj.name)
+            selection_changes = True
 
             # create and initialize folder / git
             os.mkdir(f"../{prj.name}")
@@ -615,7 +619,9 @@ class Modules:
             if to_add:
                 with open(f"../{prj.name}/.git/info/sparse-checkout", "a", encoding="utf-8") as ms:
                     for l in to_add:
+                        dprint("Project", prj.name, "adding", l)
                         ms.write(l + "\n")
+                    selection_changes = True
 
         # simply create when it was not yet there
         except FileNotFoundError:
@@ -623,13 +629,20 @@ class Modules:
                 ms.write("/README*\n")
                 for l in to_add:
                     ms.write(l + "\n")
+            dprint("Project", prj.name, "new sparse-checkout")
+            selection_changes = True
 
         # what version/branch are we currently on
         branch = str(rrepo.active_branch)
 
         # get tags and the items in sparse checkout
         try:
-            rrepo.remote().fetch()
+            if selection_changes or (self.repo_cycle > prj.repo_cycle):
+                dprint("Fetching remote git", prj.url)
+                prj.repo_cycle = max(prj.repo_cycle, self.repo_cycle) + 1
+                rrepo.remote().fetch()
+            else:
+                dprint("Already fetched", prj.url)
         except git.GitCommandError as e:
             print(
                 f"Failing to get code for borrowed project {prj.name}\n"
@@ -746,7 +759,7 @@ class Modules:
                 fcn = self._noChainCommObjectDeps
 
         self.comm_borrows = dict()
-        # copy into a list, bc the number of projects may changes
+        # copy into a list, bc the number of projects may change
         for pname, p in list(self.projects.items()):
             for m in p.modules:
                 self._analyseCommObjectFile(pname, m, fcn)
@@ -756,7 +769,7 @@ class Modules:
         # get a ref to the project
         prj = self.projects.get(p, None)
         if prj is None:
-            raise Exception(
+            raise ValueError(
                 f"No URL known for DCO objects borrowed from {p},"
                 f" add an entry to {self.projectdir}/"
                 f".config/class/{self.mclass}/modules.xml"
