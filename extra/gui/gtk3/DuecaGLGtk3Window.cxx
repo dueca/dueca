@@ -20,16 +20,20 @@ namespace dueca {
 
 DuecaGLGtk3Window::DuecaGLGtk3Window(const char *window_title,
                                      bool pass_passive, bool depth_buffer,
-                                     bool stencil_buffer) :
+                                     bool stencil_buffer,
+                                     unsigned display_periods,
+                                     bool pass_touch) :
   DuecaGtkInteraction(NULL, 400, 300),
   gdk_display_id(NULL),
   gtk_win_id(NULL),
   area(NULL),
   gdk_cursor_id(NULL),
+  needcallinit(true),
   title(window_title),
   fullscreen(false),
-  depth_buffer(depth_buffer ? TRUE : FALSE),
-  stencil_buffer(stencil_buffer ? TRUE : FALSE),
+  depth_buffer(CSE.getGraphicDepthBufferSize() || depth_buffer ? TRUE : FALSE),
+  stencil_buffer(CSE.getGraphicStencilBufferSize() || stencil_buffer ? TRUE
+                                                                     : FALSE),
   cursortype(1)
 {
   //
@@ -163,16 +167,57 @@ static void on_realize(GtkGLArea *area, gpointer self)
   if (DUECA_GTK3GL_common_gc == NULL) {
     DUECA_GTK3GL_common_gc = gtk_gl_area_get_context(area);
   }
+
+  auto ctxt = gtk_gl_area_get_context(area);
+
+  int major, minor;
+  gdk_gl_context_get_version(ctxt, &major, &minor);
+  std::cout << "es  " << gdk_gl_context_get_use_es(ctxt) << std::endl
+            << "version " << major << "." << minor << std::endl;
+
+  gdk_gl_context_make_current(gtk_gl_area_get_context(area));
   reinterpret_cast<DuecaGLGtk3Window *>(self)->passShape();
-  reinterpret_cast<DuecaGLGtk3Window *>(self)->initGL();
 
   return;
 }
 
 static GdkGLContext *on_context(GtkGLArea *area, gpointer self)
 {
-  assert(DUECA_GTK3GL_common_gc != NULL);
-  return gdk_gl_context_get_shared_context(DUECA_GTK3GL_common_gc);
+  auto *_this = reinterpret_cast<DuecaGLGtk3Window *>(self);
+  if (DUECA_GTK3GL_common_gc != NULL) {
+    return DUECA_GTK3GL_common_gc;
+  }
+  GError *gerr = nullptr;
+
+  auto gdkwin = gtk_widget_get_window(GTK_WIDGET(_this->gtk_win_id));
+  auto ctxt = gdk_window_create_gl_context(gdkwin, &gerr);
+  if (gerr) {
+    std::cerr << "Cannot create gl context: " << gerr->message << std::endl;
+    g_clear_error(&gerr);
+    return nullptr;
+  }
+
+  gdk_gl_context_set_use_es(ctxt, FALSE);
+  gdk_gl_context_set_forward_compatible(ctxt, FALSE);
+  if (!gdk_gl_context_realize(ctxt, &gerr)) {
+    std::cerr << "Cannot realize gl context:" << gerr->message << std::endl;
+    g_clear_error(&gerr);
+    return nullptr;
+  }
+
+  if (CSE.getShareGLContexts()) {
+    DUECA_GTK3GL_common_gc = ctxt;
+  }
+  return ctxt;
+}
+
+static void on_map(GtkWidget *win, gpointer self)
+{
+  auto *_this = reinterpret_cast<DuecaGLGtk3Window *>(self);
+  if (_this->needcallinit) {
+    _this->initGL();
+    _this->needcallinit = false;
+  }
 }
 
 void DuecaGLGtk3Window::openWindow()
@@ -183,8 +228,11 @@ void DuecaGLGtk3Window::openWindow()
   gtk_window_set_title(GTK_WINDOW(gtk_win_id), title.c_str());
 
   area = gtk_gl_area_new();
+  gtk_gl_area_set_use_es(GTK_GL_AREA(area), FALSE);
   gtk_gl_area_set_has_depth_buffer(GTK_GL_AREA(area), depth_buffer);
   gtk_gl_area_set_has_stencil_buffer(GTK_GL_AREA(area), stencil_buffer);
+  //gtk_gl_area_set_required_version(GTK_GL_AREA(area), 3, 3);
+
   gtk_widget_set_hexpand(GTK_WIDGET(area), TRUE);
   gtk_widget_set_vexpand(GTK_WIDGET(area), TRUE);
 
@@ -201,12 +249,8 @@ void DuecaGLGtk3Window::openWindow()
 
   g_signal_connect(area, "render", G_CALLBACK(on_render), this);
   g_signal_connect(area, "realize", G_CALLBACK(on_realize), this);
-  if (DUECA_GTK3GL_common_gc_created) {
-    g_signal_connect(area, "create-context", G_CALLBACK(on_context), this);
-  }
-  else if (CSE.getShareGLContexts()) {
-    DUECA_GTK3GL_common_gc_created = true;
-  }
+  g_signal_connect(gtk_win_id, "map", G_CALLBACK(on_map), this);
+  g_signal_connect(area, "create-context", G_CALLBACK(on_context), this);
 
   // DuecaGtkInteraction::init(area);
   gtk_container_add(GTK_CONTAINER(gtk_win_id), GTK_WIDGET(area));
