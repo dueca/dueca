@@ -162,11 +162,11 @@ information, we'll look there later.
 ## Version control with git
 
 The creation of the empty project was performed on git's default
-(master) branch. However, as we are now going to edit, modify and
+(main) branch. However, as we are now going to edit, modify and
 possibly mess up a bit this project, it seems wise to work on a
 dedicated git branch. Then after we are done we can maybe (if needed,
 I let that up to you) clean up the history a bit, and merge the result
-into master to get the final product.
+into main to get the final product.
 
 ~~~~{.bash}
 [enter]$ git checkout -b initial-development
@@ -189,7 +189,7 @@ the following:
 
 ~~~~{.bash}
 [enter]$ dueca-gproject borrow-module --name flexi-stick \
-         --remote ${DAPPS_GITROOT_pub}FlexiStick.git
+         --remote dgrpub:///FlexiStick.git
 Borrowing DUECA module flexi-stick from project FlexiStick
 ~~~~
 
@@ -268,8 +268,7 @@ a look:
 <machine xmlns="https://dueca.tudelft.nl"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="https://dueca.tudelft.nl https://dueca.tudelft.nl/schemas/modules.xsd">
-  <project>
-    <url>file:///home/you/gitrepos/SimpleSimulation.git</url>
+  <project main="true">
   </project>
   <project>
     <url>dgrpub:///FlexiStick.git</url>
@@ -308,16 +307,16 @@ Let's do this:
 
 ~~~~{.bash}
 [enter]$ dueca-gproject borrow-module --name WorldView \
-         --remote ${DAPPS_GITROOT_base}WorldView.git
+         --remote dgrpub:///WorldView.git
 Borrowing DUECA module WorldView from project WorldView
 [enter]$ dueca-gproject borrow-module --name OSGViewer \
-         --remote ${DAPPS_GITROOT_base}WorldView.git
+         --remote dgrpub:///WorldView.git
 Borrowing DUECA module OSGViewer from project WorldView
 [enter]$ dueca-gproject borrow-module --name SpecificationBase \
-         --remote ${DAPPS_GITROOT_base}WorldView.git
+         --remote dgrpub:///WorldView.git
 Borrowing DUECA module SpecificationBase from project WorldView
 [enter]$ dueca-gproject borrow-module --name icy-world --pseudo \
-         --remote ${DAPPS_GITROOT_base}WorldView.git
+         --remote dgrpub:///WorldView.git
 Borrowing DUECA module icy-world from project WorldView
 ~~~~
 
@@ -561,10 +560,15 @@ modify `comm-objects.lst`, until it looks like the following:
 # this file contains a list of all communicated objects needed by this
 # specific module
 # specify these with the .dco extension, examples:
-# SimpleSimulation/comm-objects/MyDataObject.dco
+# comm-objects/MyDataObject.dco
 # Generic/comm-objects/PrimaryControls.dco
-SimpleSimulation/comm-objects/ControlInput.dco
+comm-objects/ControlInput.dco
 ~~~~
+
+Note that for your "own" dco objects, it is not needed to indicate
+the project name in the `comm-objects.lst` file. This is intentional,
+if ever you decide to change your project's name, or someone clones the
+project in order to expand on it, things will still work.
 
 Now make the code for the new module. We are going to use a DUSIME
 module, since we will implement a simulation, and want to use typical
