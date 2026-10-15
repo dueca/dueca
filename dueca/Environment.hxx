@@ -367,7 +367,11 @@ public:
     return graphic_stencil_buffer_size;
   }
 
+  /** Check whether all gl context should be shared */
   inline bool getShareGLContexts() const { return share_gl_contexts; }
+
+  /** Check whether X multithread + global X lock needed */
+  inline bool getXMultithreadLock() const { return xlib_lock; }
 
   /** Member call. */
   bool setGraphicUseDepthBuffer(const bool &v);

@@ -19,6 +19,8 @@
 #include <dueca/Environment.hxx>
 #include "debprint.h"
 
+// https://stackoverflow.com/questions/6402476/multithreaded-x11-application-and-opengl
+
 // be extremely careful with X11 headers; these have all kinds of
 // damaging defines, never include these in a header used by a "client"
 #define GLX_GLXEXT_PROTOTYPES 1
@@ -488,6 +490,9 @@ void BareDuecaGLWindow::redraw()
   if (not my->xwin)
     openWindow();
 
+  if (CSE.getXMultithreadLock())
+    XLockDisplay(static_dpy);
+
   // process events
   union {
     XEvent x_event;
@@ -567,11 +572,13 @@ void BareDuecaGLWindow::redraw()
       }
     }
   }
+  if (CSE.getXMultithreadLock())
+    XUnlockDisplay(static_dpy);
 
   glXMakeCurrent(static_dpy, my->xwin, my->glc);
   display();
   glFlush();
-  glXSwapBuffers(static_dpy, my->xwin);   // swap should occur at retrace
+  glXSwapBuffers(static_dpy, my->xwin); // swap should occur at retrace
   glXMakeCurrent(static_dpy, 0, 0);
 }
 
