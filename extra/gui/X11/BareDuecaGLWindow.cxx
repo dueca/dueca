@@ -164,9 +164,9 @@ struct OptReduction
   unsigned idx0, idx1, idx2, idx3;
 };
 
-static const OptReduction reductions[] = { { "accumulation", 14, 16, 18, 20 },
-                                           { "auxbuffers", 22 },
-                                           { "stencilbuffers", 24 },
+static const OptReduction reductions[] = { // { "accumulation", 14, 16, 18, 20 },
+                                           { "auxbuffers", 14 },
+                                           { "stencilbuffers", 16 },
                                            { nullptr } };
 
 void BareDuecaGLWindow::openWindow()
@@ -224,14 +224,14 @@ void BareDuecaGLWindow::openWindow()
                   8,
                   GLX_ALPHA_SIZE,
                   8,
-                  GLX_ACCUM_RED_SIZE,
+                  /* GLX_ACCUM_RED_SIZE,
                   8,
                   GLX_ACCUM_GREEN_SIZE,
                   8,
                   GLX_ACCUM_BLUE_SIZE,
                   8,
                   GLX_ACCUM_ALPHA_SIZE,
-                  8,
+                  8, */
                   GLX_AUX_BUFFERS,
                   CSE.getGraphicNAuxBuffers(),
                   GLX_STENCIL_SIZE,
