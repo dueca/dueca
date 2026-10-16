@@ -130,6 +130,7 @@ void DuecaGLGtk4Window::selectCursor(int cursortype)
 
 void DuecaGLGtk4Window::redraw()
 {
+  if (!area) openWindow();
   gtk_gl_area_queue_render(GTK_GL_AREA(area));
 }
 

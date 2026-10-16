@@ -293,4 +293,3 @@ GLWindowHelper* FltkOpenGLHelper::newWindow()
 }
 
 } // namespace dueca
-

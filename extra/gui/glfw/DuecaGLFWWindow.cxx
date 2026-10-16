@@ -135,6 +135,8 @@ void DuecaGLFWWindow::selectCursor(int cursortype)
 
 void DuecaGLFWWindow::redraw()
 {
+  if (!glfw_win) openWindow();
+
   // DEB2("Redraw request and action " << reinterpret_cast<void*>(glfw_win));
   if (glfw_win && !glfwWindowShouldClose(glfw_win)) {
     glfwMakeContextCurrent(glfw_win);

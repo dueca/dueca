@@ -121,6 +121,7 @@ void DuecaGLGtk3Window::selectCursor(int cursortype)
 
 void DuecaGLGtk3Window::redraw()
 {
+  if (!area) openWindow();
   gtk_gl_area_queue_render(GTK_GL_AREA(area));
 }
 
