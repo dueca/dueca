@@ -7,11 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ### Changed
 
 - Cleanup LinearSystem code
-- Avoid double project pull in `dueca-gproject refresh`
+- Avoid double project pulls in `dueca-gproject refresh`
 - OpenGL graphics issued bugfixes; correctly pass on configured z-buffer and
   stencilbuffer depth
 - Fixes for BareDuecaGLWindow
--
+- Automatically call openWindow() upon a redraw request for various GL windows
 
 ## [4.3.3] - 2026-09-30
 
