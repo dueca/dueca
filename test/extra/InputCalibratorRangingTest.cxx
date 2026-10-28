@@ -58,5 +58,12 @@ int main()
   assert("lock third calibrator correct" && ic1off3);
   std::cout << "IC3 " << ic1.lockReason() << std::endl;
 
+  ic1.resetHoming();
+  ic1.newConversion(-900);
+  ic1.newConversion(-800);
+  bool ic1off4 = ic1.lockOffset();
+  assert("lock fourth calibrator false" && !ic1off4);
+  std::cout << "IC4 " << ic1.lockReason() << std::endl;
+
   return 0;
 }

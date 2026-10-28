@@ -138,6 +138,7 @@ Environment::Environment() :
   graphic_interface("none"),
   graphic_depth_buffer_size(16),
   graphic_stencil_buffer_size(4),
+  graphic_num_aux_buffers(0),
   xlib_lock(false),
   share_gl_contexts(false),
   gui_handler(NULL),
@@ -266,15 +267,12 @@ const ParameterTable *Environment::getParameterTable()
       new MemberCall<Environment, bool>(&Environment::setMultiThread),
       "(#t or #f), determines whether to use multi-threading (deprecated)!" },
     { "highest-priority",
-      new VarProbe<Environment, int>(
-        REF_MEMBER(&Environment::highest_priority)),
+      new VarProbe<Environment, int>(&Environment::highest_priority),
       ">=0, highest-priority activity manager (also deprecated)" },
-    { "dummy-value",
-      new VarProbe<Environment, int>(REF_MEMBER(&Environment::rt_mode)),
+    { "dummy-value", new VarProbe<Environment, int>(&Environment::rt_mode),
       "dummy, for compatibility with old .cnf files" },
     { "graphic-interface",
-      new VarProbe<Environment, vstring>(
-        REF_MEMBER(&Environment::graphic_interface)),
+      new VarProbe<Environment, vstring>(&Environment::graphic_interface),
       "\"none\", \"gtk\", \"glut\", \"fltk\", \"gtk+fltk-gl\", \"gtk2\", "
       "\"gtk3\"\n"
       "determines which graphic interface code is run. Note that the\n"
@@ -283,12 +281,13 @@ const ParameterTable *Environment::getParameterTable()
       new MemberCall<Environment, bool>(&Environment::setGraphicUseDepthBuffer),
       "take a depth buffer with default size (16bits)" },
     { "graphic-depth-buffer-size",
-      new VarProbe<Environment, int>(
-        REF_MEMBER(&Environment::graphic_depth_buffer_size)),
+      new VarProbe<Environment, int>(&Environment::graphic_depth_buffer_size),
       "required size of the depth buffer, default=16" },
     { "graphic-stencil-buffer-size",
-      new VarProbe<Environment, int>(
-        REF_MEMBER(&Environment::graphic_stencil_buffer_size)),
+      new VarProbe<Environment, int>(&Environment::graphic_stencil_buffer_size),
+      "required size of the stencil buffer, default=4" },
+    { "graphic-num-aux-buffers",
+      new VarProbe<Environment, int>(&Environment::graphic_num_aux_buffers),
       "required size of the stencil buffer, default=4" },
     { "run-mode",
       new MemberCall<Environment, vstring>(&Environment::setRunMode),
@@ -309,22 +308,20 @@ const ParameterTable *Environment::getParameterTable()
       "Add activity priority level with first-in, first-out scheduling\n"
       "See above for explanation on priority levels" },
     { "x-multithread-lock",
-      new VarProbe<Environment, bool>(REF_MEMBER(&Environment::xlib_lock)),
+      new VarProbe<Environment, bool>(&Environment::xlib_lock),
       "initialise the Xlib lock, to allow for multi-threaded access to X\n"
       "with this, you might be able to run an Ogre or SDL window in another\n"
       "thread. Don't count on mixing threads in gtk or glut windows" },
     { "share-gl-contexts",
-      new VarProbe<Environment, bool>(
-        REF_MEMBER(&Environment::share_gl_contexts)),
+      new VarProbe<Environment, bool>(&Environment::share_gl_contexts),
       "share the gl context between the different GL windows. Note that this\n"
       "capability may not be present for certain windowing toolkits" },
     { "command-interval",
-      new VarProbe<Environment, double>(
-        REF_MEMBER(&Environment::command_interval)),
+      new VarProbe<Environment, double>(&Environment::command_interval),
       "Interval (in sec) for rounding off module start and stop commands,\n"
       "default is 0.1." },
     { "command-lead",
-      new VarProbe<Environment, double>(REF_MEMBER(&Environment::command_lead)),
+      new VarProbe<Environment, double>(&Environment::command_lead),
       "Lead time (in sec) needed for module start and stop commands,\n"
       "default is 0.1." },
     { "locale",
@@ -1175,120 +1172,120 @@ void Environment::proceed(int stage)
         create_control.leaveTest();
       }
     }
-      break;
+    break;
 
-    default:
-      /* DUECA system.
+  default:
+    /* DUECA system.
 
       Internal error, a run stage that has not been configured is
       requested. */
-      E_SYS("Environment: no stage " << stage << " to proceed to");
-    }
+    E_SYS("Environment: no stage " << stage << " to proceed to");
+  }
 
 #if defined(ACTIV_NOCATCH)
-    if (create_cmd == Exit) {
-      // if catching the exit is not configured, deleting
-      // modules is done here
-      /* DUECA system.
+  if (create_cmd == Exit) {
+    // if catching the exit is not configured, deleting
+    // modules is done here
+    /* DUECA system.
 
       At this point the client modules will be deleted.
     */
-      I_SYS("Environment: Jettisoning everyone except crew members");
-      ObjectManager::single()->destructAllButCrew();
-    }
+    I_SYS("Environment: Jettisoning everyone except crew members");
+    ObjectManager::single()->destructAllButCrew();
+  }
 #endif
 
-    /* DUECA system.
+  /* DUECA system.
 
      Control returns to the scripting language interpretation.
   */
-    I_SYS("Environment: Returning to script");
+  I_SYS("Environment: Returning to script");
+}
+
+void Environment::propagateTriggers(unsigned prio)
+{
+  if (activity_manager[prio]->propagateTriggers() &&
+      int(prio) > current_highprio) {
+    current_highprio = prio;
+  }
+}
+
+void Environment::wakeActivityManager(unsigned prio)
+{
+  activity_manager[prio]->wakeThis();
+}
+
+int Environment::update()
+{
+  // one call to the ticker; any new stuff because of elapsed time is
+  // inserted here
+  Ticker::single()->checkTick();
+  activity_manager[0]->scheduleAll();
+
+  while (current_highprio >= 0) {
+    current_highprio--;
+    activity_manager[int(current_highprio) + 1]->doActivities();
   }
 
-  void Environment::propagateTriggers(unsigned prio)
-  {
-    if (activity_manager[prio]->propagateTriggers() &&
-        int(prio) > current_highprio) {
-      current_highprio = prio;
-    }
-  }
+  return in_control;
+}
 
-  void Environment::wakeActivityManager(unsigned prio)
-  {
-    activity_manager[prio]->wakeThis();
-  }
+void Environment::quit(TimeTickType tick)
+{
+  in_control = false;
 
-  int Environment::update()
-  {
-    // one call to the ticker; any new stuff because of elapsed time is
-    // inserted here
-    Ticker::single()->checkTick();
-    activity_manager[0]->scheduleAll();
+  // stop the ticker
+  Ticker::single()->stopTicking();
+  Ticker::single()->pauseTick();
 
-    while (current_highprio >= 0) {
-      current_highprio--;
-      activity_manager[int(current_highprio) + 1]->doActivities();
-    }
-
-    return in_control;
-  }
-
-  void Environment::quit(TimeTickType tick)
-  {
-    in_control = false;
-
-    // stop the ticker
-    Ticker::single()->stopTicking();
-    Ticker::single()->pauseTick();
-
-    /* DUECA system.
+  /* DUECA system.
 
     Data packing for transport is stopped, breaking communication with
     the other nodes.
   */
-    I_SYS("Environment: Stopping packers");
-    PackerManager::single()->stopPackers(tick);
+  I_SYS("Environment: Stopping packers");
+  PackerManager::single()->stopPackers(tick);
 
-    // flag that multithread running is over
-    running_multithread = false;
+  // flag that multithread running is over
+  running_multithread = false;
 
-    // do some "manual" ticks again, helps communicators to end their
-    // blocking, two seconds
-    for (int ii = 20; ii--;) {
-      usleep(100000); // 0.1 second
-      Ticker::single()->checkTick();
+  // do some "manual" ticks again, helps communicators to end their
+  // blocking, two seconds
+  for (int ii = 20; ii--;) {
+    usleep(100000); // 0.1 second
+    Ticker::single()->checkTick();
 
-      // all higher thread activities will go on
-    }
-
-    if (run_mode == MultiThread) {
-      // join all high-priority threads into this one
-      for (int ii = highest_priority; ii > 0; ii--) {
-        activity_manager[ii]->stopDoActivities();
-      }
-    }
-
-    // tell the gui to return control. This the call to
-    // gui_handler->passControl() should now return, so control will pop
-    // up in graphicRun. The story continues there
-    gui_handler->returnControl();
+    // all higher thread activities will go on
   }
 
-  /** Set the exit code, mainly used in testing */
-  void Environment::setExitCode(int ecode)
-  {
-    if (exitcode != 0 && ecode == 0) {
-      /* DUECA system.
+  if (run_mode == MultiThread) {
+    // join all high-priority threads into this one
+    for (int ii = highest_priority; ii > 0; ii--) {
+      activity_manager[ii]->stopDoActivities();
+    }
+  }
+
+  // tell the gui to return control. This the call to
+  // gui_handler->passControl() should now return, so control will pop
+  // up in graphicRun. The story continues there
+  gui_handler->returnControl();
+}
+
+/** Set the exit code, mainly used in testing */
+void Environment::setExitCode(int ecode)
+{
+  if (exitcode != 0 && ecode == 0) {
+    /* DUECA system.
 
        A previous call to Environment::setExitCode set the exit code to
        nonzero, indicating an issue. Now the exitcode is reset to zero.
        Check that this is your desired behaviour.
     */
-      W_SYS("Environment: The application is resetting the exit code to zero");
-    }
-    exitcode = ecode;
+    W_SYS("Environment: The application is resetting the exit code to zero");
   }
+  exitcode = ecode;
+}
 
-  template <> const char *getclassname<Environment>() { return "Environment"; }
+template <> const char *getclassname<Environment>() { return "Environment"; }
 
 } // namespace dueca

@@ -35,6 +35,19 @@ class GLWindowHelper;
     Note that the toolkit usage depends on the inclusion of the proper
     code with DCOMPONENTS in your project's main Makefile, and the
     toolkit is selected with the make-environment call, in dueca.cnf.
+
+    A note of warning; different GL versions allow different calls, and
+    the code may be more or less strict. Things work out fine if you:
+
+    - First call all setup functions
+    - Then call openWindow
+    - In InitGL(), don't draw anything! create gl lists, setup matrices,
+      but nothing more.
+    - In reshape(), don't draw anything! Store the new size, and at most
+      update transformation matrices. Never call reshape yourself!
+    - Only do drawing actions in display().
+    - For most back-ends, swapBuffers is no longer relevant. It won't do
+      anything there.
 */
 class DuecaGLCanvas
 {
@@ -107,7 +120,7 @@ public:
 
   /** This is called if the size of the window is changed. You might
       need to update the image set-up for a different screen
-      format. */
+      format. DO NOT call display or do any other GL drawing. */
   virtual void reshape(int x, int y);
 
   /** This is called whenever the display needs to be redrawn. When

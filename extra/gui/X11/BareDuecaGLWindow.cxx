@@ -19,6 +19,8 @@
 #include <dueca/Environment.hxx>
 #include "debprint.h"
 
+// https://stackoverflow.com/questions/6402476/multithreaded-x11-application-and-opengl
+
 // be extremely careful with X11 headers; these have all kinds of
 // damaging defines, never include these in a header used by a "client"
 #define GLX_GLXEXT_PROTOTYPES 1
@@ -156,6 +158,17 @@ static Bool WaitForNotify(Display *d, XEvent *e, char *arg)
   return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
 }
 
+struct OptReduction
+{
+  const char *option;
+  unsigned idx0, idx1, idx2, idx3;
+};
+
+static const OptReduction reductions[] = { // { "accumulation", 14, 16, 18, 20 },
+                                           { "auxbuffers", 14 },
+                                           { "stencilbuffers", 16 },
+                                           { nullptr } };
+
 void BareDuecaGLWindow::openWindow()
 {
   if (opened)
@@ -198,33 +211,49 @@ void BareDuecaGLWindow::openWindow()
   Window xroot = RootWindow(static_dpy, screen);
 
   // continue with GL
-  GLint att[] = { GLX_RGBA,   GLX_DEPTH_SIZE,      24, GLX_DOUBLEBUFFER,
-                  GLX_USE_GL, GLX_RED_SIZE,        8,  GLX_GREEN_SIZE,
-                  8,          GLX_BLUE_SIZE,       8,  GLX_ALPHA_SIZE,
-                  8,          GLX_ACCUM_RED_SIZE,  8,  GLX_ACCUM_GREEN_SIZE,
-                  8,          GLX_ACCUM_BLUE_SIZE, 8,  GLX_ACCUM_ALPHA_SIZE,
-                  8,          GLX_AUX_BUFFERS,     4,  None };
+  GLint att[] = { GLX_RGBA,
+                  GLX_DEPTH_SIZE,
+                  CSE.getGraphicDepthBufferSize(),
+                  GLX_DOUBLEBUFFER,
+                  GLX_USE_GL,
+                  GLX_RED_SIZE,
+                  8,
+                  GLX_GREEN_SIZE,
+                  8,
+                  GLX_BLUE_SIZE,
+                  8,
+                  GLX_ALPHA_SIZE,
+                  8,
+                  /* GLX_ACCUM_RED_SIZE,
+                  8,
+                  GLX_ACCUM_GREEN_SIZE,
+                  8,
+                  GLX_ACCUM_BLUE_SIZE,
+                  8,
+                  GLX_ACCUM_ALPHA_SIZE,
+                  8, */
+                  GLX_AUX_BUFFERS,
+                  CSE.getGraphicNAuxBuffers(),
+                  GLX_STENCIL_SIZE,
+                  CSE.getGraphicStencilBufferSize(),
+                  None };
   XVisualInfo *vi = glXChooseVisual(static_dpy, screen, att);
-  if (vi == NULL) {
-    // try with less options
-    GLint att[] = { GLX_RGBA,   GLX_DEPTH_SIZE,
-                    24,         GLX_DOUBLEBUFFER,
-                    GLX_USE_GL, GLX_RED_SIZE,
-                    8,          GLX_GREEN_SIZE,
-                    8,          GLX_BLUE_SIZE,
-                    8,          GLX_ALPHA_SIZE,
-                    8,          None };
+  auto red = reductions;
+  while (vi == NULL && red->option) {
+    W_CNF("BareDuecaGLWindow, reducing visual options: " << red->option);
+    if (red->idx0)
+      att[red->idx0] = 0;
+    if (red->idx1)
+      att[red->idx1] = 0;
+    if (red->idx2)
+      att[red->idx2] = 0;
+    if (red->idx3)
+      att[red->idx3] = 0;
+    red++;
     vi = glXChooseVisual(static_dpy, screen, att);
   }
   if (vi == NULL) {
-    // try with less options
-    GLint att[] = { GLX_RGBA,         GLX_DEPTH_SIZE, 16,
-                    GLX_DOUBLEBUFFER, GLX_USE_GL,     None };
-    vi = glXChooseVisual(static_dpy, screen, att);
-  }
-
-  if (vi == NULL) {
-    cerr << "Cannot find appropriate visual" << endl;
+    W_CNF("BareDuecaGLWindow, cannot find appropriate visual");
   }
 
   my->glc = glXCreateContext(static_dpy, vi, shared_context, GL_TRUE);
@@ -461,6 +490,9 @@ void BareDuecaGLWindow::redraw()
   if (not my->xwin)
     openWindow();
 
+  if (CSE.getXMultithreadLock())
+    XLockDisplay(static_dpy);
+
   // process events
   union {
     XEvent x_event;
@@ -540,11 +572,13 @@ void BareDuecaGLWindow::redraw()
       }
     }
   }
+  if (CSE.getXMultithreadLock())
+    XUnlockDisplay(static_dpy);
 
   glXMakeCurrent(static_dpy, my->xwin, my->glc);
   display();
   glFlush();
-  glXSwapBuffers(static_dpy, my->xwin);   // swap should occur at retrace
+  glXSwapBuffers(static_dpy, my->xwin); // swap should occur at retrace
   glXMakeCurrent(static_dpy, 0, 0);
 }
 

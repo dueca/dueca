@@ -36,13 +36,13 @@ typedef BareDuecaGLWindow DuecaGLWindow;
 } // namespace dueca
 #endif
 
-#elif DUECA_CONFIG_GTK3
+#elif defined(DUECA_CONFIG_GTK3)
 
 #include <gtk/gtk.h>
 
 /** @TODO: for now, the bare GL window is used. The Gtk3 GL code is not
     compatible with a lot of our old API gl drawing */
-#if GTK_CHECK_VERSION(3, 16, 0) && 0
+#if GTK_CHECK_VERSION(3, 16, 0) & 0
 
 #include <extra/gui/gtk3/DuecaGLGtk3Window.hxx>
 //namespace dueca {

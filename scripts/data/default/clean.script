@@ -12,3 +12,13 @@ find . -type l -exec rm {} \;
 rm -f runscript
 
 # clean the user's stuff (that's you, you have to add your commands here!)
+
+# also clean all result files if specified
+if [ "$1" = "--all" ]; then
+
+    # folder with run results
+    rm -rf runlogs
+
+    # user's additional files, if not moved to runlogs
+
+fi

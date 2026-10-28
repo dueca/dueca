@@ -96,6 +96,9 @@ public: // class name and trim/parameter tables
   /** Return the parameter table. */
   static const ParameterTable*       getParameterTable();
 
+  /** Override objecttype */
+  ObjectType getObjectType() const override { return O_Dueca; }
+
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
   LogView(Entity* e, const char* part, const PrioritySpec& ts);

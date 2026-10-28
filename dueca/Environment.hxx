@@ -191,6 +191,9 @@ private:
   /** Size of the stencil buffer. */
   int graphic_stencil_buffer_size;
 
+  /** Number of aux GL buffers */
+  int graphic_num_aux_buffers;
+
   /** Initialising Xlib lock */
   bool xlib_lock;
 
@@ -347,18 +350,28 @@ public:
   }
 
   /** Return the size of the depth buffer. */
-  inline bool getGraphicDepthBufferSize() const
+  inline int getGraphicDepthBufferSize() const
   {
     return graphic_depth_buffer_size;
   }
 
+  /** Return the size of the depth buffer. */
+  inline int getGraphicNAuxBuffers() const
+  {
+    return graphic_num_aux_buffers;
+  }
+
   /** Return the size of the stencil buffer. */
-  inline bool getGraphicStencilBufferSize() const
+  inline int getGraphicStencilBufferSize() const
   {
     return graphic_stencil_buffer_size;
   }
 
+  /** Check whether all gl context should be shared */
   inline bool getShareGLContexts() const { return share_gl_contexts; }
+
+  /** Check whether X multithread + global X lock needed */
+  inline bool getXMultithreadLock() const { return xlib_lock; }
 
   /** Member call. */
   bool setGraphicUseDepthBuffer(const bool &v);

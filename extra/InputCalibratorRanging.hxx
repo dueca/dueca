@@ -16,6 +16,7 @@
 #pragma once
 
 #include <iostream>
+#include <cmath>
 
 namespace dueca {
 
@@ -30,7 +31,7 @@ struct RangingLockReason {
 
   template <typename OS> OS &print(OS &os) const {
      double _r = r.out_max - r.out_min;
-  if ((r.found_max - r.found_min - _r) <= _r * r.range_tolerance) {
+  if (std::fabs(r.found_max - r.found_min - _r) <= _r * r.range_tolerance) {
     os << "range matching ";
   }
   else {
@@ -261,9 +262,15 @@ R InputCalibratorRanging<T, R>::bitDifference(const double r) const
 template <class T, class R> bool InputCalibratorRanging<T, R>::lockOffset()
 {
   double r = out_max - out_min;
-  if ((found_max - found_min - r) <= r * range_tolerance) {
+  if (std::fabs(found_max - found_min - r) <= r * range_tolerance) {
     double new_offset = 0.5 * (out_max - found_max + out_min - found_min);
+
+    // set the offset in the converter
     converter.adjustOffset(new_offset);
+
+    // update the measured value
+    newConversion(in_coming);
+
     return true;
   }
   return false;

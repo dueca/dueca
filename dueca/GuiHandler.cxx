@@ -11,7 +11,6 @@
         license         : EUPL-1.2
 */
 
-
 #define GuiHandler_cxx
 #include <dueca-conf.h>
 
@@ -21,6 +20,10 @@
 #include <dassert.h>
 #include "StartIOStream.hxx"
 #include "DuecaEnv.hxx"
+#ifdef HAVE_X11_XLIB_H
+#include <X11/Xlib.h>
+#endif
+
 using namespace std;
 
 namespace dueca {
@@ -28,9 +31,9 @@ namespace dueca {
 bool GuiHandler::glut_initialised = false;
 bool GuiHandler::hooks_done = false;
 
-std::map<std::string, GuiHandler*> &GuiHandler::all()
+std::map<std::string, GuiHandler *> &GuiHandler::all()
 {
-  static std::map<std::string, GuiHandler*>_all;
+  static std::map<std::string, GuiHandler *> _all;
   return _all;
 }
 
@@ -40,7 +43,7 @@ std::list<initf> &GuiHandler::hooks()
   return _hooks;
 }
 
-GuiHandler::GuiHandler(const std::string& name) :
+GuiHandler::GuiHandler(const std::string &name) :
   in_gui(false),
   guiname(name)
 {
@@ -59,13 +62,17 @@ GuiHandler::GuiHandler(const std::string& name) :
 
 void GuiHandler::init(bool xlib_lock)
 {
+#ifdef HAVE_X11_XLIB_H
+  if (xlib_lock) {
+    if (!XInitThreads()) {
+      cerr << "Xlib thread initiation failed" << endl;
+    }
+  }
+#endif
   runHooks();
 }
 
-GuiHandler::~GuiHandler()
-{
-  assert(in_gui == false);
-}
+GuiHandler::~GuiHandler() { assert(in_gui == false); }
 
 void GuiHandler::passControl()
 {
@@ -77,10 +84,7 @@ void GuiHandler::passControl()
   }
 }
 
-void GuiHandler::returnControl()
-{
-  in_gui = false;
-}
+void GuiHandler::returnControl() { in_gui = false; }
 
 void GuiHandler::addInitHook(initf hook)
 {

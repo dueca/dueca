@@ -41,6 +41,7 @@ namespace dueca {
 */
 class DuecaGLGtk3Window : public DuecaGtkInteraction
 {
+public:
   /** Display */
   GdkDisplay *gdk_display_id;
 
@@ -53,6 +54,10 @@ class DuecaGLGtk3Window : public DuecaGtkInteraction
   /** cursor to be used */
   GdkCursor *gdk_cursor_id;
 
+  /** initcalled */
+  bool needcallinit;
+
+private:
   /** Window title */
   std::string title;
 
@@ -78,7 +83,8 @@ public:
   */
   DuecaGLGtk3Window(const char *window_title = "DUECA",
                     bool pass_passive = false, bool depth_buffer = true,
-                    bool stencil_buffer = false);
+                    bool stencil_buffer = false, unsigned display_periods = 0,
+                    bool pass_touch = false);
 
   /// Destructor
   ~DuecaGLGtk3Window();
@@ -151,8 +157,7 @@ public:
 
 #else
 #warning "Cannot compile DuecaGLGtk3Window for gtk3"
-namespace dueca {
-} // namespace dueca
+namespace dueca {} // namespace dueca
 #endif
 
 #endif

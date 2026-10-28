@@ -87,8 +87,7 @@ set(DUECASOURCES
   UCallbackOrActivity.hxx UCallbackOrActivity.cxx
   ManualTriggerPuller.hxx ManualTriggerPuller.cxx
   ReferenceHolder.hxx ReferenceHolder.cxx
-  )
-
+)
 
 set(SCRAMNETSOURCES
 
@@ -108,7 +107,7 @@ set(STARTSOURCESSCHEME
   ArgListProcessor.cxx InitScheme.cxx SchemeObject.cxx
   CreationCenter_Scheme.hxx Entity_Scheme.hxx
   CreationCenter.hxx SchemeClassData.hxx
-  SchemeClassData.cxx  TypeCreator.cxx
+  SchemeClassData.cxx TypeCreator.cxx
   SchemeScripting.cxx
   SchemeScripting.hxx CoreCreator.cxx dueca_assert.c)
 
@@ -207,14 +206,14 @@ pkg_check_modules(PUGIXML REQUIRED pugixml)
 # common libraries
 dueca_add_library(dueca
   SOURCES ${DCO_OUTPUT_HEADERS} ${DCO_OUTPUT_SOURCE} ${DUECASOURCES}
-  LINKLIBS ${CMAKE_THREAD_LIBS_INIT} ${PUGIXML_LIBRARIES} ${ATOMIC_LIBRARY} fmt::fmt)
+  LINKLIBS ${CMAKE_THREAD_LIBS_INIT} ${PUGIXML_LIBRARIES} ${ATOMIC_LIBRARY} ${X11_LIBRARIES} fmt::fmt)
 
-if (BUILD_SHM)
+if(BUILD_SHM)
   dueca_add_library(dueca-shm
     SOURCES ${SHMSOURCES}
     LINKLIBS dueca)
 endif()
-if (BUILD_IP)
+if(BUILD_IP)
   dueca_add_library(dueca-ip
     SOURCES ${IPSOURCES}
     LINKLIBS dueca)
@@ -239,7 +238,7 @@ foreach(S ${SCRIPTLANG})
     ${CMAKE_CURRENT_BINARY_DIR}/dueca-start-${SCRIPT_${S}_SUFFIX}.pc
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-  if (BUILD_SHM)
+  if(BUILD_SHM)
     dueca_add_library(dueca-shm-${SCRIPT_${S}_SUFFIX} ${STARTLIB_STATIC}
       SOURCES InitShm.cxx ${DCO_OUTPUT_HEADERS}
       LINKLIBS dueca-start-${SCRIPT_${S}_SUFFIX} dueca-shm
@@ -250,7 +249,7 @@ foreach(S ${SCRIPTLANG})
     install(FILES
       ${CMAKE_CURRENT_BINARY_DIR}/dueca-shm-${SCRIPT_${S}_SUFFIX}.pc
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-    if (SCRAMNET_FOUND)
+    if(SCRAMNET_FOUND)
       dueca_add_library(dueca-scramnet-${SCRIPT_${S}_SUFFIX} ${STARTLIB_STATIC}
         SOURCES ${SCRAMNETSOURCES}
         LINKLIBS dueca-shm-${SCRIPT_${S}_SUFFIX} ${SCRAMNET_LIBRARIES}
@@ -261,10 +260,10 @@ foreach(S ${SCRIPTLANG})
       install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/dueca-scramnet-${SCRIPT_${S}_SUFFIX}.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-   endif()
+    endif()
   endif()
 
-  if (BUILD_IP)
+  if(BUILD_IP)
     dueca_add_library(dueca-ip-${SCRIPT_${S}_SUFFIX} ${STARTLIB_STATIC}
       SOURCES InitIp.cxx ${DCO_OUTPUT_HEADERS}
       LINKLIBS dueca-start-${SCRIPT_${S}_SUFFIX} dueca-ip
@@ -291,17 +290,17 @@ endforeach()
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dueca.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-if (BUILD_SHM)
+if(BUILD_SHM)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dueca-shm.pc
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-  if (SCRAMNET_FOUND)
+  if(SCRAMNET_FOUND)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dueca-scramnet.pc
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   endif()
 endif()
 
-if (BUILD_IP)
+if(BUILD_IP)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dueca-ip.pc
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
