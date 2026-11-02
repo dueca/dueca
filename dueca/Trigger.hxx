@@ -338,6 +338,9 @@ public:
   /** Is this target connected? */
   bool hasTriggers() const { return pullers.size() > 0U; }
 
+  /** Print the current status */
+  void printStatus(std::ostream& os) const;
+
  private:
   /** Remove triggering, normally when a puller is destructed */
   void forgetTrigger(const TriggerPuller* p);
