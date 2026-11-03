@@ -367,6 +367,7 @@ void ObjectManager::destructAllButCrew()
     if (object_registry.contains(ii) &&
         object_registry[ii].getObject()->getObjectType() != O_Dueca &&
         object_registry[ii].getObject()->getObjectType() != O_Entity &&
+        object_registry[ii].getObject()->getObjectType() != O_CommAccessor &&
         getNameSet(ii).getEntity() != std::string("dueca")) {
       /* DUECA system.
 

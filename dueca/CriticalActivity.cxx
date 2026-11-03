@@ -302,7 +302,7 @@ bool CriticalActivity::criticalErrorNodeWide()
     node_safe = false;
 
     // stop the packers, stop sending data to other nodes
-    PackerManager::single()->stopPackers(SimTime::now());
+    // PackerManager::single()->stopPackers(SimTime::now());
 
     /* DUECA activity.
 

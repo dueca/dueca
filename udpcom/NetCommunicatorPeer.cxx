@@ -607,8 +607,10 @@ void NetCommunicatorPeer::clearConnections()
   backup_send_buffer = NULL;
 
   // reset the communication devices
-  data_comm.reset();
-  conf_comm.reset();
+  // data_comm.reset();
+  data_comm->disconnect();
+  conf_comm->disconnect();
+  //conf_comm.reset();
 
   message_cycle = 0;
   follow_id = 0xffff;

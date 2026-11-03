@@ -47,7 +47,7 @@ namespace dueca {
 
     For point-to-point, the master receives on (port), and sends on
     (port + 1), the peer receives on (port + 1) and sends on (port). For
-    broadcast and multicast, a single port is used. 
+    broadcast and multicast, a single port is used.
 
     port_re_use is for testing purposes generally, running multiple
     DUECA on a single computer.
@@ -158,6 +158,9 @@ public:
   /** Flush initial data, to make sure no old messages taint this
       communication */
   void flush() override;
+
+  /** Disconnect the communication */
+  void disconnect() final;
 };
 
 

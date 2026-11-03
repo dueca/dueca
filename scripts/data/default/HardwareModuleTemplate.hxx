@@ -17,7 +17,7 @@
 // include the dusime common classes, and some extra for hardware module
 #include <dusime/dusime.h>
 #include <dueca/CriticalActivity.hxx>
-#include <dueca/HardwareModule.hxx>
+#include <dusime/HardwareModule.hxx>
 
 // include headers for functions/classes you need in the module
 

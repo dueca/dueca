@@ -183,7 +183,8 @@ void NetCommunicatorMaster::stopServer()
   }
 
   // remove the communicator, resets the UDP or Websocket connections
-  data_comm.reset();
+  // data_comm.reset();
+  data_comm->disconnect();
   // conf_comm.reset();
 }
 
