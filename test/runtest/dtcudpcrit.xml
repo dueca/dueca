@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scenario xmlns="https://dueca.tudelft.nl/testscenario" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl/testscenario https://dueca.tudelft.nl/schemas/testscenario.xsd">
+  <!-- scenario description
+
+    This uses the DuecaTestCommunication project in its simplest way possible,
+    but with the simulation distributed over two nodes.
+
+    To recreate:
+
+    - start with ./test/runtest/createrun dtcudpcrit.xml
+    - calibrate top left corner of window with F3
+    - wait for button images with F4 F5 F6 F7 (image sizes 48 to 140)
+    - click buttons to advance
+    - this simulation flags a critical error, then stops itself
+  -->
+  <project name="DuecaTestCommunication">
+    <window>DUECA/DUSIME control panel</window>
+    <window>Are you serious?</window>
+  </project>
+  <repository>https://github.com/dueca/</repository>
+  <buildoptions>-DUSE_GTK3=ON</buildoptions>
+  <execute>
+    <platform>udp-two-crit</platform>
+    <node>node2</node>
+    <command>./runscript</command>
+  </execute>
+  <execute>
+    <platform>udp-two-crit</platform>
+    <node>node1</node>
+    <command>./runscript</command>
+  </execute>
+  <offset x="-1" y="17" criterion="0.995" template-pattern="/gtk3/*.png"/>
+  <actions>
+    <check-image window="DUECA/DUSIME control panel" x="460" y="64" template="buttongreensel" testsize="96" timeout="30.0" wait="0.5" criterion="0.995"/>
+    <check-image window="DUECA/DUSIME control panel" x="464" y="93" template="buttongraysel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <click relative="true" x="3" y="-3" button="Button.left" pressed="true" wait="0.3"/>
+    <click relative="true" x="3" y="-3" button="Button.left" pressed="false" wait="0.3"/>
+    <check-image window="DUECA/DUSIME control panel" x="460" y="96" template="buttongreensel" testsize="96" timeout="15.0" wait="0.5" criterion="0.995"/>
+    <check-image window="DUECA/DUSIME control panel" x="460" y="131" template="buttongraysel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <click relative="true" x="-1" y="-1" button="Button.left" pressed="true" wait="0.3"/>
+    <click relative="true" x="-1" y="-1" button="Button.left" pressed="false" wait="0.3"/>
+    <check-image window="DUECA/DUSIME control panel" x="460" y="131" template="buttongreensel" testsize="96" timeout="15.0" wait="0.5" criterion="0.995"/>
+    <check-image window="DUECA/DUSIME control panel" x="461" y="164" template="buttongreensel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <check-image window="DUECA/DUSIME control panel" x="461" y="203" template="lightgraybutton" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <click relative="true" x="0" y="-33" button="Button.left" pressed="true" wait="0.3"/>
+    <click relative="true" x="0" y="-33" button="Button.left" pressed="false" wait="0.3"/>
+    <check-image window="DUECA/DUSIME control panel" x="461" y="203" template="buttongreensel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <check-image window="DUECA/DUSIME control panel" x="414" y="202" template="lightgraybutton" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <click relative="true" x="-3" y="-33" button="Button.left" pressed="true" wait="0.3"/>
+    <click relative="true" x="-3" y="-33" button="Button.left" pressed="false" wait="0.3"/>
+    <check-image window="DUECA/DUSIME control panel" x="415" y="203" template="buttongraysel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <check-image window="DUECA/DUSIME control panel" x="458" y="200" template="buttongreensel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <check-image window="DUECA/DUSIME control panel" x="460" y="236" template="buttongraysel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+    <click relative="true" x="-1" y="0" button="Button.left" pressed="true" wait="0.3"/>
+    <click relative="true" x="-1" y="0" button="Button.left" pressed="false" wait="0.3"/>
+    <check-image window="DUECA/DUSIME control panel" x="460" y="236" template="buttongreensel" testsize="96" timeout="10.0" wait="0.5" criterion="0.995"/>
+  </actions>
+</scenario>
