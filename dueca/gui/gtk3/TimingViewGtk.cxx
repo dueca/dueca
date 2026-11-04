@@ -11,7 +11,6 @@
         license         : EUPL-1.2
 */
 
-
 #define TimingViewGtk_cxx
 
 #include <dueca-conf.h>
@@ -136,7 +135,7 @@ bool TimingViewGtk::complete()
      8 stepsize
   */
 
-  for (int ii = no_nodes; ii--; ) {
+  for (int ii = 0; ii < no_nodes; ii++) {
     gtk_list_store_append(gui.synctable_store, &iter);
     gtk_list_store_set(gui.synctable_store, &iter, 0, ii,
                        1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, -1);
@@ -247,6 +246,3 @@ void TimingViewGtk::requestSync(GtkButton *button, gpointer user_data)
 }
 
 } // namespace dueca
-
-
-
