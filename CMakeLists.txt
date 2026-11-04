@@ -21,10 +21,10 @@ endforeach()
 # version information, please update accordingly
 set(VERMAJOR 4)
 set(VERMINOR 3)
-set(REVISION 4)
+set(REVISION 5)
 set(GENCODEGEN 111)
 set(SOVERSION "${VERMAJOR}.${VERMINOR}")
-set(VERSION_DATE "16 Oct 2026")
+set(VERSION_DATE "04 Nov 2026")
 string(REPLACE " " "" "${VERSION_DATE}" CLIENT_DATE)
 set(versioned "${VERMAJOR}-${VERMINOR}-${REVISION}")
 
