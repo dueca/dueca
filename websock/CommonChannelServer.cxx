@@ -788,7 +788,7 @@ WriteReadEntry::WriteReadEntry(std::shared_ptr<WriteReadSetup> setup,
                                const PrioritySpec &ps, bool iextended) :
   ChannelWatcher(setup->r_channelname),
   INIT_REFCOUNT_COMMA autostart_cb(this, &WriteReadEntry::tokenValid),
-  do_valid(master->getId(), "channel valid", &autostart_cb, ps),
+  do_valid(imaster->getId(), "channel valid", &autostart_cb, ps),
   marker(imaster->getMarker()),
   state(UnConnected),
   w_token(),

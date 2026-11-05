@@ -234,6 +234,7 @@ void NodeManager::processMessages(const TimeSpec &time)
     // this is the command to break up the system.
     // start an activity, ticker activated, that will stop dueca just
     // a little bit later (and at the same time as all other nodes)
+    ScriptInterpret::single()->writeQuit();
 
     // confirm we are "loose"
     wrapSendEvent(w_control,
@@ -290,7 +291,7 @@ void NodeManager::breakUp()
   TimeTickType stop_time = SimTime::getTimeTick() +
                            int(3.0 / Ticker::single()->getTimeGranule() + 0.5);
 
-  ScriptInterpret::single()->writeQuit();
+  // ScriptInterpret::single()->writeQuit();
   wrapSendEvent(w_control,
                 new NodeControlMessage(NodeControlMessage::NodeBreak),
                 stop_time);

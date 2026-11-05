@@ -60,7 +60,8 @@ const char* Packer::getTypeName()
 
 Packer::~Packer()
 {
-  //
+  delete [] store;
+  store = NULL;
 }
 
 void Packer::
@@ -77,10 +78,6 @@ initialiseStores(char** area, int* store_status,
 
 void Packer::stopPacking(TimeTickType tick)
 {
-  // my own work
-  delete [] store;
-  store = NULL;
-
   // my parent's work
   GenericPacker::stopPacking(tick);
 }

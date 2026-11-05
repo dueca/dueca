@@ -32,16 +32,14 @@ namespace dueca {
     your dueca.mod script, like:
 
     \code
-    (define dueca-internal
-     (make-entity "dueca"
-               (if (eq? this-node-id 0)
-                (list
-                (make-module 'dusime "" admin-priority)
-                (make-module 'dueca-view "" admin-priority)
-                (make-module 'activity-view "" admin-priority)
-                (make-module 'timing-view "" admin-priority)
-                ) () )
-               ) )
+    # create a list of modules:
+    DUECA_mods = []
+    DUECA_mods.append(dueca.Module("dusime", "", admin_priority))
+    DUECA_mods.append(dueca.Module("dueca-view", "", admin_priority))
+    DUECA_mods.append(dueca.Module("activity-view", "", admin_priority))
+    DUECA_mods.append(dueca.Module("timing-view", "", admin_priority))
+    # ... etc,
+    DUECA_entity = dueca.Entity("dueca", DUECA_mods)
     \endcode
 
     Note the order in which the dueca/dusime objects are

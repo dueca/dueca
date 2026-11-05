@@ -107,7 +107,7 @@ protected:
   /** Node id for the purpose of sending/communicating */
   const unsigned                   peer_id;
 
-  /** Operational flag, reset when errors occur */
+  /** Operational flag, reset when errors occur or after disconnect */
   bool                             is_operational;
 
   /** Callback object */
@@ -142,6 +142,9 @@ public:
 
   /** Is operational ?*/
   virtual bool isOperational();
+
+  /** Disconnect the communication */
+  virtual void disconnect() = 0;
 };
 
 /** Key object for factory specification */

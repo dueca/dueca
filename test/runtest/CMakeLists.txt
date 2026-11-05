@@ -75,6 +75,7 @@ set(CONTROLFILES
   replayscenario_gtk4      # Re-run this, but with gtk4
   dtcabort                 # DuecaTestCommunication, abort button
   dtcintermagicfail        # DuecaTestCommunication, six processes, inter magic mismatch
+  dtcudpcrit               # DuecaTestCommunication, 2 nodes, criticalerror flagged
 )
 
 # run these tests with enough python modules

@@ -323,6 +323,23 @@ void TriggerTarget::clearTriggers()
   pullers.clear();
 }
 
+void TriggerTarget::printStatus(std::ostream &os) const
+{
+  os << "target: " << getTargetName();
+  unsigned ip = 0U;
+  for (const auto &p : pullers) {
+    os << " p" << ip << ":" << p.puller->name << " r=";
+    if (p.time_head)
+      os << p.time_head->ts.getValidityStart();
+    else
+      os << "-";
+    if (p.time_tail)
+      os << p.time_tail->ts.getValidityStart();
+    else
+      os << "-";
+  }
+}
+
 bool TargetAndPuller::removeTerm(TriggerPuller &p)
 {
   for (pullers_type::iterator pp = pullers.begin(); pp != pullers.end(); pp++) {

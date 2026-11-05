@@ -333,6 +333,9 @@ void DuecaNetMaster::runIO(const TimeSpec &ts)
   keep_tick = ts.getValidityStart();
   doCycle(ts, net_io);
   DEB2("master run done");
+  if (net_io.lastCycle(ts)) {
+    NetCommunicatorMaster::breakCommunication();
+  }
 }
 
 DuecaNetMaster::PeerMeta::PeerMeta(uint32_t nodeid, const std::string &name,
@@ -563,7 +566,6 @@ void DuecaNetMaster::prepareToStop(TimeTickType tick)
      Information on planned stop of the communication. */
   I_NET("DuecaNetMaster stopping communication");
   net_io.switchOff(tick);
-  NetCommunicatorMaster::breakCommunication();
 }
 
 void DuecaNetMaster::clientWelcomeConfig(AmorphStore &s, unsigned peer_id)

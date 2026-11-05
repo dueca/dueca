@@ -665,6 +665,13 @@ std::pair<int, ssize_t> WebsockCommunicatorMaster::receive()
   return std::make_pair(-1, ssize_t(0));
 }
 
+void WebsockCommunicatorMaster::disconnect()
+{
+  config->server->stop();
+  is_operational = false;
+}
+
+
 // ----------------------------------------------------------------
 
 WebsockCommunicatorPeer::WebsockCommunicatorPeer(
@@ -782,6 +789,11 @@ WebsockCommunicatorPeer::WebsockCommunicatorPeer(
 }
 
 WebsockCommunicatorPeer::~WebsockCommunicatorPeer() {}
+void WebsockCommunicatorPeer::disconnect()
+{
+  client->stop();
+  is_operational = false;
+}
 
 std::pair<int, ssize_t> WebsockCommunicatorPeer::receive()
 {

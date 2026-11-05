@@ -2,6 +2,18 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## [4.3.5] - 2026-11-04
+
+### Changed
+
+- Corrected the numbering of nodes in gtk3/TimingViewGtk
+- MAJOR: keep communication running after flagging criticalErrorNodeWide
+- Fixes in net communication, prevent crashes when shutting down dueca
+
+### Added
+
+- A test case dtcudpcrit.xml, testing criticalErrorNodeWide
+
 ## [4.3.4] - 2026-10-16
 
 ### Changed

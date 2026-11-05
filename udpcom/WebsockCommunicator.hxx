@@ -204,6 +204,9 @@ public:
   /** Blocking receive data
       @returns Number of bytes received */
   std::pair<int, ssize_t> receive() final;
+
+  /** Disconnect the communication */
+  void disconnect() final;
 };
 
 /** Packet communication over websocket connection, peer
@@ -258,6 +261,9 @@ public:
 
   /** Check operational */
   bool isOperational() override;
+
+  /** Disconnect the communication */
+  void disconnect() final;
 };
 
 /** Configuration communication over websocket connection, peer

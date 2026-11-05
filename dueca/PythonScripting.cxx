@@ -16,7 +16,7 @@
 #include <dueca/ScriptInterpret.hxx>
 #include <dueca/Environment.hxx>
 #include <dueca/debug.h>
-#define DEBPRINTLEVEL -1
+#define DEBPRINTLEVEL 1
 #include <debprint.h>
 #include <fstream>
 #include <dueca-conf.h>
@@ -359,9 +359,11 @@ bool PythonScripting::writeline(const std::string &line)
 
     // flush the output file
     scratchfile.flush();
+    DEB("Wrote a stopline, and flush");
     return true;
   }
   if (line == quitline) {
+    DEB("Wrote the quitline");
     running = false;
     return false;
   }

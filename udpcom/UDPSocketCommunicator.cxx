@@ -115,6 +115,12 @@ UDPSocketCommunicator::UDPSocketCommunicator(
 
 UDPSocketCommunicator::~UDPSocketCommunicator() { undoUDPConnection(); }
 
+void UDPSocketCommunicator::disconnect()
+{
+  undoUDPConnection();
+  is_operational = false;
+}
+
 void UDPSocketCommunicator::configureHostAddress()
 {
   // initial start interface address
